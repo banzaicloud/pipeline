@@ -86,6 +86,21 @@ var Config struct {
 							Tag        string
 							PullPolicy string
 						}
+						AwsPluginImage struct {
+							Repository string
+							Tag        string
+							PullPolicy string
+						}
+						AzurePluginImage struct {
+							Repository string
+							Tag        string
+							PullPolicy string
+						}
+						GcpPluginImage struct {
+							Repository string
+							Tag        string
+							PullPolicy string
+						}
 					}
 				}
 			}

@@ -16,9 +16,9 @@ package ark
 
 import (
 	"emperror.dev/errors"
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -197,6 +197,23 @@ func (s *RestoresService) Create(req api.CreateRestoreRequest) (*api.Restore, er
 	client, err := s.deployments.GetClient()
 	if err != nil {
 		return nil, errors.WrapIf(err, "error getting ark client")
+	}
+
+	// latest Velero restore needs the Backup resource to exist
+	_, err = client.GetBackupByName(req.BackupName)
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			s.logger.Debugf("create backup resource %s", req.BackupName)
+			_, err := client.CreateBackup(api.CreateBackupRequest{
+				Name:   req.BackupName,
+				Labels: req.Labels,
+			})
+			if err != nil {
+				return nil, errors.WrapIf(err, "error creating backup resource necessary for restore")
+			}
+		} else {
+			return nil, errors.WrapIf(err, "error finding backup resource necessary for restore")
+		}
 	}
 
 	restore, err := client.CreateRestore(req)

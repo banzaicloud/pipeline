@@ -15,48 +15,22 @@
 package azure
 
 import (
-	"time"
+	"github.com/vmware-tanzu/velero/pkg/plugin/velero"
 
-	"github.com/heptio/ark/pkg/cloudprovider"
-
+	arkProviders "github.com/banzaicloud/pipeline/internal/ark/providers"
 	"github.com/banzaicloud/pipeline/internal/providers"
-	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 )
 
-type objectStore struct {
-	objectstore.ObjectStore
-}
-
 // NewObjectStore creates a new objectStore
-func NewObjectStore(ctx providers.ObjectStoreContext) (cloudprovider.ObjectStore, error) {
+func NewObjectStore(ctx providers.ObjectStoreContext) (velero.ObjectStore, error) {
 	config := azureObjectstore.Config{
 		StorageAccount: ctx.StorageAccount,
 		ResourceGroup:  ctx.ResourceGroup,
 	}
 
-	return &objectStore{
-		ObjectStore: azureObjectstore.New(config, *azure.NewCredentials(ctx.Secret.Values)),
+	return &arkProviders.ObjectStore{
+		ProviderObjectStore: azureObjectstore.New(config, *azure.NewCredentials(ctx.Secret.Values)),
 	}, nil
-}
-
-// This actually does nothing in this implementation
-func (o *objectStore) Init(config map[string]string) error {
-	return nil
-}
-
-// CreateSignedURL gives back a signed URL for the object that expires after the given ttl
-func (o *objectStore) CreateSignedURL(bucket, key string, ttl time.Duration) (string, error) {
-	return o.GetSignedURL(bucket, key, ttl)
-}
-
-// ListObjects gets all keys with the given prefix from the bucket
-func (o *objectStore) ListObjects(bucket, prefix string) ([]string, error) {
-	return o.ListObjectsWithPrefix(bucket, prefix)
-}
-
-// ListCommonPrefixes gets a list of all object key prefixes that come before the provided delimiter
-func (o *objectStore) ListCommonPrefixes(bucket, delimiter string) ([]string, error) {
-	return o.ListObjectKeyPrefixes(bucket, delimiter)
 }

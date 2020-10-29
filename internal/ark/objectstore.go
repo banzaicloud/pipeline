@@ -15,7 +15,7 @@
 package ark
 
 import (
-	"github.com/heptio/ark/pkg/cloudprovider"
+	"github.com/vmware-tanzu/velero/pkg/plugin/velero"
 
 	"github.com/banzaicloud/pipeline/internal/ark/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
@@ -25,8 +25,26 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
 
+type objectStoreGetter struct {
+	objectStore velero.ObjectStore
+}
+
+func (o *objectStoreGetter) GetObjectStore(provider string) (velero.ObjectStore, error) {
+	return o.objectStore, nil
+}
+
+func NewObjectStoreGetter(ctx iProviders.ObjectStoreContext) (*objectStoreGetter, error) {
+	store, err := NewObjectStore(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &objectStoreGetter{
+		store,
+	}, nil
+}
+
 // NewObjectStore gets a initialized ObjectStore for the given provider
-func NewObjectStore(ctx iProviders.ObjectStoreContext) (cloudprovider.ObjectStore, error) {
+func NewObjectStore(ctx iProviders.ObjectStoreContext) (velero.ObjectStore, error) {
 	switch ctx.Provider {
 	case providers.Google:
 		return google.NewObjectStore(ctx)

@@ -30,6 +30,7 @@ type ClusterBackupBucketsModel struct {
 	Cloud          string
 	SecretID       string
 	BucketName     string
+	Prefix         string
 	Location       string
 	StorageAccount string
 	ResourceGroup  string
@@ -68,6 +69,7 @@ func (m *ClusterBackupBucketsModel) ConvertModelToEntity() *api.Bucket {
 	return &api.Bucket{
 		ID:       m.ID,
 		Name:     m.BucketName,
+		Prefix:   m.Prefix,
 		Cloud:    m.Cloud,
 		SecretID: m.SecretID,
 		Location: m.Location,

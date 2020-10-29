@@ -322,3 +322,26 @@ func (o *objectStore) convertError(err error) error {
 
 	return err
 }
+
+func (o *objectStore) ListObjectKeyPrefixesStartingWithPrefix(bucketName string, prefix string, delimiter string) ([]string, error) {
+	bucketObj, err := o.client.Bucket(bucketName)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "error getting bucket instance", "bucket", bucketName)
+	}
+	var res []string
+	marker := oss.Marker("")
+	for {
+		lor, err := bucketObj.ListObjects(oss.Prefix(prefix), oss.Delimiter(delimiter), oss.MaxKeys(50), marker)
+		if err != nil {
+			return res, err
+		}
+		res = append(res, lor.CommonPrefixes...)
+		if lor.IsTruncated {
+			marker = oss.Marker(lor.NextMarker)
+		} else {
+			break
+		}
+	}
+
+	return res, nil
+}

@@ -23,17 +23,21 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
-	"time"
 
 	"emperror.dev/errors"
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
-	"github.com/heptio/ark/pkg/cloudprovider"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
+	"github.com/vmware-tanzu/velero/pkg/persistence"
 	"k8s.io/kubernetes/pkg/apis/core"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+	"github.com/banzaicloud/pipeline/internal/ark/providers/amazon"
+	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
+	"github.com/banzaicloud/pipeline/internal/ark/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
 )
 
@@ -62,8 +66,8 @@ func NewBucketsService(
 	}
 }
 
-// GetObjectStoreForBucket create an initialized ObjectStore
-func (s *BucketsService) GetObjectStoreForBucket(bucket *api.Bucket) (cloudprovider.ObjectStore, error) {
+// GetBackupStore create an initialized BackupStore
+func (s *BucketsService) GetBackupStore(bucket *api.Bucket) (persistence.BackupStore, error) {
 	if bucket == nil {
 		return nil, errors.New("could not get object store, bucket is nil")
 	}
@@ -81,25 +85,60 @@ func (s *BucketsService) GetObjectStoreForBucket(bucket *api.Bucket) (cloudprovi
 		ResourceGroup:  bucket.ResourceGroup,
 	}
 
-	os, err := NewObjectStore(ctx)
-	if err != nil {
-		return nil, errors.WrapIf(err, "could not initialize object store client")
+	var provider string
+	switch bucket.Cloud {
+	case pkgProviders.Amazon:
+		provider = amazon.BackupStorageProvider
+	case pkgProviders.Azure:
+		provider = azure.BackupStorageProvider
+	case pkgProviders.Google:
+		provider = google.BackupStorageProvider
+	default:
+		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
 
-	return os, nil
+	backupStorageLocation := &arkAPI.BackupStorageLocation{
+		Spec: arkAPI.BackupStorageLocationSpec{
+			StorageType: arkAPI.StorageType{
+				ObjectStorage: &arkAPI.ObjectStorageLocation{
+					Bucket: bucket.Name,
+					Prefix: bucket.Prefix,
+				},
+			},
+			Provider: provider,
+		},
+	}
+	osGetter, err := NewObjectStoreGetter(ctx)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not get object store")
+	}
+
+	backupStore, err := persistence.NewObjectBackupStore(backupStorageLocation, osGetter, s.logger)
+	if err != nil {
+		return nil, errors.WrapIf(err, "could not get backup store")
+	}
+
+	return backupStore, nil
 }
 
 // GetBackupsFromObjectStore gets Backups from object store bucket
 func (s *BucketsService) GetBackupsFromObjectStore(bucket *api.Bucket) ([]*arkAPI.Backup, error) {
-	os, err := s.GetObjectStoreForBucket(bucket)
+	backupStore, err := s.GetBackupStore(bucket)
 	if err != nil {
 		return nil, err
 	}
 
-	svc := cloudprovider.NewBackupService(os, s.logger)
-	backups, err := svc.GetAllBackups(bucket.Name)
+	backupNames, err := backupStore.ListBackups()
 	if err != nil {
 		return nil, err
+	}
+	backups := make([]*arkAPI.Backup, 0, len(backupNames))
+	for _, backupName := range backupNames {
+		backup, err := backupStore.GetBackupMetadata(backupName)
+		if err != nil {
+			return nil, err
+		}
+		backups = append(backups, backup)
 	}
 
 	return backups, nil
@@ -319,14 +358,12 @@ func (s *BucketsService) streamObjectFromObjectStore(
 	backupName string,
 	w io.Writer,
 ) error {
-	os, err := s.GetObjectStoreForBucket(bucket)
+	os, err := s.GetBackupStore(bucket)
 	if err != nil {
 		return err
 	}
 
-	svc := cloudprovider.NewBackupService(os, s.logger)
-
-	url, err := svc.CreateSignedURL(target, bucket.Name, backupName, 10*time.Minute)
+	url, err := os.GetDownloadURL(target)
 	if err != nil {
 		return err
 	}

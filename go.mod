@@ -51,7 +51,6 @@ require (
 	github.com/gorilla/sessions v1.2.0
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4
-	github.com/heptio/ark v0.9.3
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.10
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -93,6 +92,7 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
+	github.com/vmware-tanzu/velero v1.5.1
 	github.com/vmware/govmomi v0.22.0
 	go.opencensus.io v0.22.2
 	go.uber.org/cadence v0.13.4
@@ -102,8 +102,8 @@ require (
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.0
-	google.golang.org/genproto v0.0.0-20200212174721-66ed5ce911ce
-	google.golang.org/grpc v1.27.1
+	google.golang.org/genproto v0.0.0-20200731012542-8145dea6a485
+	google.golang.org/grpc v1.31.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
@@ -136,6 +136,8 @@ replace (
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
+
+	google.golang.org/grpc => google.golang.org/grpc v1.27.1
 
 	// Kubernetes
 	k8s.io/api => k8s.io/api v0.18.6

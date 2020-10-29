@@ -128,19 +128,20 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 
 	config, err := s.getChartConfig(ConfigRequest{
 		Cluster: clusterConfig{
-			Name:        s.cluster.GetName(),
-			Provider:    s.cluster.GetCloud(),
-			Location:    s.cluster.GetLocation(),
-			RBACEnabled: s.cluster.RbacEnabled(),
+			Name:         s.cluster.GetName(),
+			Provider:     s.cluster.GetCloud(),
+			Distribution: s.cluster.GetDistribution(),
+			Location:     s.cluster.GetLocation(),
+			RBACEnabled:  s.cluster.RbacEnabled(),
 			azureClusterConfig: azureClusterConfig{
 				ResourceGroup: resourceGroup,
 			},
 		},
 		ClusterSecret: clusterSecret,
-
 		Bucket: bucketConfig{
 			Provider: bucket.Cloud,
 			Name:     bucket.BucketName,
+			Prefix:   bucket.Prefix,
 			Location: bucket.Location,
 			azureBucketConfig: azureBucketConfig{
 				StorageAccount: bucket.StorageAccount,
@@ -148,8 +149,7 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 			},
 		},
 		BucketSecret: bucketSecret,
-
-		RestoreMode: restoreMode,
+		RestoreMode:  restoreMode,
 	})
 	if err != nil {
 		return errors.Wrap(err, "error service getting config")
@@ -176,7 +176,7 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 		true,
 	)
 	if err != nil {
-		err = errors.Wrap(err, "error deploying ark")
+		err = errors.Wrap(err, "error deploying velero")
 		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
 		_ = s.repository.Delete(deployment)
 		return err

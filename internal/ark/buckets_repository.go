@@ -121,6 +121,7 @@ func (s *BucketsRepository) FindOneOrCreateByRequest(req *api.CreateBucketReques
 	err := s.db.FirstOrInit(&bucket, ClusterBackupBucketsModel{
 		Cloud:          req.Cloud,
 		BucketName:     req.BucketName,
+		Prefix:         req.Prefix,
 		Location:       req.Location,
 		StorageAccount: req.StorageAccount,
 		ResourceGroup:  req.ResourceGroup,

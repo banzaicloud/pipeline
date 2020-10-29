@@ -15,7 +15,8 @@
 package api
 
 import (
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
+	pkgrestore "github.com/vmware-tanzu/velero/pkg/restore"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
@@ -30,10 +31,7 @@ type PersistRestoreRequest struct {
 }
 
 // RestoreResults describes a restore results
-type RestoreResults struct {
-	Errors   arkAPI.RestoreResult `json:"errors"`
-	Warnings arkAPI.RestoreResult `json:"warnings"`
-}
+type RestoreResults map[string]pkgrestore.Result
 
 // Restore describes an ARK restore
 type Restore struct {

@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -80,7 +80,6 @@ func (backup *ClusterBackupsModel) ConvertModelToEntity() *api.Backup {
 		Status:           backup.Status,
 		StartAt:          state.Status.StartTimestamp.Time,
 		ExpireAt:         state.Status.Expiration.Time,
-		VolumeBackups:    state.Status.VolumeBackups,
 		ValidationErrors: state.Status.ValidationErrors,
 		ClusterID:        backup.ClusterID,
 		ActiveClusterID:  backup.Bucket.Deployment.ClusterID,

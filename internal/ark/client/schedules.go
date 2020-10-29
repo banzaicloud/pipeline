@@ -17,7 +17,7 @@ package client
 import (
 	"context"
 
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

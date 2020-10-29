@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 	"github.com/banzaicloud/pipeline/src/secret"
@@ -39,33 +40,59 @@ type Secret struct {
 	StorageKey     string `json:"AZURE_STORAGE_KEY,omitempty"`
 }
 
+func GetAzureClusterResourceGroupName(distribution string, clusterResourceGroup string, clusterName string, location string) string {
+	if distribution == pkgCluster.AKS {
+		return fmt.Sprintf("MC_%s_%s_%s", clusterResourceGroup, clusterName, location)
+	}
+	return clusterResourceGroup
+}
+
 // GetSecretForBucket gets formatted secret for ARK backup bucket
-func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string, resourceGroup string) (Secret, error) {
+func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string,
+	bucketResourceGroup string, clusterResourceGroup string) (string, error) {
 	s := getSecret(secret)
 	s.StorageAccount = storageAccount
-	s.ResourceGroup = resourceGroup
+
+	// resource group in Azure secret has to be set always to cluster resource group, because this is used
+	// to get disks. Resource group for Object Storage will be set separately in backupStorageLocation config
+	s.ResourceGroup = clusterResourceGroup
 
 	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(*azure.NewCredentials(secret.Values))
 	if err != nil {
-		return Secret{}, errors.WrapIf(err, "failed to create storage account client")
+		return "", errors.WrapIf(err, "failed to create storage account client")
 	}
 
-	key, err := storageAccountClient.GetStorageAccountKey(resourceGroup, storageAccount)
+	key, err := storageAccountClient.GetStorageAccountKey(bucketResourceGroup, storageAccount)
 	if err != nil {
-		return Secret{}, err
+		return "", err
 	}
 
 	s.StorageKey = key
 
-	return s, nil
+	secretStr := fmt.Sprintf(
+		"AZURE_CLIENT_ID=%s\nAZURE_CLIENT_SECRET=%s\nAZURE_SUBSCRIPTION_ID=%s\n"+
+			"AZURE_TENANT_ID=%s\nAZURE_RESOURCE_GROUP=%s\nAZURE_CLOUD_NAME=AzurePublicCloud\n"+
+			"AZURE_STORAGE_ACCOUNT_ID=%s\nAZURE_STORAGE_KEY=%s\n",
+		s.ClientID, s.ClientSecret, s.SubscriptionID,
+		s.TenantID, s.ResourceGroup,
+		s.StorageAccount, s.StorageKey,
+	)
+
+	return secretStr, nil
 }
 
 // GetSecretForCluster gets formatted secret for cluster
-func GetSecretForCluster(secret *secret.SecretItemResponse, clusterName, location, resourceGroup string) (Secret, error) {
+func GetSecretForCluster(secret *secret.SecretItemResponse, resourceGroup string) (string, error) {
 	s := getSecret(secret)
-	s.ResourceGroup = fmt.Sprintf("MC_%s_%s_%s", resourceGroup, clusterName, location)
+	s.ResourceGroup = resourceGroup
 
-	return s, nil
+	secretStr := fmt.Sprintf(
+		"AZURE_CLIENT_ID=%s\nAZURE_CLIENT_SECRET=%s\nAZURE_SUBSCRIPTION_ID=%s\n"+
+			"AZURE_TENANT_ID=%s\nAZURE_RESOURCE_GROUP=%s\nAZURE_CLOUD_NAME=AzurePublicCloud\n",
+		s.ClientID, s.ClientSecret, s.SubscriptionID,
+		s.TenantID, s.ResourceGroup,
+	)
+	return secretStr, nil
 }
 
 // getSecret gets formatted secret for ARK

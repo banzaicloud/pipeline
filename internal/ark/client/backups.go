@@ -17,12 +17,17 @@ package client
 import (
 	"context"
 
-	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
+	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+)
+
+const (
+	DefaultVolumeSnapshotLocationName = "default"
+	DefaultBackupStorageLocationName = "default"
 )
 
 // CreateBackup creates an ARK backup by a CreateBackupRequest
@@ -42,6 +47,8 @@ func (c *Client) CreateBackup(spec api.CreateBackupRequest) (*arkAPI.Backup, err
 			IncludeClusterResources: spec.Options.IncludeClusterResources,
 			LabelSelector:           spec.Options.LabelSelector,
 			SnapshotVolumes:         spec.Options.SnapshotVolumes,
+			StorageLocation:         DefaultBackupStorageLocationName,
+			VolumeSnapshotLocations: []string{DefaultVolumeSnapshotLocationName},
 		},
 	}
 
