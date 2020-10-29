@@ -161,7 +161,7 @@ go get -u -v sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator
 
 #### EKS ami image query script
 
-```
+```bash
 K8S_VERSIONS=(
   "1.14"
   "1.15"

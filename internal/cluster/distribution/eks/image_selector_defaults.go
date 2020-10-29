@@ -314,8 +314,7 @@ var defaultARMImages = ImageSelectors{
 			"us-west-2":      "ami-04ef04314b56bb963", // US West (Oregon).
 
 			// AWS GovCloud (US) partition
-			"us-gov-east-1": "ami-TODO", // GovCloud (US-East)
-			"us-gov-west-1": "ami-TODO", // GovCloud (US-West)
+			// Not supported currently.
 		},
 	},
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.15.11
@@ -343,8 +342,7 @@ var defaultARMImages = ImageSelectors{
 			"us-west-2":      "ami-0a7fb37899667e74f", // US West (Oregon).
 
 			// AWS GovCloud (US) partition
-			"us-gov-east-1": "ami-TODO", // GovCloud (US-East) TODO
-			"us-gov-west-1": "ami-TODO", // GovCloud (US-West) TODO
+			// Not supported currently.
 		},
 	},
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.16.13
@@ -372,8 +370,7 @@ var defaultARMImages = ImageSelectors{
 			"us-west-2":      "ami-05f45bbc8a1899c07", // US West (Oregon).
 
 			// AWS GovCloud (US) partition
-			"us-gov-east-1": "ami-TODO", // GovCloud (US-East)
-			"us-gov-west-1": "ami-TODO", // GovCloud (US-West)
+			// Not supported currently.
 		},
 	},
 	KubernetesVersionImageSelector{ // Kubernetes Version 1.17.11
@@ -401,8 +398,7 @@ var defaultARMImages = ImageSelectors{
 			"us-west-2":      "ami-0c2396f876327a35a", // US West (Oregon).
 
 			// AWS GovCloud (US) partition
-			"us-gov-east-1": "ami-TODO", // GovCloud (US-East)
-			"us-gov-west-1": "ami-TODO", // GovCloud (US-West)
+			// Not supported currently.
 		},
 	},
 }
