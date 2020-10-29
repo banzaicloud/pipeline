@@ -20,6 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 )
@@ -30,6 +31,7 @@ func registerAwsWorkflows(
 	tokenGenerator pkeworkflowadapter.TokenGenerator,
 	secretStore pkeworkflow.SecretStore,
 	imageSelector pkeaws.ImageSelector,
+	awsSecretStore awsworkflow.SecretStore,
 ) {
 	createClusterWorkflow := pkeworkflow.CreateClusterWorkflow{
 		DefaultNodeVolumeSize: config.Distribution.PKE.Amazon.DefaultNodeVolumeSize,
@@ -137,4 +139,8 @@ func registerAwsWorkflows(
 	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectVolumeSizeActivityName})
 
 	pkeawsworkflow.NewHealthCheckActivity(awsClientFactory, elbv2Factory).Register()
+
+	awsSessionFactory := awsworkflow.NewAWSSessionFactory(awsSecretStore)
+	deleteStackActivity := awsworkflow.NewDeleteStackActivity(awsSessionFactory)
+	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: awsworkflow.DeleteStackActivityName})
 }
