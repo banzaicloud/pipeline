@@ -284,3 +284,130 @@ var defaultAcceleratedImages = ImageSelectors{
 func DefaultAcceleratedImages() ImageSelector {
 	return defaultAcceleratedImages
 }
+
+// ARM architecture AMIs taken form https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
+// nolint: gochecknoglobals
+var defaultARMImages = ImageSelectors{
+	KubernetesVersionImageSelector{ // Kubernetes Version 1.14.9
+		Constraint: mustConstraint("1.14"),
+		ImageSelector: RegionMapImageSelector{
+			// AWS partition
+			"af-south-1":     "ami-0f1f6e18b1d0b0fa0", // Africa (Cape Town).
+			"ap-east-1":      "ami-053d5715a10198024", // Asia Pacific (Hong Kong).
+			"ap-northeast-1": "ami-0015cdd490150d45c", // Asia Pacific (Tokyo).
+			"ap-northeast-2": "ami-014d4801ecf6563ec", // Asia Pacific (Seoul).
+			"ap-southeast-1": "ami-078a087230c9eaf2e", // Asia Pacific (Mumbai).
+			"ap-southeast-2": "ami-054d9fa0f0cb68d52", // Asia Pacific (Singapore).
+			"ap-south-1":     "ami-07a97b8035b16aceb", // Asia Pacific (Sydney).
+			"ca-central-1":   "ami-0b336703e99354fc3", // Canada (Central).
+			"eu-central-1":   "ami-04e9f9baf3c59cee5", // EU (Frankfurt).
+			"eu-north-1":     "ami-00e746dd95e799449", // EU (Stockholm).
+			"eu-south-1":     "ami-08a675a9994c29791", // Europe (Milan).
+			"eu-west-1":      "ami-0f8b7e3b9652d2471", // EU (Ireland).
+			"eu-west-2":      "ami-0d1ec338b71724a85", // EU (London).
+			"eu-west-3":      "ami-0225f225d66f4e376", // EU (Paris).
+			"me-south-1":     "ami-08b5df22b6425b512", // Middle East (Bahrain).
+			"sa-east-1":      "ami-0fd134f1ba6615c98", // South America (Sao Paulo).
+			"us-east-1":      "ami-085a03be6ae060a6f", // US East (N. Virginia).
+			"us-east-2":      "ami-0a8d655f910acc426", // US East (Ohio).
+			"us-west-1":      "ami-086d2d9bf38807ee9", // US West (N. California).
+			"us-west-2":      "ami-04ef04314b56bb963", // US West (Oregon).
+
+			// AWS GovCloud (US) partition
+			"us-gov-east-1": "ami-TODO", // GovCloud (US-East)
+			"us-gov-west-1": "ami-TODO", // GovCloud (US-West)
+		},
+	},
+	KubernetesVersionImageSelector{ // Kubernetes Version 1.15.11
+		Constraint: mustConstraint("1.15"),
+		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-0bf5cc3b3c0d320fb", // Africa (Cape Town).
+			"ap-east-1":      "ami-02d530cdb99417d90", // Asia Pacific (Hong Kong).
+			"ap-northeast-1": "ami-06635cb79824bf67d", // Asia Pacific (Tokyo).
+			"ap-northeast-2": "ami-0998f06456baed93d", // Asia Pacific (Seoul).
+			"ap-southeast-1": "ami-045c67a2c75d36cea", // Asia Pacific (Mumbai).
+			"ap-southeast-2": "ami-0969cc882a8f3d064", // Asia Pacific (Singapore).
+			"ap-south-1":     "ami-0ed22372b261f5d80", // Asia Pacific (Sydney).
+			"ca-central-1":   "ami-07259daf518b979a0", // Canada (Central).
+			"eu-central-1":   "ami-06526031f25326b81", // EU (Frankfurt).
+			"eu-north-1":     "ami-00fd84e1bdbc053af", // EU (Stockholm).
+			"eu-south-1":     "ami-0c7a7de4884cd9cb2", // Europe (Milan).
+			"eu-west-1":      "ami-046773f5b634f45e4", // EU (Ireland).
+			"eu-west-2":      "ami-05ef9b6eae784065d", // EU (London).
+			"eu-west-3":      "ami-0306d8a08375fcb24", // EU (Paris).
+			"me-south-1":     "ami-0344d276f5af76029", // Middle East (Bahrain).
+			"sa-east-1":      "ami-08369f566915a93d7", // South America (Sao Paulo).
+			"us-east-1":      "ami-089035757766d85bc", // US East (N. Virginia).
+			"us-east-2":      "ami-0098b27af37cdd5da", // US East (Ohio).
+			"us-west-1":      "ami-0b8af535193c8c4ec", // US West (N. California).
+			"us-west-2":      "ami-0a7fb37899667e74f", // US West (Oregon).
+
+			// AWS GovCloud (US) partition
+			"us-gov-east-1": "ami-TODO", // GovCloud (US-East) TODO
+			"us-gov-west-1": "ami-TODO", // GovCloud (US-West) TODO
+		},
+	},
+	KubernetesVersionImageSelector{ // Kubernetes Version 1.16.13
+		Constraint: mustConstraint("1.16"),
+		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-04eab281805bd8566", // Africa (Cape Town).
+			"ap-east-1":      "ami-04ef8ff830854900f", // Asia Pacific (Hong Kong).
+			"ap-northeast-1": "ami-0d3f241b9c06e0f89", // Asia Pacific (Tokyo).
+			"ap-northeast-2": "ami-0ef21b917c84bd57a", // Asia Pacific (Seoul).
+			"ap-southeast-1": "ami-0b158ffc644d5945d", // Asia Pacific (Mumbai).
+			"ap-southeast-2": "ami-0ce5ea2f61628374a", // Asia Pacific (Singapore).
+			"ap-south-1":     "ami-0843140b6af9129fd", // Asia Pacific (Sydney).
+			"ca-central-1":   "ami-06a1f0d9e45b08386", // Canada (Central).
+			"eu-central-1":   "ami-0c32ceb2a82fe184d", // EU (Frankfurt).
+			"eu-north-1":     "ami-0b1c906e4a5c53b75", // EU (Stockholm).
+			"eu-south-1":     "ami-0c539607135f7fa96", // Europe (Milan).
+			"eu-west-1":      "ami-0d97bffe54089059f", // EU (Ireland).
+			"eu-west-2":      "ami-04b2d573ebb966ab4", // EU (London).
+			"eu-west-3":      "ami-069d58345c946c4a1", // EU (Paris).
+			"me-south-1":     "ami-0c1141ea802e54182", // Middle East (Bahrain).
+			"sa-east-1":      "ami-0f154941c5f094b0b", // South America (Sao Paulo).
+			"us-east-1":      "ami-04d618843f45e581d", // US East (N. Virginia).
+			"us-east-2":      "ami-03e6cf37ceedcf15c", // US East (Ohio).
+			"us-west-1":      "ami-01e182b8d7a2ca92a", // US West (N. California).
+			"us-west-2":      "ami-05f45bbc8a1899c07", // US West (Oregon).
+
+			// AWS GovCloud (US) partition
+			"us-gov-east-1": "ami-TODO", // GovCloud (US-East)
+			"us-gov-west-1": "ami-TODO", // GovCloud (US-West)
+		},
+	},
+	KubernetesVersionImageSelector{ // Kubernetes Version 1.17.11
+		Constraint: mustConstraint("1.17"),
+		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-0f473894d74f17483", // Africa (Cape Town).
+			"ap-east-1":      "ami-0c02d16656aa7a8ac", // Asia Pacific (Hong Kong).
+			"ap-northeast-1": "ami-0fed064c3cd4729d1", // Asia Pacific (Tokyo).
+			"ap-northeast-2": "ami-0e42eff01f237ffea", // Asia Pacific (Seoul).
+			"ap-southeast-1": "ami-0e36715290e3fad68", // Asia Pacific (Mumbai).
+			"ap-southeast-2": "ami-0e96b702728842961", // Asia Pacific (Singapore).
+			"ap-south-1":     "ami-0a463cb4a83eb9ff2", // Asia Pacific (Sydney).
+			"ca-central-1":   "ami-00753e913d2d516b2", // Canada (Central).
+			"eu-central-1":   "ami-06efc49a5048f9733", // EU (Frankfurt).
+			"eu-north-1":     "ami-0c429de40a3a31bc0", // EU (Stockholm).
+			"eu-south-1":     "ami-0051cdc83263c30ec", // Europe (Milan).
+			"eu-west-1":      "ami-0b657932cc1dacb7d", // EU (Ireland).
+			"eu-west-2":      "ami-00d9af01dfb88463c", // EU (London).
+			"eu-west-3":      "ami-00f6ad809838dcef3", // EU (Paris).
+			"me-south-1":     "ami-0dae7708fd0b0fc59", // Middle East (Bahrain).
+			"sa-east-1":      "ami-0ad360fca4a36eb32", // South America (Sao Paulo).
+			"us-east-1":      "ami-07ee96b515734922b", // US East (N. Virginia).
+			"us-east-2":      "ami-05835ec0d56045247", // US East (Ohio).
+			"us-west-1":      "ami-0023a539382ad6461", // US West (N. California).
+			"us-west-2":      "ami-0c2396f876327a35a", // US West (Oregon).
+
+			// AWS GovCloud (US) partition
+			"us-gov-east-1": "ami-TODO", // GovCloud (US-East)
+			"us-gov-west-1": "ami-TODO", // GovCloud (US-West)
+		},
+	},
+}
+
+// DefaultARMImages returns an image selector that returns fallback images if no other images are found.
+func DefaultARMImages() ImageSelector {
+	return defaultARMImages
+}
