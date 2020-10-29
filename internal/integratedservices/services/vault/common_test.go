@@ -173,11 +173,14 @@ func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uin
 	case *corev1.ServiceAccount:
 		v.Secrets = []corev1.ObjectReference{{Name: "some-token-1234", Namespace: "default"}}
 	case *corev1.Secret:
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.HS256, Key: []byte("random-key")}, nil)
+		signer, err := jose.NewSigner(jose.SigningKey{
+			Algorithm: jose.HS256,
+			Key:       []byte("random-key"),
+		}, nil)
 		if err != nil {
 			return err
 		}
-		token, err := jwt.Signed(signer).CompactSerialize()
+		token, err := jwt.Signed(signer).Claims(jwt.Claims{}).CompactSerialize()
 		if err != nil {
 			return err
 		}
