@@ -71,14 +71,9 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 		workflow *DeleteNodePoolWorkflow
 	}
 
-	type intermediateDataType struct {
-		StackID string
-	}
-
 	mockMethods := func(
 		t *testing.T,
 		input inputType,
-		intermediateData intermediateDataType,
 		mockErrors map[string]error,
 	) {
 		if mockErrors == nil {
@@ -143,7 +138,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 							"default-test-workflow-id",
 						),
 					},
-					StackID: intermediateData.StackID,
+					StackID: "",
 					StackName: pkeaws.GenerateNodePoolStackName(
 						input.input.ClusterName, input.input.NodePoolName,
 					),
@@ -230,11 +225,10 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 	}
 
 	testCases := []struct {
-		caseName         string
-		expectedError    error
-		input            inputType
-		intermediateData intermediateDataType
-		mockErrors       map[string]error
+		caseName      string
+		expectedError error
+		input         inputType
+		mockErrors    map[string]error
 	}{
 		{
 			caseName:      "DeleteStackActivity error",
@@ -242,9 +236,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 			input: inputType{
 				input:    DeleteNodePoolWorkflowInput{},
 				workflow: &DeleteNodePoolWorkflow{},
-			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
 				awsworkflow.DeleteStackActivityName: errors.New("test error: DeleteStackActivity"),
@@ -259,9 +250,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
-			},
 			mockErrors: map[string]error{
 				awsworkflow.DeleteStackActivityName: errors.New("test error: DeleteStackActivity"),
 			},
@@ -272,9 +260,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 			input: inputType{
 				input:    DeleteNodePoolWorkflowInput{},
 				workflow: &DeleteNodePoolWorkflow{},
-			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
 				DeleteStoredNodePoolActivityName: errors.New("test error: DeleteStoredNodePool"),
@@ -289,9 +274,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
-			},
 			mockErrors: map[string]error{
 				DeleteStoredNodePoolActivityName: errors.New("test error: DeleteStoredNodePool"),
 			},
@@ -302,9 +284,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 			input: inputType{
 				input:    DeleteNodePoolWorkflowInput{},
 				workflow: &DeleteNodePoolWorkflow{},
-			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
 			},
 			mockErrors: map[string]error{
 				clusterworkflow.DeleteNodePoolLabelSetActivityName: errors.New(
@@ -321,9 +300,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
-			},
 			mockErrors: map[string]error{
 				clusterworkflow.DeleteNodePoolLabelSetActivityName: errors.New(
 					"test error: DeleteNodePoolLabelSetActivityInput",
@@ -339,9 +315,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
-			},
 			mockErrors: map[string]error{
 				clusterworkflow.SetClusterStatusActivityName: errors.New("test error: SetClusterStatus"),
 			},
@@ -353,9 +326,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				input:    DeleteNodePoolWorkflowInput{},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
-			},
 		},
 		{
 			caseName:      "cluster status update success",
@@ -366,9 +336,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				},
 				workflow: &DeleteNodePoolWorkflow{},
 			},
-			intermediateData: intermediateDataType{
-				StackID: "stack-id",
-			},
 		},
 	}
 
@@ -378,7 +345,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 
 		workflowTestSuite.T().Run(testCase.caseName, func(t *testing.T) {
 			workflow.RegisterWithOptions(testCase.input.workflow.Execute, workflow.RegisterOptions{Name: t.Name()})
-			mockMethods(t, testCase.input, testCase.intermediateData, testCase.mockErrors)
+			mockMethods(t, testCase.input, testCase.mockErrors)
 
 			workflowTestSuite.environment.ExecuteWorkflow(t.Name(), testCase.input.input)
 			workflowTestSuite.environment.CancelWorkflow()
