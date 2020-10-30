@@ -98,6 +98,7 @@ func (s ImageSelectors) SelectImage(ctx context.Context, criteria ImageSelection
 type DefaultImageSelector struct {
 	DefaultImages            ImageSelector
 	DefaultAcceleratedImages ImageSelector
+	DefaultARMImages         ImageSelector
 }
 
 // NewDefaultImageSelector returns a new DefaultImageSelector.
@@ -105,6 +106,7 @@ func NewDefaultImageSelector() DefaultImageSelector {
 	return DefaultImageSelector{
 		DefaultImages:            defaultImages,
 		DefaultAcceleratedImages: defaultAcceleratedImages,
+		DefaultARMImages:         defaultARMImages,
 	}
 }
 
@@ -113,6 +115,8 @@ func (s DefaultImageSelector) SelectImage(ctx context.Context, criteria ImageSel
 
 	if isGPUInstance(criteria.InstanceType) {
 		image, _ = s.DefaultAcceleratedImages.SelectImage(ctx, criteria)
+	} else if isARMInstance(criteria.InstanceType) {
+		image, _ = s.DefaultARMImages.SelectImage(ctx, criteria)
 	}
 
 	if image == "" {
@@ -125,4 +129,10 @@ func (s DefaultImageSelector) SelectImage(ctx context.Context, criteria ImageSel
 func isGPUInstance(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "p2.") || strings.HasPrefix(instanceType, "p3.") ||
 		strings.HasPrefix(instanceType, "g3.") || strings.HasPrefix(instanceType, "g4.")
+}
+
+func isARMInstance(instanceType string) bool {
+	return strings.HasPrefix(instanceType, "a1.") || strings.HasPrefix(instanceType, "t4g.") ||
+		strings.HasPrefix(instanceType, "m6g.") || strings.HasPrefix(instanceType, "c6g.") ||
+		strings.HasPrefix(instanceType, "r6g.")
 }

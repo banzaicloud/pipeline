@@ -237,4 +237,25 @@ func TestDefaultImageSelector(t *testing.T) {
 		assert.Equal(t, "ami-xxxxxxxxxx", image)
 		defaultImageSelector.AssertExpectations(t)
 	})
+
+	t.Run("ARM", func(t *testing.T) {
+		criteria := ImageSelectionCriteria{
+			Region:       "us-east-1",
+			InstanceType: "a1.xlarge",
+		}
+
+		defaultARMImageSelector := new(MockImageSelector)
+		defaultARMImageSelector.On("SelectImage", mock.Anything, criteria).Return("ami-xxxxxxxxxx", nil)
+
+		imageSelector := DefaultImageSelector{
+			DefaultImages:    nil,
+			DefaultARMImages: defaultARMImageSelector,
+		}
+
+		image, err := imageSelector.SelectImage(context.Background(), criteria)
+		require.NoError(t, err)
+
+		assert.Equal(t, "ami-xxxxxxxxxx", image)
+		defaultARMImageSelector.AssertExpectations(t)
+	})
 }
