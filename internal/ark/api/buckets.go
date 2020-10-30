@@ -18,7 +18,7 @@ package api
 type CreateBucketRequest struct {
 	Cloud      string `json:"cloud" binding:"required"`
 	BucketName string `json:"bucketName" binding:"required"`
-	Prefix     string `json:"prefix"`
+	Prefix     string `json:"prefix" binding:"required"`
 	SecretID   string `json:"secretId" binding:"required"`
 	Location   string `json:"location"`
 

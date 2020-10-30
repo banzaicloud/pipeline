@@ -115,7 +115,8 @@ type ConfigRequest struct {
 	Bucket        bucketConfig
 	BucketSecret  *secret.SecretItemResponse
 
-	RestoreMode bool
+	UseClusterSecret bool
+	RestoreMode      bool
 }
 
 type clusterConfig struct {
@@ -323,8 +324,11 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 
 	switch req.Cluster.Provider {
 	case providers.Amazon:
-		// no need for secret in case of Amazon since we use instance profile to create volume snapshots
+		// in case of Amazon we put both bucket & lcuster secret in one config
 		ClusterSecretContents = ""
+		if req.Bucket.Provider != providers.Amazon && req.UseClusterSecret {
+			ClusterSecretContents, err = amazon.GetSecret(req.ClusterSecret, nil)
+		}
 		if err != nil {
 			return config, nil
 		}
@@ -345,7 +349,13 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 
 	switch req.Bucket.Provider {
 	case providers.Amazon:
-		BucketSecretContents, err = amazon.GetSecret(req.BucketSecret)
+		var clusterSecret *secret.SecretItemResponse
+		// put cluster secret if useClusterSecret == true otherwise will fallback to instance profile
+		// which needs to be set up to contain snapshot permissions
+		if req.Cluster.Provider == providers.Amazon && req.UseClusterSecret {
+			clusterSecret = req.ClusterSecret
+		}
+		BucketSecretContents, err = amazon.GetSecret(clusterSecret, req.BucketSecret)
 		if err != nil {
 			return config, err
 		}
