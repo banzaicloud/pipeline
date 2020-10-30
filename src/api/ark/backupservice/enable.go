@@ -47,6 +47,10 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 			return
 		}
 
+		if request.Prefix == "" {
+			request.Prefix = svc.GetCluster().GetName()
+		}
+
 		scheduleTTL, err := time.ParseDuration(request.TTL)
 		if err != nil {
 			err = errors.WrapIf(err, "could not parse request")
@@ -82,7 +86,7 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 		bucket, err := bucketService.FindOrCreateBucket(&api.CreateBucketRequest{
 			Cloud:      request.Cloud,
 			BucketName: request.BucketName,
-			Prefix:     svc.GetCluster().GetName(),
+			Prefix:     request.Prefix,
 			Location:   request.Location,
 			SecretID:   request.SecretID,
 			AzureBucketProperties: api.AzureBucketProperties{

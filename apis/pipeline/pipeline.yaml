@@ -7973,7 +7973,6 @@ components:
             - cloud
             - bucketName
             - secretId
-            - prefix
         BackupBucketResponse:
             type: object
             properties:

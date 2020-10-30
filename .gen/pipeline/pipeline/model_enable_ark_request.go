@@ -22,6 +22,17 @@ type EnableArkRequest struct {
 
 	SecretId string `json:"secretId"`
 
+	Location string `json:"location,omitempty"`
+
+	// relevant only in csse of Amazon clusters. By default set to false in which case you must add snapshot permissions to your instance profile. Should you set to true Pipeline will deploy your cluster secret to the cluster.
+	UseClusterSecret bool `json:"useClusterSecret,omitempty"`
+
+	// required only case of Azure
+	StorageAccount string `json:"storageAccount,omitempty"`
+
+	// required only case of Azure
+	ResourceGroup string `json:"resourceGroup,omitempty"`
+
 	Labels Labels `json:"labels,omitempty"`
 
 	Options BackupOptions `json:"options,omitempty"`
