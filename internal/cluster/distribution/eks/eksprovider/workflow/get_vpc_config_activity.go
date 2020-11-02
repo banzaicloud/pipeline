@@ -22,6 +22,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
@@ -90,4 +92,42 @@ func (a *GetVpcConfigActivity) Execute(ctx context.Context, input GetVpcConfigAc
 	}
 
 	return &output, nil
+}
+
+// Register registers the activity.
+func (a GetVpcConfigActivity) Register() {
+	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: GetVpcConfigActivityName})
+}
+
+// getVPCConfigActivity retrieves the VPC configuration for the specified VPC
+// stack name.
+//
+// This is a convenience wrapper around the corresponding activity.
+func getVPCConfig(
+	ctx workflow.Context,
+	eksActivityInput EKSActivityInput,
+	stackName string,
+) (GetVpcConfigActivityOutput, error) {
+	var activityOutput GetVpcConfigActivityOutput
+	err := getVPCConfigAsync(ctx, eksActivityInput, stackName).Get(ctx, &activityOutput)
+	if err != nil {
+		return GetVpcConfigActivityOutput{}, err
+	}
+
+	return activityOutput, nil
+}
+
+// getVPCConfigActivity returns a future object for retrieving the VPC
+// configuration for the specified VPC stack name.
+//
+// This is a convenience wrapper around the corresponding activity.
+func getVPCConfigAsync(
+	ctx workflow.Context,
+	eksActivityInput EKSActivityInput,
+	stackName string,
+) workflow.Future {
+	return workflow.ExecuteActivity(ctx, GetVpcConfigActivityName, GetVpcConfigActivityInput{
+		EKSActivityInput: eksActivityInput,
+		StackName:        stackName,
+	})
 }

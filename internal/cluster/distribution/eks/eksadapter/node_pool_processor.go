@@ -37,7 +37,7 @@ type nodePoolProcessor struct {
 // Note: once persistence is properly separated from Gorm,
 // this should be moved to the EKS package,
 // since it contains business processing rules.
-func NewNodePoolProcessor(db *gorm.DB, imageSelector eks.ImageSelector) cluster.NodePoolProcessor {
+func NewNodePoolProcessor(db *gorm.DB, imageSelector eks.ImageSelector) nodePoolProcessor {
 	return nodePoolProcessor{
 		db:            db,
 		imageSelector: imageSelector,
@@ -104,4 +104,61 @@ func (p nodePoolProcessor) ProcessNew(
 	}
 
 	return rawNodePool, nil
+}
+
+// ProcessNewNodePool prepares the new node pool for creation by filling in
+// server side static default values.
+func (p nodePoolProcessor) ProcessNewNodePool(
+	ctx context.Context,
+	cluster cluster.Cluster,
+	nodePool eks.NewNodePool,
+) (updatedNodePool eks.NewNodePool, err error) {
+	var eksCluster eksmodel.EKSClusterModel
+
+	err = p.db.
+		Where(eksmodel.EKSClusterModel{ClusterID: cluster.ID}).
+		Preload("Subnets").
+		First(&eksCluster).Error
+	if gorm.IsRecordNotFoundError(err) {
+		return nodePool, errors.NewWithDetails(
+			"cluster model is inconsistent",
+			"clusterId", cluster.ID,
+		)
+	}
+	if err != nil {
+		return nodePool, errors.WrapWithDetails(
+			err, "failed to get cluster info",
+			"clusterId", cluster.ID,
+			"nodePoolName", nodePool.Name,
+		)
+	}
+
+	// Default node pool image
+	if nodePool.Image == "" {
+		criteria := eks.ImageSelectionCriteria{
+			Region:            cluster.Location,
+			InstanceType:      nodePool.InstanceType,
+			KubernetesVersion: eksCluster.Version,
+		}
+
+		image, err := p.imageSelector.SelectImage(ctx, criteria)
+		if err != nil {
+			return nodePool, err
+		}
+
+		nodePool.Image = image
+	}
+
+	// Resolve subnet ID or fallback to one
+	if nodePool.SubnetID == "" {
+		// TODO: is this necessary?
+		if len(eksCluster.Subnets) == 0 {
+			return nodePool, errors.New("cannot resolve subnet")
+		}
+
+		// TODO: better algorithm for choosing a subnet?
+		nodePool.SubnetID = *eksCluster.Subnets[0].SubnetId
+	}
+
+	return nodePool, nil
 }

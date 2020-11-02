@@ -36,7 +36,7 @@ type nodePoolValidator struct {
 // Note: once persistence is properly separated from Gorm,
 // this should be moved to the EKS package,
 // since it contains business validation rules.
-func NewNodePoolValidator(db *gorm.DB) cluster.NodePoolValidator {
+func NewNodePoolValidator(db *gorm.DB) nodePoolValidator {
 	return nodePoolValidator{
 		db: db,
 	}
@@ -54,6 +54,65 @@ func (v nodePoolValidator) ValidateNew(
 		return errors.Wrap(err, "failed to decode node pool")
 	}
 
+	message := "invalid node pool creation request"
+	var violations []string
+
+	verr := nodePool.Validate()
+	if err, ok := verr.(cluster.ValidationError); ok {
+		message = err.Error()
+		violations = err.Violations()
+	}
+
+	var eksCluster eksmodel.EKSClusterModel
+
+	err = v.db.
+		Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
+		Preload("Subnets").
+		First(&eksCluster).Error
+	if gorm.IsRecordNotFoundError(err) {
+		return errors.NewWithDetails(
+			"cluster model is inconsistent",
+			"clusterId", c.ID,
+		)
+	}
+	if err != nil {
+		return errors.WrapWithDetails(
+			err, "failed to get cluster info",
+			"clusterId", c.ID,
+			"nodePoolName", nodePool.Name,
+		)
+	}
+
+	if nodePool.SubnetID != "" {
+		validSubnet := false
+
+		for _, s := range eksCluster.Subnets {
+			if s.SubnetId != nil && *s.SubnetId == nodePool.SubnetID {
+				validSubnet = true
+
+				break
+			}
+		}
+
+		if !validSubnet {
+			violations = append(violations, "subnet cannot be found in the cluster")
+		}
+	}
+
+	if len(violations) > 0 {
+		return cluster.NewValidationError(message, violations)
+	}
+
+	return nil
+}
+
+// ValidateNewNodePool validates the specified new node pool to contain the
+// necessary fields and values.
+func (v nodePoolValidator) ValidateNewNodePool(
+	_ context.Context,
+	c cluster.Cluster,
+	nodePool eks.NewNodePool,
+) (err error) {
 	message := "invalid node pool creation request"
 	var violations []string
 

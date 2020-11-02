@@ -20,6 +20,8 @@ import (
 	"math"
 
 	"emperror.dev/errors"
+	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
 )
 
 const (
@@ -50,14 +52,14 @@ func NewSelectVolumeSizeActivity(defaultVolumeSize int) (activity *SelectVolumeS
 	}
 }
 
-func (activity *SelectVolumeSizeActivity) Execute(ctx context.Context, input SelectVolumeSizeActivityInput) (output *SelectVolumeSizeActivityOutput, err error) {
+func (a *SelectVolumeSizeActivity) Execute(ctx context.Context, input SelectVolumeSizeActivityInput) (output *SelectVolumeSizeActivityOutput, err error) {
 	output = &SelectVolumeSizeActivityOutput{}
 	valueSource := ""
 	if input.OptionalVolumeSize > 0 {
 		output.VolumeSize = input.OptionalVolumeSize
 		valueSource = "explicitly set"
-	} else if activity.defaultVolumeSize > 0 {
-		output.VolumeSize = activity.defaultVolumeSize
+	} else if a.defaultVolumeSize > 0 {
+		output.VolumeSize = a.defaultVolumeSize
 		valueSource = "default configured"
 	} else {
 		output.VolumeSize = int(math.Max(float64(fallbackVolumeSize), float64(input.AMISize)))
@@ -72,4 +74,38 @@ func (activity *SelectVolumeSizeActivity) Execute(ctx context.Context, input Sel
 	}
 
 	return output, nil
+}
+
+// Register registers the activity.
+func (a SelectVolumeSizeActivity) Register() {
+	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: SelectVolumeSizeActivityName})
+}
+
+// selectVolumeSize selects a node volume size from the available values,
+// including (in the order of precedence) the explicitly chosen value, the
+// default configured value or the bigger value of the AMI size and a global
+// minimum.
+//
+// This is a convenience wrapper around the corresponding activity.
+func selectVolumeSize(ctx workflow.Context, amiSize, optionalVolumeSize int) (int, error) {
+	var activityOutput SelectVolumeSizeActivityOutput
+	err := selectVolumeSizeAsync(ctx, amiSize, optionalVolumeSize).Get(ctx, &activityOutput)
+	if err != nil {
+		return 0, err
+	}
+
+	return activityOutput.VolumeSize, nil
+}
+
+// selectVolumeSize returns a future selecting a node volume size from the
+// available values, including (in the order of precedence) the explicitly
+// chosen value, the default configured value or the bigger value of the AMI
+// size and a global minimum.
+//
+// This is a convenience wrapper around the corresponding activity.
+func selectVolumeSizeAsync(ctx workflow.Context, amiSize, optionalVolumeSize int) workflow.Future {
+	return workflow.ExecuteActivity(ctx, SelectVolumeSizeActivityName, SelectVolumeSizeActivityInput{
+		AMISize:            amiSize,
+		OptionalVolumeSize: optionalVolumeSize,
+	})
 }

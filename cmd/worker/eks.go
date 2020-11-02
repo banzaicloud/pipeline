@@ -16,6 +16,7 @@ package main
 
 import (
 	"emperror.dev/errors"
+	"github.com/jinzhu/gorm"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
@@ -35,6 +36,7 @@ func registerEKSWorkflows(
 	clusterManager *adapter.ClusterManagerAdapter,
 	nodePoolStore eks.NodePoolStore,
 	clusterDynamicClientFactory cluster2.DynamicClientFactory,
+	database *gorm.DB,
 ) error {
 	vpcTemplate, err := eksworkflow.GetVPCTemplate()
 	if err != nil {
@@ -55,6 +57,14 @@ func registerEKSWorkflows(
 	if err != nil {
 		return errors.WrapIf(err, "failed to get CloudFormation template for node pools")
 	}
+
+	// Activities.
+	eksworkflow.NewCreateStoredNodePoolActivity(nodePoolStore).Register()
+	eksworkflow.NewListStoredEKSClustersActivity(database).Register()
+	eksworkflow.NewSetNodePoolStatusActivity(nodePoolStore).Register()
+
+	// Workflows.
+	eksworkflow.NewCreateNodePoolWorkflow().Register()
 
 	workflow.RegisterWithOptions(cluster.EKSCreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSCreateClusterWorkflowName})
 
