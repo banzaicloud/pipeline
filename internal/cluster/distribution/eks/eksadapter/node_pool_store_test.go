@@ -30,8 +30,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	sdkgormtest "github.com/banzaicloud/pipeline/pkg/sdk/gorm/test"
 )
 
 func setUpDatabase(t *testing.T) *gorm.DB {
@@ -59,6 +62,167 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	return db
+}
+
+func TestNodePoolStoreCreateNodePool2(t *testing.T) {
+	type inputType struct {
+		s              *nodePoolStore
+		ctx            context.Context
+		organizationID uint
+		clusterID      uint
+		clusterName    string
+		createdBy      uint
+		nodePool       eks.NewNodePool
+	}
+
+	testCases := []struct {
+		caseDescription string
+		expectedError   error
+		input           inputType
+	}{
+		{
+			caseDescription: "cluster not found error -> error",
+			expectedError: cluster.NotFoundError{
+				OrganizationID: 1,
+				ClusterID:      2,
+				ClusterName:    "cluster-name",
+			},
+			input: inputType{
+				s: &nodePoolStore{
+					db: sdkgormtest.NewFakeDatabase(t).
+						CreateTablesFromEntities(t, &eksmodel.EKSClusterModel{}).DB,
+				},
+				ctx:            context.Background(),
+				organizationID: 1,
+				clusterID:      2,
+				clusterName:    "cluster-name",
+				createdBy:      3,
+				nodePool:       eks.NewNodePool{},
+			},
+		},
+		{
+			caseDescription: "database fetch error -> error",
+			expectedError:   errors.New("fetching cluster from database failed: test error"),
+			input: inputType{
+				s: &nodePoolStore{
+					db: sdkgormtest.NewFakeDatabase(t).
+						CreateTablesFromEntities(
+							t,
+							&clustermodel.ClusterModel{},
+							&eksmodel.EKSClusterModel{},
+						).
+						SaveEntities(
+							t,
+							&eksmodel.EKSClusterModel{
+								Cluster: clustermodel.ClusterModel{
+									CreatedBy:      3,
+									ID:             2,
+									Name:           "cluster-name",
+									OrganizationID: 1,
+								},
+								ClusterID: 2,
+							},
+						).
+						SetError(t, errors.New("test error")).DB,
+				},
+				ctx:            context.Background(),
+				organizationID: 1,
+				clusterID:      2,
+				clusterName:    "cluster-name",
+				createdBy:      3,
+				nodePool:       eks.NewNodePool{},
+			},
+		},
+		{
+			caseDescription: "database save error -> error",
+			expectedError:   errors.New("creating node pool in database failed: no such table: amazon_node_pools"),
+			input: inputType{
+				s: &nodePoolStore{
+					db: sdkgormtest.NewFakeDatabase(t).
+						CreateTablesFromEntities(
+							t,
+							&clustermodel.ClusterModel{},
+							&eksmodel.EKSClusterModel{},
+						).
+						SaveEntities(
+							t,
+							&eksmodel.EKSClusterModel{
+								Cluster: clustermodel.ClusterModel{
+									CreatedBy:      3,
+									ID:             2,
+									Name:           "cluster-name",
+									OrganizationID: 1,
+								},
+								ClusterID: 2,
+							},
+						).DB,
+				},
+				ctx:            context.Background(),
+				organizationID: 1,
+				clusterID:      2,
+				clusterName:    "cluster-name",
+				createdBy:      3,
+				nodePool:       eks.NewNodePool{},
+			},
+		},
+		{
+			caseDescription: "success",
+			expectedError:   nil,
+			input: inputType{
+				s: &nodePoolStore{
+					db: sdkgormtest.NewFakeDatabase(t).
+						CreateTablesFromEntities(
+							t,
+							&clustermodel.ClusterModel{},
+							&eksmodel.EKSClusterModel{},
+							&eksmodel.AmazonNodePoolsModel{},
+						).
+						SaveEntities(
+							t,
+							&eksmodel.EKSClusterModel{
+								Cluster: clustermodel.ClusterModel{
+									CreatedBy:      3,
+									ID:             2,
+									Name:           "cluster-name",
+									OrganizationID: 1,
+								},
+								ClusterID: 2,
+							},
+						).DB,
+				},
+				ctx:            context.Background(),
+				organizationID: 1,
+				clusterID:      2,
+				clusterName:    "cluster-name",
+				createdBy:      3,
+				nodePool:       eks.NewNodePool{},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.caseDescription, func(t *testing.T) {
+			actualError := testCase.input.s.CreateNodePool2(
+				testCase.input.ctx,
+				testCase.input.organizationID,
+				testCase.input.clusterID,
+				testCase.input.clusterName,
+				testCase.input.createdBy,
+				testCase.input.nodePool,
+			)
+
+			if testCase.expectedError == nil {
+				require.NoError(t, actualError)
+
+				err := testCase.input.s.db.First(&eksmodel.AmazonNodePoolsModel{}).Error
+				require.NoError(t, err)
+			} else {
+				require.EqualError(t, actualError, testCase.expectedError.Error())
+			}
+		})
+	}
 }
 
 func TestNodePoolStoreDeleteNodePool(t *testing.T) {

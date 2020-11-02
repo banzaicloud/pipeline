@@ -21,6 +21,19 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
+// +testify:mock:testOnly=true
+
+// ec2API redefines the ec2iface.EC2API interface in order to generate mock for
+// it.
+//
+// nolint:deadcode // Used for mock generation and only the original interface
+// is referenced.
+type ec2API interface {
+	ec2iface.EC2API
+}
+
+// +testify:mock:testOnly=true
+
 // EC2APIFactory provides an interface for instantiating AWS EC2 API objects.
 type EC2APIFactory interface {
 	// New instantiates an AWS CloudFormation API object based on the specified

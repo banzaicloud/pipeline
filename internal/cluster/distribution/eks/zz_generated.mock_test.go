@@ -41,6 +41,20 @@ type MockNodePoolManager struct {
 	mock.Mock
 }
 
+// CreateNodePool provides a mock function.
+func (_m *MockNodePoolManager) CreateNodePool(ctx context.Context, c cluster.Cluster, nodePool NewNodePool) (err error) {
+	ret := _m.Called(ctx, c, nodePool)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, cluster.Cluster, NewNodePool) error); ok {
+		r0 = rf(ctx, c, nodePool)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteNodePool provides a mock function.
 func (_m *MockNodePoolManager) DeleteNodePool(ctx context.Context, c cluster.Cluster, existingNodePool ExistingNodePool, shouldUpdateClusterStatus bool) (err error) {
 	ret := _m.Called(ctx, c, existingNodePool, shouldUpdateClusterStatus)
