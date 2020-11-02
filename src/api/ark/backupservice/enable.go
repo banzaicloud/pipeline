@@ -113,7 +113,7 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 		}
 
 		spec := &api.CreateBackupRequest{
-			Name:   api.BaseScheduleName,
+			Name:   svc.GetCluster().GetName(),
 			Labels: request.Labels,
 			TTL: metav1.Duration{
 				Duration: scheduleTTL,
