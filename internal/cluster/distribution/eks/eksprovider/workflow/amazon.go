@@ -185,6 +185,40 @@ type Subnet struct {
 	AvailabilityZone string
 }
 
+// NewSubnetsFromEKSSubnets returns subnet objects optionally matching the
+// specified subnet IDs from a EKS subnet model collection or an error if a
+// subnet ID is not found among the provided EKS subnet models. If no subnet IDs
+// are specified then all EKS subnet models are returned as subnets.
+func NewSubnetsFromEKSSubnets(
+	eksSubnets []*eksmodel.EKSSubnetModel,
+	optionalIncludedSubnetIDs ...string,
+) ([]Subnet, error) {
+	includedSubnetCount := len(optionalIncludedSubnetIDs)
+	matchedSubnets := make([]Subnet, 0, includedSubnetCount)
+
+	for _, eksSubnet := range eksSubnets {
+		if includedSubnetCount == 0 ||
+			indexStrings(optionalIncludedSubnetIDs, aws.StringValue(eksSubnet.SubnetId)) != -1 {
+			matchedSubnets = append(matchedSubnets, Subnet{
+				SubnetID:         aws.StringValue(eksSubnet.SubnetId),
+				Cidr:             aws.StringValue(eksSubnet.Cidr),
+				AvailabilityZone: aws.StringValue(eksSubnet.AvailabilityZone),
+			})
+		}
+	}
+
+	if includedSubnetCount != 0 &&
+		len(matchedSubnets) != includedSubnetCount {
+		return nil, errors.NewWithDetails(
+			"some subnet IDs could not be found among the subnets",
+			"subnetIds", optionalIncludedSubnetIDs,
+			"subnets", eksSubnets,
+		)
+	}
+
+	return matchedSubnets, nil
+}
+
 type AutoscaleGroup struct {
 	Name             string
 	NodeSpotPrice    string

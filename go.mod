@@ -52,7 +52,7 @@ require (
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
-	github.com/jinzhu/gorm v1.9.10
+	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1
 	github.com/jmespath/go-jmespath v0.3.0

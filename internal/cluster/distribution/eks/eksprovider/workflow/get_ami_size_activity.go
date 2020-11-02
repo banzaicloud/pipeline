@@ -20,6 +20,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
@@ -74,4 +76,34 @@ func (a *GetAMISizeActivity) Execute(ctx context.Context, input GetAMISizeActivi
 	return &GetAMISizeActivityOutput{
 		AMISize: int(aws.Int64Value(result.Images[0].BlockDeviceMappings[0].Ebs.VolumeSize)),
 	}, nil
+}
+
+// Register registers the activity.
+func (a GetAMISizeActivity) Register() {
+	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: GetAMISizeActivityName})
+}
+
+// getAMISize retrieves the AMI size of the specified image ID using the
+// provided values.
+//
+// This is a convenience wrapper around the corresponding activity.
+func getAMISize(ctx workflow.Context, eksActivityInput EKSActivityInput, imageID string) (int, error) {
+	var activityOutput GetAMISizeActivityOutput
+	err := getAMISizeAsync(ctx, eksActivityInput, imageID).Get(ctx, &activityOutput)
+	if err != nil {
+		return 0, err
+	}
+
+	return activityOutput.AMISize, nil
+}
+
+// getAMISizeAsync returns a future object for retrieving the AMI size of the
+// specified image ID using the provided values.
+//
+// This is a convenience wrapper around the corresponding activity.
+func getAMISizeAsync(ctx workflow.Context, eksActivityInput EKSActivityInput, imageID string) workflow.Future {
+	return workflow.ExecuteActivity(ctx, GetAMISizeActivityName, GetAMISizeActivityInput{
+		EKSActivityInput: eksActivityInput,
+		ImageID:          imageID,
+	})
 }

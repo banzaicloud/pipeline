@@ -855,9 +855,18 @@ func main() {
 									awsworkflow.NewCloudFormationFactory(),
 									dynamicClientFactory,
 									config.Pipeline.Enterprise,
+									func(ctx context.Context) uint {
+										if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
+											return currentUser.(*auth.User).ID
+										}
+
+										return 0
+									},
 									config.Cluster.Namespace,
 									workflowClient,
 								),
+								eksadapter.NewNodePoolProcessor(db, eks.NewDefaultImageSelector()),
+								eksadapter.NewNodePoolValidator(db),
 							)),
 							"pkeamazon": clusteradapter.NewPKEService(pkeDistribution.NewService(
 								clusterStore,

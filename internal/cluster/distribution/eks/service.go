@@ -30,6 +30,9 @@ import (
 
 // Service provides an interface to EKS clusters.
 type Service interface {
+	// CreateNodePool creates a new node pool with the specified attributes.
+	CreateNodePool(ctx context.Context, clusterID uint, nodePool NewNodePool) (err error)
+
 	// DeleteNodePool deletes an existing node pool.
 	DeleteNodePool(ctx context.Context, clusterID uint, nodePoolName string) (isDeleted bool, err error)
 
@@ -250,26 +253,36 @@ func NewService(
 	clusterManager ClusterManager,
 	nodePools NodePoolStore,
 	nodePoolManager NodePoolManager,
+	nodePoolProcessor NodePoolProcessor,
+	nodePoolValidator NodePoolValidator,
 ) Service {
 	return service{
-		genericClusters: genericClusters,
-		clusterManager:  clusterManager,
-		nodePools:       nodePools,
-		nodePoolManager: nodePoolManager,
+		genericClusters:   genericClusters,
+		clusterManager:    clusterManager,
+		nodePools:         nodePools,
+		nodePoolManager:   nodePoolManager,
+		nodePoolProcessor: nodePoolProcessor,
+		nodePoolValidator: nodePoolValidator,
 	}
 }
 
 type service struct {
-	genericClusters Store
-	clusterManager  ClusterManager
-	nodePools       NodePoolStore
-	nodePoolManager NodePoolManager
+	genericClusters   Store
+	clusterManager    ClusterManager
+	nodePools         NodePoolStore
+	nodePoolManager   NodePoolManager
+	nodePoolProcessor NodePoolProcessor
+	nodePoolValidator NodePoolValidator
 }
 
 // +testify:mock:testOnly=true
 
 // NodePoolManager is responsible for managing node pools.
 type NodePoolManager interface {
+	// CreateNodePool creates a new node pool in a cluster with the specified
+	// attributes.
+	CreateNodePool(ctx context.Context, c cluster.Cluster, nodePool NewNodePool) (err error)
+
 	// DeleteNodePool deletes an existing node pool in a cluster.
 	DeleteNodePool(
 		ctx context.Context, c cluster.Cluster, existingNodePool ExistingNodePool, shouldUpdateClusterStatus bool,
@@ -290,6 +303,38 @@ type NodePoolManager interface {
 type ClusterManager interface {
 	// UpdateCluster updates an existing cluster.
 	UpdateCluster(ctx context.Context, c cluster.Cluster, clusterUpdate ClusterUpdate) error
+}
+
+// CreateNodePool creates a new node pool in a cluster with the specified
+// attributes.
+//
+// Implements the Service interface.
+func (s service) CreateNodePool(ctx context.Context, clusterID uint, nodePool NewNodePool) (err error) {
+	c, err := s.genericClusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.nodePoolValidator.ValidateNewNodePool(ctx, c, nodePool); err != nil {
+		return err
+	}
+
+	nodePool, err = s.nodePoolProcessor.ProcessNewNodePool(ctx, c, nodePool)
+	if err != nil {
+		return err
+	}
+
+	err = s.genericClusters.SetStatus(ctx, clusterID, cluster.Updating, "creating node pool")
+	if err != nil {
+		return err
+	}
+
+	err = s.nodePoolManager.CreateNodePool(ctx, c, nodePool)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s service) DeleteNodePool(ctx context.Context, clusterID uint, nodePoolName string) (isDeleted bool, err error) {

@@ -85,10 +85,48 @@ type ExistingNodePool struct {
 
 // +testify:mock
 
+// NodePoolProcessor processes a node pool descriptor.
+type NodePoolProcessor interface {
+	// ProcessNewNodePool processes a new node pool descriptor.
+	ProcessNewNodePool(
+		ctx context.Context, c cluster.Cluster, nodePool NewNodePool,
+	) (updatedNodePool NewNodePool, err error)
+}
+
+// +testify:mock
+
 // NodePoolStore provides an interface for EKS node pool persistence.
 type NodePoolStore interface {
 	// CreateNodePool saves a new node pool.
-	CreateNodePool(ctx context.Context, clusterID uint, createdBy uint, nodePool NewNodePool) error
+	CreateNodePool(ctx context.Context, eksClusterID uint, createdBy uint, nodePool NewNodePool) error
+
+	// CreateNodePool2 saves a new node pool.
+	//
+	// Note: the number suffix is temporary, should be removed in the same PR which
+	// introduces the function.
+	//
+	// Note: this is required to move away from EKS cluster ID usage towards generic
+	// cluster ID usage as it is the case with the other store operations. It can be
+	// discussed whether we should move away from generic cluster ID usage towards
+	// EKS cluster ID usage in the future, but for now for consistency reasons this
+	// is the preferred way. IMO the EKS cluster ID is an internal thing which
+	// should not be exposed on common interfaces, though it can be argued that the
+	// EKS node pool store interface is specific enough to use it, but then the EKS
+	// service would need to do the generic -> EKS ID transformation which logic IMO
+	// is better coupled to the store implementation itself (the store would need to
+	// expose a method for the transformation in the best case and everyone could
+	// use that, but as long as the value itself is not required to be exposed an is
+	// a store-internal value, putting it on the store interface and making clients
+	// call it explicitly has no benefit over doing it internally in store
+	// operations). Sorry for the long post, here is a potato .
+	CreateNodePool2(
+		ctx context.Context,
+		organizationID uint,
+		clusterID uint,
+		clusterName string,
+		createdBy uint,
+		nodePool NewNodePool,
+	) (err error)
 
 	// DeleteNodePool deletes an existing node pool from the storage.
 	DeleteNodePool(ctx context.Context, organizationID, clusterID uint, clusterName string, nodePoolName string) error
@@ -124,6 +162,14 @@ type NodePoolStore interface {
 		nodePoolStatus NodePoolStatus,
 		nodePoolStatusMessage string,
 	) (err error)
+}
+
+// +testify:mock
+
+// NodePoolValidator validates a node pool descriptor.
+type NodePoolValidator interface {
+	// ValidateNewNodePool validates a new node pool descriptor.
+	ValidateNewNodePool(ctx context.Context, c cluster.Cluster, newNodePool NewNodePool) (err error)
 }
 
 func CalculateNodePoolVersion(input ...string) string {

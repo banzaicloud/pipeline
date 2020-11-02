@@ -16,6 +16,7 @@ package clusteradapter
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
@@ -52,7 +53,18 @@ func (s eksService) DeleteCluster(ctx context.Context, clusterIdentifier cluster
 }
 
 func (s eksService) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool cluster.NewRawNodePool) error {
-	panic("implement me")
+	var nodePool eks.NewNodePool
+	err := mapstructure.Decode(rawNodePool, &nodePool)
+	if err != nil {
+		return cluster.NewValidationError(
+			"invalid node pool creation request",
+			[]string{
+				fmt.Sprintf("invalid structure: %s, expected: %+v, actual: %+v", err.Error(), nodePool, rawNodePool),
+			},
+		)
+	}
+
+	return s.service.CreateNodePool(ctx, clusterID, nodePool)
 }
 
 func (s eksService) UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate cluster.RawNodePoolUpdate) (string, error) {

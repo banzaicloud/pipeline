@@ -44,6 +44,7 @@ type nodePoolManager struct {
 	cloudFormationFactory awsworkflow.CloudFormationAPIFactory
 	dynamicClientFactory  cluster.DynamicKubeClientFactory
 	enterprise            bool
+	getUserID             func(ctx context.Context) (userID uint)
 	namespace             string
 	workflowClient        client.Client
 }
@@ -55,6 +56,7 @@ func NewNodePoolManager(
 	cloudFormationFactory awsworkflow.CloudFormationAPIFactory,
 	dynamicClientFactory cluster.DynamicKubeClientFactory,
 	enterprise bool,
+	getUserID func(ctx context.Context) (userID uint),
 	namespace string,
 	workflowClient client.Client,
 ) eks.NodePoolManager {
@@ -63,9 +65,35 @@ func NewNodePoolManager(
 		cloudFormationFactory: cloudFormationFactory,
 		dynamicClientFactory:  dynamicClientFactory,
 		enterprise:            enterprise,
+		getUserID:             getUserID,
 		namespace:             namespace,
 		workflowClient:        workflowClient,
 	}
+}
+
+// CreateNodePool initiates the node pool creation process.
+//
+// Implements the eks.NodePoolManager interface.
+func (n nodePoolManager) CreateNodePool(ctx context.Context, c cluster.Cluster, nodePool eks.NewNodePool) (err error) {
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
+	}
+
+	input := workflow.CreateNodePoolWorkflowInput{
+		ClusterID:                 c.ID,
+		NodePool:                  nodePool,
+		ShouldStoreNodePool:       true,
+		ShouldUpdateClusterStatus: true,
+		UserID:                    n.getUserID(ctx),
+	}
+
+	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateNodePoolWorkflowName, input)
+	if err != nil {
+		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.CreateNodePoolWorkflowName)
+	}
+
+	return nil
 }
 
 // DeleteNodePool deletes an existing node pool in a cluster.

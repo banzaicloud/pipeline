@@ -24,10 +24,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
+	sdkcadence "github.com/banzaicloud/pipeline/pkg/sdk/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -268,4 +271,84 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 
 	outParams := CreateAsgActivityOutput{}
 	return &outParams, nil
+}
+
+// Register registers the stored node pool deletion activity.
+func (a CreateAsgActivity) Register() {
+	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
+}
+
+// createAsg creates an EKS autoscaling group for a node pool from the specified
+// values.
+//
+// This is a convenience wrapper around the corresponding activity.
+func createASG(
+	ctx workflow.Context,
+	eksActivityInput EKSActivityInput,
+	eksCluster eksmodel.EKSClusterModel,
+	vpcConfig GetVpcConfigActivityOutput,
+	nodePool eks.NewNodePool,
+	selectedVolumeSize int,
+) error {
+	return createASGAsync(ctx, eksActivityInput, eksCluster, vpcConfig, nodePool, selectedVolumeSize).Get(ctx, nil)
+}
+
+// createAsgAsync returns a future object for creating an EKS autoscaling group
+// for a node pool from the specified values.
+//
+// This is a convenience wrapper around the corresponding activity.
+func createASGAsync(
+	ctx workflow.Context,
+	eksActivityInput EKSActivityInput,
+	eksCluster eksmodel.EKSClusterModel,
+	vpcConfig GetVpcConfigActivityOutput,
+	nodePool eks.NewNodePool,
+	selectedVolumeSize int,
+) workflow.Future {
+	minSize := nodePool.Size
+	maxSize := nodePool.Size + 1
+	if nodePool.Autoscaling.Enabled {
+		minSize = nodePool.Autoscaling.MinSize
+		maxSize = nodePool.Autoscaling.MaxSize
+	}
+
+	sshKeyName := ""
+	if eksCluster.SSHGenerated {
+		sshKeyName = GenerateSSHKeyNameForCluster(eksCluster.Cluster.Name)
+	}
+
+	subnets, err := NewSubnetsFromEKSSubnets(eksCluster.Subnets, nodePool.SubnetID)
+	if err != nil {
+		return sdkcadence.NewReadyFuture(ctx, nil, errors.Wrap(err, "node pool subnets could not be determined"))
+	}
+
+	activityInput := CreateAsgActivityInput{
+		EKSActivityInput: eksActivityInput,
+		ClusterID:        eksCluster.Cluster.ID,
+
+		StackName: GenerateNodePoolStackName(eksCluster.Cluster.Name, nodePool.Name),
+
+		ScaleEnabled: eksCluster.Cluster.ScaleOptions.Enabled,
+		SSHKeyName:   sshKeyName,
+
+		Name:             nodePool.Name,
+		NodeSpotPrice:    nodePool.SpotPrice,
+		Autoscaling:      nodePool.Autoscaling.Enabled,
+		NodeMinCount:     minSize,
+		NodeMaxCount:     maxSize,
+		Count:            nodePool.Size,
+		NodeVolumeSize:   selectedVolumeSize,
+		NodeImage:        nodePool.Image,
+		NodeInstanceType: nodePool.InstanceType,
+		Labels:           nodePool.Labels,
+
+		Subnets:             subnets,
+		VpcID:               vpcConfig.VpcID,
+		SecurityGroupID:     vpcConfig.SecurityGroupID,
+		NodeSecurityGroupID: vpcConfig.NodeSecurityGroupID,
+		NodeInstanceRoleID:  eksCluster.NodeInstanceRoleId,
+		Tags:                eksCluster.Cluster.Tags,
+	}
+
+	return workflow.ExecuteActivity(ctx, CreateAsgActivityName, activityInput)
 }

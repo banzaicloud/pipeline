@@ -394,7 +394,7 @@ func main() {
 		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
 		clusterDynamicClientFactory := cluster2.NewDynamicClientFactory(clusterStore, kubernetes.NewDynamicClientFactory(configFactory))
 
-		err = registerEKSWorkflows(config, secret.Store, eksClusters, eksadapter.NewNodePoolStore(db), clusterDynamicClientFactory)
+		err = registerEKSWorkflows(config, secret.Store, eksClusters, eksadapter.NewNodePoolStore(db), clusterDynamicClientFactory, db)
 		if err != nil {
 			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
 		}
