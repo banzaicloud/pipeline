@@ -143,10 +143,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore := new(MockNodePoolStore)
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
@@ -161,7 +160,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("DistributionNotSupported", func(t *testing.T) {
@@ -183,10 +181,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore := new(MockNodePoolStore)
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		rawNewNodePool := NewRawNodePool{
 			"name": "pool0",
@@ -201,7 +198,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("InvalidNodePool", func(t *testing.T) {
@@ -234,10 +230,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		validator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(validationError)
 
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.Error(t, err)
@@ -248,7 +243,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("NodePoolExistsError", func(t *testing.T) {
@@ -280,10 +274,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		validator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
 
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.EqualError(t, err, "node pool exists error")
@@ -292,7 +285,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("NodePoolAlreadyExists", func(t *testing.T) {
@@ -324,10 +316,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		validator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
 
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.EqualError(t, err, NodePoolAlreadyExistsError{
@@ -339,7 +330,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("ProcessNewError", func(t *testing.T) {
@@ -373,10 +363,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		processor := new(MockNodePoolProcessor)
 		processor.On("ProcessNew", ctx, cluster, rawNewNodePool).Return(nil, errors.New("process new error"))
 
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.EqualError(t, err, "process new error")
@@ -385,7 +374,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("NotSupportedDistributionService", func(t *testing.T) {
@@ -419,10 +407,9 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		processor := new(MockNodePoolProcessor)
 		processor.On("ProcessNew", ctx, cluster, rawNewNodePool).Return(rawNewNodePool, nil)
 
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
 		require.EqualError(t, err, NotSupportedDistributionError{
@@ -437,7 +424,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("CreateNodePoolError", func(t *testing.T) {
@@ -475,7 +461,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		processor := new(MockNodePoolProcessor)
 		processor.On("ProcessNew", ctx, cluster, rawNewNodePool).Return(rawNewNodePool, nil)
 
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
 		service := NewService(
@@ -488,7 +473,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			nodePoolStore,
 			validator,
 			processor,
-			manager,
 		)
 
 		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
@@ -498,7 +482,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -535,7 +518,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		processor := new(MockNodePoolProcessor)
 		processor.On("ProcessNew", ctx, cluster, rawNewNodePool).Return(rawNewNodePool, nil)
 
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
 		service := NewService(
@@ -548,7 +530,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			nodePoolStore,
 			validator,
 			processor,
-			manager,
 		)
 
 		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
@@ -558,7 +539,6 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 }
 
@@ -575,10 +555,9 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 		nodePoolStore := new(MockNodePoolStore)
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		rawNodePoolUpdate := RawNodePoolUpdate{}
 
@@ -591,7 +570,6 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("DistributionNotSupported", func(t *testing.T) {
@@ -613,10 +591,9 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 		nodePoolStore := new(MockNodePoolStore)
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, map[string]Service{}, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, map[string]Service{}, nodePoolStore, validator, processor)
 
 		rawNodePoolUpdate := RawNodePoolUpdate{}
 
@@ -629,7 +606,6 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("NodePoolNotFound", func(t *testing.T) {
@@ -656,14 +632,13 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
 		distributions := map[string]Service{
 			cluster.Distribution: nil,
 		}
 
-		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor)
 
 		rawNodePoolUpdate := RawNodePoolUpdate{}
 
@@ -676,7 +651,6 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("Failure", func(t *testing.T) {
@@ -703,7 +677,6 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
 		distribution := new(MockService)
@@ -718,7 +691,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 			cluster.Distribution: distribution,
 		}
 
-		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor)
 
 		_, err := service.UpdateNodePool(ctx, cluster.ID, nodePoolName, rawNodePoolUpdate)
 		require.Error(t, err)
@@ -729,7 +702,6 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 		distribution.AssertExpectations(t)
 	})
 
@@ -757,7 +729,6 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
 		distribution := new(MockService)
@@ -770,7 +741,7 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 			cluster.Distribution: distribution,
 		}
 
-		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, distributions, nodePoolStore, validator, processor)
 
 		_, err := service.UpdateNodePool(ctx, cluster.ID, nodePoolName, rawNodePoolUpdate)
 		require.NoError(t, err)
@@ -779,7 +750,6 @@ func TestNodePoolService_UpdateNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 		distribution.AssertExpectations(t)
 	})
 }
@@ -797,10 +767,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore := new(MockNodePoolStore)
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		_, err := service.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
@@ -811,7 +780,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("DistributionNotSupported", func(t *testing.T) {
@@ -833,10 +801,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore := new(MockNodePoolStore)
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		_, err := service.DeleteNodePool(ctx, 1, "pool0")
 		require.Error(t, err)
@@ -847,7 +814,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("NodePoolExists error", func(t *testing.T) {
@@ -874,10 +840,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		deleted, err := service.DeleteNodePool(ctx, 1, nodePoolName)
 		require.EqualError(t, err, expectedError.Error())
@@ -888,7 +853,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("NodePoolDoesNotExist", func(t *testing.T) {
@@ -914,10 +878,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		deleted, err := service.DeleteNodePool(ctx, 1, nodePoolName)
 		require.NoError(t, err)
@@ -928,7 +891,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("GetDistributionService error", func(t *testing.T) {
@@ -954,10 +916,9 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
-		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor, manager)
+		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
 		deleted, err := service.DeleteNodePool(ctx, 1, nodePoolName)
 		require.EqualError(t, err, "not supported distribution")
@@ -968,7 +929,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("NodePoolManager.DeleteNodePool error", func(t *testing.T) {
@@ -999,7 +959,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
 		service := NewService(
@@ -1012,7 +971,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 			nodePoolStore,
 			validator,
 			processor,
-			manager,
 		)
 
 		deleted, err := service.DeleteNodePool(ctx, 1, nodePoolName)
@@ -1024,7 +982,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -1054,7 +1011,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 
 		validator := new(MockNodePoolValidator)
 		processor := new(MockNodePoolProcessor)
-		manager := new(MockNodePoolManager)
 		clusterGroupManager := new(MockClusterGroupManager)
 
 		service := NewService(
@@ -1067,7 +1023,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 			nodePoolStore,
 			validator,
 			processor,
-			manager,
 		)
 
 		deleted, err := service.DeleteNodePool(ctx, 1, nodePoolName)
@@ -1079,7 +1034,6 @@ func TestNodePoolService_DeleteNodePool(t *testing.T) {
 		nodePoolStore.AssertExpectations(t)
 		validator.AssertExpectations(t)
 		processor.AssertExpectations(t)
-		manager.AssertExpectations(t)
 	})
 }
 
@@ -1141,7 +1095,6 @@ func TestNodePoolService_ListNodePools(t *testing.T) {
 		nodePools           NodePoolStore
 		nodePoolValidator   NodePoolValidator
 		nodePoolProcessor   NodePoolProcessor
-		nodePoolManager     NodePoolManager
 	}
 	type functionCallArgumentType struct {
 		ctx       context.Context
@@ -1167,7 +1120,6 @@ func TestNodePoolService_ListNodePools(t *testing.T) {
 				nodePools:         &MockNodePoolStore{},
 				nodePoolValidator: &MockNodePoolValidator{},
 				nodePoolProcessor: &MockNodePoolProcessor{},
-				nodePoolManager:   &MockNodePoolManager{},
 			},
 			expectedNodePools:   nil,
 			expectedNotNilError: true,
@@ -1195,7 +1147,6 @@ func TestNodePoolService_ListNodePools(t *testing.T) {
 				nodePools:         &MockNodePoolStore{},
 				nodePoolValidator: &MockNodePoolValidator{},
 				nodePoolProcessor: &MockNodePoolProcessor{},
-				nodePoolManager:   &MockNodePoolManager{},
 			},
 			expectedNodePools:   nil,
 			expectedNotNilError: true,
@@ -1226,7 +1177,6 @@ func TestNodePoolService_ListNodePools(t *testing.T) {
 				nodePools:         &MockNodePoolStore{},
 				nodePoolValidator: &MockNodePoolValidator{},
 				nodePoolProcessor: &MockNodePoolProcessor{},
-				nodePoolManager:   &MockNodePoolManager{},
 			},
 			expectedNodePools:   nil,
 			expectedNotNilError: true,
@@ -1259,7 +1209,6 @@ func TestNodePoolService_ListNodePools(t *testing.T) {
 				nodePools:         &MockNodePoolStore{},
 				nodePoolValidator: &MockNodePoolValidator{},
 				nodePoolProcessor: &MockNodePoolProcessor{},
-				nodePoolManager:   &MockNodePoolManager{},
 			},
 			expectedNodePools:   exampleNodePools,
 			expectedNotNilError: false,
@@ -1292,7 +1241,6 @@ func TestNodePoolService_ListNodePools(t *testing.T) {
 				nodePools:           testCase.constructionArguments.nodePools,
 				nodePoolValidator:   testCase.constructionArguments.nodePoolValidator,
 				nodePoolProcessor:   testCase.constructionArguments.nodePoolProcessor,
-				nodePoolManager:     testCase.constructionArguments.nodePoolManager,
 			}
 
 			actualNodePools, actualError := object.ListNodePools(

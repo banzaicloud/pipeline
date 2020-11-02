@@ -891,16 +891,6 @@ func main() {
 								"eks": eksadapter.NewNodePoolProcessor(db, eks.NewDefaultImageSelector()),
 							}),
 						},
-						clusteradapter.NewNodePoolManager(
-							workflowClient,
-							func(ctx context.Context) uint {
-								if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
-									return currentUser.(*auth.User).ID
-								}
-
-								return 0
-							},
-						),
 					)
 
 					endpoints := clusterdriver.MakeEndpoints(
