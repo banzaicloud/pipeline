@@ -881,15 +881,9 @@ func main() {
 						clusteradapter.NewNodePoolStore(db, clusterStore),
 						intCluster.NodePoolValidators{
 							intCluster.NewCommonNodePoolValidator(labelValidator),
-							intCluster.NewDistributionNodePoolValidator(map[string]intCluster.NodePoolValidator{
-								"eks": eksadapter.NewNodePoolValidator(db),
-							}),
 						},
 						intCluster.NodePoolProcessors{
 							intCluster.NewCommonNodePoolProcessor(labelSource),
-							intCluster.NewDistributionNodePoolProcessor(map[string]intCluster.NodePoolProcessor{
-								"eks": eksadapter.NewNodePoolProcessor(db, eks.NewDefaultImageSelector()),
-							}),
 						},
 					)
 
