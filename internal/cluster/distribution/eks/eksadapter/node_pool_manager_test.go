@@ -37,6 +37,86 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/brn"
 )
 
+func TestNodePoolManagerCreateNodePool(t *testing.T) {
+	type inputType struct {
+		n        *nodePoolManager
+		ctx      context.Context
+		c        cluster.Cluster
+		nodePool eks.NewNodePool
+	}
+
+	testCases := []struct {
+		caseName      string
+		expectedError error
+		input         inputType
+	}{
+		{
+			caseName:      "error",
+			expectedError: errors.New("failed to start workflow: test error"),
+			input: inputType{
+				n: &nodePoolManager{
+					getUserID:      func(ctx context.Context) uint { return 1 },
+					workflowClient: &mocks.Client{},
+				},
+				ctx: context.Background(),
+			},
+		},
+		{
+			caseName:      "success",
+			expectedError: nil,
+			input: inputType{
+				n: &nodePoolManager{
+					getUserID:      func(ctx context.Context) uint { return 1 },
+					workflowClient: &mocks.Client{},
+				},
+				ctx: context.Background(),
+				c: cluster.Cluster{
+					ID: 2,
+				},
+				nodePool: eks.NewNodePool{},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.caseName, func(t *testing.T) {
+			startWorkflowMock := testCase.input.n.workflowClient.(*mocks.Client).On(
+				"StartWorkflow",
+				testCase.input.ctx,
+				mock.Anything,
+				workflow.CreateNodePoolWorkflowName,
+				workflow.CreateNodePoolWorkflowInput{
+					ClusterID:                 testCase.input.c.ID,
+					NodePool:                  testCase.input.nodePool,
+					ShouldStoreNodePool:       true,
+					ShouldUpdateClusterStatus: true,
+					UserID:                    testCase.input.n.getUserID(testCase.input.ctx),
+				},
+			)
+
+			if testCase.expectedError == nil {
+				startWorkflowMock.Return(nil, nil)
+			} else {
+				startWorkflowMock.Return(nil, errors.New("test error"))
+			}
+
+			actualError := testCase.input.n.CreateNodePool(
+				testCase.input.ctx,
+				testCase.input.c,
+				testCase.input.nodePool,
+			)
+
+			if testCase.expectedError == nil {
+				require.Nil(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.expectedError.Error())
+			}
+		})
+	}
+}
+
 func TestNodePoolManagerDeleteNodePool(t *testing.T) {
 	type inputType struct {
 		c                         cluster.Cluster

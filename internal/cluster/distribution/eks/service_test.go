@@ -17,6 +17,7 @@ package eks
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"emperror.dev/errors"
@@ -371,6 +372,218 @@ func TestNewNodePoolWithNoValues(t *testing.T) {
 			)
 
 			require.Equal(t, testCase.output.expectedNodePool, actualNodePool)
+		})
+	}
+}
+
+func TestServiceCreateNodePool(t *testing.T) {
+	type inputType struct {
+		s         service
+		ctx       context.Context
+		clusterID uint
+		nodePool  NewNodePool
+	}
+
+	testCases := []struct {
+		caseDescription string
+		expectedError   error
+		input           inputType
+	}{
+		{
+			caseDescription: "get cluster error -> error",
+			expectedError:   errors.New("get cluster error"),
+			input: inputType{
+				s: service{
+					genericClusters:   &MockStore{},
+					nodePoolManager:   &MockNodePoolManager{},
+					nodePoolProcessor: &MockNodePoolProcessor{},
+					nodePoolValidator: &MockNodePoolValidator{},
+				},
+				ctx:       context.Background(),
+				clusterID: 1,
+				nodePool:  NewNodePool{},
+			},
+		},
+		{
+			caseDescription: "validate new node pool error -> error",
+			expectedError:   errors.New("validate new node pool error"),
+			input: inputType{
+				s: service{
+					genericClusters:   &MockStore{},
+					nodePoolManager:   &MockNodePoolManager{},
+					nodePoolProcessor: &MockNodePoolProcessor{},
+					nodePoolValidator: &MockNodePoolValidator{},
+				},
+				ctx:       context.Background(),
+				clusterID: 1,
+				nodePool: NewNodePool{
+					Name:         "node-pool-name",
+					InstanceType: "instance-type",
+					Size:         1,
+					SubnetID:     "subnet-id",
+				},
+			},
+		},
+		{
+			caseDescription: "process new node pool error -> error",
+			expectedError:   errors.New("process new node pool error"),
+			input: inputType{
+				s: service{
+					genericClusters:   &MockStore{},
+					nodePoolManager:   &MockNodePoolManager{},
+					nodePoolProcessor: &MockNodePoolProcessor{},
+					nodePoolValidator: &MockNodePoolValidator{},
+				},
+				ctx:       context.Background(),
+				clusterID: 1,
+				nodePool: NewNodePool{
+					Name:         "node-pool-name",
+					InstanceType: "instance-type",
+					Size:         1,
+					SubnetID:     "subnet-id",
+				},
+			},
+		},
+		{
+			caseDescription: "set status error -> error",
+			expectedError:   errors.New("set status error"),
+			input: inputType{
+				s: service{
+					genericClusters:   &MockStore{},
+					nodePoolManager:   &MockNodePoolManager{},
+					nodePoolProcessor: &MockNodePoolProcessor{},
+					nodePoolValidator: &MockNodePoolValidator{},
+				},
+				ctx:       context.Background(),
+				clusterID: 1,
+				nodePool: NewNodePool{
+					Name:         "node-pool-name",
+					InstanceType: "instance-type",
+					Size:         1,
+					SubnetID:     "subnet-id",
+				},
+			},
+		},
+		{
+			caseDescription: "create node pool error -> error",
+			expectedError:   errors.New("create node pool error"),
+			input: inputType{
+				s: service{
+					genericClusters:   &MockStore{},
+					nodePoolManager:   &MockNodePoolManager{},
+					nodePoolProcessor: &MockNodePoolProcessor{},
+					nodePoolValidator: &MockNodePoolValidator{},
+				},
+				ctx:       context.Background(),
+				clusterID: 1,
+				nodePool: NewNodePool{
+					Name:         "node-pool-name",
+					InstanceType: "instance-type",
+					Size:         1,
+					SubnetID:     "subnet-id",
+				},
+			},
+		},
+		{
+			caseDescription: "success",
+			expectedError:   nil,
+			input: inputType{
+				s: service{
+					genericClusters:   &MockStore{},
+					nodePoolManager:   &MockNodePoolManager{},
+					nodePoolProcessor: &MockNodePoolProcessor{},
+					nodePoolValidator: &MockNodePoolValidator{},
+				},
+				ctx:       context.Background(),
+				clusterID: 1,
+				nodePool: NewNodePool{
+					Name:         "node-pool-name",
+					InstanceType: "instance-type",
+					Size:         1,
+					SubnetID:     "subnet-id",
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.caseDescription, func(t *testing.T) {
+			getClusterMock := testCase.input.s.genericClusters.(*MockStore).On(
+				"GetCluster",
+				testCase.input.ctx,
+				testCase.input.clusterID,
+			)
+			if testCase.expectedError != nil &&
+				strings.HasPrefix(testCase.expectedError.Error(), "get cluster error") {
+				getClusterMock.Return(cluster.Cluster{}, testCase.expectedError)
+			} else {
+				getClusterMock.Return(cluster.Cluster{ID: testCase.input.clusterID}, nil)
+			}
+
+			validateNewNodePoolMock := testCase.input.s.nodePoolValidator.(*MockNodePoolValidator).On(
+				"ValidateNewNodePool",
+				testCase.input.ctx,
+				cluster.Cluster{ID: testCase.input.clusterID},
+				testCase.input.nodePool,
+			)
+			if testCase.expectedError != nil &&
+				strings.HasPrefix(testCase.expectedError.Error(), "validate new node pool error") {
+				validateNewNodePoolMock.Return(testCase.expectedError)
+			} else {
+				validateNewNodePoolMock.Return(nil)
+			}
+
+			processNewNodePoolMock := testCase.input.s.nodePoolProcessor.(*MockNodePoolProcessor).On(
+				"ProcessNewNodePool",
+				testCase.input.ctx,
+				cluster.Cluster{ID: testCase.input.clusterID},
+				testCase.input.nodePool,
+			)
+			if testCase.expectedError != nil &&
+				strings.HasPrefix(testCase.expectedError.Error(), "process new node pool error") {
+				processNewNodePoolMock.Return(testCase.input.nodePool, testCase.expectedError)
+			} else {
+				processNewNodePoolMock.Return(testCase.input.nodePool, nil)
+			}
+
+			setStatusMock := testCase.input.s.genericClusters.(*MockStore).On(
+				"SetStatus",
+				testCase.input.ctx,
+				testCase.input.clusterID,
+				cluster.Updating,
+				"creating node pool",
+			)
+			if testCase.expectedError != nil &&
+				strings.HasPrefix(testCase.expectedError.Error(), "set status error") {
+				setStatusMock.Return(testCase.expectedError)
+			} else {
+				setStatusMock.Return(nil)
+			}
+
+			createNodePoolMock := testCase.input.s.nodePoolManager.(*MockNodePoolManager).On(
+				"CreateNodePool",
+				testCase.input.ctx,
+				cluster.Cluster{ID: testCase.input.clusterID},
+				testCase.input.nodePool,
+			)
+			if testCase.expectedError != nil &&
+				strings.HasPrefix(testCase.expectedError.Error(), "create node pool error") {
+				createNodePoolMock.Return(testCase.expectedError)
+			} else {
+				createNodePoolMock.Return(nil)
+			}
+
+			actualError := testCase.input.s.CreateNodePool(
+				testCase.input.ctx,
+				testCase.input.clusterID,
+				testCase.input.nodePool,
+			)
+
+			if testCase.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.expectedError.Error())
+			}
 		})
 	}
 }
