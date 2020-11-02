@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
@@ -40,70 +39,6 @@ func NewNodePoolValidator(db *gorm.DB) nodePoolValidator {
 	return nodePoolValidator{
 		db: db,
 	}
-}
-
-func (v nodePoolValidator) ValidateNew(
-	_ context.Context,
-	c cluster.Cluster,
-	rawNodePool cluster.NewRawNodePool,
-) error {
-	var nodePool eks.NewNodePool
-
-	err := mapstructure.Decode(rawNodePool, &nodePool)
-	if err != nil {
-		return errors.Wrap(err, "failed to decode node pool")
-	}
-
-	message := "invalid node pool creation request"
-	var violations []string
-
-	verr := nodePool.Validate()
-	if err, ok := verr.(cluster.ValidationError); ok {
-		message = err.Error()
-		violations = err.Violations()
-	}
-
-	var eksCluster eksmodel.EKSClusterModel
-
-	err = v.db.
-		Where(eksmodel.EKSClusterModel{ClusterID: c.ID}).
-		Preload("Subnets").
-		First(&eksCluster).Error
-	if gorm.IsRecordNotFoundError(err) {
-		return errors.NewWithDetails(
-			"cluster model is inconsistent",
-			"clusterId", c.ID,
-		)
-	}
-	if err != nil {
-		return errors.WrapWithDetails(
-			err, "failed to get cluster info",
-			"clusterId", c.ID,
-			"nodePoolName", nodePool.Name,
-		)
-	}
-
-	if nodePool.SubnetID != "" {
-		validSubnet := false
-
-		for _, s := range eksCluster.Subnets {
-			if s.SubnetId != nil && *s.SubnetId == nodePool.SubnetID {
-				validSubnet = true
-
-				break
-			}
-		}
-
-		if !validSubnet {
-			violations = append(violations, "subnet cannot be found in the cluster")
-		}
-	}
-
-	if len(violations) > 0 {
-		return cluster.NewValidationError(message, violations)
-	}
-
-	return nil
 }
 
 // ValidateNewNodePool validates the specified new node pool to contain the

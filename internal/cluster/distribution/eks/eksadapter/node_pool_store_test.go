@@ -64,7 +64,7 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 	return db
 }
 
-func TestNodePoolStoreCreateNodePool2(t *testing.T) {
+func TestNodePoolStoreCreateNodePool(t *testing.T) {
 	type inputType struct {
 		s              *nodePoolStore
 		ctx            context.Context
@@ -204,7 +204,7 @@ func TestNodePoolStoreCreateNodePool2(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.caseDescription, func(t *testing.T) {
-			actualError := testCase.input.s.CreateNodePool2(
+			actualError := testCase.input.s.CreateNodePool(
 				testCase.input.ctx,
 				testCase.input.organizationID,
 				testCase.input.clusterID,

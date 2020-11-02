@@ -54,7 +54,7 @@ func NewCreateStoredNodePoolActivity(nodePoolStore eks.NodePoolStore) *CreateSto
 // Execute executes a stored node pool deletion operation with the specified
 // input parameters.
 func (a *CreateStoredNodePoolActivity) Execute(ctx context.Context, input CreateStoredNodePoolActivityInput) error {
-	return a.nodePoolStore.CreateNodePool2(
+	return a.nodePoolStore.CreateNodePool(
 		ctx, input.OrganizationID, input.ClusterID, input.ClusterName, input.UserID, input.NodePool,
 	)
 }

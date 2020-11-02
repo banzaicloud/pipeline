@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
@@ -42,68 +41,6 @@ func NewNodePoolProcessor(db *gorm.DB, imageSelector eks.ImageSelector) nodePool
 		db:            db,
 		imageSelector: imageSelector,
 	}
-}
-
-func (p nodePoolProcessor) ProcessNew(
-	ctx context.Context,
-	cluster cluster.Cluster,
-	rawNodePool cluster.NewRawNodePool,
-) (cluster.NewRawNodePool, error) {
-	var nodePool eks.NewNodePool
-
-	err := mapstructure.Decode(rawNodePool, &nodePool)
-	if err != nil {
-		return rawNodePool, errors.Wrap(err, "failed to decode node pool")
-	}
-
-	var eksCluster eksmodel.EKSClusterModel
-
-	err = p.db.
-		Where(eksmodel.EKSClusterModel{ClusterID: cluster.ID}).
-		Preload("Subnets").
-		First(&eksCluster).Error
-	if gorm.IsRecordNotFoundError(err) {
-		return rawNodePool, errors.NewWithDetails(
-			"cluster model is inconsistent",
-			"clusterId", cluster.ID,
-		)
-	}
-	if err != nil {
-		return rawNodePool, errors.WrapWithDetails(
-			err, "failed to get cluster info",
-			"clusterId", cluster.ID,
-			"nodePoolName", nodePool.Name,
-		)
-	}
-
-	// Default node pool image
-	if nodePool.Image == "" {
-		criteria := eks.ImageSelectionCriteria{
-			Region:            cluster.Location,
-			InstanceType:      nodePool.InstanceType,
-			KubernetesVersion: eksCluster.Version,
-		}
-
-		image, err := p.imageSelector.SelectImage(ctx, criteria)
-		if err != nil {
-			return rawNodePool, err
-		}
-
-		rawNodePool["image"] = image
-	}
-
-	// Resolve subnet ID or fallback to one
-	if nodePool.SubnetID == "" {
-		// TODO: is this necessary?
-		if len(eksCluster.Subnets) == 0 {
-			return rawNodePool, errors.New("cannot resolve subnet")
-		}
-
-		// TODO: better algorithm for choosing a subnet?
-		rawNodePool["subnetId"] = *eksCluster.Subnets[0].SubnetId
-	}
-
-	return rawNodePool, nil
 }
 
 // ProcessNewNodePool prepares the new node pool for creation by filling in

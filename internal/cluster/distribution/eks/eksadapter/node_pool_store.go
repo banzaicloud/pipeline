@@ -37,60 +37,10 @@ func NewNodePoolStore(db *gorm.DB) eks.NodePoolStore {
 	}
 }
 
-func (s nodePoolStore) CreateNodePool(
-	_ context.Context,
-	eksClusterID uint,
-	createdBy uint,
-	nodePool eks.NewNodePool,
-) error {
-	nodePoolModel := &eksmodel.AmazonNodePoolsModel{
-		ClusterID:        eksClusterID,
-		CreatedBy:        createdBy,
-		Name:             nodePool.Name,
-		StackID:          "",
-		NodeInstanceType: nodePool.InstanceType,
-		NodeImage:        nodePool.Image,
-		NodeSpotPrice:    nodePool.SpotPrice,
-		Autoscaling:      nodePool.Autoscaling.Enabled,
-		NodeMinCount:     nodePool.Autoscaling.MinSize,
-		NodeMaxCount:     nodePool.Autoscaling.MaxSize,
-		Count:            nodePool.Size,
-		Status:           eks.NodePoolStatusCreating,
-		StatusMessage:    "",
-		// NodeVolumeSize:   nodePool.VolumeSize, // Note: not stored in DB.
-		// Labels:           nodePool.Labels, // Note: not stored in DB.
-	}
-
-	err := s.db.Save(nodePoolModel).Error
-	if err != nil {
-		return errors.Wrap(err, "failed to save node pool")
-	}
-
-	return nil
-}
-
-// CreateNodePool2 saves a new node pool.
+// CreateNodePool saves a new node pool.
 //
 // Implements the eks.NodePoolStore interface.
-//
-// Note: the number suffix is temporary, should be removed in the same PR which
-// introduces the function.
-//
-// Note: this is required to move away from EKS cluster ID usage towards generic
-// cluster ID usage as it is the case with the other store operations. It can be
-// discussed whether we should move away from generic cluster ID usage towards
-// EKS cluster ID usage in the future, but for now for consistency reasons this
-// is the preferred way. IMO the EKS cluster ID is an internal thing which
-// should not be exposed on common interfaces, though it can be argued that the
-// EKS node pool store interface is specific enough to use it, but then the EKS
-// service would need to do the generic -> EKS ID transformation which logic IMO
-// is better coupled to the store implementation itself (the store would need to
-// expose a method for the transformation in the best case and everyone could
-// use that, but as long as the value itself is not required to be exposed an is
-// a store-internal value, putting it on the store interface and making clients
-// call it explicitly has no benefit over doing it internally in store
-// operations). Sorry for the long post, here is a potato .
-func (s nodePoolStore) CreateNodePool2(
+func (s nodePoolStore) CreateNodePool(
 	_ context.Context,
 	organizationID uint,
 	clusterID uint,

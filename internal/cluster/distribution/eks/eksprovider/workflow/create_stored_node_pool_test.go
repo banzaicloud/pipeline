@@ -107,7 +107,7 @@ func TestCreateStoredNodePoolActivityExecute(t *testing.T) {
 		t.Run(testCase.caseDescription, func(t *testing.T) {
 			mockNodePoolStore := testCase.input.activity.nodePoolStore.(*eks.MockNodePoolStore)
 			mockNodePoolStore.On(
-				"CreateNodePool2",
+				"CreateNodePool",
 				mock.Anything,
 				testCase.input.input.OrganizationID,
 				testCase.input.input.ClusterID,

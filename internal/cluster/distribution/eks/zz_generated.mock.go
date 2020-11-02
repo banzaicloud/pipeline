@@ -42,21 +42,7 @@ type MockNodePoolStore struct {
 }
 
 // CreateNodePool provides a mock function.
-func (_m *MockNodePoolStore) CreateNodePool(ctx context.Context, eksClusterID uint, createdBy uint, nodePool NewNodePool) (_result_0 error) {
-	ret := _m.Called(ctx, eksClusterID, createdBy, nodePool)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, NewNodePool) error); ok {
-		r0 = rf(ctx, eksClusterID, createdBy, nodePool)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// CreateNodePool2 provides a mock function.
-func (_m *MockNodePoolStore) CreateNodePool2(ctx context.Context, organizationID uint, clusterID uint, clusterName string, createdBy uint, nodePool NewNodePool) (err error) {
+func (_m *MockNodePoolStore) CreateNodePool(ctx context.Context, organizationID uint, clusterID uint, clusterName string, createdBy uint, nodePool NewNodePool) (err error) {
 	ret := _m.Called(ctx, organizationID, clusterID, clusterName, createdBy, nodePool)
 
 	var r0 error
