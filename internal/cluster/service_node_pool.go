@@ -181,14 +181,6 @@ type NodePoolProcessor interface {
 	ProcessNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (NewRawNodePool, error)
 }
 
-// +testify:mock:testOnly=true
-
-// NodePoolManager manages node pool infrastructure.
-type NodePoolManager interface {
-	// CreateNodePool creates a new node pool in a cluster.
-	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
-}
-
 func (s service) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) (err error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {

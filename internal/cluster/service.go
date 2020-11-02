@@ -230,7 +230,6 @@ type service struct {
 	nodePools         NodePoolStore
 	nodePoolValidator NodePoolValidator
 	nodePoolProcessor NodePoolProcessor
-	nodePoolManager   NodePoolManager
 }
 
 // +testify:mock:testOnly=true
@@ -255,7 +254,6 @@ func NewService(
 	nodePools NodePoolStore,
 	nodePoolValidator NodePoolValidator,
 	nodePoolProcessor NodePoolProcessor,
-	nodePoolManager NodePoolManager,
 ) Service {
 	return service{
 		clusters:            clusters,
@@ -267,7 +265,6 @@ func NewService(
 		nodePools:         nodePools,
 		nodePoolValidator: nodePoolValidator,
 		nodePoolProcessor: nodePoolProcessor,
-		nodePoolManager:   nodePoolManager,
 	}
 }
 

@@ -51,12 +51,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksClusterDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
-	eksworkflow2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
-	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -489,17 +487,6 @@ func main() {
 		}
 
 		{
-			createNodePoolActivity := clusterworkflow.NewCreateNodePoolActivity(
-				clusterStore,
-				eksworkflow2.NewNodePoolCreator(
-					db,
-					config.Distribution.EKS.DefaultNodeVolumeSize,
-					eksadapter.NewNodePoolStore(db),
-					awsworkflow.NewAWSSessionFactory(secret.Store),
-				),
-			)
-			activity.RegisterWithOptions(createNodePoolActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolActivityName})
-
 			createNodePoolLabelSetActivity := clusterworkflow.NewCreateNodePoolLabelSetActivity(
 				cluster2.NewDynamicClientFactory(clusterStore, kubernetes.NewDynamicClientFactory(configFactory)),
 				config.Cluster.Labels.Namespace,
@@ -516,8 +503,6 @@ func main() {
 					Name: clusterworkflow.DeleteNodePoolLabelSetActivityName,
 				},
 			)
-
-			workflow.RegisterWithOptions(clusterworkflow.CreateNodePoolWorkflow, workflow.RegisterOptions{Name: clusterworkflow.CreateNodePoolWorkflowName})
 
 			setClusterStatusActivity := clusterworkflow.NewSetClusterStatusActivity(clusterStore)
 			activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.SetClusterStatusActivityName})
