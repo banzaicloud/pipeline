@@ -20,7 +20,6 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
 	eksworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
@@ -131,17 +130,6 @@ func registerEKSWorkflows(
 
 	waitELBsDeletionActivity := eksworkflow.NewWaitELBsDeletionActivity(awsSessionFactory)
 	activity.RegisterWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.WaitELBsDeletionActivityName})
-
-	deleteNodePoolLabelSetActivity := clusterworkflow.NewDeleteNodePoolLabelSetActivity(
-		clusterDynamicClientFactory,
-		config.Cluster.Labels.Namespace,
-	)
-	activity.RegisterWithOptions(
-		deleteNodePoolLabelSetActivity.Execute,
-		activity.RegisterOptions{
-			Name: clusterworkflow.DeleteNodePoolLabelSetActivityName,
-		},
-	)
 
 	deleteStackActivity := awsworkflow.NewDeleteStackActivity(awsSessionFactory)
 	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: awsworkflow.DeleteStackActivityName})

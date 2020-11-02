@@ -506,6 +506,17 @@ func main() {
 			)
 			activity.RegisterWithOptions(createNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolLabelSetActivityName})
 
+			deleteNodePoolLabelSetActivity := clusterworkflow.NewDeleteNodePoolLabelSetActivity(
+				clusterDynamicClientFactory,
+				config.Cluster.Labels.Namespace,
+			)
+			activity.RegisterWithOptions(
+				deleteNodePoolLabelSetActivity.Execute,
+				activity.RegisterOptions{
+					Name: clusterworkflow.DeleteNodePoolLabelSetActivityName,
+				},
+			)
+
 			workflow.RegisterWithOptions(clusterworkflow.CreateNodePoolWorkflow, workflow.RegisterOptions{Name: clusterworkflow.CreateNodePoolWorkflowName})
 
 			setClusterStatusActivity := clusterworkflow.NewSetClusterStatusActivity(clusterStore)
