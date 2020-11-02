@@ -189,11 +189,7 @@ type NodePoolManager interface {
 	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
 }
 
-func (s service) CreateNodePool(
-	ctx context.Context,
-	clusterID uint,
-	rawNodePool NewRawNodePool,
-) error {
+func (s service) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) (err error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return err
@@ -224,17 +220,12 @@ func (s service) CreateNodePool(
 		return err
 	}
 
-	err = s.clusters.SetStatus(ctx, clusterID, Updating, "creating node pool")
+	distributionService, err := s.getDistributionService(cluster)
 	if err != nil {
 		return err
 	}
 
-	err = s.nodePoolManager.CreateNodePool(ctx, clusterID, rawNodePool)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return distributionService.CreateNodePool(ctx, clusterID, rawNodePool)
 }
 
 func (s service) UpdateNodePool(
