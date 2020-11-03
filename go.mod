@@ -44,7 +44,7 @@ require (
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kit/kit v0.10.0
-	github.com/gofrs/flock v0.7.1
+	github.com/gofrs/flock v0.8.0
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/mux v1.7.3
@@ -85,7 +85,7 @@ require (
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
 	github.com/sagikazarmark/ocmux v0.2.0
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
@@ -108,7 +108,7 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.3.0
-	helm.sh/helm/v3 v3.3.4
+	helm.sh/helm/v3 v3.4.0
 	k8s.io/api v0.19.3
 	k8s.io/apiextensions-apiserver v0.19.3
 	k8s.io/apimachinery v0.19.3
