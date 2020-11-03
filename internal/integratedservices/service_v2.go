@@ -35,30 +35,25 @@ func NewISServiceV2(logger common.Logger) *ISServiceV2 {
 
 func (i ISServiceV2) List(ctx context.Context, clusterID uint) ([]IntegratedService, error) {
 	// TODO implement me!
-	i.logger.Info("operation not yet implemented", map[string]interface{}{"op": "List", "clusterId": clusterID})
 	return nil, errors.NewWithDetails("Operation not, yet implemented!", "clusterID", clusterID)
 }
 
 func (i ISServiceV2) Details(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
 	// TODO implement me!
-	i.logger.Info("operation not yet implemented", map[string]interface{}{"op": "Details", "clusterId": clusterID})
 	return IntegratedService{}, errors.NewWithDetails("Operation not, yet implemented!", "clusterID", clusterID)
 }
 
 func (i ISServiceV2) Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
 	// TODO implement me!
-	i.logger.Info("operation not yet implemented", map[string]interface{}{"op": "Activate", "clusterId": clusterID})
 	return errors.NewWithDetails("Operation not, yet implemented!", "clusterID", clusterID)
 }
 
 func (i ISServiceV2) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {
 	// TODO implement me!
-	i.logger.Info("operation not yet implemented", map[string]interface{}{"op": "Deactivate", "clusterId": clusterID})
 	return errors.NewWithDetails("Operation not, yet implemented!", "clusterID", clusterID)
 }
 
 func (i ISServiceV2) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
 	// TODO implement me!
-	i.logger.Info("operation not yet implemented", map[string]interface{}{"op": "Update", "clusterId": clusterID})
 	return errors.NewWithDetails("Operation not, yet implemented!", "clusterID", clusterID)
 }
