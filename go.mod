@@ -137,6 +137,8 @@ replace (
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
+
+	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc10
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
 
 	google.golang.org/grpc => google.golang.org/grpc v1.27.1
