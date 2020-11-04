@@ -142,7 +142,7 @@ func (NotFoundError) ServiceError() bool {
 // Generator generates a token.
 type Generator interface {
 	// GenerateToken generates a token.
-	GenerateToken(sub string, expiresAt int64, tokenType string, value string) (string, string, error)
+	GenerateToken(sub string, expiresAt time.Time, tokenType string, value string) (string, string, error)
 }
 
 const (
@@ -179,9 +179,9 @@ func (s service) CreateToken(ctx context.Context, tokenRequest NewTokenRequest) 
 		tokenType = VirtualUserTokenType
 	}
 
-	expiresAt := int64(0)
+	var expiresAt time.Time
 	if tokenRequest.ExpiresAt != nil {
-		expiresAt = tokenRequest.ExpiresAt.Unix()
+		expiresAt = *tokenRequest.ExpiresAt
 	}
 
 	tokenID, signedToken, err := s.generator.GenerateToken(sub, expiresAt, tokenType, userLogin)

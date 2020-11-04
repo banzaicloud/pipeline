@@ -23,6 +23,8 @@ ignored = [
   "github.com/davecgh/go-spew", # ISC license
   "github.com/oracle/oci-go-sdk", # UPL-1.0
 
+  "gopkg.in/square/go-jose.v2", # Apache 2.0
+
   # Unsupported VCS
   "cloud.google.com/go",
   "cloud.google.com/go/storage",

@@ -20,9 +20,10 @@ import (
 	"time"
 
 	"github.com/banzaicloud/gin-utilz/auth"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 type TokenGenerator interface {
@@ -46,29 +47,35 @@ func NewTokenGenerator(issuer, audience, signingKey string) TokenGenerator {
 func (g *tokenGenerator) Generate(userID, orgID uint, expiresAt *time.Time) (string, string, error) {
 	tokenID := uuid.Must(uuid.NewV4()).String()
 
-	var expiresAtUnix int64
-	if expiresAt != nil {
-		expiresAtUnix = expiresAt.Unix()
-	}
-
 	// Create the Claims
 	claims := &auth.ScopedClaims{
-		StandardClaims: jwt.StandardClaims{
-			Issuer:    g.Issuer,
-			Audience:  g.Audience,
-			IssuedAt:  jwt.TimeFunc().Unix(),
-			ExpiresAt: expiresAtUnix,
-			Subject:   fmt.Sprintf("clusters/%d/%d", orgID, userID),
-			Id:        tokenID,
+		Claims: jwt.Claims{
+			Issuer:   g.Issuer,
+			Audience: jwt.Audience{g.Audience},
+			IssuedAt: jwt.NewNumericDate(time.Now()),
+			Subject:  fmt.Sprintf("clusters/%d/%d", orgID, userID),
+			ID:       tokenID,
 		},
 		Scope: "api:invoke",
 	}
 
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	if expiresAt != nil {
+		claims.Expiry = jwt.NewNumericDate(*expiresAt)
+	}
+
 	if g.SigningKey == "" {
 		return "", "", errors.New("missing signingKeyBase32")
 	}
-	signedToken, err := jwtToken.SignedString([]byte(base32.StdEncoding.EncodeToString([]byte(g.SigningKey))))
+
+	signer, err := jose.NewSigner(jose.SigningKey{
+		Algorithm: jose.HS256,
+		Key:       []byte(base32.StdEncoding.EncodeToString([]byte(g.SigningKey))),
+	}, nil)
+	if err != nil {
+		return "", "", errors.Wrap(err, "failed create user token signer")
+	}
+
+	signedToken, err := jwt.Signed(signer).Claims(claims).CompactSerialize()
 	if err != nil {
 		return "", "", errors.Wrap(err, "failed to sign user token")
 	}

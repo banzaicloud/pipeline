@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	helper "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/auth"
@@ -52,7 +53,6 @@ type AuthIdentity struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	auth_identity.Basic
-	auth_identity.SignLogs
 }
 
 // User struct
@@ -128,7 +128,7 @@ func (e UserExtractor) GetUserLogin(ctx context.Context) (string, bool) {
 func GetCurrentUser(req *http.Request) *User {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
 		if currentUser != nil && currentUser.APIToken == "" {
-			apiToken, _ := parseRawTokenFromRequest(req)
+			apiToken, _ := helper.Oauth2TokenExtractor{}.ExtractToken(req)
 			currentUser.APIToken = apiToken
 		}
 		return currentUser
@@ -280,31 +280,4 @@ func GetUserNickNameById(userId uint) (userName string) {
 	}
 
 	return
-}
-
-func parseRawTokenFromRequest(r *http.Request) (string, error) {
-	token := r.Header.Get("Authorization")
-
-	// first we attempt to get the token from the
-	// authorization header.
-	if len(token) != 0 {
-		token = r.Header.Get("Authorization")
-		_, err := fmt.Sscanf(token, "Bearer %s", &token)
-		return token, err
-	}
-
-	// then we attempt to get the token from the
-	// access_token url query parameter
-	token = r.FormValue("access_token")
-	if len(token) != 0 {
-		return token, nil
-	}
-
-	// and finally we attempt to get the token from
-	// the user session cookie
-	cookie, err := r.Cookie("user_sess")
-	if err != nil {
-		return "", err
-	}
-	return cookie.Value, nil
 }
