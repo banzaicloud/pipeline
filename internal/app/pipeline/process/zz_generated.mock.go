@@ -114,3 +114,17 @@ func (_m *MockService) LogProcessEvent(ctx context.Context, proc pipeline.Proces
 
 	return r0, r1
 }
+
+// SignalProcess provides a mock function.
+func (_m *MockService) SignalProcess(ctx context.Context, id string, signal string, value interface{}) (err error) {
+	ret := _m.Called(ctx, id, signal, value)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, interface{}) error); ok {
+		r0 = rf(ctx, id, signal, value)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}

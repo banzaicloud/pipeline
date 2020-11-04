@@ -32,6 +32,7 @@ type Endpoints struct {
 	ListProcesses   endpoint.Endpoint
 	LogProcess      endpoint.Endpoint
 	LogProcessEvent endpoint.Endpoint
+	SignalProcess   endpoint.Endpoint
 }
 
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
@@ -45,6 +46,7 @@ func MakeEndpoints(service process.Service, middleware ...endpoint.Middleware) E
 		ListProcesses:   kitxendpoint.OperationNameMiddleware("process.ListProcesses")(mw(MakeListProcessesEndpoint(service))),
 		LogProcess:      kitxendpoint.OperationNameMiddleware("process.LogProcess")(mw(MakeLogProcessEndpoint(service))),
 		LogProcessEvent: kitxendpoint.OperationNameMiddleware("process.LogProcessEvent")(mw(MakeLogProcessEventEndpoint(service))),
+		SignalProcess:   kitxendpoint.OperationNameMiddleware("process.SignalProcess")(mw(MakeSignalProcessEndpoint(service))),
 	}
 }
 
@@ -238,5 +240,40 @@ func MakeLogProcessEventEndpoint(service process.Service) endpoint.Endpoint {
 		}
 
 		return LogProcessEventResponse{ProcessEvent: processEvent}, nil
+	}
+}
+
+// SignalProcessRequest is a request struct for SignalProcess endpoint.
+type SignalProcessRequest struct {
+	Id     string
+	Signal string
+	Value  interface{}
+}
+
+// SignalProcessResponse is a response struct for SignalProcess endpoint.
+type SignalProcessResponse struct {
+	Err error
+}
+
+func (r SignalProcessResponse) Failed() error {
+	return r.Err
+}
+
+// MakeSignalProcessEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeSignalProcessEndpoint(service process.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(SignalProcessRequest)
+
+		err := service.SignalProcess(ctx, req.Id, req.Signal, req.Value)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return SignalProcessResponse{Err: err}, nil
+			}
+
+			return SignalProcessResponse{Err: err}, err
+		}
+
+		return SignalProcessResponse{}, nil
 	}
 }

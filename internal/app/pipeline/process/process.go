@@ -51,6 +51,9 @@ type Service interface {
 
 	// CancelProcess cancels a single process.
 	CancelProcess(ctx context.Context, id string) (err error)
+
+	// SignalProcess sends a signal to a single process.
+	SignalProcess(ctx context.Context, id string, signal string, value interface{}) (err error)
 }
 
 // NewService returns a new Service.
@@ -127,5 +130,13 @@ func (s service) CancelProcess(ctx context.Context, id string) error {
 		return NotFoundError{ID: id}
 	}
 
+	return err
+}
+
+func (s service) SignalProcess(ctx context.Context, id string, signal string, value interface{}) error {
+	err := s.cadenceClient.SignalWorkflow(ctx, id, "", signal, value)
+	if _, ok := err.(*shared.EntityNotExistsError); ok {
+		return NotFoundError{ID: id}
+	}
 	return err
 }
