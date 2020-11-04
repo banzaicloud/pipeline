@@ -325,7 +325,7 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 	switch req.Cluster.Provider {
 	case providers.Amazon:
 		// In case of Amazon we set up one credential file with different profiles for cluster & bucket secret.
-		// If UseClusterSecret is false there's no need for cluster secret user will make sure NodeInstanceProfile has the right permissions
+		// If UseClusterSecret is false there's no need for cluster secret, user will make sure node instance role has the right permissions
 		ClusterSecretContents = ""
 		if req.Bucket.Provider != providers.Amazon && req.UseClusterSecret {
 			ClusterSecretContents, err = amazon.GetSecret(req.ClusterSecret, nil)

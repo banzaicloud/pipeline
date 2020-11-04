@@ -23,7 +23,7 @@ type CreateBackupBucketRequest struct {
 
 	Location string `json:"location,omitempty"`
 
-	// required only case of Azure
+	// required only in case of Azure
 	StorageAccount string `json:"storageAccount,omitempty"`
 
 	// required only case of Azure
