@@ -92,7 +92,7 @@ func TestNodePoolManagerCreateNodePool(t *testing.T) {
 					NodePool:                  testCase.input.nodePool,
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    testCase.input.n.getUserID(testCase.input.ctx),
+					CreatorUserID:             testCase.input.n.getUserID(testCase.input.ctx),
 				},
 			)
 

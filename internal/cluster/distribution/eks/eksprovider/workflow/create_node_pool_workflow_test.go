@@ -36,7 +36,7 @@ import (
 func TestCreateNodePool(t *testing.T) {
 	type inputType struct {
 		clusterID                 uint
-		userID                    uint
+		creatorUserID             uint
 		nodePool                  eks.NewNodePool
 		shouldStoreNodePool       bool
 		shouldUpdateClusterStatus bool
@@ -52,7 +52,7 @@ func TestCreateNodePool(t *testing.T) {
 			expectedError:   nil,
 			input: inputType{
 				clusterID:                 1,
-				userID:                    2,
+				creatorUserID:             2,
 				nodePool:                  eks.NewNodePool{},
 				shouldStoreNodePool:       true,
 				shouldUpdateClusterStatus: true,
@@ -63,7 +63,7 @@ func TestCreateNodePool(t *testing.T) {
 			expectedError:   errors.New("test error"),
 			input: inputType{
 				clusterID:                 1,
-				userID:                    2,
+				creatorUserID:             2,
 				nodePool:                  eks.NewNodePool{},
 				shouldStoreNodePool:       true,
 				shouldUpdateClusterStatus: true,
@@ -95,7 +95,7 @@ func TestCreateNodePool(t *testing.T) {
 				actualError = createNodePool(
 					ctx,
 					testCase.input.clusterID,
-					testCase.input.userID,
+					testCase.input.creatorUserID,
 					testCase.input.nodePool,
 					testCase.input.shouldStoreNodePool,
 					testCase.input.shouldUpdateClusterStatus,
@@ -116,7 +116,7 @@ func TestCreateNodePool(t *testing.T) {
 func TestCreateNodePoolAsync(t *testing.T) {
 	type inputType struct {
 		clusterID                 uint
-		userID                    uint
+		creatorUserID             uint
 		nodePool                  eks.NewNodePool
 		shouldStoreNodePool       bool
 		shouldUpdateClusterStatus bool
@@ -132,7 +132,7 @@ func TestCreateNodePoolAsync(t *testing.T) {
 			expectedError:   nil,
 			input: inputType{
 				clusterID:                 1,
-				userID:                    2,
+				creatorUserID:             2,
 				nodePool:                  eks.NewNodePool{},
 				shouldStoreNodePool:       true,
 				shouldUpdateClusterStatus: true,
@@ -143,7 +143,7 @@ func TestCreateNodePoolAsync(t *testing.T) {
 			expectedError:   errors.New("test error"),
 			input: inputType{
 				clusterID:                 1,
-				userID:                    2,
+				creatorUserID:             2,
 				nodePool:                  eks.NewNodePool{},
 				shouldStoreNodePool:       true,
 				shouldUpdateClusterStatus: true,
@@ -175,7 +175,7 @@ func TestCreateNodePoolAsync(t *testing.T) {
 				actualFuture := createNodePoolAsync(
 					ctx,
 					testCase.input.clusterID,
-					testCase.input.userID,
+					testCase.input.creatorUserID,
 					testCase.input.nodePool,
 					testCase.input.shouldStoreNodePool,
 					testCase.input.shouldUpdateClusterStatus,
@@ -215,7 +215,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -229,7 +229,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -243,7 +243,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -257,7 +257,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -271,7 +271,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -285,7 +285,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -299,7 +299,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -313,7 +313,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -327,7 +327,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},
@@ -341,7 +341,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool:                  eks.NewNodePool{},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
-					UserID:                    2,
+					CreatorUserID:             2,
 				},
 			},
 		},

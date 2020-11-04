@@ -85,7 +85,7 @@ func (n nodePoolManager) CreateNodePool(ctx context.Context, c cluster.Cluster, 
 		NodePool:                  nodePool,
 		ShouldStoreNodePool:       true,
 		ShouldUpdateClusterStatus: true,
-		UserID:                    n.getUserID(ctx),
+		CreatorUserID:             n.getUserID(ctx),
 	}
 
 	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateNodePoolWorkflowName, input)
