@@ -24,7 +24,6 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
-	"go.uber.org/zap"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
@@ -35,7 +34,10 @@ import (
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
-const CreateClusterWorkflowName = "pke-vsphere-create-cluster"
+const (
+	CreateClusterWorkflowName = "pke-vsphere-create-cluster"
+	signalName                = "node-bootstrapped"
+)
 
 // CreateClusterWorkflowInput
 type CreateClusterWorkflowInput struct {
@@ -275,15 +277,22 @@ func getHostPort(o intPKE.HTTPProxyOptions) string {
 	return net.JoinHostPort(o.Host, strconv.FormatUint(uint64(o.Port), 10))
 }
 
+type decodableError struct {
+	Message string
+}
+
+func (d decodableError) Error() string {
+	return d.Message
+}
+
 func waitForMasterReadySignal(ctx workflow.Context, timeout time.Duration) error {
-	signalName := "master-ready"
 	signalChan := workflow.GetSignalChannel(ctx, signalName)
 	signalTimeoutTimer := workflow.NewTimer(ctx, timeout)
 	signalTimeout := false
 
+	var signalValue decodableError
 	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
-		c.Receive(ctx, nil)
-		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
+		c.Receive(ctx, &signalValue)
 	}).AddFuture(signalTimeoutTimer, func(workflow.Future) {
 		signalTimeout = true
 	})
@@ -292,6 +301,9 @@ func waitForMasterReadySignal(ctx workflow.Context, timeout time.Duration) error
 
 	if signalTimeout {
 		return fmt.Errorf("timeout while waiting for %q signal", signalName)
+	}
+	if signalValue.Error() != "" {
+		return errors.Wrap(signalValue, "failed to start node")
 	}
 	return nil
 }
