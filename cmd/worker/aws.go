@@ -35,10 +35,10 @@ func registerAwsWorkflows(
 	imageSelector pkeaws.ImageSelector,
 	awsSecretStore awsworkflow.SecretStore,
 ) {
-	createClusterWorkflow := pkeworkflow.CreateClusterWorkflow{
-		DefaultNodeVolumeSize: config.Distribution.PKE.Amazon.DefaultNodeVolumeSize,
-		GlobalRegion:          config.Distribution.PKE.Amazon.GlobalRegion,
-	}
+	createClusterWorkflow := pkeworkflow.NewCreateClusterWorkflow(
+		config.Distribution.PKE.Amazon.DefaultNodeVolumeSize,
+		config.Distribution.PKE.Amazon.GlobalRegion,
+	)
 	worker.RegisterWorkflowWithOptions(
 		createClusterWorkflow.Execute, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName},
 	)

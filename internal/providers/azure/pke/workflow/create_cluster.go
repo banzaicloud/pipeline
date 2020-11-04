@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
@@ -59,7 +60,24 @@ type CreateClusterWorkflowInput struct {
 	APIServerAccessPoints           pke.APIServerAccessPoints
 }
 
-func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
+func NewCreateClusterWorkflow() CreateClusterWorkflow {
+	return CreateClusterWorkflow{processlog.New()}
+}
+
+type CreateClusterWorkflow struct {
+	processLogger processlog.ProcessLogger
+}
+
+func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateClusterWorkflowInput) (err error) {
+	clusterID := brn.New(input.OrganizationID, brn.ClusterResourceType, fmt.Sprint(input.ClusterID))
+	process := w.processLogger.StartProcess(ctx, clusterID.String())
+	defer func() {
+		process.Finish(ctx, err)
+		if err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+		}
+	}()
+
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,
@@ -77,7 +95,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		err := workflow.ExecuteActivity(ctx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
@@ -110,16 +127,14 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		AccessPoints:          input.AccessPoints,
 		APIServerAccessPoints: input.APIServerAccessPoints,
 	}
-	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
+	err = workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {
-		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
 	}
 
 	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master") // nolint: errcheck
 
 	if err = waitForMasterReadySignal(ctx, 1*time.Hour); err != nil {
-		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
 	}
 
@@ -130,7 +145,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 		future := workflow.ExecuteActivity(ctx, cluster.DownloadK8sConfigActivityName, activityInput)
 		if err := future.Get(ctx, &configSecretID); err != nil {
-			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
@@ -153,7 +167,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)
 		if err := future.Get(ctx, nil); err != nil {
-			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
