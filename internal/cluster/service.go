@@ -63,7 +63,7 @@ type Identifier struct {
 	ClusterName    string
 }
 
-// +testify:mock:testOnly=true
+// +testify:mock
 
 // Store provides an interface to the generic Cluster model persistence.
 type Store interface {
