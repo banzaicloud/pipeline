@@ -17,8 +17,6 @@ package pke
 import (
 	"context"
 
-	"emperror.dev/errors"
-
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
@@ -139,6 +137,13 @@ type NodePoolManager interface {
 		shouldUpdateClusterStatus bool,
 	) (err error)
 
+	// ListNodePools lists node pools from a cluster.
+	ListNodePools(
+		ctx context.Context,
+		c cluster.Cluster,
+		existingNodePools map[string]ExistingNodePool,
+	) ([]NodePool, error)
+
 	// UpdateNodePool updates an existing node pool in a cluster.
 	UpdateNodePool(
 		ctx context.Context,
@@ -183,6 +188,21 @@ func (s service) DeleteNodePool(ctx context.Context, clusterID uint, nodePoolNam
 	return false, nil
 }
 
+// ListNodePools lists node pools from a cluster.
+func (s service) ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error) {
+	c, err := s.genericClusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	existingNodePools, err := s.nodePoolStore.ListNodePools(ctx, c.OrganizationID, c.ID, c.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.nodePoolManager.ListNodePools(ctx, c, existingNodePools)
+}
+
 func (s service) UpdateCluster(
 	ctx context.Context,
 	clusterID uint,
@@ -218,16 +238,6 @@ func (s service) UpdateNodePool(
 	}
 
 	return s.nodePoolManager.UpdateNodePool(ctx, c, nodePoolName, nodePoolUpdate)
-}
-
-// ListNodePools lists node pools from a cluster.
-func (s service) ListNodePools(ctx context.Context, clusterID uint) ([]NodePool, error) {
-	_, err := s.genericClusters.GetCluster(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapWithDetails(err, "retrieving cluster failed", "clusterID", clusterID)
-	}
-
-	panic("not implemented")
 }
 
 // +testify:mock:testOnly=true

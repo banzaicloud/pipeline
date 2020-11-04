@@ -16,6 +16,7 @@ package pkeawsadapter
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"emperror.dev/errors"
@@ -26,25 +27,29 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
+	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
 
 type nodePoolManager struct {
-	enterprise     bool
-	namespace      string
-	workflowClient client.Client
+	dynamicClientFactory cluster.DynamicKubeClientFactory
+	enterprise           bool
+	namespace            string
+	workflowClient       client.Client
 }
 
 // NewNodePoolManager returns a new pke.NodePoolManager
 // that manages node pools asynchronously via Cadence workflows.
 func NewNodePoolManager(
+	dynamicClientFactory cluster.DynamicKubeClientFactory,
 	enterprise bool,
 	namespace string,
 	workflowClient client.Client,
 ) pke.NodePoolManager {
 	return nodePoolManager{
-		enterprise:     enterprise,
-		namespace:      namespace,
-		workflowClient: workflowClient,
+		dynamicClientFactory: dynamicClientFactory,
+		enterprise:           enterprise,
+		namespace:            namespace,
+		workflowClient:       workflowClient,
 	}
 }
 
@@ -73,6 +78,56 @@ func (n nodePoolManager) DeleteNodePool(
 	}
 
 	return nil
+}
+
+// ListNodePools lists node pools from a cluster.
+func (n nodePoolManager) ListNodePools(
+	ctx context.Context,
+	c cluster.Cluster,
+	existingNodePools map[string]pke.ExistingNodePool,
+) (nodePools []pke.NodePool, err error) {
+	if c.ConfigSecretID.ResourceID == "" || // Note: cluster is being created or errorred before k8s secret would be available.
+		c.Status == cluster.Deleting {
+		return nil, cluster.NotReadyError{
+			OrganizationID: c.OrganizationID,
+			ID:             c.ID,
+			Name:           c.Name,
+		}
+	}
+
+	labelSets, err := n.getLabelSets(ctx, c)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "retrieving node pool label sets failed",
+			"organizationId", c.OrganizationID,
+			"clusterId", c.ID,
+			"clusterName", c.Name,
+		)
+	}
+
+	cloudFormationClient, err := n.newCloudFormationClient(ctx, c)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "instantiating CloudFormation client failed",
+			"organizationId", c.OrganizationID,
+			"clusterId", c.ID,
+			"clusterName", c.Name,
+		)
+	}
+
+	nodePools = make([]pke.NodePool, 0, len(nodePools))
+	for _, existingNodePool := range existingNodePools {
+		nodePools = append(nodePools, newNodePoolFromCloudFormation(
+			cloudFormationClient,
+			existingNodePool,
+			pkeaws.GenerateNodePoolStackName(c.Name, existingNodePool.Name),
+			labelSets[existingNodePool.Name],
+		))
+	}
+
+	sort.Slice(nodePools, func(firstIndex, secondIndex int) (isLessThan bool) {
+		return nodePools[firstIndex].Name < nodePools[secondIndex].Name
+	})
+
+	return nodePools, nil
 }
 
 func (n nodePoolManager) UpdateNodePool(
@@ -125,4 +180,26 @@ func (n nodePoolManager) UpdateNodePool(
 	}
 
 	return e.ID, nil
+}
+
+// getLabelSets retrieves the Kubernetes label sets of the node pools.
+func (n nodePoolManager) getLabelSets(
+	ctx context.Context, c cluster.Cluster,
+) (labelSets map[string]map[string]string, err error) {
+	clusterClient, err := n.dynamicClientFactory.FromSecret(ctx, c.ConfigSecretID.String())
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "creating dynamic Kubernetes client factory failed",
+			"configSecretId", c.ConfigSecretID.String(),
+		)
+	}
+
+	manager := npls.NewManager(clusterClient, n.namespace)
+	labelSets, err = manager.GetAll(ctx)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "listing node pool label sets failed",
+			"namespace", n.namespace,
+		)
+	}
+
+	return labelSets, nil
 }
