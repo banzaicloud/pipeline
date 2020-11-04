@@ -17,15 +17,32 @@ package main
 import (
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
+	pkeawsproviderworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 	pkeworkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
-func registerPKEWorkflows(passwordSecrets pkeworkflow.PasswordSecretStore) {
+func registerPKEWorkflows(
+	passwordSecrets pkeworkflow.PasswordSecretStore,
+	config configuration,
+	nodePoolStore pke.NodePoolStore,
+	clusterDynamicClientFactory cluster.DynamicClientFactory,
+) {
 	{
 		a := pkeworkflow.NewAssembleHTTPProxySettingsActivity(passwordSecrets)
 		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: pkeworkflow.AssembleHTTPProxySettingsActivityName})
 	}
 
 	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
+
+	// delete node pool workflow
+	pkeawsproviderworkflow.NewDeleteNodePoolWorkflow().Register()
+
+	// node pool delete helper activities
+	deleteStoredNodePoolActivity := pkeawsproviderworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
+	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
+		Name: pkeawsproviderworkflow.DeleteStoredNodePoolActivityName,
+	})
 }
