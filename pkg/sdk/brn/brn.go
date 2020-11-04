@@ -29,8 +29,9 @@ const SchemePrefix = Scheme + ":"
 
 // Resource type constants
 const (
-	SecretResourceType  = "secret"
-	ClusterResourceType = "cluster"
+	SecretResourceType  = "secret"  // resource ID: <secret sha id>
+	ClusterResourceType = "cluster" // resource ID: <cluster id>
+	NodeResourceType    = "node"    // resource ID: <cluster id>/<node name>
 )
 
 // ErrInvalid is returned when a BRN fails validation checks.
