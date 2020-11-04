@@ -27,6 +27,12 @@ func NewClient(config Config, logger *zap.Logger) (client.Client, error) {
 		return nil, errors.WithMessage(err, "could not create cadence client")
 	}
 
+	if config.CreateNonexistentDomain {
+		if err := createNonExistentDomain(serviceClient, config, logger); err != nil {
+			return nil, err
+		}
+	}
+
 	return client.NewClient(
 		serviceClient,
 		config.Domain,

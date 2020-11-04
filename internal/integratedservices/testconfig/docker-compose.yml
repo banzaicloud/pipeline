@@ -1,0 +1,48 @@
+version: "3.1"
+
+services:
+    mysql:
+        # needed for Linux users
+        # user: "${uid}:${gid}"
+        ports:
+            - 127.0.0.1:3306:3306
+        volumes:
+            - ./.docker/volumes/mysql:/var/lib/mysql
+
+    vault:
+        ports:
+            - 127.0.0.1:8200:8200
+        volumes:
+            - ./.docker/volumes/vault/file:/vault/file
+
+    vault-unsealer:
+        # needed for Linux users
+        # user: "${uid}:${gid}"
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    vault-configurer:
+        # needed for Linux users
+        # user: "${uid}:${gid}"
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    vault-token-helper:
+        # needed for Linux users
+        # user: "${uid}:${gid}"
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    cadence:
+        ports:
+            - 127.0.0.1:7933:7933
+            - 127.0.0.1:7934:7934
+            - 127.0.0.1:7935:7935
+
+    ui:
+        image: gcr.io/google_containers/pause
+    uiproxy:
+        image: gcr.io/google_containers/pause
+    cadence-web:
+        ports:
+            - 127.0.0.1:8088:8088
