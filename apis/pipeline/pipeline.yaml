@@ -7964,7 +7964,7 @@ components:
                 storageAccount:
                     type: string
                     example: "my-storage-account"
-                    description: "required only case of Azure"
+                    description: "required only in case of Azure"
                 resourceGroup:
                     type: string
                     example: "my-resource-group"
