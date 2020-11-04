@@ -38,8 +38,9 @@ type CreateNodePoolWorkflow struct{}
 // CreateNodePoolWorkflowInput defines the input parameters of an EKS node pool
 // creation.
 type CreateNodePoolWorkflowInput struct {
-	ClusterID uint
-	NodePool  eks.NewNodePool
+	ClusterID     uint
+	CreatorUserID uint
+	NodePool      eks.NewNodePool
 
 	// Note: LegacyClusterAPI.CreateCluster node pool creations store the entire
 	// cluster descriptor object with the node pools included in the database at
@@ -54,8 +55,6 @@ type CreateNodePoolWorkflowInput struct {
 	// handled by the higher level workflow, but NodePoolAPI.CreateNodePool node
 	// pool creations should update the cluster status.
 	ShouldUpdateClusterStatus bool
-
-	UserID uint
 }
 
 // NewCreateNodePoolWorkflow instantiates an EKS node pool creation workflow.
@@ -100,7 +99,7 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 			eksCluster.Cluster.OrganizationID,
 			input.ClusterID,
 			eksCluster.Cluster.Name,
-			input.UserID,
+			input.CreatorUserID,
 			input.NodePool,
 		)
 		if err != nil {
@@ -177,7 +176,7 @@ func (w CreateNodePoolWorkflow) Register(worker worker.Registry) {
 func createNodePool(
 	ctx workflow.Context,
 	clusterID uint,
-	userID uint,
+	creatorUserID uint,
 	nodePool eks.NewNodePool,
 	shouldStoreNodePool bool,
 	shouldUpdateClusterStatus bool,
@@ -185,7 +184,7 @@ func createNodePool(
 	return createNodePoolAsync(
 		ctx,
 		clusterID,
-		userID,
+		creatorUserID,
 		nodePool,
 		shouldStoreNodePool,
 		shouldUpdateClusterStatus,
@@ -198,7 +197,7 @@ func createNodePool(
 func createNodePoolAsync(
 	ctx workflow.Context,
 	clusterID uint,
-	userID uint,
+	creatorUserID uint,
 	nodePool eks.NewNodePool,
 	shouldStoreNodePool bool,
 	shouldUpdateClusterStatus bool,
@@ -208,6 +207,6 @@ func createNodePoolAsync(
 		NodePool:                  nodePool,
 		ShouldStoreNodePool:       shouldStoreNodePool,
 		ShouldUpdateClusterStatus: shouldUpdateClusterStatus,
-		UserID:                    userID,
+		CreatorUserID:             creatorUserID,
 	})
 }
