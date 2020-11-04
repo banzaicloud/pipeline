@@ -19,7 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
+	pkeawsproviderworkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
 	pkeworkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
@@ -38,11 +38,11 @@ func registerPKEWorkflows(
 	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
 
 	// delete node pool workflow
-	workflow.NewDeleteNodePoolWorkflow().Register()
+	pkeawsproviderworkflow.NewDeleteNodePoolWorkflow().Register()
 
 	// node pool delete helper activities
-	deleteStoredNodePoolActivity := workflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
+	deleteStoredNodePoolActivity := pkeawsproviderworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
 	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
-		Name: workflow.DeleteStoredNodePoolActivityName,
+		Name: pkeawsproviderworkflow.DeleteStoredNodePoolActivityName,
 	})
 }
