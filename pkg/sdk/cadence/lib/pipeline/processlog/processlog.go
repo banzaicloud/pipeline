@@ -69,13 +69,14 @@ func (p processLogger) StartProcess(ctx workflow.Context, resourceID string) Pro
 	}
 
 	activityInput := processActivityInput{
-		ID:         winfo.WorkflowExecution.ID,
-		ParentID:   parentID,
-		Type:       winfo.WorkflowType.Name,
-		StartedAt:  workflow.Now(ctx),
-		Status:     running,
-		OrgID:      int32(resourceName.OrganizationID),
-		ResourceID: resourceName.ResourceID,
+		ID:           winfo.WorkflowExecution.ID,
+		ParentID:     parentID,
+		Type:         winfo.WorkflowType.Name,
+		StartedAt:    workflow.Now(ctx),
+		Status:       running,
+		OrgID:        int32(resourceName.OrganizationID),
+		ResourceID:   resourceName.ResourceID,
+		ResourceType: resourceName.ResourceType,
 	}
 
 	err = workflow.ExecuteActivity(ctx, processActivityName, activityInput).Get(ctx, nil)
@@ -89,15 +90,16 @@ func (p processLogger) StartProcess(ctx workflow.Context, resourceID string) Pro
 const processActivityName = "process"
 
 type processActivityInput struct {
-	ID         string
-	ParentID   string
-	OrgID      int32
-	Type       string
-	Log        string
-	ResourceID string
-	Status     status
-	StartedAt  time.Time
-	FinishedAt *time.Time
+	ID           string
+	ParentID     string
+	OrgID        int32
+	Type         string
+	Log          string
+	ResourceID   string
+	ResourceType string
+	Status       status
+	StartedAt    time.Time
+	FinishedAt   *time.Time
 }
 
 type status string

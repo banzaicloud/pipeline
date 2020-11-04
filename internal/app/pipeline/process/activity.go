@@ -32,15 +32,16 @@ const (
 )
 
 type ProcessActivityInput struct {
-	ID         string
-	ParentID   string
-	OrgID      int32
-	Type       string
-	Log        string
-	ResourceID string
-	Status     Status
-	StartedAt  time.Time
-	FinishedAt *time.Time
+	ID           string
+	ParentID     string
+	OrgID        int32
+	Type         string
+	Log          string
+	ResourceID   string
+	ResourceType string
+	Status       Status
+	StartedAt    time.Time
+	FinishedAt   *time.Time
 }
 
 type ProcessEventActivityInput struct {
@@ -61,15 +62,16 @@ func NewProcessActivity(service Service) ProcessActivity {
 
 func (a ProcessActivity) ExecuteProcess(ctx context.Context, input ProcessActivityInput) error {
 	_, err := a.service.LogProcess(ctx, Process{
-		Id:         input.ID,
-		ParentId:   input.ParentID,
-		OrgId:      input.OrgID,
-		Type:       input.Type,
-		Log:        input.Log,
-		ResourceId: input.ResourceID,
-		Status:     ProcessStatus(input.Status),
-		StartedAt:  input.StartedAt,
-		FinishedAt: input.FinishedAt,
+		Id:           input.ID,
+		ParentId:     input.ParentID,
+		OrgId:        input.OrgID,
+		Type:         input.Type,
+		Log:          input.Log,
+		ResourceId:   input.ResourceID,
+		ResourceType: input.ResourceType,
+		Status:       ProcessStatus(input.Status),
+		StartedAt:    input.StartedAt,
+		FinishedAt:   input.FinishedAt,
 	})
 
 	return err
