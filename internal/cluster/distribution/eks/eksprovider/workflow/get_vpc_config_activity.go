@@ -100,7 +100,7 @@ func (a GetVpcConfigActivity) Register(worker worker.Registry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: GetVpcConfigActivityName})
 }
 
-// getVPCConfigActivity retrieves the VPC configuration for the specified VPC
+// getVPCConfig retrieves the VPC configuration for the specified VPC
 // stack name.
 //
 // This is a convenience wrapper around the corresponding activity.
@@ -118,7 +118,7 @@ func getVPCConfig(
 	return activityOutput, nil
 }
 
-// getVPCConfigActivity returns a future object for retrieving the VPC
+// getVPCConfigAsync returns a future object for retrieving the VPC
 // configuration for the specified VPC stack name.
 //
 // This is a convenience wrapper around the corresponding activity.
