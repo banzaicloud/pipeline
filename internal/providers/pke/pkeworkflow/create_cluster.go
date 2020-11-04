@@ -21,7 +21,9 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
-	"go.uber.org/zap"
+
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
+	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 )
 
 const (
@@ -49,9 +51,24 @@ type CreateClusterWorkflowInput struct {
 type CreateClusterWorkflow struct {
 	DefaultNodeVolumeSize int
 	GlobalRegion          string
+	processLogger         processlog.ProcessLogger
 }
 
-func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateClusterWorkflowInput) error {
+func NewCreateClusterWorkflow(defaultNodeVolumeSize int, globalRegion string) CreateClusterWorkflow {
+	return CreateClusterWorkflow{
+		DefaultNodeVolumeSize: defaultNodeVolumeSize,
+		GlobalRegion:          globalRegion,
+		processLogger:         processlog.New(),
+	}
+}
+
+func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateClusterWorkflowInput) (err error) {
+	clusterID := brn.New(input.OrganizationID, brn.ClusterResourceType, fmt.Sprint(input.ClusterID))
+	process := w.processLogger.StartProcess(ctx, clusterID.String())
+	defer func() {
+		process.Finish(ctx, err)
+	}()
+
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    20 * time.Minute,
@@ -124,7 +141,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		}
 	}
 
-	err := forEachNodePool(nodePools, func(nodePool *NodePool) (err error) {
+	err = forEachNodePool(nodePools, func(nodePool *NodePool) (err error) {
 		nodePool.ImageID, nodePool.VolumeSize, err = SelectImageAndVolumeSize(
 			ctx,
 			awsActivityInput,

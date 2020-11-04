@@ -27,7 +27,7 @@ import (
 )
 
 func registerVsphereWorkflows(worker worker.Worker, secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore, kubeSecretStore kubesecret.KubeSecretStore) {
-	worker.RegisterWorkflowWithOptions(vsphereworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: vsphereworkflow.CreateClusterWorkflowName})
+	worker.RegisterWorkflowWithOptions(vsphereworkflow.NewCreateClusterWorkflow().Execute, workflow.RegisterOptions{Name: vsphereworkflow.CreateClusterWorkflowName})
 
 	vsphereClientFactory := vsphereworkflow.NewVMOMIClientFactory(secretStore)
 

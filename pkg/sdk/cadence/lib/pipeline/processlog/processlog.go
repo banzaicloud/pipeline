@@ -61,7 +61,6 @@ func (p processLogger) StartProcess(ctx workflow.Context, resourceID string) Pro
 		parentID = winfo.ParentWorkflowExecution.ID
 	}
 
-	// TODO: only save resource ID without parsing?
 	resourceName, err := brn.Parse(resourceID)
 	if err != nil {
 		workflow.GetLogger(ctx).Sugar().Errorf("failed to parse resource ID: %s", err)

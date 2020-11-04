@@ -17,6 +17,7 @@ package workflow
 import (
 	"context"
 
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -55,5 +56,10 @@ func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessag
 }
 
 func setClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) error {
+	if err != nil {
+		if cadence.IsCanceledError(err) {
+			ctx, _ = workflow.NewDisconnectedContext(ctx)
+		}
+	}
 	return setClusterStatus(ctx, clusterID, pkgCluster.Error, pkgCadence.UnwrapError(err).Error())
 }

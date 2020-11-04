@@ -72,7 +72,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap/capdriver"
 	googleproject "github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
 	googleprojectdriver "github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project/projectdriver"
-	process "github.com/banzaicloud/pipeline/internal/app/pipeline/process/app"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/process"
+	processapp "github.com/banzaicloud/pipeline/internal/app/pipeline/process/app"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/process/processadapter"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype/secrettypedriver"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
@@ -1188,7 +1190,7 @@ func main() {
 		}
 
 		{
-			err := process.RegisterApp(
+			err := processapp.RegisterApp(
 				orgRouter,
 				db,
 				workflowClient,
