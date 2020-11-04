@@ -16,6 +16,7 @@ package awsworkflow
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -81,7 +82,9 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 	describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == cloudformation.ErrCodeStackInstanceNotFoundException {
+			if awsErr.Code() == cloudformation.ErrCodeStackInstanceNotFoundException ||
+				(awsErr.Code() == "ValidationError" &&
+					awsErr.Message() == fmt.Sprintf("Stack with id %s does not exist", stackIdentifier)) {
 				// Note: no stack found for the corresponding stack name.
 				return nil
 			}
