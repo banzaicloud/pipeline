@@ -24,7 +24,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const CreateClusterWorkflowName = "pke-create-cluster"
+const (
+	CreateClusterWorkflowName = "pke-create-cluster"
+	signalName                = "node-bootstrapped"
+)
 
 type TokenGenerator interface {
 	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
@@ -370,15 +373,9 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		}
 	}
 
-	signalName := "master-ready"
-	signalChan := workflow.GetSignalChannel(ctx, signalName)
-
-	s := workflow.NewSelector(ctx)
-	s.AddReceive(signalChan, func(c workflow.Channel, more bool) {
-		c.Receive(ctx, nil)
-		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
-	})
-	s.Select(ctx)
+	if err := waitForMasterReadySignal(ctx, 1*time.Hour); err != nil {
+		return err
+	}
 
 	if len(nodePools) == 1 {
 		err := workflow.ExecuteActivity(ctx, SetMasterTaintActivityName, SetMasterTaintActivityInput{
@@ -428,4 +425,35 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 		return errors.Combine(errs...)
 	}
+}
+
+type decodableError struct {
+	Message string
+}
+
+func (d decodableError) Error() string {
+	return d.Message
+}
+
+func waitForMasterReadySignal(ctx workflow.Context, timeout time.Duration) error {
+	signalChan := workflow.GetSignalChannel(ctx, signalName)
+	signalTimeoutTimer := workflow.NewTimer(ctx, timeout)
+	signalTimeout := false
+
+	var signalValue decodableError
+	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
+		c.Receive(ctx, &signalValue)
+	}).AddFuture(signalTimeoutTimer, func(workflow.Future) {
+		signalTimeout = true
+	})
+
+	signalSelector.Select(ctx) // wait for signal
+
+	if signalTimeout {
+		return fmt.Errorf("timeout while waiting for %q signal", signalName)
+	}
+	if signalValue.Error() != "" {
+		return errors.Wrap(signalValue, "failed to start node")
+	}
+	return nil
 }
