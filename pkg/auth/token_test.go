@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,6 +38,10 @@ type clockStub struct {
 
 func (s clockStub) Now() time.Time {
 	return s.now
+}
+
+func newTime(value time.Time) *time.Time {
+	return &value
 }
 
 func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
@@ -60,59 +65,216 @@ func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
 }
 
 func TestTokenManager_GenerateToken(t *testing.T) {
-	const sub = "subject"
-	const tokenType = "apitoken"
-	const tokenText = "token"
+	type inputType struct {
+		m           TokenManager
+		sub         string
+		expiresAt   time.Time
+		tokenType   TokenType
+		tokenText   string
+		tokenName   string
+		storeSecret bool
+	}
 
-	generator := new(MockTokenGenerator)
-	generator.On("GenerateToken", sub, NoExpiration, tokenType, tokenText).Return("id", "token", nil)
-	generator.On("GenerateToken", sub, NoExpiration, tokenType, tokenText).Return("id2", "token2", nil)
+	type outputType struct {
+		expectedTokenID     string
+		expectedSignedToken string
+		expectedError       error
+		expectedStoredToken *auth.Token
+	}
 
-	store := auth.NewInMemoryTokenStore()
+	testCases := []struct {
+		caseDescription string
+		input           inputType
+		output          outputType
+	}{
+		{
+			caseDescription: "token generator error -> error",
+			input: inputType{
+				m:           NewTokenManager(&MockTokenGenerator{}, auth.NewInMemoryTokenStore()),
+				sub:         "subject",
+				expiresAt:   NoExpiration,
+				tokenType:   TokenType("token-type"),
+				tokenText:   "token-text",
+				tokenName:   "token-name",
+				storeSecret: false,
+			},
+			output: outputType{
+				expectedTokenID:     "",
+				expectedSignedToken: "",
+				expectedError:       errors.New("token generator error"),
+				expectedStoredToken: nil,
+			},
+		},
+		{
+			caseDescription: "no expiration, no stored token -> success",
+			input: inputType{
+				m:           NewTokenManager(&MockTokenGenerator{}, auth.NewInMemoryTokenStore()),
+				sub:         "subject",
+				expiresAt:   NoExpiration,
+				tokenType:   "token-type",
+				tokenText:   "token-text",
+				tokenName:   "token-name",
+				storeSecret: false,
+			},
+			output: outputType{
+				expectedTokenID:     "token-id",
+				expectedSignedToken: "signed-token",
+				expectedError:       nil,
+				expectedStoredToken: &auth.Token{
+					ID:        "token-id",
+					Name:      "token-name",
+					ExpiresAt: nil,
+					CreatedAt: nil,
+					Value:     "",
+				},
+			},
+		},
+		{
+			caseDescription: "no expiration, stored token -> success",
+			input: inputType{
+				m:           NewTokenManager(&MockTokenGenerator{}, auth.NewInMemoryTokenStore()),
+				sub:         "subject",
+				expiresAt:   NoExpiration,
+				tokenType:   "token-type",
+				tokenText:   "token-text",
+				tokenName:   "token-name",
+				storeSecret: true,
+			},
+			output: outputType{
+				expectedTokenID:     "token-id",
+				expectedSignedToken: "signed-token",
+				expectedError:       nil,
+				expectedStoredToken: &auth.Token{
+					ID:        "token-id",
+					Name:      "token-name",
+					ExpiresAt: nil,
+					CreatedAt: nil,
+					Value:     "signed-token",
+				},
+			},
+		},
+		{
+			caseDescription: "expiration, no stored token -> success",
+			input: inputType{
+				m:           NewTokenManager(&MockTokenGenerator{}, auth.NewInMemoryTokenStore()),
+				sub:         "subject",
+				expiresAt:   time.Date(3020, 10, 5, 22, 31, 35, 9, time.UTC),
+				tokenType:   "token-type",
+				tokenText:   "token-text",
+				tokenName:   "token-name",
+				storeSecret: false,
+			},
+			output: outputType{
+				expectedTokenID:     "token-id",
+				expectedSignedToken: "signed-token",
+				expectedError:       nil,
+				expectedStoredToken: &auth.Token{
+					ID:        "token-id",
+					Name:      "token-name",
+					ExpiresAt: newTime(time.Date(3020, 10, 5, 22, 31, 35, 9, time.UTC)),
+					CreatedAt: nil,
+					Value:     "",
+				},
+			},
+		},
+		{
+			caseDescription: "expiration, stored token -> success",
+			input: inputType{
+				m:           NewTokenManager(&MockTokenGenerator{}, auth.NewInMemoryTokenStore()),
+				sub:         "subject",
+				expiresAt:   time.Date(3020, 10, 5, 22, 31, 35, 9, time.UTC),
+				tokenType:   "token-type",
+				tokenText:   "token-text",
+				tokenName:   "token-name",
+				storeSecret: true,
+			},
+			output: outputType{
+				expectedTokenID:     "token-id",
+				expectedSignedToken: "signed-token",
+				expectedError:       nil,
+				expectedStoredToken: &auth.Token{
+					ID:        "token-id",
+					Name:      "token-name",
+					ExpiresAt: newTime(time.Date(3020, 10, 5, 22, 31, 35, 9, time.UTC)),
+					CreatedAt: nil,
+					Value:     "signed-token",
+				},
+			},
+		},
+	}
 
-	manager := NewTokenManager(generator, store)
+	for _, testCase := range testCases {
+		testCase := testCase
 
-	tokenID, signedToken, err := manager.GenerateToken(sub, NoExpiration, tokenType, tokenText, "tokenName", true)
-	require.NoError(t, err)
+		t.Run(testCase.caseDescription, func(t *testing.T) {
+			mockTokenGenerator := testCase.input.m.generator.(*MockTokenGenerator)
+			generateTokenMock := mockTokenGenerator.On(
+				"GenerateToken",
+				testCase.input.sub,
+				testCase.input.expiresAt,
+				string(testCase.input.tokenType),
+				testCase.input.tokenText,
+			)
 
-	assert.Equal(t, "id", tokenID)
-	assert.Equal(t, "token", signedToken)
+			if testCase.output.expectedError != nil &&
+				testCase.output.expectedError.Error() == "token generator error" {
+				generateTokenMock.Return(
+					"",
+					"",
+					testCase.output.expectedError,
+				).Once()
+			} else {
+				generateTokenMock.Return(
+					testCase.output.expectedTokenID,
+					testCase.output.expectedSignedToken,
+					nil,
+				).Once()
+			}
 
-	generator.AssertExpectations(t)
+			actualTokenID, actualSignedToken, actualError := testCase.input.m.GenerateToken(
+				testCase.input.sub,
+				testCase.input.expiresAt,
+				testCase.input.tokenType,
+				testCase.input.tokenText,
+				testCase.input.tokenName,
+				testCase.input.storeSecret,
+			)
 
-	tokens, err := store.List(sub)
-	require.NoError(t, err)
+			if testCase.output.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedTokenID, actualTokenID)
+			require.Equal(t, testCase.output.expectedSignedToken, actualSignedToken)
 
-	assert.Equal(t, tokens[0].ID, "id")
-	assert.Equal(t, tokens[0].Name, "tokenName")
-	assert.Equal(t, tokens[0].Value, "token")
-}
+			if testCase.output.expectedError == nil {
+				actualStoredToken, err := testCase.input.m.store.Lookup(
+					testCase.input.sub,
+					testCase.output.expectedTokenID,
+				)
+				require.NoError(t, err)
+				require.NotNil(t, actualStoredToken)
 
-func TestTokenManager_GenerateToken_NoStoreSecret(t *testing.T) {
-	const sub = "subject"
-	const tokenType = "apitoken"
-	const tokenText = "token"
+				// Note: faking dynamically generated values.
+				if testCase.output.expectedStoredToken.CreatedAt == nil {
+					require.Nil(t, actualStoredToken.CreatedAt)
+				} else {
+					require.NotNil(t, actualStoredToken.CreatedAt)
+					require.InEpsilon(
+						t,
+						testCase.output.expectedStoredToken.CreatedAt.Unix(),
+						actualStoredToken.CreatedAt.Unix(),
+						3.0,
+						"creation time is not within threshold",
+					)
+					actualStoredToken.CreatedAt = testCase.output.expectedStoredToken.CreatedAt
+				}
 
-	generator := new(MockTokenGenerator)
-	generator.On("GenerateToken", sub, NoExpiration, tokenType, tokenText).Return("id", "token", nil)
-	generator.On("GenerateToken", sub, NoExpiration, tokenType, tokenText).Return("id2", "token2", nil)
+				require.Equal(t, testCase.output.expectedStoredToken, actualStoredToken)
+			}
 
-	store := auth.NewInMemoryTokenStore()
-
-	manager := NewTokenManager(generator, store)
-
-	tokenID, signedToken, err := manager.GenerateToken(sub, NoExpiration, tokenType, tokenText, "tokenName", false)
-	require.NoError(t, err)
-
-	assert.Equal(t, "id", tokenID)
-	assert.Equal(t, "token", signedToken)
-
-	generator.AssertExpectations(t)
-
-	tokens, err := store.List(sub)
-	require.NoError(t, err)
-
-	assert.Equal(t, tokens[0].ID, "id")
-	assert.Equal(t, tokens[0].Name, "tokenName")
-	assert.Equal(t, tokens[0].Value, "")
+			mockTokenGenerator.AssertExpectations(t)
+		})
+	}
 }

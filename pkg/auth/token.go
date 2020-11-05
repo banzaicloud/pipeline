@@ -188,14 +188,16 @@ func (m TokenManager) GenerateToken(
 	tokenText string,
 	tokenName string,
 	storeSecret bool,
-) (string, string, error) {
-	tokenID, signedToken, err := m.generator.GenerateToken(sub, expiresAt, string(tokenType), tokenText)
+) (tokenID string, signedToken string, err error) {
+	tokenID, signedToken, err = m.generator.GenerateToken(sub, expiresAt, string(tokenType), tokenText)
 	if err != nil {
 		return "", "", err
 	}
 
 	token := auth.NewToken(tokenID, tokenName)
-	token.ExpiresAt = &expiresAt
+	if expiresAt != NoExpiration {
+		token.ExpiresAt = &expiresAt
+	}
 
 	if storeSecret {
 		token.Value = signedToken
