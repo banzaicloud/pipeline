@@ -61,12 +61,12 @@ func registerEKSWorkflows(
 	}
 
 	// Activities.
-	eksworkflow.NewCreateStoredNodePoolActivity(nodePoolStore).Register()
-	eksworkflow.NewListStoredEKSClustersActivity(database).Register()
-	eksworkflow.NewSetNodePoolStatusActivity(nodePoolStore).Register()
+	eksworkflow.NewCreateStoredNodePoolActivity(nodePoolStore).Register(worker)
+	eksworkflow.NewListStoredEKSClustersActivity(database).Register(worker)
+	eksworkflow.NewSetNodePoolStatusActivity(nodePoolStore).Register(worker)
 
 	// Workflows.
-	eksworkflow.NewCreateNodePoolWorkflow().Register()
+	eksworkflow.NewCreateNodePoolWorkflow().Register(worker)
 
 	worker.RegisterWorkflowWithOptions(cluster.EKSCreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSCreateClusterWorkflowName})
 
@@ -129,7 +129,7 @@ func registerEKSWorkflows(
 	worker.RegisterWorkflowWithOptions(eksworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteInfraWorkflowName})
 
 	// delete node pool workflow
-	eksworkflow.NewDeleteNodePoolWorkflow().Register()
+	eksworkflow.NewDeleteNodePoolWorkflow().Register(worker)
 
 	getAMISizeActivity := eksworkflow.NewGetAMISizeActivity(awsSessionFactory, ec2Factory)
 	worker.RegisterActivityWithOptions(getAMISizeActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetAMISizeActivityName})
@@ -184,17 +184,17 @@ func registerEKSWorkflows(
 	worker.RegisterActivityWithOptions(saveNodePoolsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNodePoolsActivityName})
 
 	// Node pool upgrade
-	eksworkflow2.NewUpdateNodePoolWorkflow(awsSessionFactory, cloudFormationFactory, processlog.New()).Register()
+	eksworkflow2.NewUpdateNodePoolWorkflow(awsSessionFactory, cloudFormationFactory, processlog.New()).Register(worker)
 
-	eksworkflow2.NewCalculateNodePoolVersionActivity().Register()
-	eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate).Register()
-	eksworkflow2.NewWaitCloudFormationStackUpdateActivity(awsSessionFactory).Register()
+	eksworkflow2.NewCalculateNodePoolVersionActivity().Register(worker)
+	eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate).Register(worker)
+	eksworkflow2.NewWaitCloudFormationStackUpdateActivity(awsSessionFactory).Register(worker)
 
 	// New cluster update
-	eksworkflow2.NewUpdateClusterWorkflow().Register()
+	eksworkflow2.NewUpdateClusterWorkflow().Register(worker)
 
-	eksworkflow2.NewUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register()
-	eksworkflow2.NewWaitUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register()
+	eksworkflow2.NewUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register(worker)
+	eksworkflow2.NewWaitUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register(worker)
 
 	return nil
 }

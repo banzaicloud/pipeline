@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
@@ -93,8 +94,8 @@ func (a ListStoredEKSClustersActivity) Execute(
 }
 
 // Register registers the activity.
-func (a ListStoredEKSClustersActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: ListStoredEKSClustersActivityName})
+func (a ListStoredEKSClustersActivity) Register(worker worker.Worker) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: ListStoredEKSClustersActivityName})
 }
 
 // listStoredEKSClusters lists the stored EKS clusters optionally filtered for

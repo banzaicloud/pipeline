@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
@@ -56,8 +57,8 @@ func NewWaitUpdateClusterVersionActivity(
 }
 
 // Register registers the activity in the worker.
-func (a WaitUpdateClusterVersionActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: WaitUpdateClusterVersionActivityName})
+func (a WaitUpdateClusterVersionActivity) Register(worker worker.Worker) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: WaitUpdateClusterVersionActivityName})
 }
 
 func (a *WaitUpdateClusterVersionActivity) Execute(ctx context.Context, input WaitUpdateClusterVersionActivityInput) error {

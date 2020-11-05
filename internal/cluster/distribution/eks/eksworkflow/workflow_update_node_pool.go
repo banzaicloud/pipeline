@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"go.uber.org/cadence"
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -73,8 +74,8 @@ type UpdateNodePoolWorkflowInput struct {
 	ClusterTags map[string]string
 }
 
-func (w UpdateNodePoolWorkflow) Register() {
-	workflow.RegisterWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateNodePoolWorkflowName})
+func (w UpdateNodePoolWorkflow) Register(worker worker.Worker) {
+	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateNodePoolWorkflowName})
 }
 
 func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePoolWorkflowInput) (err error) {

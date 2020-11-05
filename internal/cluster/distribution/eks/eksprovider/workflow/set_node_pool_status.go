@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
@@ -67,8 +68,8 @@ func (a SetNodePoolStatusActivity) Execute(ctx context.Context, input SetNodePoo
 }
 
 // Register registers the activity.
-func (a SetNodePoolStatusActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: SetNodePoolStatusActivityName})
+func (a SetNodePoolStatusActivity) Register(worker worker.Worker) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: SetNodePoolStatusActivityName})
 }
 
 // setNodePoolErrorStatus sets a node pool's status to error using the
