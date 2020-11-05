@@ -45,7 +45,7 @@ func NewCalculateNodePoolVersionActivity() CalculateNodePoolVersionActivity {
 }
 
 // Register registers the activity in the worker.
-func (a CalculateNodePoolVersionActivity) Register(worker worker.Registry) {
+func (a CalculateNodePoolVersionActivity) Register(worker worker.ActivityRegistry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: CalculateNodePoolVersionActivityName})
 }
 

@@ -318,7 +318,7 @@ func TestGetCFStackActivityExecute(t *testing.T) {
 			workflowTestSuite := &testsuite.WorkflowTestSuite{}
 			testActivityEnvironment := workflowTestSuite.NewTestActivityEnvironment()
 
-			activity.RegisterWithOptions(
+			testActivityEnvironment.RegisterActivityWithOptions(
 				testCase.input.activity.Execute,
 				activity.RegisterOptions{Name: testCase.caseName},
 			)

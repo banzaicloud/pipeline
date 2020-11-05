@@ -21,6 +21,12 @@ import (
 
 // Registry is a subset of the Worker interface to only expose registration functions to consumers.
 type Registry interface {
+	WorkflowRegistry
+	ActivityRegistry
+}
+
+// WorkflowRegistry is a subset of the Worker interface to only expose workflow registration functions to consumers.
+type WorkflowRegistry interface {
 	// RegisterWorkflow - registers a workflow function with the worker.
 	// A workflow takes a workflow.Context and input and returns a (result, error) or just error.
 	// Examples:
@@ -41,7 +47,10 @@ type Registry interface {
 	// This method panics if workflowFunc doesn't comply with the expected format or tries to register the same workflow
 	// type name twice. Use workflow.RegisterOptions.DisableAlreadyRegisteredCheck to allow multiple registrations.
 	RegisterWorkflowWithOptions(w interface{}, options workflow.RegisterOptions)
+}
 
+// ActivityRegistry is a subset of the Worker interface to only expose activity registration functions to consumers.
+type ActivityRegistry interface {
 	// RegisterActivity - register an activity function or a pointer to a structure with the worker.
 	// An activity function takes a context and input and returns a (result, error) or just error.
 	//

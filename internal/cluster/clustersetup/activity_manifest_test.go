@@ -15,7 +15,6 @@
 package clustersetup
 
 import (
-	"context"
 	"testing"
 	"text/template"
 
@@ -26,18 +25,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/kubernetes"
 )
-
-// nolint: gochecknoglobals
-var testInitManifestActivity = InitManifestActivity{}
-
-func testInitManifestActivityExecute(ctx context.Context, input InitManifestActivityInput) error {
-	return testInitManifestActivity.Execute(ctx, input)
-}
-
-// nolint: gochecknoinits
-func init() {
-	activity.RegisterWithOptions(testInitManifestActivityExecute, activity.RegisterOptions{Name: InitManifestActivityName})
-}
 
 func TestInitManifestActivity(t *testing.T) {
 	rawTpl := `clusterID: {{ .Cluster.ID }}
@@ -65,9 +52,11 @@ organizationName: example-organization
 	clientFactory := new(MockDynamicFileClientFactory)
 	clientFactory.On("FromSecret", mock.Anything, "secret").Return(client, nil)
 
-	testInitManifestActivity = NewInitManifestActivity(tpl, clientFactory)
+	testInitManifestActivity := NewInitManifestActivity(tpl, clientFactory)
 
 	env := (&testsuite.WorkflowTestSuite{}).NewTestActivityEnvironment()
+
+	env.RegisterActivityWithOptions(testInitManifestActivity.Execute, activity.RegisterOptions{Name: InitManifestActivityName})
 
 	_, err = env.ExecuteActivity(InitManifestActivityName, InitManifestActivityInput{
 		ConfigSecretID: "secret",

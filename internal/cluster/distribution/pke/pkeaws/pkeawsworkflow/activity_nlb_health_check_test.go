@@ -559,7 +559,7 @@ func TestHealthCheckActivityExecute(t *testing.T) {
 			workflowTestSuite := &testsuite.WorkflowTestSuite{}
 			testActivityEnvironment := workflowTestSuite.NewTestActivityEnvironment()
 
-			activity.RegisterWithOptions(
+			testActivityEnvironment.RegisterActivityWithOptions(
 				tt.input.activity.Execute,
 				activity.RegisterOptions{Name: tt.name},
 			)

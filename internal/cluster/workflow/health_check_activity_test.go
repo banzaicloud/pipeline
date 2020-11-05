@@ -15,7 +15,6 @@
 package workflow
 
 import (
-	"context"
 	"os"
 	"testing"
 
@@ -30,18 +29,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
-
-// nolint: gochecknoglobals
-var healthCheckTestActivity = HealthCheckActivity{}
-
-func testHealthCheckActivityExecute(ctx context.Context, input HealthCheckActivityInput) error {
-	return healthCheckTestActivity.Execute(ctx, input)
-}
-
-// nolint: gochecknoinits
-func init() {
-	activity.RegisterWithOptions(testHealthCheckActivityExecute, activity.RegisterOptions{Name: HealthCheckActivityName})
-}
 
 type HealthCheckActivityTestSuite struct {
 	suite.Suite
@@ -95,7 +82,9 @@ func (s *HealthCheckActivityTestSuite) Test_Execute() {
 	healthChecker := new(MockHealthChecker)
 	healthChecker.On("Check", mock.Anything, mock.Anything).Return(nil)
 
-	healthCheckTestActivity = NewHealthCheckActivity(healthChecker, clientFactory)
+	healthCheckTestActivity := NewHealthCheckActivity(healthChecker, clientFactory)
+
+	s.env.RegisterActivityWithOptions(healthCheckTestActivity.Execute, activity.RegisterOptions{Name: HealthCheckActivityName})
 
 	_, err := s.env.ExecuteActivity(
 		HealthCheckActivityName,
