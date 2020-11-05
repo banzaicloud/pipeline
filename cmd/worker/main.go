@@ -295,15 +295,15 @@ func main() {
 		processService := process.NewService(processadapter.NewGormStore(db), workflowClient)
 		processActivity := process.NewProcessActivity(processService)
 
-		activity.RegisterWithOptions(processActivity.ExecuteProcess, activity.RegisterOptions{Name: process.ProcessActivityName})
-		activity.RegisterWithOptions(processActivity.ExecuteProcessEvent, activity.RegisterOptions{Name: process.ProcessEventActivityName})
+		worker.RegisterActivityWithOptions(processActivity.ExecuteProcess, activity.RegisterOptions{Name: process.ProcessActivityName})
+		worker.RegisterActivityWithOptions(processActivity.ExecuteProcessEvent, activity.RegisterOptions{Name: process.ProcessEventActivityName})
 
 		// Cluster setup
 		{
 			wf := clustersetup.Workflow{
 				InstallInitManifest: config.Cluster.Manifest != "",
 			}
-			workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
+			worker.RegisterWorkflowWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
 
 			initManifestTemplate := template.New("")
 			if config.Cluster.Manifest != "" {
@@ -314,50 +314,50 @@ func main() {
 				initManifestTemplate,
 				kubernetes.NewDynamicFileClientFactory(configFactory),
 			)
-			activity.RegisterWithOptions(initManifestActivity.Execute, activity.RegisterOptions{Name: clustersetup.InitManifestActivityName})
+			worker.RegisterActivityWithOptions(initManifestActivity.Execute, activity.RegisterOptions{Name: clustersetup.InitManifestActivityName})
 
 			createPipelineNamespaceActivity := clustersetup.NewCreatePipelineNamespaceActivity(
 				config.Cluster.Namespace,
 				kubernetes.NewClientFactory(configFactory),
 			)
-			activity.RegisterWithOptions(createPipelineNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.CreatePipelineNamespaceActivityName})
+			worker.RegisterActivityWithOptions(createPipelineNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.CreatePipelineNamespaceActivityName})
 
 			labelKubeSystemNamespaceActivity := clustersetup.NewLabelKubeSystemNamespaceActivity(
 				kubernetes.NewClientFactory(configFactory),
 			)
-			activity.RegisterWithOptions(labelKubeSystemNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.LabelKubeSystemNamespaceActivityName})
+			worker.RegisterActivityWithOptions(labelKubeSystemNamespaceActivity.Execute, activity.RegisterOptions{Name: clustersetup.LabelKubeSystemNamespaceActivityName})
 
 			installNodePoolLabelSetOperatorActivity := clustersetup.NewInstallNodePoolLabelSetOperatorActivity(
 				config.Cluster.Labels,
 				unifiedHelmReleaser,
 			)
-			activity.RegisterWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
+			worker.RegisterActivityWithOptions(installNodePoolLabelSetOperatorActivity.Execute, activity.RegisterOptions{Name: clustersetup.InstallNodePoolLabelSetOperatorActivityName})
 
 			configureNodePoolLabelsActivity := clustersetup.NewConfigureNodePoolLabelsActivity(
 				config.Cluster.Labels.Namespace,
 				kubernetes.NewDynamicClientFactory(configFactory),
 			)
-			activity.RegisterWithOptions(configureNodePoolLabelsActivity.Execute, activity.RegisterOptions{Name: clustersetup.ConfigureNodePoolLabelsActivityName})
+			worker.RegisterActivityWithOptions(configureNodePoolLabelsActivity.Execute, activity.RegisterOptions{Name: clustersetup.ConfigureNodePoolLabelsActivityName})
 		}
 
-		workflow.RegisterWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})
+		worker.RegisterWorkflowWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})
 
 		downloadK8sConfigActivity := cluster.NewDownloadK8sConfigActivity(clusterManager)
-		activity.RegisterWithOptions(downloadK8sConfigActivity.Execute, activity.RegisterOptions{Name: cluster.DownloadK8sConfigActivityName})
+		worker.RegisterActivityWithOptions(downloadK8sConfigActivity.Execute, activity.RegisterOptions{Name: cluster.DownloadK8sConfigActivityName})
 
 		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
-		activity.RegisterWithOptions(setupPrivilegesActivity.Execute, activity.RegisterOptions{Name: cluster.SetupPrivilegesActivityName})
+		worker.RegisterActivityWithOptions(setupPrivilegesActivity.Execute, activity.RegisterOptions{Name: cluster.SetupPrivilegesActivityName})
 
 		labelNodesWithNodepoolNameActivity := cluster.NewLabelNodesWithNodepoolNameActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
-		activity.RegisterWithOptions(labelNodesWithNodepoolNameActivity.Execute, activity.RegisterOptions{Name: cluster.LabelNodesWithNodepoolNameActivityName})
+		worker.RegisterActivityWithOptions(labelNodesWithNodepoolNameActivity.Execute, activity.RegisterOptions{Name: cluster.LabelNodesWithNodepoolNameActivityName})
 
-		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
+		worker.RegisterWorkflowWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
 		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, unifiedHelmReleaser)
-		activity.RegisterWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
+		worker.RegisterActivityWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
-		activity.RegisterWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
+		worker.RegisterActivityWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
 
 		cloudinfoClient := cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
 			BasePath:      config.Cloudinfo.Endpoint,
@@ -376,18 +376,18 @@ func main() {
 		}
 
 		// Register amazon specific workflows and activities
-		registerAwsWorkflows(config, clusters, tokenGenerator, secretStore, imageSelector, secret.Store)
+		registerAwsWorkflows(worker, config, clusters, tokenGenerator, secretStore, imageSelector, secret.Store)
 
 		azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonadapter.NewLogger(logger))
 
 		// Register azure specific workflows
-		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
+		registerAzureWorkflows(worker, secretStore, tokenGenerator, azurePKEClusterStore)
 
 		// Register EKS specific workflows
 		clusterStore := clusteradapter.NewStore(db, clusteradapter.NewClusters(db))
 		clusterDynamicClientFactory := cluster2.NewDynamicClientFactory(clusterStore, kubernetes.NewDynamicClientFactory(configFactory))
 
-		err = registerEKSWorkflows(config, secret.Store, eksClusters, eksadapter.NewNodePoolStore(db), clusterDynamicClientFactory, db)
+		err = registerEKSWorkflows(worker, config, secret.Store, eksClusters, eksadapter.NewNodePoolStore(db), clusterDynamicClientFactory, db)
 		if err != nil {
 			emperror.Panic(errors.WrapIf(err, "failed to register EKS workflows"))
 		}
@@ -395,7 +395,7 @@ func main() {
 		{
 			passwordSecrets := intpkeworkflowadapter.NewPasswordSecretStore(commonSecretStore)
 			registerPKEWorkflows(
-				passwordSecrets, config, pkeawsadapter.NewNodePoolStore(db), clusterDynamicClientFactory)
+				worker, passwordSecrets, config, pkeawsadapter.NewNodePoolStore(db), clusterDynamicClientFactory)
 		}
 
 		vsphereClusterStore := vsphereadapter.NewClusterStore(db)
@@ -403,7 +403,7 @@ func main() {
 		cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 		clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
 		{
-			workflow.RegisterWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
+			worker.RegisterWorkflowWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
 
 			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config, unifiedHelmReleaser)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler, deployment.NewHelmService(helmFacade, unifiedHelmReleaser))
@@ -413,7 +413,7 @@ func main() {
 			clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
 
 			removeClusterFromGroupActivity := clusterworkflow.MakeRemoveClusterFromGroupActivity(clusterGroupManager)
-			activity.RegisterWithOptions(removeClusterFromGroupActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.RemoveClusterFromGroupActivityName})
+			worker.RegisterActivityWithOptions(removeClusterFromGroupActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.RemoveClusterFromGroupActivityName})
 
 			commonClusterDeleter := legacyclusteradapter.NewCommonClusterDeleterAdapter(
 				clusterManager,
@@ -484,7 +484,7 @@ func main() {
 					},
 				),
 			)
-			activity.RegisterWithOptions(deleteClusterActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteClusterActivityName})
+			worker.RegisterActivityWithOptions(deleteClusterActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.DeleteClusterActivityName})
 		}
 
 		{
@@ -492,13 +492,13 @@ func main() {
 				cluster2.NewDynamicClientFactory(clusterStore, kubernetes.NewDynamicClientFactory(configFactory)),
 				config.Cluster.Labels.Namespace,
 			)
-			activity.RegisterWithOptions(createNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolLabelSetActivityName})
+			worker.RegisterActivityWithOptions(createNodePoolLabelSetActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.CreateNodePoolLabelSetActivityName})
 
 			deleteNodePoolLabelSetActivity := clusterworkflow.NewDeleteNodePoolLabelSetActivity(
 				clusterDynamicClientFactory,
 				config.Cluster.Labels.Namespace,
 			)
-			activity.RegisterWithOptions(
+			worker.RegisterActivityWithOptions(
 				deleteNodePoolLabelSetActivity.Execute,
 				activity.RegisterOptions{
 					Name: clusterworkflow.DeleteNodePoolLabelSetActivityName,
@@ -506,7 +506,7 @@ func main() {
 			)
 
 			setClusterStatusActivity := clusterworkflow.NewSetClusterStatusActivity(clusterStore)
-			activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.SetClusterStatusActivityName})
+			worker.RegisterActivityWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: clusterworkflow.SetClusterStatusActivityName})
 		}
 
 		systemNamespaces := []string{"kube-system"}
@@ -515,51 +515,51 @@ func main() {
 			intClusterK8s.NewHealthChecker(systemNamespaces),
 			kubernetes.NewClientFactory(configFactory),
 		)
-		activity.RegisterWithOptions(healthCheckActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.HealthCheckActivityName})
+		worker.RegisterActivityWithOptions(healthCheckActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.HealthCheckActivityName})
 
 		k8sConfigGetter := kubesecret.MakeKubeSecretStore(secret.Store)
 
 		// Register vsphere specific workflows
 
-		registerVsphereWorkflows(secretStore, tokenGenerator, vsphereClusterStore, k8sConfigGetter)
+		registerVsphereWorkflows(worker, secretStore, tokenGenerator, vsphereClusterStore, k8sConfigGetter)
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
-		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
+		worker.RegisterActivityWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
 
 		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
-		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
+		worker.RegisterActivityWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
 
 		deleteDexClientActivity := pkeworkflow.NewDeleteDexClientActivity(clusters, clusterAuthService)
-		activity.RegisterWithOptions(deleteDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteDexClientActivityName})
+		worker.RegisterActivityWithOptions(deleteDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteDexClientActivityName})
 
 		setMasterTaintActivity := pkeworkflow.NewSetMasterTaintActivity(clusters)
-		activity.RegisterWithOptions(setMasterTaintActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SetMasterTaintActivityName})
+		worker.RegisterActivityWithOptions(setMasterTaintActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SetMasterTaintActivityName})
 
 		deleteUnusedClusterSecretsActivity := intClusterWorkflow.MakeDeleteUnusedClusterSecretsActivity(secret.Store)
-		activity.RegisterWithOptions(deleteUnusedClusterSecretsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteUnusedClusterSecretsActivityName})
+		worker.RegisterActivityWithOptions(deleteUnusedClusterSecretsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteUnusedClusterSecretsActivityName})
 
-		workflow.RegisterWithOptions(intClusterWorkflow.DeleteK8sResourcesWorkflow, workflow.RegisterOptions{Name: intClusterWorkflow.DeleteK8sResourcesWorkflowName})
+		worker.RegisterWorkflowWithOptions(intClusterWorkflow.DeleteK8sResourcesWorkflow, workflow.RegisterOptions{Name: intClusterWorkflow.DeleteK8sResourcesWorkflowName})
 
 		deleteHelmDeploymentsActivity := intClusterWorkflow.MakeDeleteHelmDeploymentsActivity(k8sConfigGetter, releaseDeleter, logrusLogger)
-		activity.RegisterWithOptions(deleteHelmDeploymentsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteHelmDeploymentsActivityName})
+		worker.RegisterActivityWithOptions(deleteHelmDeploymentsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteHelmDeploymentsActivityName})
 
 		deleteUserNamespacesActivity := intClusterWorkflow.MakeDeleteUserNamespacesActivity(intClusterK8s.MakeUserNamespaceDeleter(logrusLogger), k8sConfigGetter)
-		activity.RegisterWithOptions(deleteUserNamespacesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteUserNamespacesActivityName})
+		worker.RegisterActivityWithOptions(deleteUserNamespacesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteUserNamespacesActivityName})
 
 		deleteNamespaceResourcesActivity := intClusterWorkflow.MakeDeleteNamespaceResourcesActivity(intClusterK8s.MakeNamespaceResourcesDeleter(logrusLogger), k8sConfigGetter)
-		activity.RegisterWithOptions(deleteNamespaceResourcesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteNamespaceResourcesActivityName})
+		worker.RegisterActivityWithOptions(deleteNamespaceResourcesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteNamespaceResourcesActivityName})
 
 		deleteNamespaceServicesActivity := intClusterWorkflow.MakeDeleteNamespaceServicesActivity(intClusterK8s.MakeNamespaceServicesDeleter(logrusLogger), k8sConfigGetter)
-		activity.RegisterWithOptions(deleteNamespaceServicesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteNamespaceServicesActivityName})
+		worker.RegisterActivityWithOptions(deleteNamespaceServicesActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteNamespaceServicesActivityName})
 
 		clusterDNSRecordsDeleter, err := intClusterDNS.MakeDefaultRecordsDeleter()
 		emperror.Panic(errors.WrapIf(err, "failed to create default cluster DNS records deleter"))
 
 		deleteClusterDNSRecordsActivity := intClusterWorkflow.MakeDeleteClusterDNSRecordsActivity(clusterDNSRecordsDeleter)
-		activity.RegisterWithOptions(deleteClusterDNSRecordsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteClusterDNSRecordsActivityName})
+		worker.RegisterActivityWithOptions(deleteClusterDNSRecordsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteClusterDNSRecordsActivityName})
 
 		waitPersistentVolumesDeletionActivity := intClusterWorkflow.MakeWaitPersistentVolumesDeletionActivity(k8sConfigGetter, logrusLogger)
-		activity.RegisterWithOptions(waitPersistentVolumesDeletionActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.WaitPersistentVolumesDeletionActivityName})
+		worker.RegisterActivityWithOptions(waitPersistentVolumesDeletionActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.WaitPersistentVolumesDeletionActivityName})
 
 		{
 			// External DNS service
@@ -616,11 +616,11 @@ func main() {
 			featureWhitelistService := securityscan.NewIntegratedServiceWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
 			// expiry integrated service
-			workflow.RegisterWithOptions(expiryWorkflow.ExpiryJobWorkflow, workflow.RegisterOptions{Name: expiryWorkflow.ExpiryJobWorkflowName})
+			worker.RegisterWorkflowWithOptions(expiryWorkflow.ExpiryJobWorkflow, workflow.RegisterOptions{Name: expiryWorkflow.ExpiryJobWorkflowName})
 
 			clusterDeleter := clusteradapter.NewCadenceClusterManager(workflowClient)
 			expiryActivity := expiryWorkflow.NewExpiryActivity(clusterDeleter)
-			activity.RegisterWithOptions(expiryActivity.Execute, activity.RegisterOptions{Name: expiryWorkflow.ExpireActivityName})
+			worker.RegisterActivityWithOptions(expiryActivity.Execute, activity.RegisterOptions{Name: expiryWorkflow.ExpireActivityName})
 
 			expirerService := adapter.NewAsyncExpiryService(workflowClient, logger)
 
@@ -683,7 +683,7 @@ func main() {
 				),
 			})
 
-			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository)
 		}
 
 		group.Add(appkitrun.CadenceWorkerRun(worker))
