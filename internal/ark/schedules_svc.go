@@ -118,14 +118,13 @@ func (s *SchedulesService) List() (schedules []*api.Schedule, err error) {
 }
 
 func (s *SchedulesService) convertScheduleToEntity(schedule arkAPI.Schedule) *api.Schedule {
-	return &api.Schedule{
+	sched := &api.Schedule{
 		UID:              string(schedule.GetUID()),
 		Name:             schedule.Name,
 		Schedule:         schedule.Spec.Schedule,
 		TTL:              schedule.Spec.Template.TTL,
 		Labels:           schedule.ObjectMeta.Labels,
 		Status:           string(schedule.Status.Phase),
-		LastBackup:       schedule.Status.LastBackup.Time,
 		ValidationErrors: schedule.Status.ValidationErrors,
 		Options: api.BackupOptions{
 			IncludedNamespaces:      schedule.Spec.Template.IncludedNamespaces,
@@ -137,4 +136,8 @@ func (s *SchedulesService) convertScheduleToEntity(schedule arkAPI.Schedule) *ap
 			SnapshotVolumes:         schedule.Spec.Template.SnapshotVolumes,
 		},
 	}
+	if schedule.Status.LastBackup != nil {
+		sched.LastBackup = schedule.Status.LastBackup.Time
+	}
+	return sched
 }

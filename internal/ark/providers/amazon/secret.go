@@ -22,7 +22,8 @@ import (
 )
 
 type secretContents struct {
-	Credentials credentials `toml:"default"`
+	ClusterCredentials credentials `toml:"default"`
+	BucketCredentials  credentials `toml:"bucket"`
 }
 
 type credentials struct {
@@ -31,12 +32,21 @@ type credentials struct {
 }
 
 // GetSecret gets formatted secret for ARK
-func GetSecret(secret *secret.SecretItemResponse) (string, error) {
-	a := secretContents{
-		Credentials: credentials{
-			KeyID: secret.Values[secrettype.AwsAccessKeyId],
-			Key:   secret.Values[secrettype.AwsSecretAccessKey],
-		},
+func GetSecret(clusterSecret, bucketSecret *secret.SecretItemResponse) (string, error) {
+	a := secretContents{}
+
+	if clusterSecret != nil {
+		a.ClusterCredentials = credentials{
+			KeyID: clusterSecret.Values[secrettype.AwsAccessKeyId],
+			Key:   clusterSecret.Values[secrettype.AwsSecretAccessKey],
+		}
+	}
+
+	if bucketSecret != nil {
+		a.BucketCredentials = credentials{
+			KeyID: bucketSecret.Values[secrettype.AwsAccessKeyId],
+			Key:   bucketSecret.Values[secrettype.AwsSecretAccessKey],
+		}
 	}
 
 	values, err := toml.Marshal(a)

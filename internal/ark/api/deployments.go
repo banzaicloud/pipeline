@@ -26,10 +26,11 @@ type PersistDeploymentRequest struct {
 type EnableBackupServiceRequest struct {
 	CreateBucketRequest
 
-	Schedule string            `json:"schedule" binding:"required"`
-	TTL      string            `json:"ttl" binding:"required"`
-	Labels   map[string]string `json:"labels,omitempty"`
-	Options  BackupOptions     `json:"options,omitempty"`
+	Schedule         string            `json:"schedule" binding:"required"`
+	TTL              string            `json:"ttl" binding:"required"`
+	Labels           map[string]string `json:"labels,omitempty"`
+	Options          BackupOptions     `json:"options,omitempty"`
+	UseClusterSecret bool              `json:"useClusterSecret,omitempty"`
 }
 
 // EnableBackupServiceResponse describes Pipeline's EnableBackupServiceRequest API response

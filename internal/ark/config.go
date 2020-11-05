@@ -99,6 +99,7 @@ type backupStorageLocation struct {
 
 type backupStorageLocationConfig struct {
 	Region                  string `json:"region,omitempty"`
+	Profile                 string `json:"profile,omitempty"`
 	S3ForcePathStyle        string `json:"s3ForcePathStyle,omitempty"`
 	S3Url                   string `json:"s3Url,omitempty"`
 	KMSKeyId                string `json:"kmsKeyId,omitempty"`
@@ -114,7 +115,8 @@ type ConfigRequest struct {
 	Bucket        bucketConfig
 	BucketSecret  *secret.SecretItemResponse
 
-	RestoreMode bool
+	UseClusterSecret bool
+	RestoreMode      bool
 }
 
 type clusterConfig struct {
@@ -296,6 +298,7 @@ func (req ConfigRequest) getBackupStorageLocation() (backupStorageLocation, erro
 	case providers.Amazon:
 		config.Provider = amazon.BackupStorageProvider
 		config.Config.Region = req.Bucket.Location
+		config.Config.Profile = "bucket"
 
 	case providers.Azure:
 		config.Provider = azure.BackupStorageProvider
@@ -321,9 +324,14 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 
 	switch req.Cluster.Provider {
 	case providers.Amazon:
-		ClusterSecretContents, err = amazon.GetSecret(req.ClusterSecret)
+		// In case of Amazon we set up one credential file with different profiles for cluster & bucket secret.
+		// If UseClusterSecret is false there's no need for cluster secret, user will make sure node instance role has the right permissions
+		ClusterSecretContents = ""
+		if req.Bucket.Provider != providers.Amazon && req.UseClusterSecret {
+			ClusterSecretContents, err = amazon.GetSecret(req.ClusterSecret, nil)
+		}
 		if err != nil {
-			return config, err
+			return config, nil
 		}
 	case providers.Google:
 		ClusterSecretContents, err = google.GetSecret(req.ClusterSecret)
@@ -342,7 +350,13 @@ func (req ConfigRequest) getCredentials() (credentials, error) {
 
 	switch req.Bucket.Provider {
 	case providers.Amazon:
-		BucketSecretContents, err = amazon.GetSecret(req.BucketSecret)
+		var clusterSecret *secret.SecretItemResponse
+		// put cluster secret if useClusterSecret == true otherwise will fallback to instance profile
+		// which needs to be set up to contain snapshot permissions
+		if req.Cluster.Provider == providers.Amazon && req.UseClusterSecret {
+			clusterSecret = req.ClusterSecret
+		}
+		BucketSecretContents, err = amazon.GetSecret(clusterSecret, req.BucketSecret)
 		if err != nil {
 			return config, err
 		}

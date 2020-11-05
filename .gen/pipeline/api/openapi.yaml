@@ -22558,7 +22558,11 @@ components:
       example:
         cloud: google
         bucketName: ark-backup-bucket-123
+        resourceGroup: my-resource-group
+        prefix: my-backup-prefix
         secretId: 61b9707ca463cad79188bb0ddfa1345e41fc01b651feddf06eea58a25c56d717
+        location: us-east
+        storageAccount: my-storage-account
       properties:
         cloud:
           example: google
@@ -22568,6 +22572,21 @@ components:
           type: string
         secretId:
           example: 61b9707ca463cad79188bb0ddfa1345e41fc01b651feddf06eea58a25c56d717
+          type: string
+        prefix:
+          description: Optional, if not provided will be set to the name of the cluster
+          example: my-backup-prefix
+          type: string
+        location:
+          example: us-east
+          type: string
+        storageAccount:
+          description: required only in case of Azure
+          example: my-storage-account
+          type: string
+        resourceGroup:
+          description: required only case of Azure
+          example: my-resource-group
           type: string
       required:
       - bucketName
@@ -22690,6 +22709,24 @@ components:
           type: string
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+        location:
+          example: us-east
+          type: string
+        useClusterSecret:
+          description: relevant only in case of Amazon clusters. By default set to
+            false in which case you must add snapshot permissions to your node instance
+            role. Should you set to true Pipeline will deploy your cluster secret
+            to the cluster.
+          example: false
+          type: boolean
+        storageAccount:
+          description: required only case of Azure
+          example: my-storage-account
+          type: string
+        resourceGroup:
+          description: required only case of Azure
+          example: my-resource-group
           type: string
         labels:
           $ref: '#/components/schemas/Labels'
