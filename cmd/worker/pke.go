@@ -37,10 +37,10 @@ func registerPKEWorkflows(
 		worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: pkeworkflow.AssembleHTTPProxySettingsActivityName})
 	}
 
-	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
+	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register(worker)
 
 	// delete node pool workflow
-	pkeawsproviderworkflow.NewDeleteNodePoolWorkflow().Register()
+	pkeawsproviderworkflow.NewDeleteNodePoolWorkflow().Register(worker)
 
 	// node pool delete helper activities
 	deleteStoredNodePoolActivity := pkeawsproviderworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore)

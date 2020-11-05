@@ -17,6 +17,7 @@ package pkeawsworkflow
 import (
 	"fmt"
 
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -65,8 +66,8 @@ func NewUpdateNodePoolWorkflow() UpdateNodePoolWorkflow {
 	return UpdateNodePoolWorkflow{}
 }
 
-func (w UpdateNodePoolWorkflow) Register() {
-	workflow.RegisterWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateNodePoolWorkflowName})
+func (w UpdateNodePoolWorkflow) Register(worker worker.Worker) {
+	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateNodePoolWorkflowName})
 }
 
 func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePoolWorkflowInput) (string, error) {

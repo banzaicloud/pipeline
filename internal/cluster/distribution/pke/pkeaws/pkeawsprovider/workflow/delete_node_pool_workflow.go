@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"go.uber.org/cadence"
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -152,6 +153,6 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 }
 
 // Register registers the activity in the worker.
-func (w DeleteNodePoolWorkflow) Register() {
-	workflow.RegisterWithOptions(w.Execute, workflow.RegisterOptions{Name: DeleteNodePoolWorkflowName})
+func (w DeleteNodePoolWorkflow) Register(worker worker.Worker) {
+	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: DeleteNodePoolWorkflowName})
 }

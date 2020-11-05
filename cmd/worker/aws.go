@@ -140,7 +140,7 @@ func registerAwsWorkflows(
 	selectVolumeSizeActivity := pkeworkflow.NewSelectVolumeSizeActivity(awsClientFactory, ec2Factory)
 	worker.RegisterActivityWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectVolumeSizeActivityName})
 
-	pkeawsworkflow.NewHealthCheckActivity(awsClientFactory, elbv2Factory).Register()
+	pkeawsworkflow.NewHealthCheckActivity(awsClientFactory, elbv2Factory).Register(worker)
 
 	awsSessionFactory := awsworkflow.NewAWSSessionFactory(awsSecretStore)
 	deleteStackActivity := awsworkflow.NewDeleteStackActivity(awsSessionFactory)

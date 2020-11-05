@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"go.uber.org/cadence"
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
@@ -48,8 +49,8 @@ func NewUpdateClusterWorkflow() UpdateClusterWorkflow {
 }
 
 // Register registers the activity in the worker.
-func (w UpdateClusterWorkflow) Register() {
-	workflow.RegisterWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateClusterWorkflowName})
+func (w UpdateClusterWorkflow) Register(worker worker.Worker) {
+	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateClusterWorkflowName})
 }
 
 // Execute executes the Cadence workflow responsible for updating EKS cluster version

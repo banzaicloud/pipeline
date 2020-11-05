@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 )
 
 const WaitCloudFormationStackUpdateActivityName = "eks-wait-cloudformation-stack-update"
@@ -47,8 +48,8 @@ func NewWaitCloudFormationStackUpdateActivity(sessionFactory AWSSessionFactory) 
 }
 
 // Register registers the activity in the worker.
-func (a WaitCloudFormationStackUpdateActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: WaitCloudFormationStackUpdateActivityName})
+func (a WaitCloudFormationStackUpdateActivity) Register(worker worker.Worker) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: WaitCloudFormationStackUpdateActivityName})
 }
 
 // Execute is the main body of the activity.

@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
@@ -62,8 +63,8 @@ func NewUpdateClusterVersionActivity(
 }
 
 // Register registers the activity in the worker.
-func (a UpdateClusterVersionActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateClusterVersionActivityName})
+func (a UpdateClusterVersionActivity) Register(worker worker.Worker) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateClusterVersionActivityName})
 }
 
 func (a *UpdateClusterVersionActivity) Execute(ctx context.Context, input UpdateClusterVersionActivityInput) (*UpdateClusterVersionActivityOutput, error) {
