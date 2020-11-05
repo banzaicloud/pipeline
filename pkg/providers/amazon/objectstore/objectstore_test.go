@@ -340,7 +340,12 @@ func testObjectStoreDelete(t *testing.T) {
 
 	err = s.DeleteBucket(bucketName)
 	if err != nil {
-		t.Fatal("could not test bucket deletion: ", err.Error())
+		// this test seems to be the most flaky one, give it another chance
+		time.Sleep(time.Second)
+		err = s.DeleteBucket(bucketName)
+		if err != nil {
+			t.Fatal("could not test bucket deletion: ", err.Error())
+		}
 	}
 
 	head := &s3.HeadBucketInput{
