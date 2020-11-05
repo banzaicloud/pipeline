@@ -20,6 +20,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 const DeleteStoredNodePoolActivityName = "eks-delete-stored-node-pool"
@@ -56,6 +57,6 @@ func (a *DeleteStoredNodePoolActivity) Execute(ctx context.Context, input Delete
 }
 
 // Register registers the stored node pool deletion activity.
-func (a DeleteStoredNodePoolActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: DeleteStoredNodePoolActivityName})
+func (a DeleteStoredNodePoolActivity) Register(worker worker.Registry) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: DeleteStoredNodePoolActivityName})
 }

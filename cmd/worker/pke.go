@@ -43,8 +43,5 @@ func registerPKEWorkflows(
 	pkeawsproviderworkflow.NewDeleteNodePoolWorkflow().Register(worker)
 
 	// node pool delete helper activities
-	deleteStoredNodePoolActivity := pkeawsproviderworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
-	worker.RegisterActivityWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
-		Name: pkeawsproviderworkflow.DeleteStoredNodePoolActivityName,
-	})
+	pkeawsproviderworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore).Register(worker)
 }

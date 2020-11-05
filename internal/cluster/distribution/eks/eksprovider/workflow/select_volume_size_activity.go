@@ -22,6 +22,8 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 const (
@@ -77,8 +79,8 @@ func (a *SelectVolumeSizeActivity) Execute(ctx context.Context, input SelectVolu
 }
 
 // Register registers the activity.
-func (a SelectVolumeSizeActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: SelectVolumeSizeActivityName})
+func (a SelectVolumeSizeActivity) Register(worker worker.Registry) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: SelectVolumeSizeActivityName})
 }
 
 // selectVolumeSize selects a node volume size from the available values,

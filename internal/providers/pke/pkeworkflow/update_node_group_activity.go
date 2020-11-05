@@ -30,6 +30,7 @@ import (
 	cloudformation2 "github.com/banzaicloud/pipeline/internal/cloudformation"
 	pkgCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/pkg/brn"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
@@ -96,8 +97,8 @@ func NewUpdateNodeGroupActivity(
 }
 
 // Register registers the activity in the worker.
-func (a UpdateNodeGroupActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateNodeGroupActivityName})
+func (a UpdateNodeGroupActivity) Register(worker worker.Registry) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateNodeGroupActivityName})
 }
 
 // Execute is the main body of the activity, returns true if there was any update and that was successful.

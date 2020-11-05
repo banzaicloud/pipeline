@@ -24,6 +24,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 const (
@@ -79,8 +80,8 @@ func (a *GetAMISizeActivity) Execute(ctx context.Context, input GetAMISizeActivi
 }
 
 // Register registers the activity.
-func (a GetAMISizeActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: GetAMISizeActivityName})
+func (a GetAMISizeActivity) Register(worker worker.Registry) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: GetAMISizeActivityName})
 }
 
 // getAMISize retrieves the AMI size of the specified image ID using the
