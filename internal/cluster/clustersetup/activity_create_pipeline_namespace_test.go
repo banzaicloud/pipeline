@@ -33,18 +33,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
-// nolint: gochecknoglobals
-var createPipelineNamespaceTestActivity = CreatePipelineNamespaceActivity{}
-
-func testCreatePipelineNamespaceActivityExecute(ctx context.Context, input CreatePipelineNamespaceActivityInput) error {
-	return createPipelineNamespaceTestActivity.Execute(ctx, input)
-}
-
-// nolint: gochecknoinits
-func init() {
-	activity.RegisterWithOptions(testCreatePipelineNamespaceActivityExecute, activity.RegisterOptions{Name: CreatePipelineNamespaceActivityName})
-}
-
 type CreatePipelineNamespaceActivityTestSuite struct {
 	suite.Suite
 	testsuite.WorkflowTestSuite
@@ -95,7 +83,9 @@ func (s *CreatePipelineNamespaceActivityTestSuite) Test_Execute() {
 	clientFactory.On("FromSecret", mock.Anything, "secret").Return(s.client, nil)
 
 	const pipelineNamespace = "pipeline-system"
-	createPipelineNamespaceTestActivity = NewCreatePipelineNamespaceActivity(pipelineNamespace, clientFactory)
+
+	createPipelineNamespaceTestActivity := NewCreatePipelineNamespaceActivity(pipelineNamespace, clientFactory)
+	s.env.RegisterActivityWithOptions(createPipelineNamespaceTestActivity.Execute, activity.RegisterOptions{Name: CreatePipelineNamespaceActivityName})
 
 	_, err := s.env.ExecuteActivity(
 		CreatePipelineNamespaceActivityName,
@@ -127,7 +117,8 @@ func (s *CreatePipelineNamespaceActivityTestSuite) Test_Execute_AlreadyExists() 
 	clientFactory.On("FromSecret", mock.Anything, "secret").Return(s.client, nil)
 
 	const pipelineNamespace = "pipeline-system2"
-	createPipelineNamespaceTestActivity = NewCreatePipelineNamespaceActivity(pipelineNamespace, clientFactory)
+	createPipelineNamespaceTestActivity := NewCreatePipelineNamespaceActivity(pipelineNamespace, clientFactory)
+	s.env.RegisterActivityWithOptions(createPipelineNamespaceTestActivity.Execute, activity.RegisterOptions{Name: CreatePipelineNamespaceActivityName})
 
 	existingNamespace, err := s.client.CoreV1().Namespaces().Create(
 		context.Background(),

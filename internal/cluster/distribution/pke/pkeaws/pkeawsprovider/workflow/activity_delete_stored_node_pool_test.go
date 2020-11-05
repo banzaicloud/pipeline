@@ -55,7 +55,9 @@ func TestDeleteStoredNodePoolActivityExecute(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.caseName, func(t *testing.T) {
-			activity.RegisterWithOptions(testCase.inputActivity.Execute, activity.RegisterOptions{Name: t.Name()})
+			environment := (&testsuite.WorkflowTestSuite{}).NewTestActivityEnvironment()
+
+			environment.RegisterActivityWithOptions(testCase.inputActivity.Execute, activity.RegisterOptions{Name: t.Name()})
 
 			testCase.inputActivity.nodePoolStore.(*pke.MockNodePoolStore).On(
 				"DeleteNodePool",
@@ -66,7 +68,6 @@ func TestDeleteStoredNodePoolActivityExecute(t *testing.T) {
 				testCase.input.NodePoolName,
 			).Return(testCase.expectedError).Once()
 
-			environment := (&testsuite.WorkflowTestSuite{}).NewTestActivityEnvironment()
 			_, actualError := environment.ExecuteActivity(t.Name(), testCase.input)
 
 			if testCase.expectedError == nil {

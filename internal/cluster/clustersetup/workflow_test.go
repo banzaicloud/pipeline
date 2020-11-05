@@ -19,6 +19,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 	"go.uber.org/cadence/workflow"
 )
@@ -57,6 +58,12 @@ func TestWorkflowTestSuite(t *testing.T) {
 
 func (s *WorkflowTestSuite) SetupTest() {
 	s.env = s.NewTestWorkflowEnvironment()
+
+	s.env.RegisterActivityWithOptions(InitManifestActivity{}.Execute, activity.RegisterOptions{Name: InitManifestActivityName})
+	s.env.RegisterActivityWithOptions(InstallNodePoolLabelSetOperatorActivity{}.Execute, activity.RegisterOptions{Name: InstallNodePoolLabelSetOperatorActivityName})
+	s.env.RegisterActivityWithOptions(ConfigureNodePoolLabelsActivity{}.Execute, activity.RegisterOptions{Name: ConfigureNodePoolLabelsActivityName})
+	s.env.RegisterActivityWithOptions(CreatePipelineNamespaceActivity{}.Execute, activity.RegisterOptions{Name: CreatePipelineNamespaceActivityName})
+	s.env.RegisterActivityWithOptions(LabelKubeSystemNamespaceActivity{}.Execute, activity.RegisterOptions{Name: LabelKubeSystemNamespaceActivityName})
 }
 
 func (s *WorkflowTestSuite) AfterTest(suiteName, testName string) {
@@ -65,7 +72,7 @@ func (s *WorkflowTestSuite) AfterTest(suiteName, testName string) {
 
 func (s *WorkflowTestSuite) Test_Success() {
 	wf := Workflow{}
-	workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
+	s.env.RegisterWorkflowWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
 
 	s.env.OnActivity(
 		CreatePipelineNamespaceActivityName,
@@ -111,7 +118,7 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 	wf := Workflow{
 		InstallInitManifest: true,
 	}
-	workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
+	s.env.RegisterWorkflowWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
 
 	s.env.OnActivity(
 		InitManifestActivityName,

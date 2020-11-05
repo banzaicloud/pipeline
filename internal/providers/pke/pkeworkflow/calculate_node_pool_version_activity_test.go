@@ -15,37 +15,17 @@
 package pkeworkflow
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 )
 
-// nolint: gochecknoglobals
-var testCalculateNodePoolVersionActivity = CalculateNodePoolVersionActivity{}
-
-func testCalculateNodePoolVersionActivityExecute(
-	ctx context.Context,
-	input CalculateNodePoolVersionActivityInput,
-) (CalculateNodePoolVersionActivityOutput, error) {
-	return testCalculateNodePoolVersionActivity.Execute(ctx, input)
-}
-
-// nolint: gochecknoinits
-func init() {
-	activity.RegisterWithOptions(
-		testCalculateNodePoolVersionActivityExecute,
-		activity.RegisterOptions{Name: CalculateNodePoolVersionActivityName},
-	)
-}
-
 func TestCalculateNodePoolVersionActivity(t *testing.T) {
-	testCalculateNodePoolVersionActivity = NewCalculateNodePoolVersionActivity()
-
 	env := (&testsuite.WorkflowTestSuite{}).NewTestActivityEnvironment()
+
+	NewCalculateNodePoolVersionActivity().Register(env)
 
 	input := CalculateNodePoolVersionActivityInput{
 		Image:      "ami-xxxxxxxxxxxxx",

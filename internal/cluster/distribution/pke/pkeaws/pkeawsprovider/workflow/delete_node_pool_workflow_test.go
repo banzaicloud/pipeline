@@ -344,7 +344,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 		workflowTestSuite.SetupTest()
 
 		workflowTestSuite.T().Run(testCase.caseName, func(t *testing.T) {
-			workflow.RegisterWithOptions(testCase.input.workflow.Execute, workflow.RegisterOptions{Name: t.Name()})
+			workflowTestSuite.environment.RegisterWorkflowWithOptions(testCase.input.workflow.Execute, workflow.RegisterOptions{Name: t.Name()})
 			mockMethods(t, testCase.input, testCase.mockErrors)
 
 			workflowTestSuite.environment.ExecuteWorkflow(t.Name(), testCase.input.input)
@@ -379,6 +379,8 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 		workflowTestSuite.SetupTest()
 
 		workflowTestSuite.T().Run(testCase.caseName, func(t *testing.T) {
+			testCase.inputWorkflow.Register(workflowTestSuite.environment)
+
 			isHit := false
 			workflowTestSuite.environment.OnWorkflow(DeleteNodePoolWorkflowName, mock.Anything, mock.Anything).
 				Run(func(mock.Arguments) {
@@ -386,7 +388,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				}).
 				Return(nil)
 
-			testCase.inputWorkflow.Register(workflowTestSuite.environment)
 			workflowTestSuite.environment.ExecuteWorkflow(DeleteNodePoolWorkflowName, DeleteNodePoolWorkflowInput{})
 			actualError := workflowTestSuite.environment.GetWorkflowError()
 

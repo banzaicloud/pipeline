@@ -32,18 +32,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
-// nolint: gochecknoglobals
-var labelKubeSystemNamespaceTestActivity = LabelKubeSystemNamespaceActivity{}
-
-func testLabelKubeSystemNamespaceActivityExecute(ctx context.Context, input LabelKubeSystemNamespaceActivityInput) error {
-	return labelKubeSystemNamespaceTestActivity.Execute(ctx, input)
-}
-
-// nolint: gochecknoinits
-func init() {
-	activity.RegisterWithOptions(testLabelKubeSystemNamespaceActivityExecute, activity.RegisterOptions{Name: LabelKubeSystemNamespaceActivityName})
-}
-
 type LabelKubeSystemNamespaceActivityTestSuite struct {
 	suite.Suite
 	testsuite.WorkflowTestSuite
@@ -93,7 +81,8 @@ func (s *LabelKubeSystemNamespaceActivityTestSuite) Test_Execute() {
 	clientFactory := new(MockClientFactory)
 	clientFactory.On("FromSecret", mock.Anything, "secret").Return(s.client, nil)
 
-	labelKubeSystemNamespaceTestActivity = NewLabelKubeSystemNamespaceActivity(clientFactory)
+	labelKubeSystemNamespaceTestActivity := NewLabelKubeSystemNamespaceActivity(clientFactory)
+	s.env.RegisterActivityWithOptions(labelKubeSystemNamespaceTestActivity.Execute, activity.RegisterOptions{Name: LabelKubeSystemNamespaceActivityName})
 
 	_, err := s.env.ExecuteActivity(
 		LabelKubeSystemNamespaceActivityName,
