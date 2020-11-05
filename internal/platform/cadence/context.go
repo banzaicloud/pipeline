@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2020 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,24 +15,23 @@
 package cadence
 
 import (
-	"emperror.dev/errors"
-	"go.uber.org/cadence/client"
-	"go.uber.org/zap"
+	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/pkg/cadence"
+	"github.com/banzaicloud/pipeline/pkg/cadence/awssdk"
 )
 
-// NewClient returns a new Cadence client.
-func NewClient(config Config, logger *zap.Logger) (client.Client, error) {
-	serviceClient, err := newServiceClient("cadence-client", config, logger)
-	if err != nil {
-		return nil, errors.WithMessage(err, "could not create cadence client")
-	}
-
-	return client.NewClient(
-		serviceClient,
-		config.Domain,
-		&client.Options{
-			Identity:           config.Identity,
-			ContextPropagators: contextPropagators(),
+func contextPropagators() []workflow.ContextPropagator {
+	return []workflow.ContextPropagator{
+		cadence.StringContextPropagator{
+			PropagationKey: string(awssdk.ContextSecretID),
+			ContextKey:     awssdk.ContextSecretID,
+			Optional:       true,
 		},
-	), nil
+		cadence.StringContextPropagator{
+			PropagationKey: string(awssdk.ContextRegion),
+			ContextKey:     awssdk.ContextRegion,
+			Optional:       true,
+		},
+	}
 }
