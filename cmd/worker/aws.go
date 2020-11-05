@@ -98,14 +98,11 @@ func registerAwsWorkflows(
 	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
 	worker.RegisterActivityWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
-	updateNodePoolActivity := pkeworkflow.NewUpdateNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, config.Pipeline.External.URL, config.Pipeline.External.Insecure)
-	worker.RegisterActivityWithOptions(updateNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateNodeGroupActivityName})
+	pkeworkflow.NewUpdateNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, config.Pipeline.External.URL, config.Pipeline.External.Insecure).Register(worker)
 
-	updateMasterNodePoolActivity := pkeworkflow.NewUpdateMasterNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, config.Pipeline.External.URL, config.Pipeline.External.Insecure)
-	worker.RegisterActivityWithOptions(updateMasterNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateMasterNodeGroupActivityName})
+	pkeworkflow.NewUpdateMasterNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, config.Pipeline.External.URL, config.Pipeline.External.Insecure).Register(worker)
 
-	calculateNodePoolVersionActivity := pkeworkflow.NewCalculateNodePoolVersionActivity()
-	worker.RegisterActivityWithOptions(calculateNodePoolVersionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CalculateNodePoolVersionActivityName})
+	pkeworkflow.NewCalculateNodePoolVersionActivity().Register(worker)
 
 	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)
 	worker.RegisterActivityWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})

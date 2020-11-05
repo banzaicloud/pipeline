@@ -30,6 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	sdkcadence "github.com/banzaicloud/pipeline/pkg/sdk/cadence"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
@@ -274,8 +275,8 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 }
 
 // Register registers the stored node pool deletion activity.
-func (a CreateAsgActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
+func (a CreateAsgActivity) Register(worker worker.Registry) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
 }
 
 // createAsg creates an EKS autoscaling group for a node pool from the specified

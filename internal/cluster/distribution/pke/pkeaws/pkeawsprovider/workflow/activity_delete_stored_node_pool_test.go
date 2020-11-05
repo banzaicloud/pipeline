@@ -78,26 +78,6 @@ func TestDeleteStoredNodePoolActivityExecute(t *testing.T) {
 	}
 }
 
-func TestDeleteStoredNodePoolActivityRegister(t *testing.T) {
-	testCases := []struct {
-		caseName      string
-		inputActivity *DeleteStoredNodePoolActivity
-	}{
-		{
-			caseName:      "example",
-			inputActivity: &DeleteStoredNodePoolActivity{},
-		},
-	}
-
-	for _, testCase := range testCases {
-		testCase := testCase
-
-		t.Run(testCase.caseName, func(t *testing.T) {
-			testCase.inputActivity.Register()
-		})
-	}
-}
-
 func TestNewDeleteStoredNodePoolActivity(t *testing.T) {
 	testCases := []struct {
 		caseName           string

@@ -20,6 +20,8 @@ import (
 	"fmt"
 
 	"go.uber.org/cadence/activity"
+
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 const CalculateNodePoolVersionActivityName = "pke-calculate-node-pool-version"
@@ -43,8 +45,8 @@ func NewCalculateNodePoolVersionActivity() CalculateNodePoolVersionActivity {
 }
 
 // Register registers the activity in the worker.
-func (a CalculateNodePoolVersionActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: CalculateNodePoolVersionActivityName})
+func (a CalculateNodePoolVersionActivity) Register(worker worker.Registry) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: CalculateNodePoolVersionActivityName})
 }
 
 // Execute is the main body of the activity.

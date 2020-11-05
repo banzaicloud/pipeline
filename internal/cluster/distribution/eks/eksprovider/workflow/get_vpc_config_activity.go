@@ -26,6 +26,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 const GetVpcConfigActivityName = "eks-get-vpc-cfg"
@@ -95,8 +96,8 @@ func (a *GetVpcConfigActivity) Execute(ctx context.Context, input GetVpcConfigAc
 }
 
 // Register registers the activity.
-func (a GetVpcConfigActivity) Register() {
-	activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: GetVpcConfigActivityName})
+func (a GetVpcConfigActivity) Register(worker worker.Registry) {
+	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: GetVpcConfigActivityName})
 }
 
 // getVPCConfigActivity retrieves the VPC configuration for the specified VPC

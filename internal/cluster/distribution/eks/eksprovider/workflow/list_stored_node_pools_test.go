@@ -245,26 +245,6 @@ func TestListStoredNodePoolsActivityExecute(t *testing.T) {
 	}
 }
 
-func TestListStoredNodePoolsActivityRegister(t *testing.T) {
-	testCases := []struct {
-		caseName      string
-		inputActivity *ListStoredNodePoolsActivity
-	}{
-		{
-			caseName:      "example",
-			inputActivity: &ListStoredNodePoolsActivity{},
-		},
-	}
-
-	for _, testCase := range testCases {
-		testCase := testCase
-
-		t.Run(testCase.caseName, func(t *testing.T) {
-			testCase.inputActivity.Register()
-		})
-	}
-}
-
 func TestNewListStoredNodePoolsActivity(t *testing.T) {
 	testCases := []struct {
 		caseName           string
