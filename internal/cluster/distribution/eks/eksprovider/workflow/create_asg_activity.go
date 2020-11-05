@@ -17,6 +17,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"path"
 	"strconv"
 	"strings"
 
@@ -347,7 +348,7 @@ func createASGAsync(
 		VpcID:               vpcConfig.VpcID,
 		SecurityGroupID:     vpcConfig.SecurityGroupID,
 		NodeSecurityGroupID: vpcConfig.NodeSecurityGroupID,
-		NodeInstanceRoleID:  eksCluster.NodeInstanceRoleId,
+		NodeInstanceRoleID:  path.Base(eksCluster.NodeInstanceRoleId),
 		Tags:                eksCluster.Cluster.Tags,
 	}
 

@@ -16,12 +16,14 @@ package workflow
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
@@ -211,8 +213,79 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
+					ShouldStoreNodePool:       true,
+					ShouldUpdateClusterStatus: true,
+					CreatorUserID:             2,
+				},
+			},
+		},
+		{
+			caseDescription: "get IAM role CF stack error -> error",
+			expectedError:   errors.New("get IAM role CF stack error"),
+			input: inputType{
+				workflow: NewCreateNodePoolWorkflow(),
+				input: CreateNodePoolWorkflowInput{
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
+					ShouldStoreNodePool:       true,
+					ShouldUpdateClusterStatus: true,
+					CreatorUserID:             2,
+				},
+			},
+		},
+		{
+			caseDescription: "get subnet stack names error -> error",
+			expectedError:   errors.New("get subnet stack names error"),
+			input: inputType{
+				workflow: NewCreateNodePoolWorkflow(),
+				input: CreateNodePoolWorkflowInput{
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
+					ShouldStoreNodePool:       true,
+					ShouldUpdateClusterStatus: true,
+					CreatorUserID:             2,
+				},
+			},
+		},
+		{
+			caseDescription: "get subnet CF stack error -> error",
+			expectedError:   errors.New("get subnet CF stack error"),
+			input: inputType{
+				workflow: NewCreateNodePoolWorkflow(),
+				input: CreateNodePoolWorkflowInput{
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
+					ShouldStoreNodePool:       true,
+					ShouldUpdateClusterStatus: true,
+					CreatorUserID:             2,
+				},
+			},
+		},
+		{
+			caseDescription: "parse subnet stack parameters error -> error",
+			expectedError: errors.New(
+				"parsing subnet stack parameters failed" +
+					": parsing values failed" +
+					": missing requested value AvailabilityZoneName" +
+					"; missing requested value SubnetBlock",
+			),
+			input: inputType{
+				workflow: NewCreateNodePoolWorkflow(),
+				input: CreateNodePoolWorkflowInput{
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -225,8 +298,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -239,8 +314,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -253,8 +330,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -267,8 +346,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -281,8 +362,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -295,22 +378,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
-					ShouldStoreNodePool:       true,
-					ShouldUpdateClusterStatus: true,
-					CreatorUserID:             2,
-				},
-			},
-		},
-		{
-			caseDescription: "create ASG error -> error",
-			expectedError:   errors.New("create ASG error"),
-			input: inputType{
-				workflow: NewCreateNodePoolWorkflow(),
-				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -323,8 +394,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -337,8 +410,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
 				input: CreateNodePoolWorkflowInput{
-					ClusterID:                 1,
-					NodePool:                  eks.NewNodePool{},
+					ClusterID: 1,
+					NodePool: eks.NewNodePool{
+						SubnetID: "subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -351,6 +426,10 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.caseDescription, func(t *testing.T) {
+			clusterSubnetIDs := []string{
+				"subnet-id-1",
+			}
+
 			suite := testsuite.WorkflowTestSuite{}
 			environment := suite.NewTestWorkflowEnvironment()
 			environment.RegisterWorkflowWithOptions(
@@ -359,6 +438,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					Name: t.Name(),
 				},
 			)
+
 			environment.RegisterActivityWithOptions(
 				func(
 					ctx context.Context,
@@ -377,11 +457,6 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 									SecretID: "secret-id",
 								},
 								ClusterID: testCase.input.input.ClusterID,
-								Subnets: []*eksmodel.EKSSubnetModel{
-									{
-										SubnetId: aws.String(""),
-									},
-								},
 							},
 						},
 					}, nil
@@ -390,6 +465,92 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					Name: ListStoredEKSClustersActivityName,
 				},
 			)
+
+			subnetIndex := 0
+			environment.RegisterActivityWithOptions(
+				func(ctx context.Context, input GetCFStackActivityInput) (*GetCFStackActivityOutput, error) {
+					switch {
+					case strings.HasPrefix(input.StackName, "pipeline-eks-iam-"):
+						if testCase.expectedError != nil &&
+							strings.HasPrefix(testCase.expectedError.Error(), "get IAM role CF stack error") {
+							return nil, testCase.expectedError
+						}
+
+						return &GetCFStackActivityOutput{
+							Stack: &cloudformation.Stack{
+								Outputs: []*cloudformation.Output{
+									{
+										OutputKey:   aws.String("NodeInstanceRoleId"),
+										OutputValue: aws.String("node-instance-role-id"),
+									},
+								},
+							},
+						}, nil
+					case strings.HasPrefix(input.StackName, "pipeline-eks-subnet-"):
+						if testCase.expectedError != nil &&
+							strings.HasPrefix(testCase.expectedError.Error(), "get subnet CF stack error") {
+							return nil, testCase.expectedError
+						} else if testCase.expectedError != nil &&
+							strings.HasPrefix(testCase.expectedError.Error(), "parsing subnet stack parameters failed") {
+							return &GetCFStackActivityOutput{
+								Stack: &cloudformation.Stack{
+									Parameters: []*cloudformation.Parameter{},
+								},
+							}, nil
+						}
+
+						defer func() { subnetIndex++ }()
+
+						return &GetCFStackActivityOutput{
+							Stack: &cloudformation.Stack{
+								Parameters: []*cloudformation.Parameter{
+									{
+										ParameterKey:   aws.String("SubnetBlock"),
+										ParameterValue: aws.String(fmt.Sprintf("cidr-%d", subnetIndex)),
+									},
+									{
+										ParameterKey:   aws.String("AvailabilityZoneName"),
+										ParameterValue: aws.String(fmt.Sprintf("availability-zone-%d", subnetIndex)),
+									},
+								},
+								Outputs: []*cloudformation.Output{
+									{
+										OutputKey:   aws.String("SubnetId"),
+										OutputValue: aws.String(clusterSubnetIDs[subnetIndex]),
+									},
+								},
+							},
+						}, nil
+					default:
+						return nil, errors.New(fmt.Sprintf("unexpected CF stack %s retrieval", input.StackName))
+					}
+				},
+				activity.RegisterOptions{
+					Name: GetCFStackActivityName,
+				},
+			)
+
+			environment.RegisterActivityWithOptions(
+				func(ctx context.Context, input GetSubnetStacksActivityInput) (*GetSubnetStacksActivityOutput, error) {
+					if testCase.expectedError != nil &&
+						strings.HasPrefix(testCase.expectedError.Error(), "get subnet stack names error") {
+						return nil, testCase.expectedError
+					}
+
+					subnetStackNames := make([]string, 0, len(clusterSubnetIDs))
+					for subnetIDIndex := range clusterSubnetIDs {
+						subnetStackNames = append(subnetStackNames, fmt.Sprintf("pipeline-eks-subnet-%d", subnetIDIndex))
+					}
+
+					return &GetSubnetStacksActivityOutput{
+						StackNames: subnetStackNames,
+					}, nil
+				},
+				activity.RegisterOptions{
+					Name: GetSubnetStacksActivityName,
+				},
+			)
+
 			if testCase.input.input.ShouldStoreNodePool {
 				environment.RegisterActivityWithOptions(
 					func(ctx context.Context, input CreateStoredNodePoolActivityInput) error {
@@ -405,6 +566,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					},
 				)
 			}
+
 			environment.RegisterActivityWithOptions(
 				func(ctx context.Context, input GetAMISizeActivityInput) (*GetAMISizeActivityOutput, error) {
 					if testCase.expectedError != nil &&
@@ -418,6 +580,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					Name: GetAMISizeActivityName,
 				},
 			)
+
 			environment.RegisterActivityWithOptions(
 				func(
 					ctx context.Context,
@@ -434,6 +597,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					Name: SelectVolumeSizeActivityName,
 				},
 			)
+
 			environment.RegisterActivityWithOptions(
 				func(
 					ctx context.Context,
@@ -450,6 +614,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					Name: clusterworkflow.CreateNodePoolLabelSetActivityName,
 				},
 			)
+
 			environment.RegisterActivityWithOptions(
 				func(
 					ctx context.Context,
@@ -466,6 +631,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					Name: GetVpcConfigActivityName,
 				},
 			)
+
 			environment.RegisterActivityWithOptions(
 				func(
 					ctx context.Context,
@@ -482,6 +648,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					Name: CreateAsgActivityName,
 				},
 			)
+
 			if testCase.input.input.ShouldUpdateClusterStatus {
 				environment.RegisterActivityWithOptions(
 					func(
@@ -500,6 +667,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					},
 				)
 			}
+
 			environment.RegisterActivityWithOptions(
 				func(
 					ctx context.Context,
