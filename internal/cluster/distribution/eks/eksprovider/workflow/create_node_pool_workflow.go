@@ -17,14 +17,18 @@ package workflow
 import (
 	"time"
 
+	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
+	sdkcloudformation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
 // CreateNodePoolWorkflowName is the name of the EKS workflow creating a new
@@ -92,6 +96,84 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 	}
 	eksCluster := eksClusters[input.ClusterID]
 
+	commonActivityInput := EKSActivityInput{
+		OrganizationID: eksCluster.Cluster.OrganizationID,
+		SecretID:       eksCluster.Cluster.SecretID,
+		Region:         eksCluster.Cluster.Location,
+		ClusterName:    eksCluster.Cluster.Name,
+		AWSClientRequestTokenBase: sdkamazon.NewNormalizedClientRequestToken(
+			workflow.GetInfo(ctx).WorkflowExecution.ID,
+		),
+	}
+
+	if eksCluster.NodeInstanceRoleId == "" {
+		// Note: in case store doesn't have the latest cluster state
+		// (LegacyClusterAPI.CreateCluster with automatically created IAM roles).
+		iamRoleStackName := generateStackNameForIam(eksCluster.Cluster.Name)
+		var iamRoleOutputs struct {
+			NodeInstanceRoleID string `mapstructure:"NodeInstanceRoleId"`
+		}
+		err = getCFStackOutputs(ctx, commonActivityInput, iamRoleStackName, &iamRoleOutputs)
+		if err != nil {
+			return err
+		}
+
+		eksCluster.NodeInstanceRoleId = iamRoleOutputs.NodeInstanceRoleID
+	}
+
+	if len(eksCluster.Subnets) == 0 ||
+		eksCluster.Subnets[0].SubnetId == nil ||
+		*eksCluster.Subnets[0].SubnetId == "" {
+		// Note: in case store doesn't have the latest cluster state
+		// (LegacyClusterAPI.CreateCluster with automatically created subnets).
+		subnetStackNames, err := getClusterSubnetStackNames(ctx, commonActivityInput)
+		if err != nil {
+			return err
+		}
+
+		clusterSubnets := make([]*eksmodel.EKSSubnetModel, 0, len(eksCluster.Subnets))
+		for subnetStackIndex, subnetStackName := range subnetStackNames {
+			subnetStack, err := getCFStack(ctx, commonActivityInput, subnetStackName)
+			if err != nil {
+				return err
+			}
+
+			var subnetStackParameters struct {
+				Cidr             string `mapstructure:"SubnetBlock"`
+				AvailabilityZone string `mapstructure:"AvailabilityZoneName"`
+			}
+			err = sdkcloudformation.ParseStackParameters(subnetStack.Parameters, &subnetStackParameters)
+			if err != nil {
+				return errors.WrapWithDetails(
+					err,
+					"parsing subnet stack parameters failed",
+					"stackName", subnetStackName,
+					"parameters", subnetStack.Parameters,
+				)
+			}
+
+			var subnetID string
+			for _, subnetOutput := range subnetStack.Outputs {
+				switch aws.StringValue(subnetOutput.OutputKey) {
+				case "SubnetId":
+					subnetID = aws.StringValue(subnetOutput.OutputValue)
+				}
+			}
+
+			clusterSubnets = append(clusterSubnets, &eksmodel.EKSSubnetModel{
+				ID:               uint(subnetStackIndex), // Note: not used.
+				CreatedAt:        aws.TimeValue(subnetStack.CreationTime),
+				EKSCluster:       eksCluster,
+				ClusterID:        input.ClusterID,
+				SubnetId:         aws.String(subnetID),
+				Cidr:             aws.String(subnetStackParameters.Cidr),
+				AvailabilityZone: aws.String(subnetStackParameters.AvailabilityZone),
+			})
+		}
+
+		eksCluster.Subnets = clusterSubnets
+	}
+
 	if workflow.GetInfo(ctx).Attempt == 0 &&
 		input.ShouldStoreNodePool {
 		err = createStoredNodePool(
@@ -119,16 +201,6 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 			)
 		}
 	}()
-
-	commonActivityInput := EKSActivityInput{
-		OrganizationID: eksCluster.Cluster.OrganizationID,
-		SecretID:       eksCluster.Cluster.SecretID,
-		Region:         eksCluster.Cluster.Location,
-		ClusterName:    eksCluster.Cluster.Name,
-		AWSClientRequestTokenBase: sdkamazon.NewNormalizedClientRequestToken(
-			workflow.GetInfo(ctx).WorkflowExecution.ID,
-		),
-	}
 
 	amiSize, err := getAMISize(ctx, commonActivityInput, input.NodePool.Image)
 	if err != nil {

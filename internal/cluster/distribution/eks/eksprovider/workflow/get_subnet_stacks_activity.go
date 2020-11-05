@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -76,4 +77,28 @@ func (a *GetSubnetStacksActivity) Execute(ctx context.Context, input GetSubnetSt
 	}
 
 	return &output, nil
+}
+
+// getClusterSubnetStackNames returns the names of the CloudFormation stacks of
+// the specified cluster.
+//
+// This is a convenience wrapper around the corresponding activity.
+func getClusterSubnetStackNames(ctx workflow.Context, eksActivityInput EKSActivityInput) ([]string, error) {
+	var activityOutput GetSubnetStacksActivityOutput
+	err := getClusterSubnetStackNamesAsync(ctx, eksActivityInput).Get(ctx, &activityOutput)
+	if err != nil {
+		return nil, err
+	}
+
+	return activityOutput.StackNames, nil
+}
+
+// getClusterSubnetStackNamesAsync returns a future object retrieving the names
+// of the CloudFormation stacks of the specified cluster.
+//
+// This is a convenience wrapper around the corresponding activity.
+func getClusterSubnetStackNamesAsync(ctx workflow.Context, eksActivityInput EKSActivityInput) workflow.Future {
+	return workflow.ExecuteActivity(ctx, GetSubnetStacksActivityName, GetSubnetStacksActivityInput{
+		EKSActivityInput: eksActivityInput,
+	})
 }

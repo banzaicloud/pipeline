@@ -218,6 +218,8 @@ func TestCreateASGAsync(t *testing.T) {
 			input: inputType{
 				eksActivityInput: EKSActivityInput{},
 				eksCluster: eksmodel.EKSClusterModel{
+					NodeInstanceRoleId: "/test/pathed/node-instance-role-id",
+					SSHGenerated:       true,
 					Subnets: []*eksmodel.EKSSubnetModel{
 						{
 							SubnetId: aws.String("subnet-id"),
