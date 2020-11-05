@@ -18,10 +18,15 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/banzaicloud/cadence-aws-sdk/clients/ec2stub"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
+	"github.com/banzaicloud/pipeline/pkg/cadence/awssdk"
+	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -175,15 +180,20 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	}
 
 	// delete SSH key
-	var deleteSSHKeyActivityFeature workflow.Future
+	// TODO: inject client
+	// TODO: write test for this
+	var deleteSSHKeyActivityFuture *ec2stub.EC2DeleteKeyPairFuture
 	if input.GeneratedSSHUsed {
-		{
-			activityInput := DeleteSshKeyActivityInput{
-				EKSActivityInput: eksActivityInput,
-				SSHKeyName:       GenerateSSHKeyNameForCluster(input.ClusterName),
-			}
-			deleteSSHKeyActivityFeature = workflow.ExecuteActivity(ctx, DeleteSshKeyActivityName, activityInput)
-		}
+		client := ec2stub.NewClient()
+
+		secretID := brn.New(input.OrganizationID, brn.SecretResourceType, input.SecretID)
+
+		ctx := awssdk.WithSecretID(ctx, secretID.String())
+		ctx = awssdk.WithRegion(ctx, input.Region)
+
+		deleteSSHKeyActivityFuture = client.DeleteKeyPairAsync(ctx, &ec2.DeleteKeyPairInput{
+			KeyName: aws.String(GenerateSSHKeyNameForCluster(input.ClusterName)),
+		})
 	}
 
 	if getVpcConfigActivityOutput.VpcID != "" {
@@ -223,8 +233,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 		}
 	}
 
-	if deleteSSHKeyActivityFeature != nil {
-		if err := deleteSSHKeyActivityFeature.Get(ctx, nil); err != nil {
+	if input.GeneratedSSHUsed && deleteSSHKeyActivityFuture != nil {
+		if _, err := deleteSSHKeyActivityFuture.Get(ctx); err != nil {
 			return err
 		}
 	}
