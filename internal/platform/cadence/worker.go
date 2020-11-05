@@ -52,7 +52,8 @@ func NewWorker(config Config, taskList string, logger *zap.Logger) (worker.Worke
 		config.Domain,
 		taskList,
 		worker.Options{
-			Logger: logger,
+			Logger:             logger,
+			ContextPropagators: contextPropagators(),
 		},
 	), nil
 }
