@@ -59,7 +59,7 @@ func (g ClusterTokenGenerator) GenerateClusterToken(orgID uint, clusterID uint) 
 
 	if tokens, err := g.tokenStore.List(userID); err == nil {
 		for _, token := range tokens {
-			if token.Value != "" && token.ExpiresAt == nil {
+			if token.Value != "" && (token.ExpiresAt == nil || token.ExpiresAt.IsZero()) {
 				return token.ID, token.Value, nil
 			}
 		}
