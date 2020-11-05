@@ -16,6 +16,7 @@ package main
 
 import (
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -24,77 +25,77 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 )
 
-func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore) {
+func registerAzureWorkflows(worker worker.Worker, secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.ClusterStore) {
 	// Azure PKE
-	workflow.RegisterWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})
-	workflow.RegisterWithOptions(azurepkeworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateInfraWorkflowName})
-	workflow.RegisterWithOptions(azurepkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteClusterWorkflowName})
-	workflow.RegisterWithOptions(azurepkeworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteInfraWorkflowName})
-	workflow.RegisterWithOptions(azurepkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.UpdateClusterWorkflowName})
+	worker.RegisterWorkflowWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})
+	worker.RegisterWorkflowWithOptions(azurepkeworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateInfraWorkflowName})
+	worker.RegisterWorkflowWithOptions(azurepkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteClusterWorkflowName})
+	worker.RegisterWorkflowWithOptions(azurepkeworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteInfraWorkflowName})
+	worker.RegisterWorkflowWithOptions(azurepkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.UpdateClusterWorkflowName})
 
 	azureClientFactory := azurepkeworkflow.NewAzureClientFactory(secretStore)
 
 	createVnetActivity := azurepkeworkflow.MakeCreateVnetActivity(azureClientFactory)
-	activity.RegisterWithOptions(createVnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVnetActivityName})
+	worker.RegisterActivityWithOptions(createVnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVnetActivityName})
 
 	createNSGActivity := azurepkeworkflow.MakeCreateNSGActivity(azureClientFactory)
-	activity.RegisterWithOptions(createNSGActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateNSGActivityName})
+	worker.RegisterActivityWithOptions(createNSGActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateNSGActivityName})
 
 	createLBActivity := azurepkeworkflow.MakeCreateLoadBalancerActivity(azureClientFactory)
-	activity.RegisterWithOptions(createLBActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateLoadBalancerActivityName})
+	worker.RegisterActivityWithOptions(createLBActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateLoadBalancerActivityName})
 
 	createVMSSActivity := azurepkeworkflow.MakeCreateVMSSActivity(azureClientFactory, tokenGenerator)
-	activity.RegisterWithOptions(createVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVMSSActivityName})
+	worker.RegisterActivityWithOptions(createVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVMSSActivityName})
 
 	createRouteTableActivity := azurepkeworkflow.MakeCreateRouteTableActivity(azureClientFactory)
-	activity.RegisterWithOptions(createRouteTableActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateRouteTableActivityName})
+	worker.RegisterActivityWithOptions(createRouteTableActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateRouteTableActivityName})
 
 	assignRoleActivity := azurepkeworkflow.MakeAssignRoleActivity(azureClientFactory)
-	activity.RegisterWithOptions(assignRoleActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.AssignRoleActivityName})
+	worker.RegisterActivityWithOptions(assignRoleActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.AssignRoleActivityName})
 
 	createPublicIPActivity := azurepkeworkflow.MakeCreatePublicIPActivity(azureClientFactory)
-	activity.RegisterWithOptions(createPublicIPActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreatePublicIPActivityName})
+	worker.RegisterActivityWithOptions(createPublicIPActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreatePublicIPActivityName})
 
 	// delete infra activities
 	deleteVMSSActivity := azurepkeworkflow.MakeDeleteVMSSActivity(azureClientFactory)
-	activity.RegisterWithOptions(deleteVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteVMSSActivityName})
+	worker.RegisterActivityWithOptions(deleteVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteVMSSActivityName})
 
 	deleteLoadBalancerActivity := azurepkeworkflow.MakeDeleteLoadBalancerActivity(azureClientFactory)
-	activity.RegisterWithOptions(deleteLoadBalancerActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteLoadBalancerActivityName})
+	worker.RegisterActivityWithOptions(deleteLoadBalancerActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteLoadBalancerActivityName})
 
 	deletePublicIPActivity := azurepkeworkflow.MakeDeletePublicIPActivity(azureClientFactory)
-	activity.RegisterWithOptions(deletePublicIPActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeletePublicIPActivityName})
+	worker.RegisterActivityWithOptions(deletePublicIPActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeletePublicIPActivityName})
 
 	deleteVNetActivity := azurepkeworkflow.MakeDeleteVNetActivity(azureClientFactory)
-	activity.RegisterWithOptions(deleteVNetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteVNetActivityName})
+	worker.RegisterActivityWithOptions(deleteVNetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteVNetActivityName})
 
 	deleteRouteTableActivity := azurepkeworkflow.MakeDeleteRouteTableActivity(azureClientFactory)
-	activity.RegisterWithOptions(deleteRouteTableActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteRouteTableActivityName})
+	worker.RegisterActivityWithOptions(deleteRouteTableActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteRouteTableActivityName})
 
 	deleteNSGActivity := azurepkeworkflow.MakeDeleteNSGActivity(azureClientFactory)
-	activity.RegisterWithOptions(deleteNSGActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteNSGActivityName})
+	worker.RegisterActivityWithOptions(deleteNSGActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteNSGActivityName})
 
 	deleteClusterFromStoreActivity := azurepkeworkflow.MakeDeleteClusterFromStoreActivity(store)
-	activity.RegisterWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteClusterFromStoreActivityName})
+	worker.RegisterActivityWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteClusterFromStoreActivityName})
 
 	setClusterStatusActivity := azurepkeworkflow.MakeSetClusterStatusActivity(store)
-	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.SetClusterStatusActivityName})
+	worker.RegisterActivityWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.SetClusterStatusActivityName})
 
 	updateVMSSActivity := azurepkeworkflow.MakeUpdateVMSSActivity(azureClientFactory)
-	activity.RegisterWithOptions(updateVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.UpdateVMSSActivityName})
+	worker.RegisterActivityWithOptions(updateVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.UpdateVMSSActivityName})
 
 	createSubnetActivity := azurepkeworkflow.MakeCreateSubnetActivity(azureClientFactory)
-	activity.RegisterWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateSubnetActivityName})
+	worker.RegisterActivityWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateSubnetActivityName})
 
 	deleteNodePoolFromStoreActivity := azurepkeworkflow.MakeDeleteNodePoolFromStoreActivity(store)
-	activity.RegisterWithOptions(deleteNodePoolFromStoreActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteNodePoolFromStoreActivityName})
+	worker.RegisterActivityWithOptions(deleteNodePoolFromStoreActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteNodePoolFromStoreActivityName})
 
 	deleteSubnetActivity := azurepkeworkflow.MakeDeleteSubnetActivity(azureClientFactory)
-	activity.RegisterWithOptions(deleteSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteSubnetActivityName})
+	worker.RegisterActivityWithOptions(deleteSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteSubnetActivityName})
 
 	collectUpdateClusterProvidersActivity := azurepkeworkflow.MakeCollectUpdateClusterProvidersActivity(azureClientFactory)
-	activity.RegisterWithOptions(collectUpdateClusterProvidersActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CollectUpdateClusterProvidersActivityName})
+	worker.RegisterActivityWithOptions(collectUpdateClusterProvidersActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CollectUpdateClusterProvidersActivityName})
 
 	updateClusterAccessPointsActivity := azurepkeworkflow.MakeUpdateClusterAccessPointsActivity(store)
-	activity.RegisterWithOptions(updateClusterAccessPointsActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.UpdateClusterAccessPointsActivityName})
+	worker.RegisterActivityWithOptions(updateClusterAccessPointsActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.UpdateClusterAccessPointsActivityName})
 }

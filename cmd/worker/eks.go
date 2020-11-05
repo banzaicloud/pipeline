@@ -18,6 +18,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
@@ -31,6 +32,7 @@ import (
 )
 
 func registerEKSWorkflows(
+	worker worker.Worker,
 	config configuration,
 	secretStore awsworkflow.SecretStore,
 	clusterManager *adapter.ClusterManagerAdapter,
@@ -66,10 +68,10 @@ func registerEKSWorkflows(
 	// Workflows.
 	eksworkflow.NewCreateNodePoolWorkflow().Register()
 
-	workflow.RegisterWithOptions(cluster.EKSCreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSCreateClusterWorkflowName})
+	worker.RegisterWorkflowWithOptions(cluster.EKSCreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSCreateClusterWorkflowName})
 
 	createInfrastructureWorkflow := eksworkflow.NewCreateInfrastructureWorkflow(nodePoolStore)
-	workflow.RegisterWithOptions(createInfrastructureWorkflow.Execute, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
+	worker.RegisterWorkflowWithOptions(createInfrastructureWorkflow.Execute, workflow.RegisterOptions{Name: eksworkflow.CreateInfraWorkflowName})
 
 	awsSessionFactory := awsworkflow.NewAWSSessionFactory(secretStore)
 	cloudFormationFactory := awsworkflow.NewCloudFormationFactory()
@@ -77,109 +79,109 @@ func registerEKSWorkflows(
 	eksFactory := eksworkflow.NewEKSFactory()
 
 	validateRoleNameActivity := eksworkflow.NewValidateIAMRoleActivity(awsSessionFactory)
-	activity.RegisterWithOptions(validateRoleNameActivity.Execute, activity.RegisterOptions{Name: eksworkflow.ValidateIAMRoleActivityName})
+	worker.RegisterActivityWithOptions(validateRoleNameActivity.Execute, activity.RegisterOptions{Name: eksworkflow.ValidateIAMRoleActivityName})
 
 	createVPCActivity := eksworkflow.NewCreateVPCActivity(awsSessionFactory, vpcTemplate)
-	activity.RegisterWithOptions(createVPCActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateVpcActivityName})
+	worker.RegisterActivityWithOptions(createVPCActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateVpcActivityName})
 
 	createSubnetActivity := eksworkflow.NewCreateSubnetActivity(awsSessionFactory, subnetTemplate)
-	activity.RegisterWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateSubnetActivityName})
+	worker.RegisterActivityWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateSubnetActivityName})
 
 	getSubnetsDetailsActivity := eksworkflow.NewGetSubnetsDetailsActivity(awsSessionFactory)
-	activity.RegisterWithOptions(getSubnetsDetailsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetSubnetsDetailsActivityName})
+	worker.RegisterActivityWithOptions(getSubnetsDetailsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetSubnetsDetailsActivityName})
 
 	createIamRolesActivity := eksworkflow.NewCreateIamRolesActivity(awsSessionFactory, iamRolesTemplate)
-	activity.RegisterWithOptions(createIamRolesActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateIamRolesActivityName})
+	worker.RegisterActivityWithOptions(createIamRolesActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateIamRolesActivityName})
 
 	uploadSSHActivityActivity := eksworkflow.NewUploadSSHKeyActivity(awsSessionFactory)
-	activity.RegisterWithOptions(uploadSSHActivityActivity.Execute, activity.RegisterOptions{Name: eksworkflow.UploadSSHKeyActivityName})
+	worker.RegisterActivityWithOptions(uploadSSHActivityActivity.Execute, activity.RegisterOptions{Name: eksworkflow.UploadSSHKeyActivityName})
 
 	getVpcConfigActivity := eksworkflow.NewGetVpcConfigActivity(awsSessionFactory)
-	activity.RegisterWithOptions(getVpcConfigActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetVpcConfigActivityName})
+	worker.RegisterActivityWithOptions(getVpcConfigActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetVpcConfigActivityName})
 
 	createEksClusterActivity := eksworkflow.NewCreateEksClusterActivity(awsSessionFactory)
-	activity.RegisterWithOptions(createEksClusterActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateEksControlPlaneActivityName})
+	worker.RegisterActivityWithOptions(createEksClusterActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateEksControlPlaneActivityName})
 
 	saveClusterVersionActivity := eksworkflow.NewSaveClusterVersionActivity(clusterManager)
-	activity.RegisterWithOptions(saveClusterVersionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveClusterVersionActivityName})
+	worker.RegisterActivityWithOptions(saveClusterVersionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveClusterVersionActivityName})
 
 	createAsgActivity := eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate, nodePoolStore)
-	activity.RegisterWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateAsgActivityName})
+	worker.RegisterActivityWithOptions(createAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateAsgActivityName})
 
 	updateAsgActivity := eksworkflow.NewUpdateAsgActivity(awsSessionFactory, nodePoolTemplate)
-	activity.RegisterWithOptions(updateAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.UpdateAsgActivityName})
+	worker.RegisterActivityWithOptions(updateAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.UpdateAsgActivityName})
 
 	createUserAccessKeyActivity := eksworkflow.NewCreateClusterUserAccessKeyActivity(awsSessionFactory)
-	activity.RegisterWithOptions(createUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateClusterUserAccessKeyActivityName})
+	worker.RegisterActivityWithOptions(createUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateClusterUserAccessKeyActivityName})
 
 	bootstrapActivity := eksworkflow.NewBootstrapActivity(awsSessionFactory)
-	activity.RegisterWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: eksworkflow.BootstrapActivityName})
+	worker.RegisterActivityWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: eksworkflow.BootstrapActivityName})
 
 	saveK8sConfigActivity := eksworkflow.NewSaveK8sConfigActivity(awsSessionFactory, clusterManager)
-	activity.RegisterWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveK8sConfigActivityName})
+	worker.RegisterActivityWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveK8sConfigActivityName})
 
 	// update cluster workflow
 	eksUpdateClusterWorkflow := cluster.NewEKSUpdateClusterWorkflow(nodePoolStore)
-	workflow.RegisterWithOptions(eksUpdateClusterWorkflow.Execute, workflow.RegisterOptions{Name: cluster.EKSUpdateClusterWorkflowName})
+	worker.RegisterWorkflowWithOptions(eksUpdateClusterWorkflow.Execute, workflow.RegisterOptions{Name: cluster.EKSUpdateClusterWorkflowName})
 
 	// delete cluster workflow
-	workflow.RegisterWithOptions(cluster.EKSDeleteClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSDeleteClusterWorkflowName})
-	workflow.RegisterWithOptions(eksworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteInfraWorkflowName})
+	worker.RegisterWorkflowWithOptions(cluster.EKSDeleteClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSDeleteClusterWorkflowName})
+	worker.RegisterWorkflowWithOptions(eksworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteInfraWorkflowName})
 
 	// delete node pool workflow
 	eksworkflow.NewDeleteNodePoolWorkflow().Register()
 
 	getAMISizeActivity := eksworkflow.NewGetAMISizeActivity(awsSessionFactory, ec2Factory)
-	activity.RegisterWithOptions(getAMISizeActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetAMISizeActivityName})
+	worker.RegisterActivityWithOptions(getAMISizeActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetAMISizeActivityName})
 
 	getCFStackActivity := eksworkflow.NewGetCFStackActivity(awsSessionFactory, cloudFormationFactory)
-	activity.RegisterWithOptions(getCFStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetCFStackActivityName})
+	worker.RegisterActivityWithOptions(getCFStackActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetCFStackActivityName})
 
 	getOwnedELBsActivity := eksworkflow.NewGetOwnedELBsActivity(awsSessionFactory)
-	activity.RegisterWithOptions(getOwnedELBsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOwnedELBsActivityName})
+	worker.RegisterActivityWithOptions(getOwnedELBsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOwnedELBsActivityName})
 
 	waitELBsDeletionActivity := eksworkflow.NewWaitELBsDeletionActivity(awsSessionFactory)
-	activity.RegisterWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.WaitELBsDeletionActivityName})
+	worker.RegisterActivityWithOptions(waitELBsDeletionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.WaitELBsDeletionActivityName})
 
 	deleteStoredNodePoolActivity := eksworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
-	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
+	worker.RegisterActivityWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
 		Name: eksworkflow.DeleteStoredNodePoolActivityName,
 	})
 
 	deleteControlPlaneActivity := eksworkflow.NewDeleteControlPlaneActivity(awsSessionFactory)
-	activity.RegisterWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteControlPlaneActivityName})
+	worker.RegisterActivityWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteControlPlaneActivityName})
 
 	deleteSshKeyActivity := eksworkflow.NewDeleteSshKeyActivity(awsSessionFactory)
-	activity.RegisterWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteSshKeyActivityName})
+	worker.RegisterActivityWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteSshKeyActivityName})
 
 	getOrphanNicsActivity := eksworkflow.NewGetOrphanNICsActivity(awsSessionFactory)
-	activity.RegisterWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOrphanNICsActivityName})
+	worker.RegisterActivityWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetOrphanNICsActivityName})
 
 	listStoredNodePoolsActivity := eksworkflow.NewListStoredNodePoolsActivity(nodePoolStore)
-	activity.RegisterWithOptions(listStoredNodePoolsActivity.Execute, activity.RegisterOptions{
+	worker.RegisterActivityWithOptions(listStoredNodePoolsActivity.Execute, activity.RegisterOptions{
 		Name: eksworkflow.ListStoredNodePoolsActivityName,
 	})
 
 	deleteOrphanNicActivity := eksworkflow.NewDeleteOrphanNICActivity(awsSessionFactory)
-	activity.RegisterWithOptions(deleteOrphanNicActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteOrphanNICActivityName})
+	worker.RegisterActivityWithOptions(deleteOrphanNicActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteOrphanNICActivityName})
 
 	getSubnetStacksActivity := eksworkflow.NewGetSubnetStacksActivity(awsSessionFactory)
-	activity.RegisterWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetSubnetStacksActivityName})
+	worker.RegisterActivityWithOptions(getSubnetStacksActivity.Execute, activity.RegisterOptions{Name: eksworkflow.GetSubnetStacksActivityName})
 
 	selectVolumeSizeActivity := eksworkflow.NewSelectVolumeSizeActivity(config.Distribution.EKS.DefaultNodeVolumeSize)
-	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SelectVolumeSizeActivityName})
+	worker.RegisterActivityWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SelectVolumeSizeActivityName})
 
 	setClusterStatusActivity := eksworkflow.NewSetClusterStatusActivity(clusterManager)
-	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SetClusterStatusActivityName})
+	worker.RegisterActivityWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SetClusterStatusActivityName})
 
 	deleteClusterFromStoreActivity := eksworkflow.NewDeleteClusterFromStoreActivity(clusterManager)
-	activity.RegisterWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteClusterFromStoreActivityName})
+	worker.RegisterActivityWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: eksworkflow.DeleteClusterFromStoreActivityName})
 
 	saveNetworkDetails := eksworkflow.NewSaveNetworkDetailsActivity(clusterManager)
-	activity.RegisterWithOptions(saveNetworkDetails.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNetworkDetailsActivityName})
+	worker.RegisterActivityWithOptions(saveNetworkDetails.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNetworkDetailsActivityName})
 
 	saveNodePoolsActivity := eksworkflow.NewSaveNodePoolsActivity(clusterManager)
-	activity.RegisterWithOptions(saveNodePoolsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNodePoolsActivityName})
+	worker.RegisterActivityWithOptions(saveNodePoolsActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveNodePoolsActivityName})
 
 	// Node pool upgrade
 	eksworkflow2.NewUpdateNodePoolWorkflow(awsSessionFactory, cloudFormationFactory, processlog.New()).Register()

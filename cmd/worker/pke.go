@@ -16,6 +16,7 @@ package main
 
 import (
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
@@ -25,6 +26,7 @@ import (
 )
 
 func registerPKEWorkflows(
+	worker worker.Worker,
 	passwordSecrets pkeworkflow.PasswordSecretStore,
 	config configuration,
 	nodePoolStore pke.NodePoolStore,
@@ -32,7 +34,7 @@ func registerPKEWorkflows(
 ) {
 	{
 		a := pkeworkflow.NewAssembleHTTPProxySettingsActivity(passwordSecrets)
-		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: pkeworkflow.AssembleHTTPProxySettingsActivityName})
+		worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: pkeworkflow.AssembleHTTPProxySettingsActivityName})
 	}
 
 	pkeawsworkflow.NewUpdateNodePoolWorkflow().Register()
@@ -42,7 +44,7 @@ func registerPKEWorkflows(
 
 	// node pool delete helper activities
 	deleteStoredNodePoolActivity := pkeawsproviderworkflow.NewDeleteStoredNodePoolActivity(nodePoolStore)
-	activity.RegisterWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
+	worker.RegisterActivityWithOptions(deleteStoredNodePoolActivity.Execute, activity.RegisterOptions{
 		Name: pkeawsproviderworkflow.DeleteStoredNodePoolActivityName,
 	})
 }

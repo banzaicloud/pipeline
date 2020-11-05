@@ -16,6 +16,7 @@ package main
 
 import (
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
@@ -26,6 +27,7 @@ import (
 )
 
 func registerAwsWorkflows(
+	worker worker.Worker,
 	config configuration,
 	clusters *pkeworkflowadapter.ClusterManagerAdapter,
 	tokenGenerator pkeworkflowadapter.TokenGenerator,
@@ -37,16 +39,16 @@ func registerAwsWorkflows(
 		DefaultNodeVolumeSize: config.Distribution.PKE.Amazon.DefaultNodeVolumeSize,
 		GlobalRegion:          config.Distribution.PKE.Amazon.GlobalRegion,
 	}
-	workflow.RegisterWithOptions(
+	worker.RegisterWorkflowWithOptions(
 		createClusterWorkflow.Execute, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName},
 	)
 
-	workflow.RegisterWithOptions(pkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.DeleteClusterWorkflowName})
+	worker.RegisterWorkflowWithOptions(pkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.DeleteClusterWorkflowName})
 
 	updateClusterWorkflow := pkeworkflow.UpdateClusterWorkflow{
 		DefaultNodeVolumeSize: config.Distribution.PKE.Amazon.DefaultNodeVolumeSize,
 	}
-	workflow.RegisterWithOptions(
+	worker.RegisterWorkflowWithOptions(
 		updateClusterWorkflow.Execute, workflow.RegisterOptions{Name: pkeworkflow.UpdateClusterWorkflowName},
 	)
 
@@ -55,92 +57,92 @@ func registerAwsWorkflows(
 	elbv2Factory := pkeawsworkflow.NewELBV2Factory()
 
 	createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory)
-	activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
+	worker.RegisterActivityWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
 
 	waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(awsClientFactory)
-	activity.RegisterWithOptions(waitCFCompletionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitCFCompletionActivityName})
+	worker.RegisterActivityWithOptions(waitCFCompletionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitCFCompletionActivityName})
 
 	createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(awsClientFactory)
-	activity.RegisterWithOptions(createPKEVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateVPCActivityName})
+	worker.RegisterActivityWithOptions(createPKEVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateVPCActivityName})
 
 	createPKESubnetActivity := pkeworkflow.NewCreateSubnetActivity(awsClientFactory)
-	activity.RegisterWithOptions(createPKESubnetActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateSubnetActivityName})
+	worker.RegisterActivityWithOptions(createPKESubnetActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateSubnetActivityName})
 
 	deletePKESubnetActivity := pkeworkflow.NewDeleteSubnetActivity(clusters)
-	activity.RegisterWithOptions(deletePKESubnetActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSubnetActivityName})
+	worker.RegisterActivityWithOptions(deletePKESubnetActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSubnetActivityName})
 
 	getVpcDefaultSecurityGroupActivity := pkeworkflow.NewGetVpcDefaultSecurityGroupActivity(awsClientFactory)
-	activity.RegisterWithOptions(getVpcDefaultSecurityGroupActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GetVpcDefaultSecurityGroupActivityName})
+	worker.RegisterActivityWithOptions(getVpcDefaultSecurityGroupActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GetVpcDefaultSecurityGroupActivityName})
 
 	updateClusterStatusActivitiy := pkeworkflow.NewUpdateClusterStatusActivity(clusters)
-	activity.RegisterWithOptions(updateClusterStatusActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterStatusActivityName})
+	worker.RegisterActivityWithOptions(updateClusterStatusActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterStatusActivityName})
 
 	updateClusterNetworkActivitiy := pkeworkflow.NewUpdateClusterNetworkActivity(clusters)
-	activity.RegisterWithOptions(updateClusterNetworkActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterNetworkActivityName})
+	worker.RegisterActivityWithOptions(updateClusterNetworkActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterNetworkActivityName})
 
 	createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(awsClientFactory)
-	activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
+	worker.RegisterActivityWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
 
 	createNLBActivity := pkeworkflow.NewCreateNLBActivity(awsClientFactory)
-	activity.RegisterWithOptions(createNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateNLBActivityName})
+	worker.RegisterActivityWithOptions(createNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateNLBActivityName})
 
 	createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)
-	activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
+	worker.RegisterActivityWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
 
 	listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
-	activity.RegisterWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})
+	worker.RegisterActivityWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})
 
 	selectImageActivity := pkeworkflow.NewSelectImageActivity(clusters, imageSelector)
-	activity.RegisterWithOptions(selectImageActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectImageActivityName})
+	worker.RegisterActivityWithOptions(selectImageActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectImageActivityName})
 
 	createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
-	activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
+	worker.RegisterActivityWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
 	updateNodePoolActivity := pkeworkflow.NewUpdateNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, config.Pipeline.External.URL, config.Pipeline.External.Insecure)
-	activity.RegisterWithOptions(updateNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateNodeGroupActivityName})
+	worker.RegisterActivityWithOptions(updateNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateNodeGroupActivityName})
 
 	updateMasterNodePoolActivity := pkeworkflow.NewUpdateMasterNodeGroupActivity(awsClientFactory, clusters, tokenGenerator, config.Pipeline.External.URL, config.Pipeline.External.Insecure)
-	activity.RegisterWithOptions(updateMasterNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateMasterNodeGroupActivityName})
+	worker.RegisterActivityWithOptions(updateMasterNodePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateMasterNodeGroupActivityName})
 
 	calculateNodePoolVersionActivity := pkeworkflow.NewCalculateNodePoolVersionActivity()
-	activity.RegisterWithOptions(calculateNodePoolVersionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CalculateNodePoolVersionActivityName})
+	worker.RegisterActivityWithOptions(calculateNodePoolVersionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CalculateNodePoolVersionActivityName})
 
 	deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)
-	activity.RegisterWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})
+	worker.RegisterActivityWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})
 
 	waitForDeletePoolActivity := pkeworkflow.NewWaitForDeletePoolActivity(clusters)
-	activity.RegisterWithOptions(waitForDeletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeletePoolActivityName})
+	worker.RegisterActivityWithOptions(waitForDeletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeletePoolActivityName})
 
 	updatePoolActivity := pkeworkflow.NewUpdatePoolActivity(awsClientFactory)
-	activity.RegisterWithOptions(updatePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdatePoolActivityName})
+	worker.RegisterActivityWithOptions(updatePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdatePoolActivityName})
 
 	deleteElasticIPActivity := pkeworkflow.NewDeleteElasticIPActivity(clusters)
-	activity.RegisterWithOptions(deleteElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteElasticIPActivityName})
+	worker.RegisterActivityWithOptions(deleteElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteElasticIPActivityName})
 
 	deleteNLBActivity := pkeworkflow.NewDeleteNLBActivity(clusters)
-	activity.RegisterWithOptions(deleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
+	worker.RegisterActivityWithOptions(deleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
 
 	waitForDeleteNLBActivity := pkeworkflow.NewWaitForDeleteNLBActivity(clusters)
-	activity.RegisterWithOptions(waitForDeleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeleteNLBActivityName})
+	worker.RegisterActivityWithOptions(waitForDeleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeleteNLBActivityName})
 
 	deleteVPCActivity := pkeworkflow.NewDeleteVPCActivity(clusters)
-	activity.RegisterWithOptions(deleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteVPCActivityName})
+	worker.RegisterActivityWithOptions(deleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteVPCActivityName})
 
 	waitForDeleteVPCActivity := pkeworkflow.NewWaitForDeleteVPCActivity(clusters)
-	activity.RegisterWithOptions(waitForDeleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeleteVPCActivityName})
+	worker.RegisterActivityWithOptions(waitForDeleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitForDeleteVPCActivityName})
 
 	uploadSshKeyPairActivity := pkeworkflow.NewUploadSSHKeyPairActivity(clusters)
-	activity.RegisterWithOptions(uploadSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UploadSSHKeyPairActivityName})
+	worker.RegisterActivityWithOptions(uploadSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UploadSSHKeyPairActivityName})
 
 	deleteSshKeyPairActivity := pkeworkflow.NewDeleteSSHKeyPairActivity(clusters)
-	activity.RegisterWithOptions(deleteSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSSHKeyPairActivityName})
+	worker.RegisterActivityWithOptions(deleteSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSSHKeyPairActivityName})
 
 	selectVolumeSizeActivity := pkeworkflow.NewSelectVolumeSizeActivity(awsClientFactory, ec2Factory)
-	activity.RegisterWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectVolumeSizeActivityName})
+	worker.RegisterActivityWithOptions(selectVolumeSizeActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SelectVolumeSizeActivityName})
 
 	pkeawsworkflow.NewHealthCheckActivity(awsClientFactory, elbv2Factory).Register()
 
 	awsSessionFactory := awsworkflow.NewAWSSessionFactory(awsSecretStore)
 	deleteStackActivity := awsworkflow.NewDeleteStackActivity(awsSessionFactory)
-	activity.RegisterWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: awsworkflow.DeleteStackActivityName})
+	worker.RegisterActivityWithOptions(deleteStackActivity.Execute, activity.RegisterOptions{Name: awsworkflow.DeleteStackActivityName})
 }
