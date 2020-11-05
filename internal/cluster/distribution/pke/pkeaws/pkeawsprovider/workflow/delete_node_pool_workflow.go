@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"go.uber.org/cadence"
-	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -26,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -153,6 +153,6 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 }
 
 // Register registers the activity in the worker.
-func (w DeleteNodePoolWorkflow) Register(worker worker.Worker) {
+func (w DeleteNodePoolWorkflow) Register(worker worker.Registry) {
 	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: DeleteNodePoolWorkflowName})
 }

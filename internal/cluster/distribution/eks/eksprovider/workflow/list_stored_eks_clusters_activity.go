@@ -20,10 +20,10 @@ import (
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 // ListStoredEKSClustersActivityName is the name of the activity which lists the
@@ -94,7 +94,7 @@ func (a ListStoredEKSClustersActivity) Execute(
 }
 
 // Register registers the activity.
-func (a ListStoredEKSClustersActivity) Register(worker worker.Worker) {
+func (a ListStoredEKSClustersActivity) Register(worker worker.Registry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: ListStoredEKSClustersActivityName})
 }
 

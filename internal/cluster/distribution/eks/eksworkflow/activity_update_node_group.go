@@ -26,9 +26,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/worker"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
@@ -80,7 +80,7 @@ func NewUpdateNodeGroupActivity(sessionFactory AWSSessionFactory, cloudFormation
 }
 
 // Register registers the activity in the worker.
-func (a UpdateNodeGroupActivity) Register(worker worker.Worker) {
+func (a UpdateNodeGroupActivity) Register(worker worker.Registry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: UpdateNodeGroupActivityName})
 }
 

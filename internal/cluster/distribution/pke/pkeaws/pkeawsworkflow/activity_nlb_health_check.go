@@ -21,9 +21,9 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/worker"
 
 	"github.com/banzaicloud/pipeline/pkg/backoff"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 const (
@@ -62,7 +62,7 @@ type HealthCheckActivityOutput struct {
 }
 
 // Register registers the activity in the worker.
-func (a *HealthCheckActivity) Register(worker worker.Worker) {
+func (a *HealthCheckActivity) Register(worker worker.Registry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: HealthCheckActivityName})
 }
 

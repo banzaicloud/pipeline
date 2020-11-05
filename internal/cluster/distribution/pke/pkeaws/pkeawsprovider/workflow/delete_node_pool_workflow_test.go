@@ -386,7 +386,7 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 				}).
 				Return(nil)
 
-			testCase.inputWorkflow.Register()
+			testCase.inputWorkflow.Register(workflowTestSuite.environment)
 			workflowTestSuite.environment.ExecuteWorkflow(DeleteNodePoolWorkflowName, DeleteNodePoolWorkflowInput{})
 			actualError := workflowTestSuite.environment.GetWorkflowError()
 
