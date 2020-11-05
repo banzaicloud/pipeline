@@ -18,11 +18,11 @@ import (
 	"time"
 
 	"go.uber.org/cadence"
-	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -49,7 +49,7 @@ func NewUpdateClusterWorkflow() UpdateClusterWorkflow {
 }
 
 // Register registers the activity in the worker.
-func (w UpdateClusterWorkflow) Register(worker worker.Worker) {
+func (w UpdateClusterWorkflow) Register(worker worker.Registry) {
 	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateClusterWorkflowName})
 }
 

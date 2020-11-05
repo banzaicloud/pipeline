@@ -19,9 +19,9 @@ import (
 	"fmt"
 
 	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/worker"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 const CalculateNodePoolVersionActivityName = "eks-calculate-node-pool-version"
@@ -44,7 +44,7 @@ func NewCalculateNodePoolVersionActivity() CalculateNodePoolVersionActivity {
 }
 
 // Register registers the activity in the worker.
-func (a CalculateNodePoolVersionActivity) Register(worker worker.Worker) {
+func (a CalculateNodePoolVersionActivity) Register(worker worker.Registry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: CalculateNodePoolVersionActivityName})
 }
 

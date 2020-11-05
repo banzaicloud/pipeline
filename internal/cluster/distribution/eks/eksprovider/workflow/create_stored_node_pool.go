@@ -18,10 +18,10 @@ import (
 	"context"
 
 	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 // CreateStoredNodePoolActivityName is the name of the stored node pool creation
@@ -61,7 +61,7 @@ func (a *CreateStoredNodePoolActivity) Execute(ctx context.Context, input Create
 }
 
 // Register registers the stored node pool deletion activity.
-func (a CreateStoredNodePoolActivity) Register(worker worker.Worker) {
+func (a CreateStoredNodePoolActivity) Register(worker worker.Registry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: CreateStoredNodePoolActivityName})
 }
 

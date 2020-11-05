@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"go.uber.org/cadence"
-	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -27,6 +26,7 @@ import (
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -74,7 +74,7 @@ type UpdateNodePoolWorkflowInput struct {
 	ClusterTags map[string]string
 }
 
-func (w UpdateNodePoolWorkflow) Register(worker worker.Worker) {
+func (w UpdateNodePoolWorkflow) Register(worker worker.Registry) {
 	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateNodePoolWorkflowName})
 }
 

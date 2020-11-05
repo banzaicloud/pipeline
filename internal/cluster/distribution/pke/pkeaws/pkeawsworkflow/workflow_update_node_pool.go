@@ -17,11 +17,11 @@ package pkeawsworkflow
 import (
 	"fmt"
 
-	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 const UpdateNodePoolWorkflowName = "pke-aws-update-node-pool"
@@ -66,7 +66,7 @@ func NewUpdateNodePoolWorkflow() UpdateNodePoolWorkflow {
 	return UpdateNodePoolWorkflow{}
 }
 
-func (w UpdateNodePoolWorkflow) Register(worker worker.Worker) {
+func (w UpdateNodePoolWorkflow) Register(worker worker.Registry) {
 	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: UpdateNodePoolWorkflowName})
 }
 

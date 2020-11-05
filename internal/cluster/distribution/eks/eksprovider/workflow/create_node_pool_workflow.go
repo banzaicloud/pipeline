@@ -18,12 +18,12 @@ import (
 	"time"
 
 	"go.uber.org/cadence"
-	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
@@ -167,7 +167,7 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 }
 
 // Register registers the activity in the worker.
-func (w CreateNodePoolWorkflow) Register(worker worker.Worker) {
+func (w CreateNodePoolWorkflow) Register(worker worker.Registry) {
 	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: CreateNodePoolWorkflowName})
 }
 

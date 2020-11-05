@@ -18,11 +18,11 @@ import (
 	"context"
 
 	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
 // SetNodePoolStatusActivityName is the name of the activity which sets a node
@@ -68,7 +68,7 @@ func (a SetNodePoolStatusActivity) Execute(ctx context.Context, input SetNodePoo
 }
 
 // Register registers the activity.
-func (a SetNodePoolStatusActivity) Register(worker worker.Worker) {
+func (a SetNodePoolStatusActivity) Register(worker worker.Registry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: SetNodePoolStatusActivityName})
 }
 
