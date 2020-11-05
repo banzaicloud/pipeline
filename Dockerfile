@@ -17,6 +17,7 @@ WORKDIR /build
 
 COPY go.* /build/
 COPY pkg/sdk/go.* /build/pkg/sdk/
+COPY lib/cadence-aws-sdk/go.* /build/lib/cadence-aws-sdk/
 RUN go mod download
 
 ARG VERSION

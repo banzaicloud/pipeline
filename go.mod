@@ -24,10 +24,11 @@ require (
 	github.com/antihax/optional v1.0.0
 	github.com/aokoli/goutils v1.1.0
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
-	github.com/aws/aws-sdk-go v1.34.4
+	github.com/aws/aws-sdk-go v1.35.20
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.4.0
+	github.com/banzaicloud/cadence-aws-sdk v0.0.0-20201104115745-5238cf77328b
 	github.com/banzaicloud/gin-utilz v0.3.1
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
@@ -53,7 +54,7 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1
-	github.com/jmespath/go-jmespath v0.3.0
+	github.com/jmespath/go-jmespath v0.4.0
 	github.com/jonboulle/clockwork v0.2.0
 	github.com/json-iterator/go v1.1.10
 	github.com/lestrrat-go/backoff v1.0.0
@@ -125,6 +126,7 @@ require (
 replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
+	github.com/banzaicloud/cadence-aws-sdk => ./lib/cadence-aws-sdk
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1

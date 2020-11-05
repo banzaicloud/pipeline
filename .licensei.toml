@@ -30,10 +30,13 @@ ignored = [
   "cloud.google.com/go/storage",
   "google.golang.org/api",
   "google.golang.org/protobuf",
+
+  # Temporary, until the package can be used without replacing
+  "github.com/banzaicloud/cadence-aws-sdk",
 ]
 
 [header]
-ignorePaths = ["vendor", "client", ".gen", "plz-out"]
+ignorePaths = ["vendor", "client", ".gen", "plz-out", "lib"]
 ignoreFiles = ["mock_*.go", "*_gen.go", "zz_generated.*.go", "SecretStore_test.go"]
 template = """// Copyright © :YEAR: Banzai Cloud
 //

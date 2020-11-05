@@ -3,6 +3,7 @@ run:
         - .gen
         - client
         - plz-out
+        - lib
 
     skip-files:
         - ".*_gen\\.go$"
