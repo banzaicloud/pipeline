@@ -104,6 +104,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/types"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	"github.com/banzaicloud/pipeline/pkg/cadence/awssdk"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/hook"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -373,6 +374,11 @@ func main() {
 			imageSelector.AddSelector("defaults", pkeaws.RegionMapImageSelector(config.Distribution.PKE.Amazon.DefaultImages))
 		} else {
 			imageSelector.AddSelector("defaults", pkeaws.DefaultImages())
+		}
+
+		{
+			sessionFactory := awssdk.NewSessionFactory(commonSecretStore)
+			RegisterAwsActivitiesWithSessionFactory(worker, sessionFactory)
 		}
 
 		// Register amazon specific workflows and activities
