@@ -204,8 +204,8 @@ github.com/banzaicloud/auth v0.3.0 h1:StvUYpeQd+giJSp9OuusyfVfcjKtRCk/KRRB0Hb5lx
 github.com/banzaicloud/auth v0.3.0/go.mod h1:csiaMgkeIokeOicSyxvhw/cx3VIMxiUS++Uqa0ei0Ks=
 github.com/banzaicloud/bank-vaults/pkg/sdk v0.4.0 h1:gr0sjF+PEnqltxQ8ypwRC6cSi69Nto+1sZuQ6bOzHGg=
 github.com/banzaicloud/bank-vaults/pkg/sdk v0.4.0/go.mod h1:IgHC3oPQFEK/KI0TDxQ31iTuYLw29GiKMpB/sv1ZaOQ=
-github.com/banzaicloud/gin-utilz v0.3.0 h1:HZ7jUCHWuUUgUa8UZ6ISbcD713CNGX/jBidGhPqhhaE=
-github.com/banzaicloud/gin-utilz v0.3.0/go.mod h1:HK5gehB/ipiFw7ousnH335vpkVnqEXysi5wzQhAWByc=
+github.com/banzaicloud/gin-utilz v0.3.1 h1:BnRW3oh6lK3jjyy0epTKDpMCFFR4c6zFHRbIYVEH5M8=
+github.com/banzaicloud/gin-utilz v0.3.1/go.mod h1:HK5gehB/ipiFw7ousnH335vpkVnqEXysi5wzQhAWByc=
 github.com/banzaicloud/go-gin-prometheus v0.1.0 h1:zetacN1k3svVc7DtzGfpHA49uO0G8cwsiP5qSuUUQKs=
 github.com/banzaicloud/go-gin-prometheus v0.1.0/go.mod h1:1eXhK1Ld1vRFbNpqi8Eu1ktCCk5LARA1Tbdl8EsAfgE=
 github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4 h1:nz020decQ0q8AkYzrnc/NZTbcuzw9B8N+s7LW5DA+3E=
