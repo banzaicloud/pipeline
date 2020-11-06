@@ -1,13 +1,13 @@
 ---
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Amazon EKS - Node Group'
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Amazon EKS - Node Group
 
 Metadata:
-  AWS::CloudFormation::Interface:
+  "AWS::CloudFormation::Interface":
     ParameterGroups:
       -
         Label:
-          default: "EKS Cluster"
+          default: EKS Cluster
         Parameters:
           - ClusterName
           - ClusterControlPlaneSecurityGroup
@@ -15,7 +15,7 @@ Metadata:
           - NodeSecurityGroup
       -
         Label:
-          default: "Worker Node Configuration"
+          default: Worker Node Configuration
         Parameters:
           - NodeGroupName
           - NodeAutoScalingGroupMinSize
@@ -30,7 +30,7 @@ Metadata:
           - BootstrapArguments
       -
         Label:
-          default: "Worker Network Configuration"
+          default: Worker Network Configuration
         Parameters:
           - VpcId
           - Subnets
@@ -38,13 +38,13 @@ Metadata:
 Parameters:
 
   BootstrapArguments:
-    Description: Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami
+    Description: "Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
     Default: ""
     Type: String
 
   ClusterControlPlaneSecurityGroup:
       Description: The security group of the cluster control plane.
-      Type: AWS::EC2::SecurityGroup::Id
+      Type: "AWS::EC2::SecurityGroup::Id"
 
   ClusterName:
       Description: The cluster name provided when the cluster was created.  If it is incorrect, nodes will not be able to join the cluster.
@@ -357,11 +357,11 @@ Parameters:
 
   Subnets:
     Description: The subnets where workers can be created.
-    Type: List<AWS::EC2::Subnet::Id>
+    Type: "List<AWS::EC2::Subnet::Id>"
 
   VpcId:
       Description: The VPC of the worker instances
-      Type: AWS::EC2::VPC::Id
+      Type: "AWS::EC2::VPC::Id"
 
   ClusterAutoscalerEnabled:
       Description: Enable Cluster Autoscaler (true/false)
@@ -373,7 +373,7 @@ Parameters:
 
   NodeSecurityGroup:
       Description: Security group for all nodes in the cluster.
-      Type: AWS::EC2::SecurityGroup::Id
+      Type: "AWS::EC2::SecurityGroup::Id"
 
   CustomNodeSecurityGroups:
       Description: Comma separated list of security groups for all nodes in the pool.
@@ -397,44 +397,44 @@ Conditions:
 
 Resources:
   NodeInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
+    Type: "AWS::IAM::InstanceProfile"
     Properties:
-      Path: "/"
+      Path: /
       Roles:
       - !Ref NodeInstanceRoleId
 
   NodeSecurityGroupIngress:
-    Type: AWS::EC2::SecurityGroupIngress
+    Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
       Description: Allow node to communicate with each other
       GroupId: !Ref NodeSecurityGroup
       SourceSecurityGroupId: !Ref NodeSecurityGroup
-      IpProtocol: '-1'
+      IpProtocol: "-1"
       FromPort: 0
       ToPort: 65535
 
   NodeSecurityGroupFromControlPlaneIngress:
-    Type: AWS::EC2::SecurityGroupIngress
+    Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
       Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
       GroupId: !Ref NodeSecurityGroup
       SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
-      IpProtocol: '-1'
+      IpProtocol: "-1"
       FromPort: 0
       ToPort: 65535
 
   ControlPlaneEgressToNodeSecurityGroup:
-    Type: AWS::EC2::SecurityGroupEgress
+    Type: "AWS::EC2::SecurityGroupEgress"
     Properties:
       Description: Allow the cluster control plane to communicate with worker Kubelet and pods
       GroupId: !Ref ClusterControlPlaneSecurityGroup
       DestinationSecurityGroupId: !Ref NodeSecurityGroup
-      IpProtocol: '-1'
+      IpProtocol: "-1"
       FromPort: 0
       ToPort: 65535
 
   ClusterControlPlaneSecurityGroupIngress:
-    Type: AWS::EC2::SecurityGroupIngress
+    Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
       Description: Allow pods to communicate with the cluster API Server
       GroupId: !Ref ClusterControlPlaneSecurityGroup
@@ -444,11 +444,11 @@ Resources:
       FromPort: 443
 
   NodeSecurityGroupSsh:
-    Type: AWS::EC2::SecurityGroupIngress
+    Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
       Description: Allow SSH access to node
       GroupId: !Ref NodeSecurityGroup
-      CidrIp: '0.0.0.0/0'
+      CidrIp: "0.0.0.0/0"
       IpProtocol: tcp
       ToPort: 22
       FromPort: 22
@@ -461,7 +461,7 @@ Resources:
                   - DeviceName: /dev/xvda
                     Ebs:
                         DeleteOnTermination: true
-                        VolumeSize: !If [ NodeVolumeSizeAuto, !Ref 'AWS::NoValue', !Ref NodeVolumeSize ]
+                        VolumeSize: !If [ NodeVolumeSizeAuto, !Ref "AWS::NoValue", !Ref NodeVolumeSize ]
                         VolumeType: gp2
               IamInstanceProfile:
                   Arn: !GetAtt NodeInstanceProfile.Arn
@@ -489,10 +489,10 @@ Resources:
                                --resource NodeGroup  \
                                --region ${AWS::Region}
               MetadataOptions:
-                  "HttpPutResponseHopLimit" : 2
+                  HttpPutResponseHopLimit: 2
 
   NodeGroup:
-      Type: AWS::AutoScaling::AutoScalingGroup
+      Type: "AWS::AutoScaling::AutoScalingGroup"
       Properties:
           DesiredCapacity: !Ref NodeAutoScalingInitSize
           LaunchTemplate:
@@ -504,17 +504,17 @@ Resources:
               !Ref Subnets
           Tags:
               - Key: Name
-                Value: !Sub "${ClusterName}-${NodeGroupName}-Node"
-                PropagateAtLaunch: 'true'
-              - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
-                Value: 'owned'
-                PropagateAtLaunch: 'true'
-              - Key: !If [ AutoscalerEnabled, 'k8s.io/cluster-autoscaler/enabled', 'k8s.io/cluster-autoscaler/disabled' ]
-                Value: 'true'
-                PropagateAtLaunch: 'false'
-              - Key: 'bzc:detach-asg-instance-on-termination'
-                Value: !Sub "${TerminationDetachEnabled}"
-                PropagateAtLaunch: 'false'
+                Value: !Sub ${ClusterName}-${NodeGroupName}-Node
+                PropagateAtLaunch: true
+              - Key: !Sub kubernetes.io/cluster/${ClusterName}
+                Value: owned
+                PropagateAtLaunch: true
+              - Key: !If [ AutoscalerEnabled, k8s.io/cluster-autoscaler/enabled, k8s.io/cluster-autoscaler/disabled ]
+                Value: true
+                PropagateAtLaunch: false
+              - Key: "bzc:detach-asg-instance-on-termination"
+                Value: !Sub ${TerminationDetachEnabled}
+                PropagateAtLaunch: false
 
       {{- if .UpdatePolicyEnabled }}
       UpdatePolicy:
