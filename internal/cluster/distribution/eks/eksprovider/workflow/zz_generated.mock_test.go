@@ -1111,6 +1111,84 @@ func (_m *Mockec2API) AssociateDhcpOptionsWithContext(_parameter_0 context.Conte
 	return r0, r1
 }
 
+// AssociateEnclaveCertificateIamRole provides a mock function.
+func (_m *Mockec2API) AssociateEnclaveCertificateIamRole(_parameter_0 *ec2.AssociateEnclaveCertificateIamRoleInput) (_result_0 *ec2.AssociateEnclaveCertificateIamRoleOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.AssociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateEnclaveCertificateIamRoleInput) *ec2.AssociateEnclaveCertificateIamRoleOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateEnclaveCertificateIamRoleInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateEnclaveCertificateIamRoleRequest provides a mock function.
+func (_m *Mockec2API) AssociateEnclaveCertificateIamRoleRequest(_parameter_0 *ec2.AssociateEnclaveCertificateIamRoleInput) (_result_0 *request.Request, _result_1 *ec2.AssociateEnclaveCertificateIamRoleOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateEnclaveCertificateIamRoleInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AssociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateEnclaveCertificateIamRoleInput) *ec2.AssociateEnclaveCertificateIamRoleOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AssociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AssociateEnclaveCertificateIamRoleWithContext provides a mock function.
+func (_m *Mockec2API) AssociateEnclaveCertificateIamRoleWithContext(_parameter_0 context.Context, _parameter_1 *ec2.AssociateEnclaveCertificateIamRoleInput, _parameter_2 ...request.Option) (_result_0 *ec2.AssociateEnclaveCertificateIamRoleOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.AssociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateEnclaveCertificateIamRoleInput, ...request.Option) *ec2.AssociateEnclaveCertificateIamRoleOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateEnclaveCertificateIamRoleInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AssociateIamInstanceProfile provides a mock function.
 func (_m *Mockec2API) AssociateIamInstanceProfile(_parameter_0 *ec2.AssociateIamInstanceProfileInput) (_result_0 *ec2.AssociateIamInstanceProfileOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -6516,6 +6594,84 @@ func (_m *Mockec2API) CreateTransitGatewayPeeringAttachmentWithContext(_paramete
 	return r0, r1
 }
 
+// CreateTransitGatewayPrefixListReference provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayPrefixListReference(_parameter_0 *ec2.CreateTransitGatewayPrefixListReferenceInput) (_result_0 *ec2.CreateTransitGatewayPrefixListReferenceOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.CreateTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayPrefixListReferenceInput) *ec2.CreateTransitGatewayPrefixListReferenceOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayPrefixListReferenceInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayPrefixListReferenceRequest provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayPrefixListReferenceRequest(_parameter_0 *ec2.CreateTransitGatewayPrefixListReferenceInput) (_result_0 *request.Request, _result_1 *ec2.CreateTransitGatewayPrefixListReferenceOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayPrefixListReferenceInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayPrefixListReferenceInput) *ec2.CreateTransitGatewayPrefixListReferenceOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayPrefixListReferenceWithContext provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayPrefixListReferenceWithContext(_parameter_0 context.Context, _parameter_1 *ec2.CreateTransitGatewayPrefixListReferenceInput, _parameter_2 ...request.Option) (_result_0 *ec2.CreateTransitGatewayPrefixListReferenceOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.CreateTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayPrefixListReferenceInput, ...request.Option) *ec2.CreateTransitGatewayPrefixListReferenceOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayPrefixListReferenceInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateTransitGatewayRequest provides a mock function.
 func (_m *Mockec2API) CreateTransitGatewayRequest(_parameter_0 *ec2.CreateTransitGatewayInput) (_result_0 *request.Request, _result_1 *ec2.CreateTransitGatewayOutput) {
 	ret := _m.Called(_parameter_0)
@@ -10330,6 +10486,84 @@ func (_m *Mockec2API) DeleteTransitGatewayPeeringAttachmentWithContext(_paramete
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayPeeringAttachmentInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayPrefixListReference provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayPrefixListReference(_parameter_0 *ec2.DeleteTransitGatewayPrefixListReferenceInput) (_result_0 *ec2.DeleteTransitGatewayPrefixListReferenceOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DeleteTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayPrefixListReferenceInput) *ec2.DeleteTransitGatewayPrefixListReferenceOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayPrefixListReferenceInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayPrefixListReferenceRequest provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayPrefixListReferenceRequest(_parameter_0 *ec2.DeleteTransitGatewayPrefixListReferenceInput) (_result_0 *request.Request, _result_1 *ec2.DeleteTransitGatewayPrefixListReferenceOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayPrefixListReferenceInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayPrefixListReferenceInput) *ec2.DeleteTransitGatewayPrefixListReferenceOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayPrefixListReferenceWithContext provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayPrefixListReferenceWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DeleteTransitGatewayPrefixListReferenceInput, _parameter_2 ...request.Option) (_result_0 *ec2.DeleteTransitGatewayPrefixListReferenceOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DeleteTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayPrefixListReferenceInput, ...request.Option) *ec2.DeleteTransitGatewayPrefixListReferenceOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayPrefixListReferenceInput, ...request.Option) error); ok {
 		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
@@ -24583,6 +24817,84 @@ func (_m *Mockec2API) DisassociateClientVpnTargetNetworkWithContext(_parameter_0
 	return r0, r1
 }
 
+// DisassociateEnclaveCertificateIamRole provides a mock function.
+func (_m *Mockec2API) DisassociateEnclaveCertificateIamRole(_parameter_0 *ec2.DisassociateEnclaveCertificateIamRoleInput) (_result_0 *ec2.DisassociateEnclaveCertificateIamRoleOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DisassociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateEnclaveCertificateIamRoleInput) *ec2.DisassociateEnclaveCertificateIamRoleOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateEnclaveCertificateIamRoleInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateEnclaveCertificateIamRoleRequest provides a mock function.
+func (_m *Mockec2API) DisassociateEnclaveCertificateIamRoleRequest(_parameter_0 *ec2.DisassociateEnclaveCertificateIamRoleInput) (_result_0 *request.Request, _result_1 *ec2.DisassociateEnclaveCertificateIamRoleOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateEnclaveCertificateIamRoleInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisassociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateEnclaveCertificateIamRoleInput) *ec2.DisassociateEnclaveCertificateIamRoleOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisassociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisassociateEnclaveCertificateIamRoleWithContext provides a mock function.
+func (_m *Mockec2API) DisassociateEnclaveCertificateIamRoleWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DisassociateEnclaveCertificateIamRoleInput, _parameter_2 ...request.Option) (_result_0 *ec2.DisassociateEnclaveCertificateIamRoleOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DisassociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateEnclaveCertificateIamRoleInput, ...request.Option) *ec2.DisassociateEnclaveCertificateIamRoleOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateEnclaveCertificateIamRoleInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DisassociateIamInstanceProfile provides a mock function.
 func (_m *Mockec2API) DisassociateIamInstanceProfile(_parameter_0 *ec2.DisassociateIamInstanceProfileInput) (_result_0 *ec2.DisassociateIamInstanceProfileOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -25901,6 +26213,84 @@ func (_m *Mockec2API) ExportTransitGatewayRoutesWithContext(_parameter_0 context
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ExportTransitGatewayRoutesInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAssociatedEnclaveCertificateIamRoles provides a mock function.
+func (_m *Mockec2API) GetAssociatedEnclaveCertificateIamRoles(_parameter_0 *ec2.GetAssociatedEnclaveCertificateIamRolesInput) (_result_0 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.GetAssociatedEnclaveCertificateIamRolesInput) *ec2.GetAssociatedEnclaveCertificateIamRolesOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetAssociatedEnclaveCertificateIamRolesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.GetAssociatedEnclaveCertificateIamRolesInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAssociatedEnclaveCertificateIamRolesRequest provides a mock function.
+func (_m *Mockec2API) GetAssociatedEnclaveCertificateIamRolesRequest(_parameter_0 *ec2.GetAssociatedEnclaveCertificateIamRolesInput) (_result_0 *request.Request, _result_1 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.GetAssociatedEnclaveCertificateIamRolesInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.GetAssociatedEnclaveCertificateIamRolesInput) *ec2.GetAssociatedEnclaveCertificateIamRolesOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.GetAssociatedEnclaveCertificateIamRolesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetAssociatedEnclaveCertificateIamRolesWithContext provides a mock function.
+func (_m *Mockec2API) GetAssociatedEnclaveCertificateIamRolesWithContext(_parameter_0 context.Context, _parameter_1 *ec2.GetAssociatedEnclaveCertificateIamRolesInput, _parameter_2 ...request.Option) (_result_0 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetAssociatedEnclaveCertificateIamRolesInput, ...request.Option) *ec2.GetAssociatedEnclaveCertificateIamRolesOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetAssociatedEnclaveCertificateIamRolesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetAssociatedEnclaveCertificateIamRolesInput, ...request.Option) error); ok {
 		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
@@ -27443,6 +27833,120 @@ func (_m *Mockec2API) GetTransitGatewayMulticastDomainAssociationsWithContext(_p
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetTransitGatewayMulticastDomainAssociationsInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayPrefixListReferences provides a mock function.
+func (_m *Mockec2API) GetTransitGatewayPrefixListReferences(_parameter_0 *ec2.GetTransitGatewayPrefixListReferencesInput) (_result_0 *ec2.GetTransitGatewayPrefixListReferencesOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.GetTransitGatewayPrefixListReferencesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayPrefixListReferencesInput) *ec2.GetTransitGatewayPrefixListReferencesOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayPrefixListReferencesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.GetTransitGatewayPrefixListReferencesInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayPrefixListReferencesPages provides a mock function.
+func (_m *Mockec2API) GetTransitGatewayPrefixListReferencesPages(_parameter_0 *ec2.GetTransitGatewayPrefixListReferencesInput, _parameter_1 func(*ec2.GetTransitGatewayPrefixListReferencesOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayPrefixListReferencesInput, func(*ec2.GetTransitGatewayPrefixListReferencesOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetTransitGatewayPrefixListReferencesPagesWithContext provides a mock function.
+func (_m *Mockec2API) GetTransitGatewayPrefixListReferencesPagesWithContext(_parameter_0 context.Context, _parameter_1 *ec2.GetTransitGatewayPrefixListReferencesInput, _parameter_2 func(*ec2.GetTransitGatewayPrefixListReferencesOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetTransitGatewayPrefixListReferencesInput, func(*ec2.GetTransitGatewayPrefixListReferencesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetTransitGatewayPrefixListReferencesRequest provides a mock function.
+func (_m *Mockec2API) GetTransitGatewayPrefixListReferencesRequest(_parameter_0 *ec2.GetTransitGatewayPrefixListReferencesInput) (_result_0 *request.Request, _result_1 *ec2.GetTransitGatewayPrefixListReferencesOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayPrefixListReferencesInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.GetTransitGatewayPrefixListReferencesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.GetTransitGatewayPrefixListReferencesInput) *ec2.GetTransitGatewayPrefixListReferencesOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.GetTransitGatewayPrefixListReferencesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayPrefixListReferencesWithContext provides a mock function.
+func (_m *Mockec2API) GetTransitGatewayPrefixListReferencesWithContext(_parameter_0 context.Context, _parameter_1 *ec2.GetTransitGatewayPrefixListReferencesInput, _parameter_2 ...request.Option) (_result_0 *ec2.GetTransitGatewayPrefixListReferencesOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.GetTransitGatewayPrefixListReferencesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetTransitGatewayPrefixListReferencesInput, ...request.Option) *ec2.GetTransitGatewayPrefixListReferencesOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayPrefixListReferencesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetTransitGatewayPrefixListReferencesInput, ...request.Option) error); ok {
 		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
@@ -30253,6 +30757,132 @@ func (_m *Mockec2API) ModifyTrafficMirrorSessionWithContext(_parameter_0 context
 	return r0, r1
 }
 
+// ModifyTransitGateway provides a mock function.
+func (_m *Mockec2API) ModifyTransitGateway(_parameter_0 *ec2.ModifyTransitGatewayInput) (_result_0 *ec2.ModifyTransitGatewayOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.ModifyTransitGatewayOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyTransitGatewayInput) *ec2.ModifyTransitGatewayOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyTransitGatewayOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyTransitGatewayInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyTransitGatewayPrefixListReference provides a mock function.
+func (_m *Mockec2API) ModifyTransitGatewayPrefixListReference(_parameter_0 *ec2.ModifyTransitGatewayPrefixListReferenceInput) (_result_0 *ec2.ModifyTransitGatewayPrefixListReferenceOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.ModifyTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyTransitGatewayPrefixListReferenceInput) *ec2.ModifyTransitGatewayPrefixListReferenceOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyTransitGatewayPrefixListReferenceInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyTransitGatewayPrefixListReferenceRequest provides a mock function.
+func (_m *Mockec2API) ModifyTransitGatewayPrefixListReferenceRequest(_parameter_0 *ec2.ModifyTransitGatewayPrefixListReferenceInput) (_result_0 *request.Request, _result_1 *ec2.ModifyTransitGatewayPrefixListReferenceOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyTransitGatewayPrefixListReferenceInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyTransitGatewayPrefixListReferenceInput) *ec2.ModifyTransitGatewayPrefixListReferenceOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyTransitGatewayPrefixListReferenceWithContext provides a mock function.
+func (_m *Mockec2API) ModifyTransitGatewayPrefixListReferenceWithContext(_parameter_0 context.Context, _parameter_1 *ec2.ModifyTransitGatewayPrefixListReferenceInput, _parameter_2 ...request.Option) (_result_0 *ec2.ModifyTransitGatewayPrefixListReferenceOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.ModifyTransitGatewayPrefixListReferenceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyTransitGatewayPrefixListReferenceInput, ...request.Option) *ec2.ModifyTransitGatewayPrefixListReferenceOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyTransitGatewayPrefixListReferenceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyTransitGatewayPrefixListReferenceInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyTransitGatewayRequest provides a mock function.
+func (_m *Mockec2API) ModifyTransitGatewayRequest(_parameter_0 *ec2.ModifyTransitGatewayInput) (_result_0 *request.Request, _result_1 *ec2.ModifyTransitGatewayOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyTransitGatewayInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyTransitGatewayOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyTransitGatewayInput) *ec2.ModifyTransitGatewayOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyTransitGatewayOutput)
+		}
+	}
+
+	return r0, r1
+}
+
 // ModifyTransitGatewayVpcAttachment provides a mock function.
 func (_m *Mockec2API) ModifyTransitGatewayVpcAttachment(_parameter_0 *ec2.ModifyTransitGatewayVpcAttachmentInput) (_result_0 *ec2.ModifyTransitGatewayVpcAttachmentOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -30323,6 +30953,36 @@ func (_m *Mockec2API) ModifyTransitGatewayVpcAttachmentWithContext(_parameter_0 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyTransitGatewayVpcAttachmentInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyTransitGatewayWithContext provides a mock function.
+func (_m *Mockec2API) ModifyTransitGatewayWithContext(_parameter_0 context.Context, _parameter_1 *ec2.ModifyTransitGatewayInput, _parameter_2 ...request.Option) (_result_0 *ec2.ModifyTransitGatewayOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.ModifyTransitGatewayOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyTransitGatewayInput, ...request.Option) *ec2.ModifyTransitGatewayOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyTransitGatewayOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyTransitGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
@@ -31049,6 +31709,84 @@ func (_m *Mockec2API) ModifyVpnConnection(_parameter_0 *ec2.ModifyVpnConnectionI
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*ec2.ModifyVpnConnectionInput) error); ok {
 		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyVpnConnectionOptions provides a mock function.
+func (_m *Mockec2API) ModifyVpnConnectionOptions(_parameter_0 *ec2.ModifyVpnConnectionOptionsInput) (_result_0 *ec2.ModifyVpnConnectionOptionsOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.ModifyVpnConnectionOptionsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyVpnConnectionOptionsInput) *ec2.ModifyVpnConnectionOptionsOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyVpnConnectionOptionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyVpnConnectionOptionsInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyVpnConnectionOptionsRequest provides a mock function.
+func (_m *Mockec2API) ModifyVpnConnectionOptionsRequest(_parameter_0 *ec2.ModifyVpnConnectionOptionsInput) (_result_0 *request.Request, _result_1 *ec2.ModifyVpnConnectionOptionsOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyVpnConnectionOptionsInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyVpnConnectionOptionsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyVpnConnectionOptionsInput) *ec2.ModifyVpnConnectionOptionsOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyVpnConnectionOptionsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyVpnConnectionOptionsWithContext provides a mock function.
+func (_m *Mockec2API) ModifyVpnConnectionOptionsWithContext(_parameter_0 context.Context, _parameter_1 *ec2.ModifyVpnConnectionOptionsInput, _parameter_2 ...request.Option) (_result_0 *ec2.ModifyVpnConnectionOptionsOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.ModifyVpnConnectionOptionsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpnConnectionOptionsInput, ...request.Option) *ec2.ModifyVpnConnectionOptionsOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyVpnConnectionOptionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpnConnectionOptionsInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
 	}
