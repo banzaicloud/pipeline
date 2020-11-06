@@ -22,34 +22,42 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence/client"
 
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsworkflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 )
 
 type nodePoolManager struct {
-	dynamicClientFactory cluster.DynamicKubeClientFactory
-	enterprise           bool
-	namespace            string
-	workflowClient       client.Client
+	awsFactory            awsworkflow.AWSFactory
+	cloudFormationFactory awsworkflow.CloudFormationAPIFactory
+	dynamicClientFactory  cluster.DynamicKubeClientFactory
+	enterprise            bool
+	namespace             string
+	workflowClient        client.Client
 }
 
 // NewNodePoolManager returns a new pke.NodePoolManager
 // that manages node pools asynchronously via Cadence workflows.
 func NewNodePoolManager(
+	awsFactory awsworkflow.AWSFactory,
+	cloudFormationFactory awsworkflow.CloudFormationAPIFactory,
 	dynamicClientFactory cluster.DynamicKubeClientFactory,
 	enterprise bool,
 	namespace string,
 	workflowClient client.Client,
 ) pke.NodePoolManager {
 	return nodePoolManager{
-		dynamicClientFactory: dynamicClientFactory,
-		enterprise:           enterprise,
-		namespace:            namespace,
-		workflowClient:       workflowClient,
+		awsFactory:            awsFactory,
+		cloudFormationFactory: cloudFormationFactory,
+		dynamicClientFactory:  dynamicClientFactory,
+		enterprise:            enterprise,
+		namespace:             namespace,
+		workflowClient:        workflowClient,
 	}
 }
 
@@ -202,4 +210,21 @@ func (n nodePoolManager) getLabelSets(
 	}
 
 	return labelSets, nil
+}
+
+// newCloudFormationClient instantiates a CloudFormation client from the
+// manager's factories.
+func (n nodePoolManager) newCloudFormationClient(
+	ctx context.Context, c cluster.Cluster,
+) (cloudFormationClient cloudformationiface.CloudFormationAPI, err error) {
+	awsClient, err := n.awsFactory.New(c.OrganizationID, c.SecretID.ResourceID, c.Location)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "creating aws factory failed",
+			"organizationId", c.OrganizationID,
+			"location", c.Location,
+			"secretId", c.SecretID.ResourceID,
+		)
+	}
+
+	return n.cloudFormationFactory.New(awsClient), nil
 }

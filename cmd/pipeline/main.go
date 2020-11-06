@@ -873,6 +873,8 @@ func main() {
 							"pkeamazon": clusteradapter.NewPKEService(pkeDistribution.NewService(
 								clusterStore,
 								pkeawsadapter.NewNodePoolManager(
+									awsworkflow.NewAWSSessionFactory(secret.Store),
+									awsworkflow.NewCloudFormationFactory(),
 									dynamicClientFactory,
 									config.Pipeline.Enterprise,
 									config.Cluster.Namespace,
