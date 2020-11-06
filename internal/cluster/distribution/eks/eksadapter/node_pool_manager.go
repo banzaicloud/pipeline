@@ -83,6 +83,7 @@ func (n nodePoolManager) CreateNodePool(ctx context.Context, c cluster.Cluster, 
 	input := workflow.CreateNodePoolWorkflowInput{
 		ClusterID:                 c.ID,
 		NodePool:                  nodePool,
+		NodePoolSubnetIDs:         []string{nodePool.SubnetID},
 		ShouldStoreNodePool:       true,
 		ShouldUpdateClusterStatus: true,
 		CreatorUserID:             n.getUserID(ctx),

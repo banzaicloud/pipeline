@@ -290,9 +290,16 @@ func createASG(
 	eksCluster eksmodel.EKSClusterModel,
 	vpcConfig GetVpcConfigActivityOutput,
 	nodePool eks.NewNodePool,
+	nodePoolSubnetIDs []string,
 	selectedVolumeSize int,
 ) error {
-	return createASGAsync(ctx, eksActivityInput, eksCluster, vpcConfig, nodePool, selectedVolumeSize).Get(ctx, nil)
+	return createASGAsync(
+		ctx, eksActivityInput,
+		eksCluster, vpcConfig,
+		nodePool,
+		nodePoolSubnetIDs,
+		selectedVolumeSize,
+	).Get(ctx, nil)
 }
 
 // createAsgAsync returns a future object for creating an EKS autoscaling group
@@ -305,6 +312,7 @@ func createASGAsync(
 	eksCluster eksmodel.EKSClusterModel,
 	vpcConfig GetVpcConfigActivityOutput,
 	nodePool eks.NewNodePool,
+	nodePoolSubnetIDs []string,
 	selectedVolumeSize int,
 ) workflow.Future {
 	minSize := nodePool.Size
@@ -319,7 +327,13 @@ func createASGAsync(
 		sshKeyName = GenerateSSHKeyNameForCluster(eksCluster.Cluster.Name)
 	}
 
-	subnets, err := NewSubnetsFromEKSSubnets(eksCluster.Subnets, nodePool.SubnetID)
+	if nodePool.SubnetID != "" {
+		if subnetIDIndex := indexStrings(nodePoolSubnetIDs, nodePool.SubnetID); subnetIDIndex == -1 {
+			nodePoolSubnetIDs = append(nodePoolSubnetIDs, nodePool.SubnetID)
+		}
+	}
+
+	subnets, err := NewSubnetsFromEKSSubnets(eksCluster.Subnets, nodePoolSubnetIDs...)
 	if err != nil {
 		return sdkcadence.NewReadyFuture(ctx, nil, errors.Wrap(err, "node pool subnets could not be determined"))
 	}

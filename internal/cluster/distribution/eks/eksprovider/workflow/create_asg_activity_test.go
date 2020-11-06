@@ -84,6 +84,7 @@ func TestCreateASG(t *testing.T) {
 		eksCluster         eksmodel.EKSClusterModel
 		vpcConfig          GetVpcConfigActivityOutput
 		nodePool           eks.NewNodePool
+		nodePoolSubnetIDs  []string
 		selectedVolumeSize int
 	}
 
@@ -92,25 +93,6 @@ func TestCreateASG(t *testing.T) {
 		expectedError   error
 		input           inputType
 	}{
-		{
-			caseDescription: "success",
-			expectedError:   nil,
-			input: inputType{
-				eksActivityInput: EKSActivityInput{},
-				eksCluster: eksmodel.EKSClusterModel{
-					Subnets: []*eksmodel.EKSSubnetModel{
-						{
-							SubnetId: aws.String("subnet-id"),
-						},
-					},
-				},
-				vpcConfig: GetVpcConfigActivityOutput{},
-				nodePool: eks.NewNodePool{
-					SubnetID: "subnet-id",
-				},
-				selectedVolumeSize: 1,
-			},
-		},
 		{
 			caseDescription: "error",
 			expectedError:   errors.New("test error"),
@@ -121,11 +103,42 @@ func TestCreateASG(t *testing.T) {
 						{
 							SubnetId: aws.String("subnet-id"),
 						},
+						{
+							SubnetId: aws.String("subnet-id-2"),
+						},
 					},
 				},
 				vpcConfig: GetVpcConfigActivityOutput{},
 				nodePool: eks.NewNodePool{
 					SubnetID: "subnet-id",
+				},
+				nodePoolSubnetIDs: []string{
+					"subnet-id-2",
+				},
+				selectedVolumeSize: 1,
+			},
+		},
+		{
+			caseDescription: "success",
+			expectedError:   nil,
+			input: inputType{
+				eksActivityInput: EKSActivityInput{},
+				eksCluster: eksmodel.EKSClusterModel{
+					Subnets: []*eksmodel.EKSSubnetModel{
+						{
+							SubnetId: aws.String("subnet-id"),
+						},
+						{
+							SubnetId: aws.String("subnet-id-2"),
+						},
+					},
+				},
+				vpcConfig: GetVpcConfigActivityOutput{},
+				nodePool: eks.NewNodePool{
+					SubnetID: "subnet-id",
+				},
+				nodePoolSubnetIDs: []string{
+					"subnet-id-2",
 				},
 				selectedVolumeSize: 1,
 			},
@@ -160,6 +173,7 @@ func TestCreateASG(t *testing.T) {
 					testCase.input.eksCluster,
 					testCase.input.vpcConfig,
 					testCase.input.nodePool,
+					testCase.input.nodePoolSubnetIDs,
 					testCase.input.selectedVolumeSize,
 				)
 
@@ -181,6 +195,7 @@ func TestCreateASGAsync(t *testing.T) {
 		eksCluster         eksmodel.EKSClusterModel
 		vpcConfig          GetVpcConfigActivityOutput
 		nodePool           eks.NewNodePool
+		nodePoolSubnetIDs  []string
 		selectedVolumeSize int
 	}
 
@@ -190,31 +205,33 @@ func TestCreateASGAsync(t *testing.T) {
 		input           inputType
 	}{
 		{
-			caseDescription: "success",
-			expectedError:   nil,
+			caseDescription: "activity error",
+			expectedError:   errors.New("test error"),
 			input: inputType{
 				eksActivityInput: EKSActivityInput{},
 				eksCluster: eksmodel.EKSClusterModel{
-					SSHGenerated: true,
 					Subnets: []*eksmodel.EKSSubnetModel{
 						{
 							SubnetId: aws.String("subnet-id"),
+						},
+						{
+							SubnetId: aws.String("subnet-id-2"),
 						},
 					},
 				},
 				vpcConfig: GetVpcConfigActivityOutput{},
 				nodePool: eks.NewNodePool{
-					Autoscaling: eks.Autoscaling{
-						Enabled: true,
-					},
 					SubnetID: "subnet-id",
+				},
+				nodePoolSubnetIDs: []string{
+					"subnet-id-2",
 				},
 				selectedVolumeSize: 1,
 			},
 		},
 		{
-			caseDescription: "activity error",
-			expectedError:   errors.New("test error"),
+			caseDescription: "subnet error",
+			expectedError:   errors.New("node pool subnets could not be determined: some subnet IDs could not be found among the subnets"),
 			input: inputType{
 				eksActivityInput: EKSActivityInput{},
 				eksCluster: eksmodel.EKSClusterModel{
@@ -230,17 +247,38 @@ func TestCreateASGAsync(t *testing.T) {
 				nodePool: eks.NewNodePool{
 					SubnetID: "subnet-id",
 				},
+				nodePoolSubnetIDs: []string{
+					"subnet-id-2",
+				},
 				selectedVolumeSize: 1,
 			},
 		},
 		{
-			caseDescription: "subnet error",
-			expectedError:   errors.New("node pool subnets could not be determined: some subnet IDs could not be found among the subnets"),
+			caseDescription: "success",
+			expectedError:   nil,
 			input: inputType{
-				eksActivityInput:   EKSActivityInput{},
-				eksCluster:         eksmodel.EKSClusterModel{},
-				vpcConfig:          GetVpcConfigActivityOutput{},
-				nodePool:           eks.NewNodePool{},
+				eksActivityInput: EKSActivityInput{},
+				eksCluster: eksmodel.EKSClusterModel{
+					SSHGenerated: true,
+					Subnets: []*eksmodel.EKSSubnetModel{
+						{
+							SubnetId: aws.String("subnet-id"),
+						},
+						{
+							SubnetId: aws.String("subnet-id-2"),
+						},
+					},
+				},
+				vpcConfig: GetVpcConfigActivityOutput{},
+				nodePool: eks.NewNodePool{
+					Autoscaling: eks.Autoscaling{
+						Enabled: true,
+					},
+					SubnetID: "subnet-id",
+				},
+				nodePoolSubnetIDs: []string{
+					"subnet-id-2",
+				},
 				selectedVolumeSize: 1,
 			},
 		},
@@ -274,6 +312,7 @@ func TestCreateASGAsync(t *testing.T) {
 					testCase.input.eksCluster,
 					testCase.input.vpcConfig,
 					testCase.input.nodePool,
+					testCase.input.nodePoolSubnetIDs,
 					testCase.input.selectedVolumeSize,
 				)
 				actualError = actualFuture.Get(ctx, nil)
