@@ -16,6 +16,7 @@ package main
 
 import (
 	"emperror.dev/errors"
+	"github.com/banzaicloud/cadence-aws-sdk/clients/ec2stub"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/worker"
@@ -124,7 +125,8 @@ func registerEKSWorkflows(
 
 	// delete cluster workflow
 	worker.RegisterWorkflowWithOptions(cluster.EKSDeleteClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSDeleteClusterWorkflowName})
-	worker.RegisterWorkflowWithOptions(eksworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: eksworkflow.DeleteInfraWorkflowName})
+
+	eksworkflow.NewDeleteInfrastructureWorkflow(ec2stub.NewClient()).Register(worker)
 
 	// delete node pool workflow
 	eksworkflow.NewDeleteNodePoolWorkflow().Register(worker)
