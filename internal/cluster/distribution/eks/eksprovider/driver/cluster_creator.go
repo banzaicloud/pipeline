@@ -31,6 +31,7 @@ import (
 	"go.uber.org/cadence/client"
 	logrusadapter "logur.dev/adapter/logrus"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
@@ -117,8 +118,18 @@ func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet 
 // Create implements the clusterCreator interface.
 func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogger, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest) (cluster.CommonCluster, error) {
 	logger.Info("start creating EKS Cluster")
-	eksCluster := commonCluster.(*cluster.EKSCluster)
+	eksCluster, isOk := commonCluster.(*cluster.EKSCluster)
+	if !isOk {
+		return nil, errors.New("specified common cluster is not an EKS cluster")
+	} else if eksCluster == nil {
+		return nil, errors.New("specified EKS cluster is nil")
+	}
+
 	modelCluster := eksCluster.GetModel()
+	eksProperties := createRequest.Properties.CreateClusterEKS
+	if eksProperties == nil {
+		return nil, errors.New("EKS properties are nil")
+	}
 
 	if createRequest.PostHooks == nil {
 		createRequest.PostHooks = make(pkgCluster.PostHooks)
@@ -129,6 +140,8 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 		return nil, errors.WrapIf(err, "failed to get organization name")
 	}
 
+	creatorUserID, _ := auth.UserExtractor{}.GetUserID(ctx)
+
 	input := cluster.EKSCreateClusterWorkflowInput{
 		CreateInfrastructureWorkflowInput: workflow.CreateInfrastructureWorkflowInput{
 			Region:             commonCluster.GetLocation(),
@@ -138,10 +151,10 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			ClusterUID:         commonCluster.GetUID(),
 			ClusterID:          commonCluster.GetID(),
 			ClusterName:        commonCluster.GetName(),
+			CreatorUserID:      creatorUserID,
 			VpcID:              aws.StringValue(modelCluster.VpcId),
 			RouteTableID:       aws.StringValue(modelCluster.RouteTableId),
 			VpcCidr:            aws.StringValue(modelCluster.VpcCidr),
-			ScaleEnabled:       commonCluster.GetScaleOptions() != nil && commonCluster.GetScaleOptions().Enabled,
 			DefaultUser:        modelCluster.DefaultUser,
 			ClusterRoleID:      modelCluster.ClusterRoleId,
 			NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
@@ -195,36 +208,45 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 	}
 
 	input.Subnets = subnets
-	input.ASGSubnetMapping = subnetMapping
+	input.NodePoolSubnets = subnetMapping
 
-	asgList := make([]workflow.AutoscaleGroup, 0)
-	nodePoolLabels := make([]cluster.NodePoolLabels, 0)
-
-	for _, np := range modelCluster.NodePools {
-		asg := workflow.AutoscaleGroup{
-			Name:             np.Name,
-			NodeSpotPrice:    np.NodeSpotPrice,
-			Autoscaling:      np.Autoscaling,
-			NodeMinCount:     np.NodeMinCount,
-			NodeMaxCount:     np.NodeMaxCount,
-			Count:            np.Count,
-			NodeVolumeSize:   np.NodeVolumeSize,
-			NodeImage:        np.NodeImage,
-			NodeInstanceType: np.NodeInstanceType,
-			Labels:           np.Labels,
+	nodePools := make([]eks.NewNodePool, 0, len(eksProperties.NodePools))
+	for requestedNodePoolName, requestedNodePool := range eksProperties.NodePools {
+		subnetID := ""
+		if requestedNodePool.Subnet != nil {
+			subnetID = requestedNodePool.Subnet.SubnetId
 		}
-		asgList = append(asgList, asg)
 
+		nodePool := eks.NewNodePool{
+			Name:   requestedNodePoolName,
+			Labels: requestedNodePool.Labels,
+			Size:   requestedNodePool.Count,
+			Autoscaling: eks.Autoscaling{
+				Enabled: requestedNodePool.Autoscaling,
+				MinSize: requestedNodePool.MinCount,
+				MaxSize: requestedNodePool.MaxCount,
+			},
+			VolumeSize:   requestedNodePool.VolumeSize,
+			InstanceType: requestedNodePool.InstanceType,
+			Image:        requestedNodePool.Image,
+			SpotPrice:    requestedNodePool.SpotPrice,
+			SubnetID:     subnetID,
+		}
+
+		nodePools = append(nodePools, nodePool)
+	}
+	input.NodePools = nodePools
+
+	nodePoolLabels := make([]cluster.NodePoolLabels, 0, len(modelCluster.NodePools))
+	for _, modelNodePool := range modelCluster.NodePools {
 		nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
-			NodePoolName: np.Name,
+			NodePoolName: modelNodePool.Name,
 			Existing:     false,
-			InstanceType: np.NodeInstanceType,
-			SpotPrice:    np.NodeSpotPrice,
-			CustomLabels: np.Labels,
+			InstanceType: modelNodePool.NodeInstanceType,
+			SpotPrice:    modelNodePool.NodeSpotPrice,
+			CustomLabels: modelNodePool.Labels,
 		})
 	}
-
-	input.AsgList = asgList
 
 	labelsMap, err := cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolLabels)
 	if err != nil {

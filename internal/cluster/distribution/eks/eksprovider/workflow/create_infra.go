@@ -15,8 +15,6 @@
 package workflow
 
 import (
-	"context"
-	"fmt"
 	"time"
 
 	"emperror.dev/errors"
@@ -37,17 +35,16 @@ type CreateInfrastructureWorkflowInput struct {
 	SecretID       string
 	SSHSecretID    string
 
-	ClusterUID   string
-	ClusterID    uint
-	ClusterName  string
-	VpcID        string
-	RouteTableID string
-	VpcCidr      string
-	ScaleEnabled bool
-	Tags         map[string]string
+	ClusterUID    string
+	ClusterID     uint
+	ClusterName   string
+	CreatorUserID uint
+	VpcID         string
+	RouteTableID  string
+	VpcCidr       string
+	Tags          map[string]string
 
-	Subnets          []Subnet
-	ASGSubnetMapping map[string][]Subnet
+	Subnets []Subnet
 
 	DefaultUser        bool
 	ClusterRoleID      string
@@ -58,8 +55,9 @@ type CreateInfrastructureWorkflowInput struct {
 	EndpointPrivateAccess bool
 	EndpointPublicAccess  bool
 
-	LogTypes []string
-	AsgList  []AutoscaleGroup
+	LogTypes        []string
+	NodePools       []eks.NewNodePool
+	NodePoolSubnets map[string][]Subnet
 
 	UseGeneratedSSHKey bool
 
@@ -153,7 +151,6 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	}
 
 	// upload SSH key activity
-	sshKeyName := GenerateSSHKeyNameForCluster(input.ClusterName)
 	var uploadSSHKeyActivityFeature workflow.Future
 	if input.UseGeneratedSSHKey {
 		{
@@ -335,113 +332,68 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 		bootstrapActivityFeature = workflow.ExecuteActivity(ctx, BootstrapActivityName, activityInput)
 	}
 
-	// create AutoScalingGroups
-	asgFutures := make([]workflow.Future, 0)
-	for _, asg := range input.AsgList {
-		asgSubnets := input.ASGSubnetMapping[asg.Name]
-		for i := range asgSubnets {
-			for _, sn := range existingAndNewSubnets {
-				if (asgSubnets[i].SubnetID == "" && sn.Cidr == asgSubnets[i].Cidr) ||
-					(asgSubnets[i].SubnetID != "" && sn.SubnetID == asgSubnets[i].SubnetID) {
-					asgSubnets[i].SubnetID = sn.SubnetID
-					asgSubnets[i].Cidr = sn.Cidr
-					asgSubnets[i].AvailabilityZone = sn.AvailabilityZone
+	{ // Note: create node pools.
+		shouldStoreNodePool := false       // Note: stored at LegacyClusterAPI.CreateCluster request parsing.
+		shouldUpdateClusterStatus := false // Note: parent workflow handles status updates.
+
+		createNodePoolFutures := make([]workflow.Future, 0, len(input.NodePools))
+		createNodePoolErrors := make([]error, 0, len(input.NodePools))
+		for _, nodePool := range input.NodePools {
+			nodePoolSubnets := input.NodePoolSubnets[nodePool.Name]
+			nodePoolSubnetIDs := make([]string, 0, len(nodePoolSubnets))
+			for _, nodePoolSubnet := range nodePoolSubnets {
+				if nodePoolSubnet.SubnetID == "" { // Note: new subnet specified by CIDR.
+					for _, clusterSubnet := range existingAndNewSubnets {
+						if clusterSubnet.Cidr == nodePoolSubnet.Cidr {
+							nodePoolSubnetIDs = append(nodePoolSubnetIDs, clusterSubnet.SubnetID)
+						}
+					}
+				} else { // Note: existing subnet specified by ID.
+					nodePoolSubnetIDs = append(nodePoolSubnetIDs, nodePoolSubnet.SubnetID)
 				}
 			}
-		}
 
-		var amiSize int
-		{
-			activityInput := GetAMISizeActivityInput{
-				EKSActivityInput: commonActivityInput,
-				ImageID:          asg.NodeImage,
+			if nodePool.SubnetID != "" {
+				nodePoolSubnetIndex := indexStrings(nodePoolSubnetIDs, nodePool.SubnetID)
+				if nodePoolSubnetIndex == -1 {
+					nodePoolSubnetIDs = append(nodePoolSubnetIDs, nodePool.SubnetID)
+				}
 			}
-			var activityOutput GetAMISizeActivityOutput
-			err = workflow.ExecuteActivity(ctx, GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
-			if err != nil {
-				_ = w.nodePoolStore.UpdateNodePoolStatus(
-					context.Background(),
-					input.OrganizationID,
-					input.ClusterID,
-					input.ClusterName,
-					asg.Name,
-					eks.NodePoolStatusError,
-					fmt.Sprintf("Validation failed: retrieving AMI size failed: %s", err),
+
+			if len(nodePoolSubnetIDs) == 0 {
+				createNodePoolErrors = append(
+					createNodePoolErrors,
+					errors.NewWithDetails(
+						"node pool subnet is missing",
+						"nodePool", nodePool,
+						"nodePoolSubnets", nodePoolSubnets,
+						"clusterSubnets", existingAndNewSubnets,
+					),
 				)
-
-				return nil, err
 			}
 
-			amiSize = activityOutput.AMISize
-		}
-
-		var volumeSize int
-		{
-			activityInput := SelectVolumeSizeActivityInput{
-				AMISize:            amiSize,
-				OptionalVolumeSize: asg.NodeVolumeSize,
-			}
-			var activityOutput SelectVolumeSizeActivityOutput
-			err = workflow.ExecuteActivity(ctx, SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
-			if err != nil {
-				_ = w.nodePoolStore.UpdateNodePoolStatus(
-					context.Background(),
-					input.OrganizationID,
+			if len(createNodePoolErrors) == 0 {
+				createNodePoolFutures = append(createNodePoolFutures, createNodePoolAsync(
+					ctx,
 					input.ClusterID,
-					input.ClusterName,
-					asg.Name,
-					eks.NodePoolStatusError,
-					fmt.Sprintf("Validation failed: selecting volume size failed: %s", err),
-				)
-
-				return nil, err
+					input.CreatorUserID,
+					nodePool,
+					nodePoolSubnetIDs,
+					shouldStoreNodePool,
+					shouldUpdateClusterStatus,
+				))
 			}
-
-			volumeSize = activityOutput.VolumeSize
+		}
+		if len(createNodePoolErrors) != 0 {
+			return nil, errors.Combine(createNodePoolErrors...)
 		}
 
-		activityInput := CreateAsgActivityInput{
-			EKSActivityInput: commonActivityInput,
-			ClusterID:        input.ClusterID,
-			StackName:        GenerateNodePoolStackName(input.ClusterName, asg.Name),
-
-			ScaleEnabled: input.ScaleEnabled,
-
-			Subnets: asgSubnets,
-
-			VpcID:               vpcActivityOutput.VpcID,
-			SecurityGroupID:     vpcActivityOutput.SecurityGroupID,
-			NodeSecurityGroupID: vpcActivityOutput.NodeSecurityGroupID,
-			NodeInstanceRoleID:  iamRolesActivityOutput.NodeInstanceRoleID,
-
-			Name:             asg.Name,
-			NodeSpotPrice:    asg.NodeSpotPrice,
-			Autoscaling:      asg.Autoscaling,
-			NodeMinCount:     asg.NodeMinCount,
-			NodeMaxCount:     asg.NodeMaxCount,
-			Count:            asg.Count,
-			NodeVolumeSize:   volumeSize,
-			NodeImage:        asg.NodeImage,
-			NodeInstanceType: asg.NodeInstanceType,
-			Labels:           asg.Labels,
-			Tags:             input.Tags,
+		for _, future := range createNodePoolFutures {
+			createNodePoolErrors = append(createNodePoolErrors, pkgCadence.UnwrapError(future.Get(ctx, nil)))
 		}
-		if input.UseGeneratedSSHKey {
-			activityInput.SSHKeyName = sshKeyName
+		if err := errors.Combine(createNodePoolErrors...); err != nil {
+			return nil, err
 		}
-		ctx := workflow.WithActivityOptions(ctx, aoWithHeartbeat)
-		f := workflow.ExecuteActivity(ctx, CreateAsgActivityName, activityInput)
-		asgFutures = append(asgFutures, f)
-	}
-
-	// wait for AutoScalingGroups to be created
-	errs := make([]error, len(asgFutures))
-	for i, future := range asgFutures {
-		var activityOutput CreateAsgActivityOutput
-		errs[i] = pkgCadence.UnwrapError(future.Get(ctx, &activityOutput))
-	}
-	if err := errors.Combine(errs...); err != nil {
-		return nil, err
 	}
 
 	// wait for initial cluster setup to terminate
