@@ -40,6 +40,7 @@ func TestCreateNodePool(t *testing.T) {
 		clusterID                 uint
 		creatorUserID             uint
 		nodePool                  eks.NewNodePool
+		nodePoolSubnetIDs         []string
 		shouldStoreNodePool       bool
 		shouldUpdateClusterStatus bool
 	}
@@ -56,6 +57,7 @@ func TestCreateNodePool(t *testing.T) {
 				clusterID:                 1,
 				creatorUserID:             2,
 				nodePool:                  eks.NewNodePool{},
+				nodePoolSubnetIDs:         []string{},
 				shouldStoreNodePool:       true,
 				shouldUpdateClusterStatus: true,
 			},
@@ -67,6 +69,7 @@ func TestCreateNodePool(t *testing.T) {
 				clusterID:                 1,
 				creatorUserID:             2,
 				nodePool:                  eks.NewNodePool{},
+				nodePoolSubnetIDs:         []string{},
 				shouldStoreNodePool:       true,
 				shouldUpdateClusterStatus: true,
 			},
@@ -99,6 +102,7 @@ func TestCreateNodePool(t *testing.T) {
 					testCase.input.clusterID,
 					testCase.input.creatorUserID,
 					testCase.input.nodePool,
+					testCase.input.nodePoolSubnetIDs,
 					testCase.input.shouldStoreNodePool,
 					testCase.input.shouldUpdateClusterStatus,
 				)
@@ -120,6 +124,7 @@ func TestCreateNodePoolAsync(t *testing.T) {
 		clusterID                 uint
 		creatorUserID             uint
 		nodePool                  eks.NewNodePool
+		nodePoolSubnetIDs         []string
 		shouldStoreNodePool       bool
 		shouldUpdateClusterStatus bool
 	}
@@ -136,6 +141,7 @@ func TestCreateNodePoolAsync(t *testing.T) {
 				clusterID:                 1,
 				creatorUserID:             2,
 				nodePool:                  eks.NewNodePool{},
+				nodePoolSubnetIDs:         []string{},
 				shouldStoreNodePool:       true,
 				shouldUpdateClusterStatus: true,
 			},
@@ -147,6 +153,7 @@ func TestCreateNodePoolAsync(t *testing.T) {
 				clusterID:                 1,
 				creatorUserID:             2,
 				nodePool:                  eks.NewNodePool{},
+				nodePoolSubnetIDs:         []string{},
 				shouldStoreNodePool:       true,
 				shouldUpdateClusterStatus: true,
 			},
@@ -179,6 +186,7 @@ func TestCreateNodePoolAsync(t *testing.T) {
 					testCase.input.clusterID,
 					testCase.input.creatorUserID,
 					testCase.input.nodePool,
+					testCase.input.nodePoolSubnetIDs,
 					testCase.input.shouldStoreNodePool,
 					testCase.input.shouldUpdateClusterStatus,
 				)
@@ -217,6 +225,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
 					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -232,6 +243,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					ClusterID: 1,
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
+					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
 					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
@@ -249,6 +263,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
 					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -264,6 +281,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					ClusterID: 1,
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
+					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
 					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
@@ -286,6 +306,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
 					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -301,6 +324,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					ClusterID: 1,
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
+					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
 					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
@@ -318,6 +344,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
 					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -333,6 +362,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					ClusterID: 1,
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
+					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
 					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
@@ -350,6 +382,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
 					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -365,6 +400,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					ClusterID: 1,
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
+					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
 					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
@@ -382,6 +420,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
 					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -398,6 +439,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
 					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
+					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             2,
@@ -413,6 +457,9 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 					ClusterID: 1,
 					NodePool: eks.NewNodePool{
 						SubnetID: "subnet-id-1",
+					},
+					NodePoolSubnetIDs: []string{
+						"subnet-id-1",
 					},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,

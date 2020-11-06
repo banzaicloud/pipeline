@@ -42,9 +42,10 @@ type CreateNodePoolWorkflow struct{}
 // CreateNodePoolWorkflowInput defines the input parameters of an EKS node pool
 // creation.
 type CreateNodePoolWorkflowInput struct {
-	ClusterID     uint
-	CreatorUserID uint
-	NodePool      eks.NewNodePool
+	ClusterID         uint
+	CreatorUserID     uint
+	NodePool          eks.NewNodePool
+	NodePoolSubnetIDs []string // Note: temporary while eks.NewNodePool has singular Subnet and ASH has plural.
 
 	// Note: LegacyClusterAPI.CreateCluster node pool creations store the entire
 	// cluster descriptor object with the node pools included in the database at
@@ -96,7 +97,7 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 	}
 	eksCluster := eksClusters[input.ClusterID]
 
-	commonActivityInput := EKSActivityInput{
+	eksActivityInput := EKSActivityInput{
 		OrganizationID: eksCluster.Cluster.OrganizationID,
 		SecretID:       eksCluster.Cluster.SecretID,
 		Region:         eksCluster.Cluster.Location,
@@ -113,7 +114,7 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		var iamRoleOutputs struct {
 			NodeInstanceRoleID string `mapstructure:"NodeInstanceRoleId"`
 		}
-		err = getCFStackOutputs(ctx, commonActivityInput, iamRoleStackName, &iamRoleOutputs)
+		err = getCFStackOutputs(ctx, eksActivityInput, iamRoleStackName, &iamRoleOutputs)
 		if err != nil {
 			return err
 		}
@@ -126,14 +127,14 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		*eksCluster.Subnets[0].SubnetId == "" {
 		// Note: in case store doesn't have the latest cluster state
 		// (LegacyClusterAPI.CreateCluster with automatically created subnets).
-		subnetStackNames, err := getClusterSubnetStackNames(ctx, commonActivityInput)
+		subnetStackNames, err := getClusterSubnetStackNames(ctx, eksActivityInput)
 		if err != nil {
 			return err
 		}
 
 		clusterSubnets := make([]*eksmodel.EKSSubnetModel, 0, len(eksCluster.Subnets))
 		for subnetStackIndex, subnetStackName := range subnetStackNames {
-			subnetStack, err := getCFStack(ctx, commonActivityInput, subnetStackName)
+			subnetStack, err := getCFStack(ctx, eksActivityInput, subnetStackName)
 			if err != nil {
 				return err
 			}
@@ -202,7 +203,7 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		}
 	}()
 
-	amiSize, err := getAMISize(ctx, commonActivityInput, input.NodePool.Image)
+	amiSize, err := getAMISize(ctx, eksActivityInput, input.NodePool.Image)
 	if err != nil {
 		return err
 	}
@@ -217,12 +218,12 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		return err
 	}
 
-	vpcConfig, err := getVPCConfig(ctx, commonActivityInput, GenerateStackNameForCluster(eksCluster.Cluster.Name))
+	vpcConfig, err := getVPCConfig(ctx, eksActivityInput, GenerateStackNameForCluster(eksCluster.Cluster.Name))
 	if err != nil {
 		return err
 	}
 
-	err = createASG(ctx, commonActivityInput, eksCluster, vpcConfig, input.NodePool, volumeSize)
+	err = createASG(ctx, eksActivityInput, eksCluster, vpcConfig, input.NodePool, input.NodePoolSubnetIDs, volumeSize)
 	if err != nil {
 		return pkgcadence.WrapClientError(err)
 	}
@@ -250,6 +251,7 @@ func createNodePool(
 	clusterID uint,
 	creatorUserID uint,
 	nodePool eks.NewNodePool,
+	nodePoolSubnetIDs []string,
 	shouldStoreNodePool bool,
 	shouldUpdateClusterStatus bool,
 ) error {
@@ -258,6 +260,7 @@ func createNodePool(
 		clusterID,
 		creatorUserID,
 		nodePool,
+		nodePoolSubnetIDs,
 		shouldStoreNodePool,
 		shouldUpdateClusterStatus,
 	).Get(ctx, nil)
@@ -271,12 +274,14 @@ func createNodePoolAsync(
 	clusterID uint,
 	creatorUserID uint,
 	nodePool eks.NewNodePool,
+	nodePoolSubnetIDs []string,
 	shouldStoreNodePool bool,
 	shouldUpdateClusterStatus bool,
 ) workflow.Future {
 	return workflow.ExecuteChildWorkflow(ctx, CreateNodePoolWorkflowName, CreateNodePoolWorkflowInput{
 		ClusterID:                 clusterID,
 		NodePool:                  nodePool,
+		NodePoolSubnetIDs:         nodePoolSubnetIDs,
 		ShouldStoreNodePool:       shouldStoreNodePool,
 		ShouldUpdateClusterStatus: shouldUpdateClusterStatus,
 		CreatorUserID:             creatorUserID,

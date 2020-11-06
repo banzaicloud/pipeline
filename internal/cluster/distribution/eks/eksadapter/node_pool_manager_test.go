@@ -90,6 +90,7 @@ func TestNodePoolManagerCreateNodePool(t *testing.T) {
 				workflow.CreateNodePoolWorkflowInput{
 					ClusterID:                 testCase.input.c.ID,
 					NodePool:                  testCase.input.nodePool,
+					NodePoolSubnetIDs:         []string{testCase.input.nodePool.SubnetID},
 					ShouldStoreNodePool:       true,
 					ShouldUpdateClusterStatus: true,
 					CreatorUserID:             testCase.input.n.getUserID(testCase.input.ctx),
