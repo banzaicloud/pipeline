@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/banzaicloud/cadence-aws-sdk/clients/ec2stub"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
@@ -47,11 +48,24 @@ type DeleteInfrastructureWorkflowInput struct {
 
 // DeleteInfrastructureWorkflow executes the Cadence workflow responsible for deleting EKS
 // cluster infrastructure such as VPC, subnets, EKS master nodes, worker nodes, etc
-func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructureWorkflowInput) error {
+type DeleteInfrastructureWorkflow struct {
+	ec2client ec2stub.Client
+}
+
+// NewDeleteNodePoolWorkflow returns a new DeleteInfrastructureWorkflow.
+func NewDeleteInfrastructureWorkflow(ec2client ec2stub.Client) *DeleteInfrastructureWorkflow {
+	return &DeleteInfrastructureWorkflow{
+		ec2client: ec2client,
+	}
+}
+
+func (w DeleteInfrastructureWorkflow) Execute(ctx workflow.Context, input DeleteInfrastructureWorkflowInput) error {
 	logger := workflow.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
 	)
+
+	secretID := brn.New(input.OrganizationID, brn.SecretResourceType, input.SecretID)
 
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
@@ -180,18 +194,13 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	}
 
 	// delete SSH key
-	// TODO: inject client
-	// TODO: write test for this
 	var deleteSSHKeyActivityFuture *ec2stub.EC2DeleteKeyPairFuture
 	if input.GeneratedSSHUsed {
-		client := ec2stub.NewClient()
-
-		secretID := brn.New(input.OrganizationID, brn.SecretResourceType, input.SecretID)
-
+		// TODO: move this up to the top?
 		ctx := awssdk.WithSecretID(ctx, secretID.String())
 		ctx = awssdk.WithRegion(ctx, input.Region)
 
-		deleteSSHKeyActivityFuture = client.DeleteKeyPairAsync(ctx, &ec2.DeleteKeyPairInput{
+		deleteSSHKeyActivityFuture = w.ec2client.DeleteKeyPairAsync(ctx, &ec2.DeleteKeyPairInput{
 			KeyName: aws.String(GenerateSSHKeyNameForCluster(input.ClusterName)),
 		})
 	}
@@ -299,4 +308,8 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteInfrastructu
 	}
 
 	return nil
+}
+
+func (w DeleteInfrastructureWorkflow) Register(worker worker.WorkflowRegistry) {
+	worker.RegisterWorkflowWithOptions(w.Execute, workflow.RegisterOptions{Name: DeleteInfraWorkflowName})
 }
