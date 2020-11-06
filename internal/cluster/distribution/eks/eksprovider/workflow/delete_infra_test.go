@@ -20,13 +20,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/banzaicloud/cadence-aws-sdk/clients/ec2stub"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow/awsmocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow/awsmocks"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
@@ -67,9 +67,6 @@ func (s *DeleteClusterInfraWorkflowTestSuite) SetupTest() {
 
 	deleteControlPlaneActivity := NewDeleteControlPlaneActivity(nil)
 	s.env.RegisterActivityWithOptions(deleteControlPlaneActivity.Execute, activity.RegisterOptions{Name: DeleteControlPlaneActivityName})
-
-	deleteSshKeyActivity := NewDeleteSshKeyActivity(nil)
-	s.env.RegisterActivityWithOptions(deleteSshKeyActivity.Execute, activity.RegisterOptions{Name: DeleteSshKeyActivityName})
 
 	getOrphanNicsActivity := NewGetOrphanNICsActivity(nil)
 	s.env.RegisterActivityWithOptions(getOrphanNicsActivity.Execute, activity.RegisterOptions{Name: GetOrphanNICsActivityName})

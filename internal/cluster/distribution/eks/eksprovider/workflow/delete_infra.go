@@ -21,12 +21,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/banzaicloud/cadence-aws-sdk/clients/ec2stub"
-	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence/awssdk"
+	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
