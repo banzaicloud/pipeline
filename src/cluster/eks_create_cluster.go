@@ -50,36 +50,12 @@ func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkfl
 	}
 	ctx = workflow.WithChildOptions(workflow.WithActivityOptions(ctx, ao), cwo)
 
-	// create infra child workflow
-	infraInput := eksWorkflow.CreateInfrastructureWorkflowInput{
-		ClusterUID:            input.ClusterUID,
-		ClusterID:             input.ClusterID,
-		Region:                input.Region,
-		OrganizationID:        input.OrganizationID,
-		SecretID:              input.SecretID,
-		ClusterName:           input.ClusterName,
-		DefaultUser:           input.DefaultUser,
-		VpcCidr:               input.VpcCidr,
-		VpcID:                 input.VpcID,
-		RouteTableID:          input.RouteTableID,
-		Subnets:               input.Subnets,
-		SSHSecretID:           input.SSHSecretID,
-		AsgList:               input.AsgList,
-		LogTypes:              input.LogTypes,
-		KubernetesVersion:     input.KubernetesVersion,
-		EncryptionConfig:      input.EncryptionConfig,
-		ASGSubnetMapping:      input.ASGSubnetMapping,
-		ClusterRoleID:         input.ClusterRoleID,
-		NodeInstanceRoleID:    input.NodeInstanceRoleID,
-		EndpointPublicAccess:  input.EndpointPublicAccess,
-		EndpointPrivateAccess: input.EndpointPublicAccess,
-		UseGeneratedSSHKey:    input.UseGeneratedSSHKey,
-		Tags:                  input.Tags,
-		AuthConfigMap:         input.AuthConfigMap,
-	}
-
 	infraOutput := eksWorkflow.CreateInfrastructureWorkflowOutput{}
-	err := workflow.ExecuteChildWorkflow(ctx, eksWorkflow.CreateInfraWorkflowName, infraInput).Get(ctx, &infraOutput)
+	err := workflow.ExecuteChildWorkflow(
+		ctx,
+		eksWorkflow.CreateInfraWorkflowName,
+		input.CreateInfrastructureWorkflowInput,
+	).Get(ctx, &infraOutput)
 	if err != nil {
 		_ = eksWorkflow.SetClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
