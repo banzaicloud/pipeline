@@ -88,12 +88,13 @@ func TestNodePoolManagerCreateNodePool(t *testing.T) {
 				mock.Anything,
 				workflow.CreateNodePoolWorkflowName,
 				workflow.CreateNodePoolWorkflowInput{
-					ClusterID:                 testCase.input.c.ID,
-					NodePool:                  testCase.input.nodePool,
-					NodePoolSubnetIDs:         []string{testCase.input.nodePool.SubnetID},
-					ShouldStoreNodePool:       true,
-					ShouldUpdateClusterStatus: true,
-					CreatorUserID:             testCase.input.n.getUserID(testCase.input.ctx),
+					ClusterID:                    testCase.input.c.ID,
+					NodePool:                     testCase.input.nodePool,
+					NodePoolSubnetIDs:            []string{testCase.input.nodePool.SubnetID},
+					ShouldCreateNodePoolLabelSet: true,
+					ShouldStoreNodePool:          true,
+					ShouldUpdateClusterStatus:    true,
+					CreatorUserID:                testCase.input.n.getUserID(testCase.input.ctx),
 				},
 			)
 
