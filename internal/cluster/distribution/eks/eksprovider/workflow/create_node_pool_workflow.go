@@ -47,6 +47,14 @@ type CreateNodePoolWorkflowInput struct {
 	NodePool          eks.NewNodePool
 	NodePoolSubnetIDs []string // Note: temporary while eks.NewNodePool has singular Subnet and ASH has plural.
 
+	// Note: LegacyClusterAPI.CreateCluster installs and initializes the node
+	// pool label set operator later, so the the node pool label set cannot be
+	// created now. Once the installation happens, the currently available node
+	// pools's label sets are created automatically before the cluster creation
+	// finishes, so no additional operation is required aside from not creating
+	// the node pool label set as part of the node pool creation.
+	ShouldCreateNodePoolLabelSet bool
+
 	// Note: LegacyClusterAPI.CreateCluster node pool creations store the entire
 	// cluster descriptor object with the node pools included in the database at
 	// a higher level, thus it should not be stored here, only checked, while
@@ -213,9 +221,11 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		return err
 	}
 
-	err = createNodePoolLabelSetFromEKSNodePool(ctx, input.ClusterID, input.NodePool)
-	if err != nil {
-		return err
+	if input.ShouldCreateNodePoolLabelSet {
+		err = createNodePoolLabelSetFromEKSNodePool(ctx, input.ClusterID, input.NodePool)
+		if err != nil {
+			return err
+		}
 	}
 
 	vpcConfig, err := getVPCConfig(ctx, eksActivityInput, GenerateStackNameForCluster(eksCluster.Cluster.Name))
