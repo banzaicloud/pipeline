@@ -197,6 +197,192 @@ func TestNewOptionalStackParameter(t *testing.T) {
 	}
 }
 
+func TestParseStackOutputs(t *testing.T) {
+	type inputType struct {
+		objectPointer interface{}
+		outputs       []*cloudformation.Output
+	}
+
+	type outputType struct {
+		expectedError         error
+		expectedObjectPointer interface{}
+	}
+
+	type caseType struct {
+		caseName string
+		input    inputType
+		output   outputType
+	}
+
+	testCases := []caseType{
+		{
+			caseName: "map[string]string -> success",
+			input: inputType{
+				objectPointer: &map[string]string{
+					"Bool":   "",
+					"Float":  "",
+					"Int":    "",
+					"String": "",
+					"Uint":   "",
+				},
+				outputs: []*cloudformation.Output{
+					{
+						OutputKey:   aws.String("Bool"),
+						OutputValue: aws.String("true"),
+					},
+					{
+						OutputKey:   aws.String("Extra"),
+						OutputValue: aws.String("output"),
+					},
+					{
+						OutputKey:   aws.String("Float"),
+						OutputValue: aws.String("0.5"),
+					},
+					{
+						OutputKey:   aws.String("Int"),
+						OutputValue: aws.String("-5"),
+					},
+					{
+						OutputKey:   aws.String("String"),
+						OutputValue: aws.String("value"),
+					},
+					{
+						OutputKey:   aws.String("Uint"),
+						OutputValue: aws.String("5"),
+					},
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedObjectPointer: &map[string]string{
+					"Bool":   "true",
+					"Extra":  "output",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+			},
+		},
+		{
+			caseName: "map[string]interface{} -> success",
+			input: inputType{
+				objectPointer: &map[string]interface{}{
+					"Bool":   false,
+					"Float":  0.0,
+					"Int":    0,
+					"String": "",
+					"Uint":   uint(0),
+				},
+				outputs: []*cloudformation.Output{
+					{
+						OutputKey:   aws.String("Bool"),
+						OutputValue: aws.String("true"),
+					},
+					{
+						OutputKey:   aws.String("Extra"),
+						OutputValue: aws.String("output"),
+					},
+					{
+						OutputKey:   aws.String("Float"),
+						OutputValue: aws.String("0.5"),
+					},
+					{
+						OutputKey:   aws.String("Int"),
+						OutputValue: aws.String("-5"),
+					},
+					{
+						OutputKey:   aws.String("String"),
+						OutputValue: aws.String("value"),
+					},
+					{
+						OutputKey:   aws.String("Uint"),
+						OutputValue: aws.String("5"),
+					},
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedObjectPointer: &map[string]interface{}{
+					"Bool":   true,
+					"Extra":  "output",
+					"Float":  0.5,
+					"Int":    -5,
+					"String": "value",
+					"Uint":   uint(5),
+				},
+			},
+		},
+		{
+			caseName: "struct -> success",
+			input: inputType{
+				objectPointer: &struct {
+					Bool   bool
+					Float  float64
+					Int    int
+					String string
+					Uint   uint
+				}{},
+				outputs: []*cloudformation.Output{
+					{
+						OutputKey:   aws.String("Bool"),
+						OutputValue: aws.String("true"),
+					},
+					{
+						OutputKey:   aws.String("Extra"),
+						OutputValue: aws.String("output"),
+					},
+					{
+						OutputKey:   aws.String("Float"),
+						OutputValue: aws.String("0.5"),
+					},
+					{
+						OutputKey:   aws.String("Int"),
+						OutputValue: aws.String("-5"),
+					},
+					{
+						OutputKey:   aws.String("String"),
+						OutputValue: aws.String("value"),
+					},
+					{
+						OutputKey:   aws.String("Uint"),
+						OutputValue: aws.String("5"),
+					},
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedObjectPointer: &struct {
+					Bool   bool
+					Float  float64
+					Int    int
+					String string
+					Uint   uint
+				}{
+					Bool:   true,
+					Float:  0.5,
+					Int:    -5,
+					String: "value",
+					Uint:   5,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.caseName, func(t *testing.T) {
+			actualError := ParseStackOutputs(testCase.input.outputs, testCase.input.objectPointer)
+
+			if testCase.output.expectedError == nil {
+				require.Nil(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedObjectPointer, testCase.input.objectPointer)
+		})
+	}
+}
+
 func TestParseStackParameters(t *testing.T) {
 	type inputType struct {
 		objectPointer interface{}
@@ -216,169 +402,14 @@ func TestParseStackParameters(t *testing.T) {
 
 	testCases := []caseType{
 		{
-			caseName: "non-pointer object error",
+			caseName: "map[string]string -> success",
 			input: inputType{
-				objectPointer: struct{}{},
-				parameters: []*cloudformation.Parameter{
-					{
-						ParameterKey:   aws.String("Bool"),
-						ParameterValue: aws.String("true"),
-					},
-					{
-						ParameterKey:   aws.String("Float"),
-						ParameterValue: aws.String("0.5"),
-					},
-					{
-						ParameterKey:   aws.String("Int"),
-						ParameterValue: aws.String("5"),
-					},
-					{
-						ParameterKey:   aws.String("String"),
-						ParameterValue: aws.String("value"),
-					},
-				},
-			},
-			output: outputType{
-				expectedError:         errors.New("invalid non-pointer object '{}'"),
-				expectedObjectPointer: struct{}{},
-			},
-		},
-		{
-			caseName: "nil object pointer error",
-			input: inputType{
-				objectPointer: (*map[string]interface{})(nil),
-				parameters: []*cloudformation.Parameter{
-					{
-						ParameterKey:   aws.String("Bool"),
-						ParameterValue: aws.String("true"),
-					},
-					{
-						ParameterKey:   aws.String("Float"),
-						ParameterValue: aws.String("0.5"),
-					},
-					{
-						ParameterKey:   aws.String("Int"),
-						ParameterValue: aws.String("5"),
-					},
-					{
-						ParameterKey:   aws.String("String"),
-						ParameterValue: aws.String("value"),
-					},
-				},
-			},
-			output: outputType{
-				expectedError:         errors.New("invalid nil object pointer"),
-				expectedObjectPointer: (*map[string]interface{})(nil),
-			},
-		},
-		{
-			caseName: "invalid non-associative object behind pointer error",
-			input: inputType{
-				objectPointer: &[]interface{}{},
-				parameters: []*cloudformation.Parameter{
-					{
-						ParameterKey:   aws.String("Bool"),
-						ParameterValue: aws.String("true"),
-					},
-					{
-						ParameterKey:   aws.String("Float"),
-						ParameterValue: aws.String("0.5"),
-					},
-					{
-						ParameterKey:   aws.String("Int"),
-						ParameterValue: aws.String("5"),
-					},
-					{
-						ParameterKey:   aws.String("String"),
-						ParameterValue: aws.String("value"),
-					},
-				},
-			},
-			output: outputType{
-				expectedError: errors.New(
-					"decoding associative types from object pointer failed (struct or map is expected)" +
-						": '' expected a map, got 'slice'",
-				),
-				expectedObjectPointer: &[]interface{}{},
-			},
-		},
-		{
-			caseName: "invalid non-associative object pointer decoding error",
-			input: inputType{
-				objectPointer: &map[string]interface{}{
-					"Float": false,
-					"Int":   false,
-				},
-				parameters: []*cloudformation.Parameter{
-					{
-						ParameterKey:   aws.String("Bool"),
-						ParameterValue: aws.String("true"),
-					},
-					{
-						ParameterKey:   aws.String("Float"),
-						ParameterValue: aws.String("0.5"),
-					},
-					{
-						ParameterKey:   aws.String("Int"),
-						ParameterValue: aws.String("5"),
-					},
-					{
-						ParameterKey:   aws.String("String"),
-						ParameterValue: aws.String("value"),
-					},
-				},
-			},
-			output: outputType{
-				expectedError: errors.New(
-					"parsing cloudformation stack parameter failed: strconv.ParseBool: parsing \"0.5\": invalid syntax" +
-						"; parsing cloudformation stack parameter failed: strconv.ParseBool: parsing \"5\": invalid syntax",
-				),
-				expectedObjectPointer: &map[string]interface{}{
-					"Float": false,
-					"Int":   false,
-				},
-			},
-		},
-		{
-			caseName: "missing requested parameter error",
-			input: inputType{
-				objectPointer: &map[string]interface{}{
-					"NotExistingKey": false,
-				},
-				parameters: []*cloudformation.Parameter{
-					{
-						ParameterKey:   aws.String("Bool"),
-						ParameterValue: aws.String("true"),
-					},
-					{
-						ParameterKey:   aws.String("Float"),
-						ParameterValue: aws.String("0.5"),
-					},
-					{
-						ParameterKey:   aws.String("Int"),
-						ParameterValue: aws.String("5"),
-					},
-					{
-						ParameterKey:   aws.String("String"),
-						ParameterValue: aws.String("value"),
-					},
-				},
-			},
-			output: outputType{
-				expectedError: errors.New("missing requested parameter 'NotExistingKey'"),
-				expectedObjectPointer: &map[string]interface{}{
-					"NotExistingKey": false,
-				},
-			},
-		},
-		{
-			caseName: "map[string]interface{} success",
-			input: inputType{
-				objectPointer: &map[string]interface{}{
-					"Bool":   false,
-					"Float":  0.0,
-					"Int":    0,
+				objectPointer: &map[string]string{
+					"Bool":   "",
+					"Float":  "",
+					"Int":    "",
 					"String": "",
+					"Uint":   "",
 				},
 				parameters: []*cloudformation.Parameter{
 					{
@@ -395,11 +426,64 @@ func TestParseStackParameters(t *testing.T) {
 					},
 					{
 						ParameterKey:   aws.String("Int"),
-						ParameterValue: aws.String("5"),
+						ParameterValue: aws.String("-5"),
 					},
 					{
 						ParameterKey:   aws.String("String"),
 						ParameterValue: aws.String("value"),
+					},
+					{
+						ParameterKey:   aws.String("Uint"),
+						ParameterValue: aws.String("5"),
+					},
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedObjectPointer: &map[string]string{
+					"Bool":   "true",
+					"Extra":  "parameter",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+			},
+		},
+		{
+			caseName: "map[string]interface{} -> success",
+			input: inputType{
+				objectPointer: &map[string]interface{}{
+					"Bool":   false,
+					"Float":  0.0,
+					"Int":    0,
+					"String": "",
+					"Uint":   uint(0),
+				},
+				parameters: []*cloudformation.Parameter{
+					{
+						ParameterKey:   aws.String("Bool"),
+						ParameterValue: aws.String("true"),
+					},
+					{
+						ParameterKey:   aws.String("Extra"),
+						ParameterValue: aws.String("parameter"),
+					},
+					{
+						ParameterKey:   aws.String("Float"),
+						ParameterValue: aws.String("0.5"),
+					},
+					{
+						ParameterKey:   aws.String("Int"),
+						ParameterValue: aws.String("-5"),
+					},
+					{
+						ParameterKey:   aws.String("String"),
+						ParameterValue: aws.String("value"),
+					},
+					{
+						ParameterKey:   aws.String("Uint"),
+						ParameterValue: aws.String("5"),
 					},
 				},
 			},
@@ -409,19 +493,21 @@ func TestParseStackParameters(t *testing.T) {
 					"Bool":   true,
 					"Extra":  "parameter",
 					"Float":  0.5,
-					"Int":    5,
+					"Int":    -5,
 					"String": "value",
+					"Uint":   uint(5),
 				},
 			},
 		},
 		{
-			caseName: "struct success",
+			caseName: "struct -> success",
 			input: inputType{
 				objectPointer: &struct {
 					Bool   bool
 					Float  float64
 					Int    int
 					String string
+					Uint   uint
 				}{},
 				parameters: []*cloudformation.Parameter{
 					{
@@ -438,11 +524,15 @@ func TestParseStackParameters(t *testing.T) {
 					},
 					{
 						ParameterKey:   aws.String("Int"),
-						ParameterValue: aws.String("5"),
+						ParameterValue: aws.String("-5"),
 					},
 					{
 						ParameterKey:   aws.String("String"),
 						ParameterValue: aws.String("value"),
+					},
+					{
+						ParameterKey:   aws.String("Uint"),
+						ParameterValue: aws.String("5"),
 					},
 				},
 			},
@@ -453,11 +543,13 @@ func TestParseStackParameters(t *testing.T) {
 					Float  float64
 					Int    int
 					String string
+					Uint   uint
 				}{
 					Bool:   true,
 					Float:  0.5,
-					Int:    5,
+					Int:    -5,
 					String: "value",
+					Uint:   5,
 				},
 			},
 		},
@@ -477,7 +569,7 @@ func TestParseStackParameters(t *testing.T) {
 	}
 }
 
-func TestParseStackParameterValue(t *testing.T) {
+func TestParseStackValue(t *testing.T) {
 	type inputType struct {
 		rawValue   string
 		resultType interface{}
@@ -609,7 +701,7 @@ func TestParseStackParameterValue(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.caseName, func(t *testing.T) {
-			actualResult, actualError := parseStackParameterValue(testCase.input.rawValue, testCase.input.resultType)
+			actualResult, actualError := parseStackValue(testCase.input.rawValue, testCase.input.resultType)
 
 			if testCase.output.expectedError == nil {
 				require.Nil(t, actualError)
@@ -617,6 +709,354 @@ func TestParseStackParameterValue(t *testing.T) {
 				require.EqualError(t, actualError, testCase.output.expectedError.Error())
 			}
 			require.Equal(t, testCase.output.expectedResult, actualResult)
+		})
+	}
+}
+
+func TestParseStackValues(t *testing.T) {
+	type inputType struct {
+		rawValues     map[string]string
+		objectPointer interface{}
+	}
+
+	type outputType struct {
+		expectedError         error
+		expectedObjectPointer interface{}
+	}
+
+	type caseType struct {
+		caseName string
+		input    inputType
+		output   outputType
+	}
+
+	testCases := []caseType{
+		{
+			caseName: "nil object pointer -> error",
+			input: inputType{
+				rawValues:     map[string]string{},
+				objectPointer: nil,
+			},
+			output: outputType{
+				expectedError:         errors.New("object pointer is nil"),
+				expectedObjectPointer: nil,
+			},
+		},
+		{
+			caseName: "non-pointer object pointer -> error",
+			input: inputType{
+				rawValues: map[string]string{
+					"error": "error",
+				},
+				objectPointer: struct{}{},
+			},
+			output: outputType{
+				expectedError:         errors.New("invalid non-pointer object {}"),
+				expectedObjectPointer: struct{}{},
+			},
+		},
+		{
+			caseName: "object pointer decoding error -> error",
+			input: inputType{
+				rawValues:     map[string]string{},
+				objectPointer: &[]struct{}{},
+			},
+			output: outputType{
+				expectedError: errors.New(
+					"decoding associative types from object pointer failed (struct or map is expected)" +
+						": '' expected a map, got 'slice'",
+				),
+				expectedObjectPointer: &[]struct{}{},
+			},
+		},
+		{
+			caseName: "parsing error -> error",
+			input: inputType{
+				rawValues: map[string]string{
+					"error": "error",
+				},
+				objectPointer: &map[string]interface{}{
+					"error": struct{}{},
+				},
+			},
+			output: outputType{
+				expectedError: errors.New(
+					"parsing values failed" +
+						": parsing error value error failed" +
+						": parse string value type struct {} not implemented",
+				),
+				expectedObjectPointer: &map[string]interface{}{
+					"error": struct{}{},
+				},
+			},
+		},
+		{
+			caseName: "map[string]string -> success",
+			input: inputType{
+				rawValues: map[string]string{
+					"Bool":   "true",
+					"Extra":  "parameter",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+				objectPointer: &map[string]string{
+					"Bool":   "",
+					"Float":  "",
+					"Int":    "",
+					"String": "",
+					"Uint":   "",
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedObjectPointer: &map[string]string{
+					"Bool":   "true",
+					"Extra":  "parameter",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+			},
+		},
+		{
+			caseName: "map[string]interface{} -> success",
+			input: inputType{
+				rawValues: map[string]string{
+					"Bool":   "true",
+					"Extra":  "parameter",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+				objectPointer: &map[string]interface{}{
+					"Bool":   false,
+					"Float":  0.0,
+					"Int":    0,
+					"String": "",
+					"Uint":   uint(0),
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedObjectPointer: &map[string]interface{}{
+					"Bool":   true,
+					"Extra":  "parameter",
+					"Float":  0.5,
+					"Int":    -5,
+					"String": "value",
+					"Uint":   uint(5),
+				},
+			},
+		},
+		{
+			caseName: "struct -> success",
+			input: inputType{
+				rawValues: map[string]string{
+					"Bool":   "true",
+					"Extra":  "parameter",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+				objectPointer: &struct {
+					Bool   bool
+					Float  float64
+					Int    int
+					String string
+					Uint   uint
+				}{
+					Bool:   false,
+					Float:  0.0,
+					Int:    0,
+					String: "",
+					Uint:   uint(0),
+				},
+			},
+			output: outputType{
+				expectedError: nil,
+				expectedObjectPointer: &struct {
+					Bool   bool
+					Float  float64
+					Int    int
+					String string
+					Uint   uint
+				}{
+					Bool:   true,
+					Float:  0.5,
+					Int:    -5,
+					String: "value",
+					Uint:   uint(5),
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.caseName, func(t *testing.T) {
+			actualError := ParseStackValues(testCase.input.rawValues, testCase.input.objectPointer)
+
+			if testCase.output.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedObjectPointer, testCase.input.objectPointer)
+		})
+	}
+}
+
+func TestParseStackValuesMap(t *testing.T) {
+	type inputType struct {
+		rawValues    map[string]string
+		keysAndTypes map[string]interface{}
+	}
+
+	type outputType struct {
+		expectedParsedValues map[string]interface{}
+		expectedError        error
+	}
+
+	type caseType struct {
+		caseName string
+		input    inputType
+		output   outputType
+	}
+
+	testCases := []caseType{
+		{
+			caseName: "nil raw values -> error",
+			input: inputType{
+				rawValues: nil,
+			},
+			output: outputType{
+				expectedParsedValues: nil,
+				expectedError:        errors.New("raw value map is nil"),
+			},
+		},
+		{
+			caseName: "nil keys and types -> error",
+			input: inputType{
+				rawValues:    map[string]string{},
+				keysAndTypes: nil,
+			},
+			output: outputType{
+				expectedParsedValues: nil,
+				expectedError:        errors.New("keys and types map is nil"),
+			},
+		},
+		{
+			caseName: "parsing error -> error",
+			input: inputType{
+				rawValues: map[string]string{
+					"error": "error",
+				},
+				keysAndTypes: map[string]interface{}{
+					"error": struct{}{},
+				},
+			},
+			output: outputType{
+				expectedParsedValues: nil,
+				expectedError: errors.New(
+					"parsing error value error failed: parse string value type struct {} not implemented",
+				),
+			},
+		},
+		{
+			caseName: "missing requested value -> error",
+			input: inputType{
+				rawValues: map[string]string{},
+				keysAndTypes: map[string]interface{}{
+					"NotExistingKey":  false,
+					"NotExistingKey2": 0,
+				},
+			},
+			output: outputType{
+				expectedParsedValues: nil,
+				expectedError: errors.New(
+					"missing requested value NotExistingKey" +
+						"; missing requested value NotExistingKey2",
+				),
+			},
+		},
+		{
+			caseName: "map[string]string -> success",
+			input: inputType{
+				rawValues: map[string]string{
+					"Bool":   "true",
+					"Extra":  "parameter",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+				keysAndTypes: map[string]interface{}{
+					"Bool":   "",
+					"Float":  "",
+					"Int":    "",
+					"String": "",
+					"Uint":   "",
+				},
+			},
+			output: outputType{
+				expectedParsedValues: map[string]interface{}{
+					"Bool":   "true",
+					"Extra":  "parameter",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+				expectedError: nil,
+			},
+		},
+		{
+			caseName: "map[string]interface{} -> success",
+			input: inputType{
+				rawValues: map[string]string{
+					"Bool":   "true",
+					"Extra":  "parameter",
+					"Float":  "0.5",
+					"Int":    "-5",
+					"String": "value",
+					"Uint":   "5",
+				},
+				keysAndTypes: map[string]interface{}{
+					"Bool":   false,
+					"Float":  0.0,
+					"Int":    0,
+					"String": "",
+					"Uint":   uint(0),
+				},
+			},
+			output: outputType{
+				expectedParsedValues: map[string]interface{}{
+					"Bool":   true,
+					"Extra":  "parameter",
+					"Float":  0.5,
+					"Int":    -5,
+					"String": "value",
+					"Uint":   uint(5),
+				},
+				expectedError: nil,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.caseName, func(t *testing.T) {
+			actualParsedValues, actualError := parseStackValuesMap(testCase.input.rawValues, testCase.input.keysAndTypes)
+
+			if testCase.output.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.output.expectedError.Error())
+			}
+			require.Equal(t, testCase.output.expectedParsedValues, actualParsedValues)
 		})
 	}
 }
