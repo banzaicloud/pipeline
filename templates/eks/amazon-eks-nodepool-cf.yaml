@@ -20,11 +20,11 @@ Metadata:
           - NodeAutoScalingGroupMinSize
           - NodeAutoScalingGroupMaxSize
           - NodeAutoScalingInitSize
-          - NodeVolumeSize
-          - NodeSpotPrice
           - NodeInstanceType
           - NodeImageIdSSMParam
           - NodeImageId
+          - NodeSpotPrice
+          - NodeVolumeSize
           - KeyName
           - BootstrapArguments
       - Label:
@@ -35,65 +35,64 @@ Metadata:
 
 Parameters:
   BootstrapArguments:
-    Description: "Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
-    Default: ""
     Type: String
+    Default: ""
+    Description: "Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
 
   ClusterAutoscalerEnabled:
-      Description: Enable Cluster Autoscaler (true/false)
       Type: String
+      Description: Enable Cluster Autoscaler (true/false)
 
   ClusterControlPlaneSecurityGroup:
-      Description: The security group of the cluster control plane.
       Type: "AWS::EC2::SecurityGroup::Id"
+      Description: The security group of the cluster control plane.
 
   ClusterName:
-      Description: The cluster name provided when the cluster was created.  If it is incorrect, nodes will not be able to join the cluster.
       Type: String
+      Description: The cluster name provided when the cluster was created.  If it is incorrect, nodes will not be able to join the cluster.
 
   CustomNodeSecurityGroups:
-      Description: Comma separated list of security groups for all nodes in the pool.
       Type: String
       Default: ""
+      Description: Comma separated list of security groups for all nodes in the pool.
 
   KeyName:
-    Description: The EC2 Key Pair to allow SSH access to the instances
     Type: String
+    Description: The EC2 Key Pair to allow SSH access to the instances
 
   NodeAutoScalingGroupMaxBatchSize:
       Type: Number
-      Description: Minimum size of Node Group ASG.
       Default: 2
+      Description: Minimum size of Node Group ASG.
 
   NodeAutoScalingGroupMaxSize:
       Type: Number
-      Description: Maximum size of Node Group ASG.
       Default: 3
+      Description: Maximum size of Node Group ASG.
 
   NodeAutoScalingGroupMinSize:
       Type: Number
-      Description: Minimum size of Node Group ASG.
       Default: 1
+      Description: Minimum size of Node Group ASG.
 
   NodeAutoScalingInitSize:
       Type: Number
-      Description: The initial size of Node Group ASG.
       Default: 1
+      Description: The initial size of Node Group ASG.
 
   NodeGroupName:
-      Description: Unique identifier for the Node Group.
       Type: String
+      Description: Unique identifier for the Node Group.
 
   NodeImageId:
       Type: String
       Description: Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
 
   NodeInstanceRoleId:
-      Description: The role for node IAM profile
       Type: String
+      Description: The role for node IAM profile
 
   NodeInstanceType:
-    Description: EC2 instance type for the node instances
     Type: String
     Default: t2.medium
     AllowedValues:
@@ -359,10 +358,11 @@ Parameters:
         - z1d.12xlarge
         - z1d.metal
     ConstraintDescription: must be a valid EC2 instance type
+    Description: EC2 instance type for the node instances
 
   NodeSecurityGroup:
-      Description: Security group for all nodes in the cluster.
       Type: "AWS::EC2::SecurityGroup::Id"
+      Description: Security group for all nodes in the cluster.
 
   NodeSpotPrice:
       Type: String
@@ -370,27 +370,27 @@ Parameters:
 
   NodeVolumeSize:
     Type: Number
-    Description: Size of EBS volume to create in GB. Zero means to use the the AMI snapshot size.
     Default: 0
+    Description: Size of EBS volume to create in GB. Zero means to use the the AMI snapshot size.
 
   Subnets:
-    Description: The subnets where workers can be created.
     Type: "List<AWS::EC2::Subnet::Id>"
+    Description: The subnets where workers can be created.
 
   TerminationDetachEnabled:
-      Description: Enable detachment from ASG at instance termination (true/false)
       Type: String
+      Description: Enable detachment from ASG at instance termination (true/false)
 
   VpcId:
-      Description: The VPC of the worker instances
       Type: "AWS::EC2::VPC::Id"
+      Description: The VPC of the worker instances
 
 Conditions:
-  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
   HasKeyName: !Not [ !Equals [ !Ref KeyName, "" ] ]
-  NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
+  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   NoCustomNodeSecurityGroups: !Equals [ !Ref CustomNodeSecurityGroups, "" ]
+  NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
 
 Resources:
   NodeInstanceProfile:
@@ -404,51 +404,51 @@ Resources:
     Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
       Description: Allow node to communicate with each other
-      GroupId: !Ref NodeSecurityGroup
-      SourceSecurityGroupId: !Ref NodeSecurityGroup
-      IpProtocol: "-1"
       FromPort: 0
+      GroupId: !Ref NodeSecurityGroup
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref NodeSecurityGroup
       ToPort: 65535
 
   ClusterControlPlaneSecurityGroupIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
       Description: Allow pods to communicate with the cluster API Server
-      GroupId: !Ref ClusterControlPlaneSecurityGroup
-      SourceSecurityGroupId: !Ref NodeSecurityGroup
-      IpProtocol: tcp
-      ToPort: 443
       FromPort: 443
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NodeSecurityGroup
+      ToPort: 443
 
   ControlPlaneEgressToNodeSecurityGroup:
     Type: "AWS::EC2::SecurityGroupEgress"
     Properties:
       Description: Allow the cluster control plane to communicate with worker Kubelet and pods
-      GroupId: !Ref ClusterControlPlaneSecurityGroup
       DestinationSecurityGroupId: !Ref NodeSecurityGroup
-      IpProtocol: "-1"
       FromPort: 0
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: "-1"
       ToPort: 65535
 
   NodeSecurityGroupFromControlPlaneIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
       Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
-      GroupId: !Ref NodeSecurityGroup
-      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
-      IpProtocol: "-1"
       FromPort: 0
+      GroupId: !Ref NodeSecurityGroup
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
       ToPort: 65535
 
   NodeSecurityGroupSsh:
     Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
-      Description: Allow SSH access to node
-      GroupId: !Ref NodeSecurityGroup
       CidrIp: "0.0.0.0/0"
+      Description: Allow SSH access to node
+      FromPort: 22
+      GroupId: !Ref NodeSecurityGroup
       IpProtocol: tcp
       ToPort: 22
-      FromPort: 22
 
   NodeLaunchTemplate:
       Type: "AWS::EC2::LaunchTemplate"
@@ -462,6 +462,7 @@ Resources:
                         VolumeType: gp2
               IamInstanceProfile:
                   Arn: !GetAtt NodeInstanceProfile.Arn
+              ImageId: !Ref NodeImageId
               InstanceMarketOptions:
                 !If
                   - IsSpotInstance
@@ -470,7 +471,6 @@ Resources:
                       MaxPrice: !Ref NodeSpotPrice
                       SpotInstanceType: one-time
                   - !Ref "AWS::NoValue"
-              ImageId: !Ref NodeImageId
               InstanceType: !Ref NodeInstanceType
               KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
               SecurityGroupIds:
@@ -494,22 +494,22 @@ Resources:
           LaunchTemplate:
               LaunchTemplateId: !Ref NodeLaunchTemplate
               Version: !GetAtt NodeLaunchTemplate.LatestVersionNumber
-          MinSize: !Ref NodeAutoScalingGroupMinSize
           MaxSize: !Ref NodeAutoScalingGroupMaxSize
-          VPCZoneIdentifier: !Ref Subnets
+          MinSize: !Ref NodeAutoScalingGroupMinSize
           Tags:
               - Key: Name
+                PropagateAtLaunch: true
                 Value: !Sub ${ClusterName}-${NodeGroupName}-Node
-                PropagateAtLaunch: true
               - Key: !Sub kubernetes.io/cluster/${ClusterName}
-                Value: owned
                 PropagateAtLaunch: true
+                Value: owned
               - Key: !If [ AutoscalerEnabled, k8s.io/cluster-autoscaler/enabled, k8s.io/cluster-autoscaler/disabled ]
+                PropagateAtLaunch: false
                 Value: true
-                PropagateAtLaunch: false
               - Key: "bzc:detach-asg-instance-on-termination"
-                Value: !Sub ${TerminationDetachEnabled}
                 PropagateAtLaunch: false
+                Value: !Sub ${TerminationDetachEnabled}
+          VPCZoneIdentifier: !Ref Subnets
 
       {{- if .UpdatePolicyEnabled }}
       UpdatePolicy:
