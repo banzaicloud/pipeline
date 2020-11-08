@@ -39,6 +39,10 @@ Parameters:
     Default: ""
     Type: String
 
+  ClusterAutoscalerEnabled:
+      Description: Enable Cluster Autoscaler (true/false)
+      Type: String
+
   ClusterControlPlaneSecurityGroup:
       Description: The security group of the cluster control plane.
       Type: "AWS::EC2::SecurityGroup::Id"
@@ -47,29 +51,35 @@ Parameters:
       Description: The cluster name provided when the cluster was created.  If it is incorrect, nodes will not be able to join the cluster.
       Type: String
 
+  CustomNodeSecurityGroups:
+      Description: Comma separated list of security groups for all nodes in the pool.
+      Type: String
+      Default: ""
+
   KeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: String
-
-  NodeAutoScalingInitSize:
-      Type: Number
-      Description: The initial size of Node Group ASG.
-      Default: 1
 
   NodeAutoScalingGroupMaxBatchSize:
       Type: Number
       Description: Minimum size of Node Group ASG.
       Default: 2
 
+  NodeAutoScalingGroupMaxSize:
+      Type: Number
+      Description: Maximum size of Node Group ASG.
+      Default: 3
+
   NodeAutoScalingGroupMinSize:
       Type: Number
       Description: Minimum size of Node Group ASG.
       Default: 1
 
-  NodeAutoScalingGroupMaxSize:
+  NodeAutoScalingInitSize:
       Type: Number
-      Description: Maximum size of Node Group ASG.
-      Default: 3
+      Description: The initial size of Node Group ASG.
+      Default: 1
+
   NodeGroupName:
       Description: Unique identifier for the Node Group.
       Type: String
@@ -77,6 +87,10 @@ Parameters:
   NodeImageId:
       Type: String
       Description: Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
+
+  NodeInstanceRoleId:
+      Description: The role for node IAM profile
+      Type: String
 
   NodeInstanceType:
     Description: EC2 instance type for the node instances
@@ -346,6 +360,14 @@ Parameters:
         - z1d.metal
     ConstraintDescription: must be a valid EC2 instance type
 
+  NodeSecurityGroup:
+      Description: Security group for all nodes in the cluster.
+      Type: "AWS::EC2::SecurityGroup::Id"
+
+  NodeSpotPrice:
+      Type: String
+      Description: The spot price for this ASG
+
   NodeVolumeSize:
     Type: Number
     Description: Size of EBS volume to create in GB. Zero means to use the the AMI snapshot size.
@@ -355,34 +377,13 @@ Parameters:
     Description: The subnets where workers can be created.
     Type: "List<AWS::EC2::Subnet::Id>"
 
-  VpcId:
-      Description: The VPC of the worker instances
-      Type: "AWS::EC2::VPC::Id"
-
-  ClusterAutoscalerEnabled:
-      Description: Enable Cluster Autoscaler (true/false)
-      Type: String
-
-  NodeInstanceRoleId:
-      Description: The role for node IAM profile
-      Type: String
-
-  NodeSecurityGroup:
-      Description: Security group for all nodes in the cluster.
-      Type: "AWS::EC2::SecurityGroup::Id"
-
-  CustomNodeSecurityGroups:
-      Description: Comma separated list of security groups for all nodes in the pool.
-      Type: String
-      Default: ""
-
-  NodeSpotPrice:
-      Type: String
-      Description: The spot price for this ASG
-
   TerminationDetachEnabled:
       Description: Enable detachment from ASG at instance termination (true/false)
       Type: String
+
+  VpcId:
+      Description: The VPC of the worker instances
+      Type: "AWS::EC2::VPC::Id"
 
 Conditions:
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
@@ -409,15 +410,15 @@ Resources:
       FromPort: 0
       ToPort: 65535
 
-  NodeSecurityGroupFromControlPlaneIngress:
+  ClusterControlPlaneSecurityGroupIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
-      Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
-      GroupId: !Ref NodeSecurityGroup
-      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
-      IpProtocol: "-1"
-      FromPort: 0
-      ToPort: 65535
+      Description: Allow pods to communicate with the cluster API Server
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      SourceSecurityGroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      ToPort: 443
+      FromPort: 443
 
   ControlPlaneEgressToNodeSecurityGroup:
     Type: "AWS::EC2::SecurityGroupEgress"
@@ -429,15 +430,15 @@ Resources:
       FromPort: 0
       ToPort: 65535
 
-  ClusterControlPlaneSecurityGroupIngress:
+  NodeSecurityGroupFromControlPlaneIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
-      Description: Allow pods to communicate with the cluster API Server
-      GroupId: !Ref ClusterControlPlaneSecurityGroup
-      SourceSecurityGroupId: !Ref NodeSecurityGroup
-      IpProtocol: tcp
-      ToPort: 443
-      FromPort: 443
+      Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
+      GroupId: !Ref NodeSecurityGroup
+      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: "-1"
+      FromPort: 0
+      ToPort: 65535
 
   NodeSecurityGroupSsh:
     Type: "AWS::EC2::SecurityGroupIngress"
