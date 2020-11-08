@@ -181,9 +181,11 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 			},
 			output: outputType{
 				expectedNodePool: NodePool{
-					Name:          "node-pool",
-					Status:        NodePoolStatusError,
-					StatusMessage: "parsing cloudformation stack parameter failed: strconv.ParseBool: parsing \"not-a-bool\": invalid syntax",
+					Name:   "node-pool",
+					Status: NodePoolStatusError,
+					StatusMessage: "parsing values failed" +
+						": parsing ClusterAutoscalerEnabled value not-a-bool failed" +
+						": strconv.ParseBool: parsing \"not-a-bool\": invalid syntax",
 				},
 			},
 		},
