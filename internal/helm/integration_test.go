@@ -75,7 +75,7 @@ func testAddPlatformRepository(t *testing.T) {
 	config := helm.Config{
 		Home: home,
 		Repositories: map[string]string{
-			"stable": "https://kubernetes-charts.storage.googleapis.com",
+			"stable": "https://charts.helm.sh/stable",
 		},
 	}
 
@@ -102,7 +102,7 @@ func testIntegration(t *testing.T) {
 	config := helm.Config{
 		Home: home,
 		Repositories: map[string]string{
-			"stable": "https://kubernetes-charts.storage.googleapis.com",
+			"stable": "https://charts.helm.sh/stable",
 		},
 	}
 
@@ -127,7 +127,7 @@ func testIntegrationInstall(t *testing.T) {
 	config := helm.Config{
 		Home: home,
 		Repositories: map[string]string{
-			"stable":             "https://kubernetes-charts.storage.googleapis.com",
+			"stable":             "https://charts.helm.sh/stable",
 			"banzaicloud-stable": "https://kubernetes-charts.banzaicloud.com",
 		},
 	}

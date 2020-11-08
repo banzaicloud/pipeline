@@ -20176,7 +20176,7 @@ components:
         certFile: certFile
         name: stable
         tlsSecretRef: tlsSecretRef
-        url: https://kubernetes-charts.storage.googleapis.com
+        url: https://charts.helm.sh/stable
       properties:
         name:
           example: stable
@@ -20185,7 +20185,7 @@ components:
           example: statestore/<cluster_name>/helm/repository/cache/stable-index.yaml
           type: string
         url:
-          example: https://kubernetes-charts.storage.googleapis.com
+          example: https://charts.helm.sh/stable
           type: string
         certFile:
           type: string
@@ -20200,7 +20200,7 @@ components:
       type: object
     HelmReposModifyRequest:
       example:
-        url: https://kubernetes-charts.storage.googleapis.com
+        url: https://charts.helm.sh/stable
       properties:
         name:
           type: string
@@ -20220,7 +20220,7 @@ components:
     HelmReposAddRequest:
       example:
         name: stable
-        url: https://kubernetes-charts.storage.googleapis.com
+        url: https://charts.helm.sh/stable
       properties:
         name:
           type: string
@@ -20335,7 +20335,7 @@ components:
                     type: boolean
                   urls:
                     example:
-                    - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+                    - https://charts.helm.sh/stable/nginx-ingress-0.13.1.tgz
                     items:
                       type: string
                     type: array
@@ -20374,7 +20374,7 @@ components:
             version: 0.13.1
             home: https://github.com/kubernetes/ingress-nginx
             urls:
-            - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+            - https://charts.helm.sh/stable/nginx-ingress-0.13.1.tgz
             apiVersion: v1
             engine: gotpl
             name: nginx-ingress
@@ -20400,7 +20400,7 @@ components:
             version: 0.13.1
             home: https://github.com/kubernetes/ingress-nginx
             urls:
-            - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+            - https://charts.helm.sh/stable/nginx-ingress-0.13.1.tgz
             apiVersion: v1
             engine: gotpl
             name: nginx-ingress
@@ -24031,7 +24031,7 @@ components:
         version: 0.13.1
         home: https://github.com/kubernetes/ingress-nginx
         urls:
-        - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+        - https://charts.helm.sh/stable/nginx-ingress-0.13.1.tgz
         apiVersion: v1
         engine: gotpl
         name: nginx-ingress
@@ -24083,7 +24083,7 @@ components:
           type: boolean
         urls:
           example:
-          - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+          - https://charts.helm.sh/stable/nginx-ingress-0.13.1.tgz
           items:
             type: string
           type: array
@@ -24116,7 +24116,7 @@ components:
           version: 0.13.1
           home: https://github.com/kubernetes/ingress-nginx
           urls:
-          - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+          - https://charts.helm.sh/stable/nginx-ingress-0.13.1.tgz
           apiVersion: v1
           engine: gotpl
           name: nginx-ingress

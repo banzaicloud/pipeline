@@ -416,7 +416,7 @@ dex:
 #helm:
 #    home: "./var/cache"
 #    repositories:
-#        stable: "https://kubernetes-charts.storage.googleapis.com"
+#        stable: "https://charts.helm.sh/stable"
 #        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
 #        loki: "https://grafana.github.io/loki/charts"
 

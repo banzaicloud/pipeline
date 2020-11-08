@@ -222,7 +222,7 @@ func Test_service_ListRepositories(t *testing.T) {
 			wantRepos: []Repository{
 				{
 					Name: "stable",
-					URL:  "https://kubernetes-charts.storage.googleapis.com",
+					URL:  "https://charts.helm.sh/stable",
 				},
 				{
 					Name: "banzaicloud-stable",
@@ -245,7 +245,7 @@ func Test_service_ListRepositories(t *testing.T) {
 					[]Repository{
 						{
 							Name: "stable",
-							URL:  "https://kubernetes-charts.storage.googleapis.com",
+							URL:  "https://charts.helm.sh/stable",
 						},
 						{
 							Name: "banzaicloud-stable",

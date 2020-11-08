@@ -60,7 +60,7 @@ func testEnsureCRDSourceForExtDNS(testNamespace string) func(t *testing.T) {
 		config := helm.Config{
 			Home: home,
 			Repositories: map[string]string{
-				"stable": "https://kubernetes-charts.storage.googleapis.com",
+				"stable": "https://charts.helm.sh/stable",
 			},
 		}
 

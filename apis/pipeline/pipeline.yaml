@@ -5964,7 +5964,7 @@ components:
                     example: "statestore/<cluster_name>/helm/repository/cache/stable-index.yaml"
                 url:
                     type: string
-                    example: "https://kubernetes-charts.storage.googleapis.com"
+                    example: "https://charts.helm.sh/stable"
                 certFile:
                     type: string
                     example: ""
@@ -5998,7 +5998,7 @@ components:
                     type: string
 
             example:
-                url: "https://kubernetes-charts.storage.googleapis.com"
+                url: "https://charts.helm.sh/stable"
 
         HelmReposAddRequest:
             type: object
@@ -6022,7 +6022,7 @@ components:
                     type: string
             example:
                 name: "stable"
-                url: "https://kubernetes-charts.storage.googleapis.com"
+                url: "https://charts.helm.sh/stable"
 
         HelmReposDeleteResponse:
             type: object
@@ -6119,7 +6119,7 @@ components:
                                         type: array
                                         items:
                                             type: string
-                                        example: ["https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz"]
+                                        example: ["https://charts.helm.sh/stable/nginx-ingress-0.13.1.tgz"]
                                     created:
                                         type: string
                                         example: "2018-04-11T18:11:24.761440762Z"
@@ -6196,7 +6196,7 @@ components:
                                         type: array
                                         items:
                                             type: string
-                                        example: ["https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz"]
+                                        example: ["https://charts.helm.sh/stable/nginx-ingress-0.13.1.tgz"]
                                     created:
                                         type: string
                                         example: "2018-04-11T18:11:24.761440762Z"
