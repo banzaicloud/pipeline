@@ -697,13 +697,23 @@ rbac:
 		},
 		map[string]interface{}{
 			"k8sVersion": "~1.16",
-			"tag":        "v1.16.3",
-			"repository": "gcr.io/google-containers/cluster-autoscaler",
+			"tag":        "v1.16.7",
+			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
 		},
 		map[string]interface{}{
-			"k8sVersion": ">=1.17",
-			"tag":        "v1.17.0",
-			"repository": "gcr.io/google-containers/cluster-autoscaler",
+			"k8sVersion": "~1.17",
+			"tag":        "v1.17.4",
+			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
+		},
+		map[string]interface{}{
+			"k8sVersion": "~1.18",
+			"tag":        "v1.18.3",
+			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
+		},
+		map[string]interface{}{
+			"k8sVersion": ">=1.19",
+			"tag":        "v1.19.1",
+			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
 		},
 	})
 
