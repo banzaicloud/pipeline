@@ -58,7 +58,7 @@ Parameters:
     Description: Comma separated list of security groups for all nodes in the pool.
 
   KeyName:
-    Type: String
+    Type: "AWS::EC2::KeyPair::KeyName"
     Description: The EC2 Key Pair to allow SSH access to the instances
 
   # NodeAutoScalingGroupDesiredCapacity:
