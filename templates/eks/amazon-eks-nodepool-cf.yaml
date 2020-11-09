@@ -28,6 +28,7 @@ Metadata:
           - NodeVolumeSize
           - KeyName
           - BootstrapArguments
+          - DisableIMDSv1
           - TemplateVersion
       - Label:
           default: Worker Network Configuration
@@ -103,6 +104,13 @@ Parameters:
   NodeInstanceRoleId:
     Type: String
     Description: The role for node IAM profile
+
+  DisableIMDSv1:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "false"
+      - "true"
 
   NodeInstanceType:
     Type: String
@@ -423,6 +431,11 @@ Conditions:
         - !Ref NodeImageId
         - ""
 
+  IMDSv1Disabled:
+    "Fn::Equals":
+      - !Ref DisableIMDSv1
+      - "true"
+
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   NoCustomNodeSecurityGroups: !Equals [ !Ref CustomNodeSecurityGroups, "" ]
   NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
@@ -591,6 +604,11 @@ Resources:
                      --region ${AWS::Region}
         MetadataOptions:
           HttpPutResponseHopLimit: 2
+          HttpEndpoint: enabled
+          HttpTokens: !If
+            - IMDSv1Disabled
+            - required
+            - optional
 
   NodeGroup:
     Type: "AWS::AutoScaling::AutoScalingGroup"
