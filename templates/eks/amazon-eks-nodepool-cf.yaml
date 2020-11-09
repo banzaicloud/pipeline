@@ -463,6 +463,7 @@ Resources:
 
   NodeSecurityGroupIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
+    # DependsOn: NodeSecurityGroup # Note: NodeSecurityGroup is preinitialized.
     Properties:
       Description: Allow node to communicate with each other
       FromPort: 0
@@ -473,6 +474,7 @@ Resources:
 
   ClusterControlPlaneSecurityGroupIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
+    # DependsOn: NodeSecurityGroup # Note: NodeSecurityGroup is preinitialized.
     Properties:
       Description: Allow pods to communicate with the cluster API Server
       FromPort: 443
@@ -483,6 +485,7 @@ Resources:
 
   ControlPlaneEgressToNodeSecurityGroup:
     Type: "AWS::EC2::SecurityGroupEgress"
+    # DependsOn: NodeSecurityGroup # Note: NodeSecurityGroup is preinitialized.
     Properties:
       Description: Allow the cluster control plane to communicate with worker Kubelet and pods
       DestinationSecurityGroupId: !Ref NodeSecurityGroup
@@ -493,6 +496,7 @@ Resources:
 
   NodeSecurityGroupFromControlPlaneIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
+    # DependsOn: NodeSecurityGroup # Note: NodeSecurityGroup is preinitialized.
     Properties:
       Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
       FromPort: 0
@@ -503,6 +507,7 @@ Resources:
 
   NodeSecurityGroupSsh:
     Type: "AWS::EC2::SecurityGroupIngress"
+    # DependsOn: NodeSecurityGroup # Note: NodeSecurityGroup is preinitialized.
     Properties:
       CidrIp: "0.0.0.0/0"
       Description: Allow SSH access to node
