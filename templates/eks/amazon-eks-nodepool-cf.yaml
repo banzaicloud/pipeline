@@ -700,3 +700,19 @@ Resources:
         MinInstancesInService: !If [ IsSpotInstance, 0, !Ref NodeAutoScalingGroupMinInstancesInService ] # Note: incompatible with spot instances.
         PauseTime: PT5M
     {{- end}}
+
+Outputs:
+  # Note: node instance role is preinitialized.
+  #
+  # NodeInstanceRole:
+  #   Description: The node instance role
+  #   Value: !GetAtt NodeInstanceRole.Arn
+
+  # Note: node security group is preinitialized.
+  # NodeSecurityGroup:
+  #   Description: The security group for the node group
+  #   Value: !Ref NodeSecurityGroup
+
+  NodeAutoScalingGroup:
+    Description: The autoscaling group
+    Value: !Ref NodeGroup
