@@ -219,16 +219,17 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 	{
 		activityInput := UpdateNodeGroupActivityInput{
-			SecretID:        input.ProviderSecretID,
-			Region:          input.Region,
-			ClusterName:     input.ClusterName,
-			StackName:       input.StackName,
-			NodePoolName:    input.NodePoolName,
-			NodePoolVersion: nodePoolVersion,
-			NodeVolumeSize:  volumeSize,
-			NodeImage:       input.NodeImage,
-			MaxBatchSize:    input.Options.MaxBatchSize,
-			ClusterTags:     input.ClusterTags,
+			SecretID:              input.ProviderSecretID,
+			Region:                input.Region,
+			ClusterName:           input.ClusterName,
+			StackName:             input.StackName,
+			NodePoolName:          input.NodePoolName,
+			NodePoolVersion:       nodePoolVersion,
+			NodeVolumeSize:        volumeSize,
+			NodeImage:             input.NodeImage,
+			MaxBatchSize:          input.Options.MaxBatchSize,
+			MinInstancesInService: input.Options.MaxSurge,
+			ClusterTags:           input.ClusterTags,
 		}
 
 		activityOptions := activityOptions

@@ -78,6 +78,11 @@ Parameters:
     Default: 3
     Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredCapacity.
 
+  NodeAutoScalingGroupMinInstancesInService:
+    Type: Number
+    Default: 0
+    Description: Minimum number of nodes to be kept in service at any given time during a rolling update. This value must be less than NodeAutoScalingGroupMaxSize.
+
   NodeAutoScalingGroupMinSize:
     Type: Number
     Default: 1
@@ -638,5 +643,6 @@ Resources:
     UpdatePolicy:
       AutoScalingRollingUpdate:
         MaxBatchSize: !Ref NodeAutoScalingGroupMaxBatchSize
+        MinInstancesInService: !If [ IsSpotInstance, 0, !Ref NodeAutoScalingGroupMinInstancesInService ] # Note: incompatible with spot instances.
         PauseTime: PT5M
     {{- end}}
