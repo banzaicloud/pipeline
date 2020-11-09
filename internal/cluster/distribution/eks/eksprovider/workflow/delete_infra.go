@@ -194,7 +194,7 @@ func (w DeleteInfrastructureWorkflow) Execute(ctx workflow.Context, input Delete
 	}
 
 	// delete SSH key
-	var deleteSSHKeyActivityFuture *ec2stub.EC2DeleteKeyPairFuture
+	var deleteSSHKeyActivityFuture *ec2stub.DeleteKeyPairFuture
 	if input.GeneratedSSHUsed {
 		// TODO: move this up to the top?
 		ctx := awssdk.WithSecretID(ctx, secretID.String())

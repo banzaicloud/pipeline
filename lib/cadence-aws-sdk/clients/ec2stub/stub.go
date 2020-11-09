@@ -15,4643 +15,4643 @@ var _ clients.VoidFuture
 
 type stub struct{}
 
-type EC2AcceptReservedInstancesExchangeQuoteFuture struct {
+type AcceptReservedInstancesExchangeQuoteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AcceptReservedInstancesExchangeQuoteFuture) Get(ctx workflow.Context) (*ec2.AcceptReservedInstancesExchangeQuoteOutput, error) {
+func (r *AcceptReservedInstancesExchangeQuoteFuture) Get(ctx workflow.Context) (*ec2.AcceptReservedInstancesExchangeQuoteOutput, error) {
 	var output ec2.AcceptReservedInstancesExchangeQuoteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AcceptTransitGatewayPeeringAttachmentFuture struct {
+type AcceptTransitGatewayPeeringAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AcceptTransitGatewayPeeringAttachmentFuture) Get(ctx workflow.Context) (*ec2.AcceptTransitGatewayPeeringAttachmentOutput, error) {
+func (r *AcceptTransitGatewayPeeringAttachmentFuture) Get(ctx workflow.Context) (*ec2.AcceptTransitGatewayPeeringAttachmentOutput, error) {
 	var output ec2.AcceptTransitGatewayPeeringAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AcceptTransitGatewayVpcAttachmentFuture struct {
+type AcceptTransitGatewayVpcAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AcceptTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.AcceptTransitGatewayVpcAttachmentOutput, error) {
+func (r *AcceptTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.AcceptTransitGatewayVpcAttachmentOutput, error) {
 	var output ec2.AcceptTransitGatewayVpcAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AcceptVpcEndpointConnectionsFuture struct {
+type AcceptVpcEndpointConnectionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AcceptVpcEndpointConnectionsFuture) Get(ctx workflow.Context) (*ec2.AcceptVpcEndpointConnectionsOutput, error) {
+func (r *AcceptVpcEndpointConnectionsFuture) Get(ctx workflow.Context) (*ec2.AcceptVpcEndpointConnectionsOutput, error) {
 	var output ec2.AcceptVpcEndpointConnectionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AcceptVpcPeeringConnectionFuture struct {
+type AcceptVpcPeeringConnectionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AcceptVpcPeeringConnectionFuture) Get(ctx workflow.Context) (*ec2.AcceptVpcPeeringConnectionOutput, error) {
+func (r *AcceptVpcPeeringConnectionFuture) Get(ctx workflow.Context) (*ec2.AcceptVpcPeeringConnectionOutput, error) {
 	var output ec2.AcceptVpcPeeringConnectionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AdvertiseByoipCidrFuture struct {
+type AdvertiseByoipCidrFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AdvertiseByoipCidrFuture) Get(ctx workflow.Context) (*ec2.AdvertiseByoipCidrOutput, error) {
+func (r *AdvertiseByoipCidrFuture) Get(ctx workflow.Context) (*ec2.AdvertiseByoipCidrOutput, error) {
 	var output ec2.AdvertiseByoipCidrOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AllocateAddressFuture struct {
+type AllocateAddressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AllocateAddressFuture) Get(ctx workflow.Context) (*ec2.AllocateAddressOutput, error) {
+func (r *AllocateAddressFuture) Get(ctx workflow.Context) (*ec2.AllocateAddressOutput, error) {
 	var output ec2.AllocateAddressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AllocateHostsFuture struct {
+type AllocateHostsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AllocateHostsFuture) Get(ctx workflow.Context) (*ec2.AllocateHostsOutput, error) {
+func (r *AllocateHostsFuture) Get(ctx workflow.Context) (*ec2.AllocateHostsOutput, error) {
 	var output ec2.AllocateHostsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture struct {
+type ApplySecurityGroupsToClientVpnTargetNetworkFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture) Get(ctx workflow.Context) (*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput, error) {
+func (r *ApplySecurityGroupsToClientVpnTargetNetworkFuture) Get(ctx workflow.Context) (*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput, error) {
 	var output ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssignIpv6AddressesFuture struct {
+type AssignIpv6AddressesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssignIpv6AddressesFuture) Get(ctx workflow.Context) (*ec2.AssignIpv6AddressesOutput, error) {
+func (r *AssignIpv6AddressesFuture) Get(ctx workflow.Context) (*ec2.AssignIpv6AddressesOutput, error) {
 	var output ec2.AssignIpv6AddressesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssignPrivateIpAddressesFuture struct {
+type AssignPrivateIpAddressesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssignPrivateIpAddressesFuture) Get(ctx workflow.Context) (*ec2.AssignPrivateIpAddressesOutput, error) {
+func (r *AssignPrivateIpAddressesFuture) Get(ctx workflow.Context) (*ec2.AssignPrivateIpAddressesOutput, error) {
 	var output ec2.AssignPrivateIpAddressesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateAddressFuture struct {
+type AssociateAddressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateAddressFuture) Get(ctx workflow.Context) (*ec2.AssociateAddressOutput, error) {
+func (r *AssociateAddressFuture) Get(ctx workflow.Context) (*ec2.AssociateAddressOutput, error) {
 	var output ec2.AssociateAddressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateClientVpnTargetNetworkFuture struct {
+type AssociateClientVpnTargetNetworkFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateClientVpnTargetNetworkFuture) Get(ctx workflow.Context) (*ec2.AssociateClientVpnTargetNetworkOutput, error) {
+func (r *AssociateClientVpnTargetNetworkFuture) Get(ctx workflow.Context) (*ec2.AssociateClientVpnTargetNetworkOutput, error) {
 	var output ec2.AssociateClientVpnTargetNetworkOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateDhcpOptionsFuture struct {
+type AssociateDhcpOptionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateDhcpOptionsFuture) Get(ctx workflow.Context) (*ec2.AssociateDhcpOptionsOutput, error) {
+func (r *AssociateDhcpOptionsFuture) Get(ctx workflow.Context) (*ec2.AssociateDhcpOptionsOutput, error) {
 	var output ec2.AssociateDhcpOptionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateEnclaveCertificateIamRoleFuture struct {
+type AssociateEnclaveCertificateIamRoleFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateEnclaveCertificateIamRoleFuture) Get(ctx workflow.Context) (*ec2.AssociateEnclaveCertificateIamRoleOutput, error) {
+func (r *AssociateEnclaveCertificateIamRoleFuture) Get(ctx workflow.Context) (*ec2.AssociateEnclaveCertificateIamRoleOutput, error) {
 	var output ec2.AssociateEnclaveCertificateIamRoleOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateIamInstanceProfileFuture struct {
+type AssociateIamInstanceProfileFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateIamInstanceProfileFuture) Get(ctx workflow.Context) (*ec2.AssociateIamInstanceProfileOutput, error) {
+func (r *AssociateIamInstanceProfileFuture) Get(ctx workflow.Context) (*ec2.AssociateIamInstanceProfileOutput, error) {
 	var output ec2.AssociateIamInstanceProfileOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateRouteTableFuture struct {
+type AssociateRouteTableFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateRouteTableFuture) Get(ctx workflow.Context) (*ec2.AssociateRouteTableOutput, error) {
+func (r *AssociateRouteTableFuture) Get(ctx workflow.Context) (*ec2.AssociateRouteTableOutput, error) {
 	var output ec2.AssociateRouteTableOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateSubnetCidrBlockFuture struct {
+type AssociateSubnetCidrBlockFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateSubnetCidrBlockFuture) Get(ctx workflow.Context) (*ec2.AssociateSubnetCidrBlockOutput, error) {
+func (r *AssociateSubnetCidrBlockFuture) Get(ctx workflow.Context) (*ec2.AssociateSubnetCidrBlockOutput, error) {
 	var output ec2.AssociateSubnetCidrBlockOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateTransitGatewayMulticastDomainFuture struct {
+type AssociateTransitGatewayMulticastDomainFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateTransitGatewayMulticastDomainFuture) Get(ctx workflow.Context) (*ec2.AssociateTransitGatewayMulticastDomainOutput, error) {
+func (r *AssociateTransitGatewayMulticastDomainFuture) Get(ctx workflow.Context) (*ec2.AssociateTransitGatewayMulticastDomainOutput, error) {
 	var output ec2.AssociateTransitGatewayMulticastDomainOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateTransitGatewayRouteTableFuture struct {
+type AssociateTransitGatewayRouteTableFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateTransitGatewayRouteTableFuture) Get(ctx workflow.Context) (*ec2.AssociateTransitGatewayRouteTableOutput, error) {
+func (r *AssociateTransitGatewayRouteTableFuture) Get(ctx workflow.Context) (*ec2.AssociateTransitGatewayRouteTableOutput, error) {
 	var output ec2.AssociateTransitGatewayRouteTableOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AssociateVpcCidrBlockFuture struct {
+type AssociateVpcCidrBlockFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AssociateVpcCidrBlockFuture) Get(ctx workflow.Context) (*ec2.AssociateVpcCidrBlockOutput, error) {
+func (r *AssociateVpcCidrBlockFuture) Get(ctx workflow.Context) (*ec2.AssociateVpcCidrBlockOutput, error) {
 	var output ec2.AssociateVpcCidrBlockOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AttachClassicLinkVpcFuture struct {
+type AttachClassicLinkVpcFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AttachClassicLinkVpcFuture) Get(ctx workflow.Context) (*ec2.AttachClassicLinkVpcOutput, error) {
+func (r *AttachClassicLinkVpcFuture) Get(ctx workflow.Context) (*ec2.AttachClassicLinkVpcOutput, error) {
 	var output ec2.AttachClassicLinkVpcOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AttachInternetGatewayFuture struct {
+type AttachInternetGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AttachInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.AttachInternetGatewayOutput, error) {
+func (r *AttachInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.AttachInternetGatewayOutput, error) {
 	var output ec2.AttachInternetGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AttachNetworkInterfaceFuture struct {
+type AttachNetworkInterfaceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AttachNetworkInterfaceFuture) Get(ctx workflow.Context) (*ec2.AttachNetworkInterfaceOutput, error) {
+func (r *AttachNetworkInterfaceFuture) Get(ctx workflow.Context) (*ec2.AttachNetworkInterfaceOutput, error) {
 	var output ec2.AttachNetworkInterfaceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AttachVolumeFuture struct {
+type AttachVolumeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AttachVolumeFuture) Get(ctx workflow.Context) (*ec2.VolumeAttachment, error) {
+func (r *AttachVolumeFuture) Get(ctx workflow.Context) (*ec2.VolumeAttachment, error) {
 	var output ec2.VolumeAttachment
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AttachVpnGatewayFuture struct {
+type AttachVpnGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AttachVpnGatewayFuture) Get(ctx workflow.Context) (*ec2.AttachVpnGatewayOutput, error) {
+func (r *AttachVpnGatewayFuture) Get(ctx workflow.Context) (*ec2.AttachVpnGatewayOutput, error) {
 	var output ec2.AttachVpnGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AuthorizeClientVpnIngressFuture struct {
+type AuthorizeClientVpnIngressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AuthorizeClientVpnIngressFuture) Get(ctx workflow.Context) (*ec2.AuthorizeClientVpnIngressOutput, error) {
+func (r *AuthorizeClientVpnIngressFuture) Get(ctx workflow.Context) (*ec2.AuthorizeClientVpnIngressOutput, error) {
 	var output ec2.AuthorizeClientVpnIngressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AuthorizeSecurityGroupEgressFuture struct {
+type AuthorizeSecurityGroupEgressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AuthorizeSecurityGroupEgressFuture) Get(ctx workflow.Context) (*ec2.AuthorizeSecurityGroupEgressOutput, error) {
+func (r *AuthorizeSecurityGroupEgressFuture) Get(ctx workflow.Context) (*ec2.AuthorizeSecurityGroupEgressOutput, error) {
 	var output ec2.AuthorizeSecurityGroupEgressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2AuthorizeSecurityGroupIngressFuture struct {
+type AuthorizeSecurityGroupIngressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2AuthorizeSecurityGroupIngressFuture) Get(ctx workflow.Context) (*ec2.AuthorizeSecurityGroupIngressOutput, error) {
+func (r *AuthorizeSecurityGroupIngressFuture) Get(ctx workflow.Context) (*ec2.AuthorizeSecurityGroupIngressOutput, error) {
 	var output ec2.AuthorizeSecurityGroupIngressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2BundleInstanceFuture struct {
+type BundleInstanceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2BundleInstanceFuture) Get(ctx workflow.Context) (*ec2.BundleInstanceOutput, error) {
+func (r *BundleInstanceFuture) Get(ctx workflow.Context) (*ec2.BundleInstanceOutput, error) {
 	var output ec2.BundleInstanceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CancelBundleTaskFuture struct {
+type CancelBundleTaskFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CancelBundleTaskFuture) Get(ctx workflow.Context) (*ec2.CancelBundleTaskOutput, error) {
+func (r *CancelBundleTaskFuture) Get(ctx workflow.Context) (*ec2.CancelBundleTaskOutput, error) {
 	var output ec2.CancelBundleTaskOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CancelCapacityReservationFuture struct {
+type CancelCapacityReservationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CancelCapacityReservationFuture) Get(ctx workflow.Context) (*ec2.CancelCapacityReservationOutput, error) {
+func (r *CancelCapacityReservationFuture) Get(ctx workflow.Context) (*ec2.CancelCapacityReservationOutput, error) {
 	var output ec2.CancelCapacityReservationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CancelConversionTaskFuture struct {
+type CancelConversionTaskFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CancelConversionTaskFuture) Get(ctx workflow.Context) (*ec2.CancelConversionTaskOutput, error) {
+func (r *CancelConversionTaskFuture) Get(ctx workflow.Context) (*ec2.CancelConversionTaskOutput, error) {
 	var output ec2.CancelConversionTaskOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CancelExportTaskFuture struct {
+type CancelExportTaskFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CancelExportTaskFuture) Get(ctx workflow.Context) (*ec2.CancelExportTaskOutput, error) {
+func (r *CancelExportTaskFuture) Get(ctx workflow.Context) (*ec2.CancelExportTaskOutput, error) {
 	var output ec2.CancelExportTaskOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CancelImportTaskFuture struct {
+type CancelImportTaskFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CancelImportTaskFuture) Get(ctx workflow.Context) (*ec2.CancelImportTaskOutput, error) {
+func (r *CancelImportTaskFuture) Get(ctx workflow.Context) (*ec2.CancelImportTaskOutput, error) {
 	var output ec2.CancelImportTaskOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CancelReservedInstancesListingFuture struct {
+type CancelReservedInstancesListingFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CancelReservedInstancesListingFuture) Get(ctx workflow.Context) (*ec2.CancelReservedInstancesListingOutput, error) {
+func (r *CancelReservedInstancesListingFuture) Get(ctx workflow.Context) (*ec2.CancelReservedInstancesListingOutput, error) {
 	var output ec2.CancelReservedInstancesListingOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CancelSpotFleetRequestsFuture struct {
+type CancelSpotFleetRequestsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CancelSpotFleetRequestsFuture) Get(ctx workflow.Context) (*ec2.CancelSpotFleetRequestsOutput, error) {
+func (r *CancelSpotFleetRequestsFuture) Get(ctx workflow.Context) (*ec2.CancelSpotFleetRequestsOutput, error) {
 	var output ec2.CancelSpotFleetRequestsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CancelSpotInstanceRequestsFuture struct {
+type CancelSpotInstanceRequestsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CancelSpotInstanceRequestsFuture) Get(ctx workflow.Context) (*ec2.CancelSpotInstanceRequestsOutput, error) {
+func (r *CancelSpotInstanceRequestsFuture) Get(ctx workflow.Context) (*ec2.CancelSpotInstanceRequestsOutput, error) {
 	var output ec2.CancelSpotInstanceRequestsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ConfirmProductInstanceFuture struct {
+type ConfirmProductInstanceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ConfirmProductInstanceFuture) Get(ctx workflow.Context) (*ec2.ConfirmProductInstanceOutput, error) {
+func (r *ConfirmProductInstanceFuture) Get(ctx workflow.Context) (*ec2.ConfirmProductInstanceOutput, error) {
 	var output ec2.ConfirmProductInstanceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CopyFpgaImageFuture struct {
+type CopyFpgaImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CopyFpgaImageFuture) Get(ctx workflow.Context) (*ec2.CopyFpgaImageOutput, error) {
+func (r *CopyFpgaImageFuture) Get(ctx workflow.Context) (*ec2.CopyFpgaImageOutput, error) {
 	var output ec2.CopyFpgaImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CopyImageFuture struct {
+type CopyImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CopyImageFuture) Get(ctx workflow.Context) (*ec2.CopyImageOutput, error) {
+func (r *CopyImageFuture) Get(ctx workflow.Context) (*ec2.CopyImageOutput, error) {
 	var output ec2.CopyImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CopySnapshotFuture struct {
+type CopySnapshotFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CopySnapshotFuture) Get(ctx workflow.Context) (*ec2.CopySnapshotOutput, error) {
+func (r *CopySnapshotFuture) Get(ctx workflow.Context) (*ec2.CopySnapshotOutput, error) {
 	var output ec2.CopySnapshotOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateCapacityReservationFuture struct {
+type CreateCapacityReservationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateCapacityReservationFuture) Get(ctx workflow.Context) (*ec2.CreateCapacityReservationOutput, error) {
+func (r *CreateCapacityReservationFuture) Get(ctx workflow.Context) (*ec2.CreateCapacityReservationOutput, error) {
 	var output ec2.CreateCapacityReservationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateCarrierGatewayFuture struct {
+type CreateCarrierGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateCarrierGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateCarrierGatewayOutput, error) {
+func (r *CreateCarrierGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateCarrierGatewayOutput, error) {
 	var output ec2.CreateCarrierGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateClientVpnEndpointFuture struct {
+type CreateClientVpnEndpointFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateClientVpnEndpointFuture) Get(ctx workflow.Context) (*ec2.CreateClientVpnEndpointOutput, error) {
+func (r *CreateClientVpnEndpointFuture) Get(ctx workflow.Context) (*ec2.CreateClientVpnEndpointOutput, error) {
 	var output ec2.CreateClientVpnEndpointOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateClientVpnRouteFuture struct {
+type CreateClientVpnRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateClientVpnRouteFuture) Get(ctx workflow.Context) (*ec2.CreateClientVpnRouteOutput, error) {
+func (r *CreateClientVpnRouteFuture) Get(ctx workflow.Context) (*ec2.CreateClientVpnRouteOutput, error) {
 	var output ec2.CreateClientVpnRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateCustomerGatewayFuture struct {
+type CreateCustomerGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateCustomerGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateCustomerGatewayOutput, error) {
+func (r *CreateCustomerGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateCustomerGatewayOutput, error) {
 	var output ec2.CreateCustomerGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateDefaultSubnetFuture struct {
+type CreateDefaultSubnetFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateDefaultSubnetFuture) Get(ctx workflow.Context) (*ec2.CreateDefaultSubnetOutput, error) {
+func (r *CreateDefaultSubnetFuture) Get(ctx workflow.Context) (*ec2.CreateDefaultSubnetOutput, error) {
 	var output ec2.CreateDefaultSubnetOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateDefaultVpcFuture struct {
+type CreateDefaultVpcFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateDefaultVpcFuture) Get(ctx workflow.Context) (*ec2.CreateDefaultVpcOutput, error) {
+func (r *CreateDefaultVpcFuture) Get(ctx workflow.Context) (*ec2.CreateDefaultVpcOutput, error) {
 	var output ec2.CreateDefaultVpcOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateDhcpOptionsFuture struct {
+type CreateDhcpOptionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateDhcpOptionsFuture) Get(ctx workflow.Context) (*ec2.CreateDhcpOptionsOutput, error) {
+func (r *CreateDhcpOptionsFuture) Get(ctx workflow.Context) (*ec2.CreateDhcpOptionsOutput, error) {
 	var output ec2.CreateDhcpOptionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateEgressOnlyInternetGatewayFuture struct {
+type CreateEgressOnlyInternetGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateEgressOnlyInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateEgressOnlyInternetGatewayOutput, error) {
+func (r *CreateEgressOnlyInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateEgressOnlyInternetGatewayOutput, error) {
 	var output ec2.CreateEgressOnlyInternetGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateFleetFuture struct {
+type CreateFleetFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateFleetFuture) Get(ctx workflow.Context) (*ec2.CreateFleetOutput, error) {
+func (r *CreateFleetFuture) Get(ctx workflow.Context) (*ec2.CreateFleetOutput, error) {
 	var output ec2.CreateFleetOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateFlowLogsFuture struct {
+type CreateFlowLogsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateFlowLogsFuture) Get(ctx workflow.Context) (*ec2.CreateFlowLogsOutput, error) {
+func (r *CreateFlowLogsFuture) Get(ctx workflow.Context) (*ec2.CreateFlowLogsOutput, error) {
 	var output ec2.CreateFlowLogsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateFpgaImageFuture struct {
+type CreateFpgaImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateFpgaImageFuture) Get(ctx workflow.Context) (*ec2.CreateFpgaImageOutput, error) {
+func (r *CreateFpgaImageFuture) Get(ctx workflow.Context) (*ec2.CreateFpgaImageOutput, error) {
 	var output ec2.CreateFpgaImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateImageFuture struct {
+type CreateImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateImageFuture) Get(ctx workflow.Context) (*ec2.CreateImageOutput, error) {
+func (r *CreateImageFuture) Get(ctx workflow.Context) (*ec2.CreateImageOutput, error) {
 	var output ec2.CreateImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateInstanceExportTaskFuture struct {
+type CreateInstanceExportTaskFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateInstanceExportTaskFuture) Get(ctx workflow.Context) (*ec2.CreateInstanceExportTaskOutput, error) {
+func (r *CreateInstanceExportTaskFuture) Get(ctx workflow.Context) (*ec2.CreateInstanceExportTaskOutput, error) {
 	var output ec2.CreateInstanceExportTaskOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateInternetGatewayFuture struct {
+type CreateInternetGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateInternetGatewayOutput, error) {
+func (r *CreateInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateInternetGatewayOutput, error) {
 	var output ec2.CreateInternetGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateKeyPairFuture struct {
+type CreateKeyPairFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateKeyPairFuture) Get(ctx workflow.Context) (*ec2.CreateKeyPairOutput, error) {
+func (r *CreateKeyPairFuture) Get(ctx workflow.Context) (*ec2.CreateKeyPairOutput, error) {
 	var output ec2.CreateKeyPairOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateLaunchTemplateFuture struct {
+type CreateLaunchTemplateFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateLaunchTemplateFuture) Get(ctx workflow.Context) (*ec2.CreateLaunchTemplateOutput, error) {
+func (r *CreateLaunchTemplateFuture) Get(ctx workflow.Context) (*ec2.CreateLaunchTemplateOutput, error) {
 	var output ec2.CreateLaunchTemplateOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateLaunchTemplateVersionFuture struct {
+type CreateLaunchTemplateVersionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateLaunchTemplateVersionFuture) Get(ctx workflow.Context) (*ec2.CreateLaunchTemplateVersionOutput, error) {
+func (r *CreateLaunchTemplateVersionFuture) Get(ctx workflow.Context) (*ec2.CreateLaunchTemplateVersionOutput, error) {
 	var output ec2.CreateLaunchTemplateVersionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateLocalGatewayRouteFuture struct {
+type CreateLocalGatewayRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateLocalGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.CreateLocalGatewayRouteOutput, error) {
+func (r *CreateLocalGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.CreateLocalGatewayRouteOutput, error) {
 	var output ec2.CreateLocalGatewayRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateLocalGatewayRouteTableVpcAssociationFuture struct {
+type CreateLocalGatewayRouteTableVpcAssociationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateLocalGatewayRouteTableVpcAssociationFuture) Get(ctx workflow.Context) (*ec2.CreateLocalGatewayRouteTableVpcAssociationOutput, error) {
+func (r *CreateLocalGatewayRouteTableVpcAssociationFuture) Get(ctx workflow.Context) (*ec2.CreateLocalGatewayRouteTableVpcAssociationOutput, error) {
 	var output ec2.CreateLocalGatewayRouteTableVpcAssociationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateManagedPrefixListFuture struct {
+type CreateManagedPrefixListFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateManagedPrefixListFuture) Get(ctx workflow.Context) (*ec2.CreateManagedPrefixListOutput, error) {
+func (r *CreateManagedPrefixListFuture) Get(ctx workflow.Context) (*ec2.CreateManagedPrefixListOutput, error) {
 	var output ec2.CreateManagedPrefixListOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateNatGatewayFuture struct {
+type CreateNatGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateNatGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateNatGatewayOutput, error) {
+func (r *CreateNatGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateNatGatewayOutput, error) {
 	var output ec2.CreateNatGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateNetworkAclFuture struct {
+type CreateNetworkAclFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateNetworkAclFuture) Get(ctx workflow.Context) (*ec2.CreateNetworkAclOutput, error) {
+func (r *CreateNetworkAclFuture) Get(ctx workflow.Context) (*ec2.CreateNetworkAclOutput, error) {
 	var output ec2.CreateNetworkAclOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateNetworkAclEntryFuture struct {
+type CreateNetworkAclEntryFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateNetworkAclEntryFuture) Get(ctx workflow.Context) (*ec2.CreateNetworkAclEntryOutput, error) {
+func (r *CreateNetworkAclEntryFuture) Get(ctx workflow.Context) (*ec2.CreateNetworkAclEntryOutput, error) {
 	var output ec2.CreateNetworkAclEntryOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateNetworkInterfaceFuture struct {
+type CreateNetworkInterfaceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateNetworkInterfaceFuture) Get(ctx workflow.Context) (*ec2.CreateNetworkInterfaceOutput, error) {
+func (r *CreateNetworkInterfaceFuture) Get(ctx workflow.Context) (*ec2.CreateNetworkInterfaceOutput, error) {
 	var output ec2.CreateNetworkInterfaceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateNetworkInterfacePermissionFuture struct {
+type CreateNetworkInterfacePermissionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateNetworkInterfacePermissionFuture) Get(ctx workflow.Context) (*ec2.CreateNetworkInterfacePermissionOutput, error) {
+func (r *CreateNetworkInterfacePermissionFuture) Get(ctx workflow.Context) (*ec2.CreateNetworkInterfacePermissionOutput, error) {
 	var output ec2.CreateNetworkInterfacePermissionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreatePlacementGroupFuture struct {
+type CreatePlacementGroupFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreatePlacementGroupFuture) Get(ctx workflow.Context) (*ec2.CreatePlacementGroupOutput, error) {
+func (r *CreatePlacementGroupFuture) Get(ctx workflow.Context) (*ec2.CreatePlacementGroupOutput, error) {
 	var output ec2.CreatePlacementGroupOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateReservedInstancesListingFuture struct {
+type CreateReservedInstancesListingFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateReservedInstancesListingFuture) Get(ctx workflow.Context) (*ec2.CreateReservedInstancesListingOutput, error) {
+func (r *CreateReservedInstancesListingFuture) Get(ctx workflow.Context) (*ec2.CreateReservedInstancesListingOutput, error) {
 	var output ec2.CreateReservedInstancesListingOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateRouteFuture struct {
+type CreateRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateRouteFuture) Get(ctx workflow.Context) (*ec2.CreateRouteOutput, error) {
+func (r *CreateRouteFuture) Get(ctx workflow.Context) (*ec2.CreateRouteOutput, error) {
 	var output ec2.CreateRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateRouteTableFuture struct {
+type CreateRouteTableFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateRouteTableFuture) Get(ctx workflow.Context) (*ec2.CreateRouteTableOutput, error) {
+func (r *CreateRouteTableFuture) Get(ctx workflow.Context) (*ec2.CreateRouteTableOutput, error) {
 	var output ec2.CreateRouteTableOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateSecurityGroupFuture struct {
+type CreateSecurityGroupFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateSecurityGroupFuture) Get(ctx workflow.Context) (*ec2.CreateSecurityGroupOutput, error) {
+func (r *CreateSecurityGroupFuture) Get(ctx workflow.Context) (*ec2.CreateSecurityGroupOutput, error) {
 	var output ec2.CreateSecurityGroupOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateSnapshotFuture struct {
+type CreateSnapshotFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateSnapshotFuture) Get(ctx workflow.Context) (*ec2.Snapshot, error) {
+func (r *CreateSnapshotFuture) Get(ctx workflow.Context) (*ec2.Snapshot, error) {
 	var output ec2.Snapshot
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateSnapshotsFuture struct {
+type CreateSnapshotsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateSnapshotsFuture) Get(ctx workflow.Context) (*ec2.CreateSnapshotsOutput, error) {
+func (r *CreateSnapshotsFuture) Get(ctx workflow.Context) (*ec2.CreateSnapshotsOutput, error) {
 	var output ec2.CreateSnapshotsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateSpotDatafeedSubscriptionFuture struct {
+type CreateSpotDatafeedSubscriptionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateSpotDatafeedSubscriptionFuture) Get(ctx workflow.Context) (*ec2.CreateSpotDatafeedSubscriptionOutput, error) {
+func (r *CreateSpotDatafeedSubscriptionFuture) Get(ctx workflow.Context) (*ec2.CreateSpotDatafeedSubscriptionOutput, error) {
 	var output ec2.CreateSpotDatafeedSubscriptionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateSubnetFuture struct {
+type CreateSubnetFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateSubnetFuture) Get(ctx workflow.Context) (*ec2.CreateSubnetOutput, error) {
+func (r *CreateSubnetFuture) Get(ctx workflow.Context) (*ec2.CreateSubnetOutput, error) {
 	var output ec2.CreateSubnetOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTagsFuture struct {
+type CreateTagsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTagsFuture) Get(ctx workflow.Context) (*ec2.CreateTagsOutput, error) {
+func (r *CreateTagsFuture) Get(ctx workflow.Context) (*ec2.CreateTagsOutput, error) {
 	var output ec2.CreateTagsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTrafficMirrorFilterFuture struct {
+type CreateTrafficMirrorFilterFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTrafficMirrorFilterFuture) Get(ctx workflow.Context) (*ec2.CreateTrafficMirrorFilterOutput, error) {
+func (r *CreateTrafficMirrorFilterFuture) Get(ctx workflow.Context) (*ec2.CreateTrafficMirrorFilterOutput, error) {
 	var output ec2.CreateTrafficMirrorFilterOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTrafficMirrorFilterRuleFuture struct {
+type CreateTrafficMirrorFilterRuleFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTrafficMirrorFilterRuleFuture) Get(ctx workflow.Context) (*ec2.CreateTrafficMirrorFilterRuleOutput, error) {
+func (r *CreateTrafficMirrorFilterRuleFuture) Get(ctx workflow.Context) (*ec2.CreateTrafficMirrorFilterRuleOutput, error) {
 	var output ec2.CreateTrafficMirrorFilterRuleOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTrafficMirrorSessionFuture struct {
+type CreateTrafficMirrorSessionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTrafficMirrorSessionFuture) Get(ctx workflow.Context) (*ec2.CreateTrafficMirrorSessionOutput, error) {
+func (r *CreateTrafficMirrorSessionFuture) Get(ctx workflow.Context) (*ec2.CreateTrafficMirrorSessionOutput, error) {
 	var output ec2.CreateTrafficMirrorSessionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTrafficMirrorTargetFuture struct {
+type CreateTrafficMirrorTargetFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTrafficMirrorTargetFuture) Get(ctx workflow.Context) (*ec2.CreateTrafficMirrorTargetOutput, error) {
+func (r *CreateTrafficMirrorTargetFuture) Get(ctx workflow.Context) (*ec2.CreateTrafficMirrorTargetOutput, error) {
 	var output ec2.CreateTrafficMirrorTargetOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTransitGatewayFuture struct {
+type CreateTransitGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTransitGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayOutput, error) {
+func (r *CreateTransitGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayOutput, error) {
 	var output ec2.CreateTransitGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTransitGatewayMulticastDomainFuture struct {
+type CreateTransitGatewayMulticastDomainFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTransitGatewayMulticastDomainFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayMulticastDomainOutput, error) {
+func (r *CreateTransitGatewayMulticastDomainFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayMulticastDomainOutput, error) {
 	var output ec2.CreateTransitGatewayMulticastDomainOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTransitGatewayPeeringAttachmentFuture struct {
+type CreateTransitGatewayPeeringAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTransitGatewayPeeringAttachmentFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayPeeringAttachmentOutput, error) {
+func (r *CreateTransitGatewayPeeringAttachmentFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayPeeringAttachmentOutput, error) {
 	var output ec2.CreateTransitGatewayPeeringAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTransitGatewayPrefixListReferenceFuture struct {
+type CreateTransitGatewayPrefixListReferenceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTransitGatewayPrefixListReferenceFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayPrefixListReferenceOutput, error) {
+func (r *CreateTransitGatewayPrefixListReferenceFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayPrefixListReferenceOutput, error) {
 	var output ec2.CreateTransitGatewayPrefixListReferenceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTransitGatewayRouteFuture struct {
+type CreateTransitGatewayRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTransitGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayRouteOutput, error) {
+func (r *CreateTransitGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayRouteOutput, error) {
 	var output ec2.CreateTransitGatewayRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTransitGatewayRouteTableFuture struct {
+type CreateTransitGatewayRouteTableFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTransitGatewayRouteTableFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayRouteTableOutput, error) {
+func (r *CreateTransitGatewayRouteTableFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayRouteTableOutput, error) {
 	var output ec2.CreateTransitGatewayRouteTableOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateTransitGatewayVpcAttachmentFuture struct {
+type CreateTransitGatewayVpcAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayVpcAttachmentOutput, error) {
+func (r *CreateTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.CreateTransitGatewayVpcAttachmentOutput, error) {
 	var output ec2.CreateTransitGatewayVpcAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVolumeFuture struct {
+type CreateVolumeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVolumeFuture) Get(ctx workflow.Context) (*ec2.Volume, error) {
+func (r *CreateVolumeFuture) Get(ctx workflow.Context) (*ec2.Volume, error) {
 	var output ec2.Volume
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVpcFuture struct {
+type CreateVpcFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVpcFuture) Get(ctx workflow.Context) (*ec2.CreateVpcOutput, error) {
+func (r *CreateVpcFuture) Get(ctx workflow.Context) (*ec2.CreateVpcOutput, error) {
 	var output ec2.CreateVpcOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVpcEndpointFuture struct {
+type CreateVpcEndpointFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVpcEndpointFuture) Get(ctx workflow.Context) (*ec2.CreateVpcEndpointOutput, error) {
+func (r *CreateVpcEndpointFuture) Get(ctx workflow.Context) (*ec2.CreateVpcEndpointOutput, error) {
 	var output ec2.CreateVpcEndpointOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVpcEndpointConnectionNotificationFuture struct {
+type CreateVpcEndpointConnectionNotificationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVpcEndpointConnectionNotificationFuture) Get(ctx workflow.Context) (*ec2.CreateVpcEndpointConnectionNotificationOutput, error) {
+func (r *CreateVpcEndpointConnectionNotificationFuture) Get(ctx workflow.Context) (*ec2.CreateVpcEndpointConnectionNotificationOutput, error) {
 	var output ec2.CreateVpcEndpointConnectionNotificationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVpcEndpointServiceConfigurationFuture struct {
+type CreateVpcEndpointServiceConfigurationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVpcEndpointServiceConfigurationFuture) Get(ctx workflow.Context) (*ec2.CreateVpcEndpointServiceConfigurationOutput, error) {
+func (r *CreateVpcEndpointServiceConfigurationFuture) Get(ctx workflow.Context) (*ec2.CreateVpcEndpointServiceConfigurationOutput, error) {
 	var output ec2.CreateVpcEndpointServiceConfigurationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVpcPeeringConnectionFuture struct {
+type CreateVpcPeeringConnectionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVpcPeeringConnectionFuture) Get(ctx workflow.Context) (*ec2.CreateVpcPeeringConnectionOutput, error) {
+func (r *CreateVpcPeeringConnectionFuture) Get(ctx workflow.Context) (*ec2.CreateVpcPeeringConnectionOutput, error) {
 	var output ec2.CreateVpcPeeringConnectionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVpnConnectionFuture struct {
+type CreateVpnConnectionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVpnConnectionFuture) Get(ctx workflow.Context) (*ec2.CreateVpnConnectionOutput, error) {
+func (r *CreateVpnConnectionFuture) Get(ctx workflow.Context) (*ec2.CreateVpnConnectionOutput, error) {
 	var output ec2.CreateVpnConnectionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVpnConnectionRouteFuture struct {
+type CreateVpnConnectionRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVpnConnectionRouteFuture) Get(ctx workflow.Context) (*ec2.CreateVpnConnectionRouteOutput, error) {
+func (r *CreateVpnConnectionRouteFuture) Get(ctx workflow.Context) (*ec2.CreateVpnConnectionRouteOutput, error) {
 	var output ec2.CreateVpnConnectionRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2CreateVpnGatewayFuture struct {
+type CreateVpnGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2CreateVpnGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateVpnGatewayOutput, error) {
+func (r *CreateVpnGatewayFuture) Get(ctx workflow.Context) (*ec2.CreateVpnGatewayOutput, error) {
 	var output ec2.CreateVpnGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteCarrierGatewayFuture struct {
+type DeleteCarrierGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteCarrierGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteCarrierGatewayOutput, error) {
+func (r *DeleteCarrierGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteCarrierGatewayOutput, error) {
 	var output ec2.DeleteCarrierGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteClientVpnEndpointFuture struct {
+type DeleteClientVpnEndpointFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteClientVpnEndpointFuture) Get(ctx workflow.Context) (*ec2.DeleteClientVpnEndpointOutput, error) {
+func (r *DeleteClientVpnEndpointFuture) Get(ctx workflow.Context) (*ec2.DeleteClientVpnEndpointOutput, error) {
 	var output ec2.DeleteClientVpnEndpointOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteClientVpnRouteFuture struct {
+type DeleteClientVpnRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteClientVpnRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteClientVpnRouteOutput, error) {
+func (r *DeleteClientVpnRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteClientVpnRouteOutput, error) {
 	var output ec2.DeleteClientVpnRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteCustomerGatewayFuture struct {
+type DeleteCustomerGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteCustomerGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteCustomerGatewayOutput, error) {
+func (r *DeleteCustomerGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteCustomerGatewayOutput, error) {
 	var output ec2.DeleteCustomerGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteDhcpOptionsFuture struct {
+type DeleteDhcpOptionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteDhcpOptionsFuture) Get(ctx workflow.Context) (*ec2.DeleteDhcpOptionsOutput, error) {
+func (r *DeleteDhcpOptionsFuture) Get(ctx workflow.Context) (*ec2.DeleteDhcpOptionsOutput, error) {
 	var output ec2.DeleteDhcpOptionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteEgressOnlyInternetGatewayFuture struct {
+type DeleteEgressOnlyInternetGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteEgressOnlyInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteEgressOnlyInternetGatewayOutput, error) {
+func (r *DeleteEgressOnlyInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteEgressOnlyInternetGatewayOutput, error) {
 	var output ec2.DeleteEgressOnlyInternetGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteFleetsFuture struct {
+type DeleteFleetsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteFleetsFuture) Get(ctx workflow.Context) (*ec2.DeleteFleetsOutput, error) {
+func (r *DeleteFleetsFuture) Get(ctx workflow.Context) (*ec2.DeleteFleetsOutput, error) {
 	var output ec2.DeleteFleetsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteFlowLogsFuture struct {
+type DeleteFlowLogsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteFlowLogsFuture) Get(ctx workflow.Context) (*ec2.DeleteFlowLogsOutput, error) {
+func (r *DeleteFlowLogsFuture) Get(ctx workflow.Context) (*ec2.DeleteFlowLogsOutput, error) {
 	var output ec2.DeleteFlowLogsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteFpgaImageFuture struct {
+type DeleteFpgaImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteFpgaImageFuture) Get(ctx workflow.Context) (*ec2.DeleteFpgaImageOutput, error) {
+func (r *DeleteFpgaImageFuture) Get(ctx workflow.Context) (*ec2.DeleteFpgaImageOutput, error) {
 	var output ec2.DeleteFpgaImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteInternetGatewayFuture struct {
+type DeleteInternetGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteInternetGatewayOutput, error) {
+func (r *DeleteInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteInternetGatewayOutput, error) {
 	var output ec2.DeleteInternetGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteKeyPairFuture struct {
+type DeleteKeyPairFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteKeyPairFuture) Get(ctx workflow.Context) (*ec2.DeleteKeyPairOutput, error) {
+func (r *DeleteKeyPairFuture) Get(ctx workflow.Context) (*ec2.DeleteKeyPairOutput, error) {
 	var output ec2.DeleteKeyPairOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteLaunchTemplateFuture struct {
+type DeleteLaunchTemplateFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteLaunchTemplateFuture) Get(ctx workflow.Context) (*ec2.DeleteLaunchTemplateOutput, error) {
+func (r *DeleteLaunchTemplateFuture) Get(ctx workflow.Context) (*ec2.DeleteLaunchTemplateOutput, error) {
 	var output ec2.DeleteLaunchTemplateOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteLaunchTemplateVersionsFuture struct {
+type DeleteLaunchTemplateVersionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteLaunchTemplateVersionsFuture) Get(ctx workflow.Context) (*ec2.DeleteLaunchTemplateVersionsOutput, error) {
+func (r *DeleteLaunchTemplateVersionsFuture) Get(ctx workflow.Context) (*ec2.DeleteLaunchTemplateVersionsOutput, error) {
 	var output ec2.DeleteLaunchTemplateVersionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteLocalGatewayRouteFuture struct {
+type DeleteLocalGatewayRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteLocalGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteLocalGatewayRouteOutput, error) {
+func (r *DeleteLocalGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteLocalGatewayRouteOutput, error) {
 	var output ec2.DeleteLocalGatewayRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteLocalGatewayRouteTableVpcAssociationFuture struct {
+type DeleteLocalGatewayRouteTableVpcAssociationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteLocalGatewayRouteTableVpcAssociationFuture) Get(ctx workflow.Context) (*ec2.DeleteLocalGatewayRouteTableVpcAssociationOutput, error) {
+func (r *DeleteLocalGatewayRouteTableVpcAssociationFuture) Get(ctx workflow.Context) (*ec2.DeleteLocalGatewayRouteTableVpcAssociationOutput, error) {
 	var output ec2.DeleteLocalGatewayRouteTableVpcAssociationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteManagedPrefixListFuture struct {
+type DeleteManagedPrefixListFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteManagedPrefixListFuture) Get(ctx workflow.Context) (*ec2.DeleteManagedPrefixListOutput, error) {
+func (r *DeleteManagedPrefixListFuture) Get(ctx workflow.Context) (*ec2.DeleteManagedPrefixListOutput, error) {
 	var output ec2.DeleteManagedPrefixListOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteNatGatewayFuture struct {
+type DeleteNatGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteNatGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteNatGatewayOutput, error) {
+func (r *DeleteNatGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteNatGatewayOutput, error) {
 	var output ec2.DeleteNatGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteNetworkAclFuture struct {
+type DeleteNetworkAclFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteNetworkAclFuture) Get(ctx workflow.Context) (*ec2.DeleteNetworkAclOutput, error) {
+func (r *DeleteNetworkAclFuture) Get(ctx workflow.Context) (*ec2.DeleteNetworkAclOutput, error) {
 	var output ec2.DeleteNetworkAclOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteNetworkAclEntryFuture struct {
+type DeleteNetworkAclEntryFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteNetworkAclEntryFuture) Get(ctx workflow.Context) (*ec2.DeleteNetworkAclEntryOutput, error) {
+func (r *DeleteNetworkAclEntryFuture) Get(ctx workflow.Context) (*ec2.DeleteNetworkAclEntryOutput, error) {
 	var output ec2.DeleteNetworkAclEntryOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteNetworkInterfaceFuture struct {
+type DeleteNetworkInterfaceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteNetworkInterfaceFuture) Get(ctx workflow.Context) (*ec2.DeleteNetworkInterfaceOutput, error) {
+func (r *DeleteNetworkInterfaceFuture) Get(ctx workflow.Context) (*ec2.DeleteNetworkInterfaceOutput, error) {
 	var output ec2.DeleteNetworkInterfaceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteNetworkInterfacePermissionFuture struct {
+type DeleteNetworkInterfacePermissionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteNetworkInterfacePermissionFuture) Get(ctx workflow.Context) (*ec2.DeleteNetworkInterfacePermissionOutput, error) {
+func (r *DeleteNetworkInterfacePermissionFuture) Get(ctx workflow.Context) (*ec2.DeleteNetworkInterfacePermissionOutput, error) {
 	var output ec2.DeleteNetworkInterfacePermissionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeletePlacementGroupFuture struct {
+type DeletePlacementGroupFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeletePlacementGroupFuture) Get(ctx workflow.Context) (*ec2.DeletePlacementGroupOutput, error) {
+func (r *DeletePlacementGroupFuture) Get(ctx workflow.Context) (*ec2.DeletePlacementGroupOutput, error) {
 	var output ec2.DeletePlacementGroupOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteQueuedReservedInstancesFuture struct {
+type DeleteQueuedReservedInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteQueuedReservedInstancesFuture) Get(ctx workflow.Context) (*ec2.DeleteQueuedReservedInstancesOutput, error) {
+func (r *DeleteQueuedReservedInstancesFuture) Get(ctx workflow.Context) (*ec2.DeleteQueuedReservedInstancesOutput, error) {
 	var output ec2.DeleteQueuedReservedInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteRouteFuture struct {
+type DeleteRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteRouteOutput, error) {
+func (r *DeleteRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteRouteOutput, error) {
 	var output ec2.DeleteRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteRouteTableFuture struct {
+type DeleteRouteTableFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteRouteTableFuture) Get(ctx workflow.Context) (*ec2.DeleteRouteTableOutput, error) {
+func (r *DeleteRouteTableFuture) Get(ctx workflow.Context) (*ec2.DeleteRouteTableOutput, error) {
 	var output ec2.DeleteRouteTableOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteSecurityGroupFuture struct {
+type DeleteSecurityGroupFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteSecurityGroupFuture) Get(ctx workflow.Context) (*ec2.DeleteSecurityGroupOutput, error) {
+func (r *DeleteSecurityGroupFuture) Get(ctx workflow.Context) (*ec2.DeleteSecurityGroupOutput, error) {
 	var output ec2.DeleteSecurityGroupOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteSnapshotFuture struct {
+type DeleteSnapshotFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteSnapshotFuture) Get(ctx workflow.Context) (*ec2.DeleteSnapshotOutput, error) {
+func (r *DeleteSnapshotFuture) Get(ctx workflow.Context) (*ec2.DeleteSnapshotOutput, error) {
 	var output ec2.DeleteSnapshotOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteSpotDatafeedSubscriptionFuture struct {
+type DeleteSpotDatafeedSubscriptionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteSpotDatafeedSubscriptionFuture) Get(ctx workflow.Context) (*ec2.DeleteSpotDatafeedSubscriptionOutput, error) {
+func (r *DeleteSpotDatafeedSubscriptionFuture) Get(ctx workflow.Context) (*ec2.DeleteSpotDatafeedSubscriptionOutput, error) {
 	var output ec2.DeleteSpotDatafeedSubscriptionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteSubnetFuture struct {
+type DeleteSubnetFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteSubnetFuture) Get(ctx workflow.Context) (*ec2.DeleteSubnetOutput, error) {
+func (r *DeleteSubnetFuture) Get(ctx workflow.Context) (*ec2.DeleteSubnetOutput, error) {
 	var output ec2.DeleteSubnetOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTagsFuture struct {
+type DeleteTagsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTagsFuture) Get(ctx workflow.Context) (*ec2.DeleteTagsOutput, error) {
+func (r *DeleteTagsFuture) Get(ctx workflow.Context) (*ec2.DeleteTagsOutput, error) {
 	var output ec2.DeleteTagsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTrafficMirrorFilterFuture struct {
+type DeleteTrafficMirrorFilterFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTrafficMirrorFilterFuture) Get(ctx workflow.Context) (*ec2.DeleteTrafficMirrorFilterOutput, error) {
+func (r *DeleteTrafficMirrorFilterFuture) Get(ctx workflow.Context) (*ec2.DeleteTrafficMirrorFilterOutput, error) {
 	var output ec2.DeleteTrafficMirrorFilterOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTrafficMirrorFilterRuleFuture struct {
+type DeleteTrafficMirrorFilterRuleFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTrafficMirrorFilterRuleFuture) Get(ctx workflow.Context) (*ec2.DeleteTrafficMirrorFilterRuleOutput, error) {
+func (r *DeleteTrafficMirrorFilterRuleFuture) Get(ctx workflow.Context) (*ec2.DeleteTrafficMirrorFilterRuleOutput, error) {
 	var output ec2.DeleteTrafficMirrorFilterRuleOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTrafficMirrorSessionFuture struct {
+type DeleteTrafficMirrorSessionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTrafficMirrorSessionFuture) Get(ctx workflow.Context) (*ec2.DeleteTrafficMirrorSessionOutput, error) {
+func (r *DeleteTrafficMirrorSessionFuture) Get(ctx workflow.Context) (*ec2.DeleteTrafficMirrorSessionOutput, error) {
 	var output ec2.DeleteTrafficMirrorSessionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTrafficMirrorTargetFuture struct {
+type DeleteTrafficMirrorTargetFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTrafficMirrorTargetFuture) Get(ctx workflow.Context) (*ec2.DeleteTrafficMirrorTargetOutput, error) {
+func (r *DeleteTrafficMirrorTargetFuture) Get(ctx workflow.Context) (*ec2.DeleteTrafficMirrorTargetOutput, error) {
 	var output ec2.DeleteTrafficMirrorTargetOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTransitGatewayFuture struct {
+type DeleteTransitGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTransitGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayOutput, error) {
+func (r *DeleteTransitGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayOutput, error) {
 	var output ec2.DeleteTransitGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTransitGatewayMulticastDomainFuture struct {
+type DeleteTransitGatewayMulticastDomainFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTransitGatewayMulticastDomainFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayMulticastDomainOutput, error) {
+func (r *DeleteTransitGatewayMulticastDomainFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayMulticastDomainOutput, error) {
 	var output ec2.DeleteTransitGatewayMulticastDomainOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTransitGatewayPeeringAttachmentFuture struct {
+type DeleteTransitGatewayPeeringAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTransitGatewayPeeringAttachmentFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayPeeringAttachmentOutput, error) {
+func (r *DeleteTransitGatewayPeeringAttachmentFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayPeeringAttachmentOutput, error) {
 	var output ec2.DeleteTransitGatewayPeeringAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTransitGatewayPrefixListReferenceFuture struct {
+type DeleteTransitGatewayPrefixListReferenceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTransitGatewayPrefixListReferenceFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayPrefixListReferenceOutput, error) {
+func (r *DeleteTransitGatewayPrefixListReferenceFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayPrefixListReferenceOutput, error) {
 	var output ec2.DeleteTransitGatewayPrefixListReferenceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTransitGatewayRouteFuture struct {
+type DeleteTransitGatewayRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTransitGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayRouteOutput, error) {
+func (r *DeleteTransitGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayRouteOutput, error) {
 	var output ec2.DeleteTransitGatewayRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTransitGatewayRouteTableFuture struct {
+type DeleteTransitGatewayRouteTableFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTransitGatewayRouteTableFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayRouteTableOutput, error) {
+func (r *DeleteTransitGatewayRouteTableFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayRouteTableOutput, error) {
 	var output ec2.DeleteTransitGatewayRouteTableOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteTransitGatewayVpcAttachmentFuture struct {
+type DeleteTransitGatewayVpcAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayVpcAttachmentOutput, error) {
+func (r *DeleteTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.DeleteTransitGatewayVpcAttachmentOutput, error) {
 	var output ec2.DeleteTransitGatewayVpcAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVolumeFuture struct {
+type DeleteVolumeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVolumeFuture) Get(ctx workflow.Context) (*ec2.DeleteVolumeOutput, error) {
+func (r *DeleteVolumeFuture) Get(ctx workflow.Context) (*ec2.DeleteVolumeOutput, error) {
 	var output ec2.DeleteVolumeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVpcFuture struct {
+type DeleteVpcFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVpcFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcOutput, error) {
+func (r *DeleteVpcFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcOutput, error) {
 	var output ec2.DeleteVpcOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVpcEndpointConnectionNotificationsFuture struct {
+type DeleteVpcEndpointConnectionNotificationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVpcEndpointConnectionNotificationsFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcEndpointConnectionNotificationsOutput, error) {
+func (r *DeleteVpcEndpointConnectionNotificationsFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcEndpointConnectionNotificationsOutput, error) {
 	var output ec2.DeleteVpcEndpointConnectionNotificationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVpcEndpointServiceConfigurationsFuture struct {
+type DeleteVpcEndpointServiceConfigurationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVpcEndpointServiceConfigurationsFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcEndpointServiceConfigurationsOutput, error) {
+func (r *DeleteVpcEndpointServiceConfigurationsFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcEndpointServiceConfigurationsOutput, error) {
 	var output ec2.DeleteVpcEndpointServiceConfigurationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVpcEndpointsFuture struct {
+type DeleteVpcEndpointsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVpcEndpointsFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcEndpointsOutput, error) {
+func (r *DeleteVpcEndpointsFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcEndpointsOutput, error) {
 	var output ec2.DeleteVpcEndpointsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVpcPeeringConnectionFuture struct {
+type DeleteVpcPeeringConnectionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVpcPeeringConnectionFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcPeeringConnectionOutput, error) {
+func (r *DeleteVpcPeeringConnectionFuture) Get(ctx workflow.Context) (*ec2.DeleteVpcPeeringConnectionOutput, error) {
 	var output ec2.DeleteVpcPeeringConnectionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVpnConnectionFuture struct {
+type DeleteVpnConnectionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVpnConnectionFuture) Get(ctx workflow.Context) (*ec2.DeleteVpnConnectionOutput, error) {
+func (r *DeleteVpnConnectionFuture) Get(ctx workflow.Context) (*ec2.DeleteVpnConnectionOutput, error) {
 	var output ec2.DeleteVpnConnectionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVpnConnectionRouteFuture struct {
+type DeleteVpnConnectionRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVpnConnectionRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteVpnConnectionRouteOutput, error) {
+func (r *DeleteVpnConnectionRouteFuture) Get(ctx workflow.Context) (*ec2.DeleteVpnConnectionRouteOutput, error) {
 	var output ec2.DeleteVpnConnectionRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeleteVpnGatewayFuture struct {
+type DeleteVpnGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeleteVpnGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteVpnGatewayOutput, error) {
+func (r *DeleteVpnGatewayFuture) Get(ctx workflow.Context) (*ec2.DeleteVpnGatewayOutput, error) {
 	var output ec2.DeleteVpnGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeprovisionByoipCidrFuture struct {
+type DeprovisionByoipCidrFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeprovisionByoipCidrFuture) Get(ctx workflow.Context) (*ec2.DeprovisionByoipCidrOutput, error) {
+func (r *DeprovisionByoipCidrFuture) Get(ctx workflow.Context) (*ec2.DeprovisionByoipCidrOutput, error) {
 	var output ec2.DeprovisionByoipCidrOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeregisterImageFuture struct {
+type DeregisterImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeregisterImageFuture) Get(ctx workflow.Context) (*ec2.DeregisterImageOutput, error) {
+func (r *DeregisterImageFuture) Get(ctx workflow.Context) (*ec2.DeregisterImageOutput, error) {
 	var output ec2.DeregisterImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeregisterInstanceEventNotificationAttributesFuture struct {
+type DeregisterInstanceEventNotificationAttributesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeregisterInstanceEventNotificationAttributesFuture) Get(ctx workflow.Context) (*ec2.DeregisterInstanceEventNotificationAttributesOutput, error) {
+func (r *DeregisterInstanceEventNotificationAttributesFuture) Get(ctx workflow.Context) (*ec2.DeregisterInstanceEventNotificationAttributesOutput, error) {
 	var output ec2.DeregisterInstanceEventNotificationAttributesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeregisterTransitGatewayMulticastGroupMembersFuture struct {
+type DeregisterTransitGatewayMulticastGroupMembersFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeregisterTransitGatewayMulticastGroupMembersFuture) Get(ctx workflow.Context) (*ec2.DeregisterTransitGatewayMulticastGroupMembersOutput, error) {
+func (r *DeregisterTransitGatewayMulticastGroupMembersFuture) Get(ctx workflow.Context) (*ec2.DeregisterTransitGatewayMulticastGroupMembersOutput, error) {
 	var output ec2.DeregisterTransitGatewayMulticastGroupMembersOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DeregisterTransitGatewayMulticastGroupSourcesFuture struct {
+type DeregisterTransitGatewayMulticastGroupSourcesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DeregisterTransitGatewayMulticastGroupSourcesFuture) Get(ctx workflow.Context) (*ec2.DeregisterTransitGatewayMulticastGroupSourcesOutput, error) {
+func (r *DeregisterTransitGatewayMulticastGroupSourcesFuture) Get(ctx workflow.Context) (*ec2.DeregisterTransitGatewayMulticastGroupSourcesOutput, error) {
 	var output ec2.DeregisterTransitGatewayMulticastGroupSourcesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeAccountAttributesFuture struct {
+type DescribeAccountAttributesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeAccountAttributesFuture) Get(ctx workflow.Context) (*ec2.DescribeAccountAttributesOutput, error) {
+func (r *DescribeAccountAttributesFuture) Get(ctx workflow.Context) (*ec2.DescribeAccountAttributesOutput, error) {
 	var output ec2.DescribeAccountAttributesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeAddressesFuture struct {
+type DescribeAddressesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeAddressesFuture) Get(ctx workflow.Context) (*ec2.DescribeAddressesOutput, error) {
+func (r *DescribeAddressesFuture) Get(ctx workflow.Context) (*ec2.DescribeAddressesOutput, error) {
 	var output ec2.DescribeAddressesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeAggregateIdFormatFuture struct {
+type DescribeAggregateIdFormatFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeAggregateIdFormatFuture) Get(ctx workflow.Context) (*ec2.DescribeAggregateIdFormatOutput, error) {
+func (r *DescribeAggregateIdFormatFuture) Get(ctx workflow.Context) (*ec2.DescribeAggregateIdFormatOutput, error) {
 	var output ec2.DescribeAggregateIdFormatOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeAvailabilityZonesFuture struct {
+type DescribeAvailabilityZonesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeAvailabilityZonesFuture) Get(ctx workflow.Context) (*ec2.DescribeAvailabilityZonesOutput, error) {
+func (r *DescribeAvailabilityZonesFuture) Get(ctx workflow.Context) (*ec2.DescribeAvailabilityZonesOutput, error) {
 	var output ec2.DescribeAvailabilityZonesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeBundleTasksFuture struct {
+type DescribeBundleTasksFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeBundleTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeBundleTasksOutput, error) {
+func (r *DescribeBundleTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeBundleTasksOutput, error) {
 	var output ec2.DescribeBundleTasksOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeByoipCidrsFuture struct {
+type DescribeByoipCidrsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeByoipCidrsFuture) Get(ctx workflow.Context) (*ec2.DescribeByoipCidrsOutput, error) {
+func (r *DescribeByoipCidrsFuture) Get(ctx workflow.Context) (*ec2.DescribeByoipCidrsOutput, error) {
 	var output ec2.DescribeByoipCidrsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeCapacityReservationsFuture struct {
+type DescribeCapacityReservationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeCapacityReservationsFuture) Get(ctx workflow.Context) (*ec2.DescribeCapacityReservationsOutput, error) {
+func (r *DescribeCapacityReservationsFuture) Get(ctx workflow.Context) (*ec2.DescribeCapacityReservationsOutput, error) {
 	var output ec2.DescribeCapacityReservationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeCarrierGatewaysFuture struct {
+type DescribeCarrierGatewaysFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeCarrierGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeCarrierGatewaysOutput, error) {
+func (r *DescribeCarrierGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeCarrierGatewaysOutput, error) {
 	var output ec2.DescribeCarrierGatewaysOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeClassicLinkInstancesFuture struct {
+type DescribeClassicLinkInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeClassicLinkInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeClassicLinkInstancesOutput, error) {
+func (r *DescribeClassicLinkInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeClassicLinkInstancesOutput, error) {
 	var output ec2.DescribeClassicLinkInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeClientVpnAuthorizationRulesFuture struct {
+type DescribeClientVpnAuthorizationRulesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeClientVpnAuthorizationRulesFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnAuthorizationRulesOutput, error) {
+func (r *DescribeClientVpnAuthorizationRulesFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnAuthorizationRulesOutput, error) {
 	var output ec2.DescribeClientVpnAuthorizationRulesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeClientVpnConnectionsFuture struct {
+type DescribeClientVpnConnectionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeClientVpnConnectionsFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnConnectionsOutput, error) {
+func (r *DescribeClientVpnConnectionsFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnConnectionsOutput, error) {
 	var output ec2.DescribeClientVpnConnectionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeClientVpnEndpointsFuture struct {
+type DescribeClientVpnEndpointsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeClientVpnEndpointsFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnEndpointsOutput, error) {
+func (r *DescribeClientVpnEndpointsFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnEndpointsOutput, error) {
 	var output ec2.DescribeClientVpnEndpointsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeClientVpnRoutesFuture struct {
+type DescribeClientVpnRoutesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeClientVpnRoutesFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnRoutesOutput, error) {
+func (r *DescribeClientVpnRoutesFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnRoutesOutput, error) {
 	var output ec2.DescribeClientVpnRoutesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeClientVpnTargetNetworksFuture struct {
+type DescribeClientVpnTargetNetworksFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeClientVpnTargetNetworksFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnTargetNetworksOutput, error) {
+func (r *DescribeClientVpnTargetNetworksFuture) Get(ctx workflow.Context) (*ec2.DescribeClientVpnTargetNetworksOutput, error) {
 	var output ec2.DescribeClientVpnTargetNetworksOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeCoipPoolsFuture struct {
+type DescribeCoipPoolsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeCoipPoolsFuture) Get(ctx workflow.Context) (*ec2.DescribeCoipPoolsOutput, error) {
+func (r *DescribeCoipPoolsFuture) Get(ctx workflow.Context) (*ec2.DescribeCoipPoolsOutput, error) {
 	var output ec2.DescribeCoipPoolsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeConversionTasksFuture struct {
+type DescribeConversionTasksFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeConversionTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeConversionTasksOutput, error) {
+func (r *DescribeConversionTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeConversionTasksOutput, error) {
 	var output ec2.DescribeConversionTasksOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeCustomerGatewaysFuture struct {
+type DescribeCustomerGatewaysFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeCustomerGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeCustomerGatewaysOutput, error) {
+func (r *DescribeCustomerGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeCustomerGatewaysOutput, error) {
 	var output ec2.DescribeCustomerGatewaysOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeDhcpOptionsFuture struct {
+type DescribeDhcpOptionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeDhcpOptionsFuture) Get(ctx workflow.Context) (*ec2.DescribeDhcpOptionsOutput, error) {
+func (r *DescribeDhcpOptionsFuture) Get(ctx workflow.Context) (*ec2.DescribeDhcpOptionsOutput, error) {
 	var output ec2.DescribeDhcpOptionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeEgressOnlyInternetGatewaysFuture struct {
+type DescribeEgressOnlyInternetGatewaysFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeEgressOnlyInternetGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeEgressOnlyInternetGatewaysOutput, error) {
+func (r *DescribeEgressOnlyInternetGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeEgressOnlyInternetGatewaysOutput, error) {
 	var output ec2.DescribeEgressOnlyInternetGatewaysOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeElasticGpusFuture struct {
+type DescribeElasticGpusFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeElasticGpusFuture) Get(ctx workflow.Context) (*ec2.DescribeElasticGpusOutput, error) {
+func (r *DescribeElasticGpusFuture) Get(ctx workflow.Context) (*ec2.DescribeElasticGpusOutput, error) {
 	var output ec2.DescribeElasticGpusOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeExportImageTasksFuture struct {
+type DescribeExportImageTasksFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeExportImageTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeExportImageTasksOutput, error) {
+func (r *DescribeExportImageTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeExportImageTasksOutput, error) {
 	var output ec2.DescribeExportImageTasksOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeExportTasksFuture struct {
+type DescribeExportTasksFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeExportTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeExportTasksOutput, error) {
+func (r *DescribeExportTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeExportTasksOutput, error) {
 	var output ec2.DescribeExportTasksOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeFastSnapshotRestoresFuture struct {
+type DescribeFastSnapshotRestoresFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeFastSnapshotRestoresFuture) Get(ctx workflow.Context) (*ec2.DescribeFastSnapshotRestoresOutput, error) {
+func (r *DescribeFastSnapshotRestoresFuture) Get(ctx workflow.Context) (*ec2.DescribeFastSnapshotRestoresOutput, error) {
 	var output ec2.DescribeFastSnapshotRestoresOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeFleetHistoryFuture struct {
+type DescribeFleetHistoryFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeFleetHistoryFuture) Get(ctx workflow.Context) (*ec2.DescribeFleetHistoryOutput, error) {
+func (r *DescribeFleetHistoryFuture) Get(ctx workflow.Context) (*ec2.DescribeFleetHistoryOutput, error) {
 	var output ec2.DescribeFleetHistoryOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeFleetInstancesFuture struct {
+type DescribeFleetInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeFleetInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeFleetInstancesOutput, error) {
+func (r *DescribeFleetInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeFleetInstancesOutput, error) {
 	var output ec2.DescribeFleetInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeFleetsFuture struct {
+type DescribeFleetsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeFleetsFuture) Get(ctx workflow.Context) (*ec2.DescribeFleetsOutput, error) {
+func (r *DescribeFleetsFuture) Get(ctx workflow.Context) (*ec2.DescribeFleetsOutput, error) {
 	var output ec2.DescribeFleetsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeFlowLogsFuture struct {
+type DescribeFlowLogsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeFlowLogsFuture) Get(ctx workflow.Context) (*ec2.DescribeFlowLogsOutput, error) {
+func (r *DescribeFlowLogsFuture) Get(ctx workflow.Context) (*ec2.DescribeFlowLogsOutput, error) {
 	var output ec2.DescribeFlowLogsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeFpgaImageAttributeFuture struct {
+type DescribeFpgaImageAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeFpgaImageAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeFpgaImageAttributeOutput, error) {
+func (r *DescribeFpgaImageAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeFpgaImageAttributeOutput, error) {
 	var output ec2.DescribeFpgaImageAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeFpgaImagesFuture struct {
+type DescribeFpgaImagesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeFpgaImagesFuture) Get(ctx workflow.Context) (*ec2.DescribeFpgaImagesOutput, error) {
+func (r *DescribeFpgaImagesFuture) Get(ctx workflow.Context) (*ec2.DescribeFpgaImagesOutput, error) {
 	var output ec2.DescribeFpgaImagesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeHostReservationOfferingsFuture struct {
+type DescribeHostReservationOfferingsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeHostReservationOfferingsFuture) Get(ctx workflow.Context) (*ec2.DescribeHostReservationOfferingsOutput, error) {
+func (r *DescribeHostReservationOfferingsFuture) Get(ctx workflow.Context) (*ec2.DescribeHostReservationOfferingsOutput, error) {
 	var output ec2.DescribeHostReservationOfferingsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeHostReservationsFuture struct {
+type DescribeHostReservationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeHostReservationsFuture) Get(ctx workflow.Context) (*ec2.DescribeHostReservationsOutput, error) {
+func (r *DescribeHostReservationsFuture) Get(ctx workflow.Context) (*ec2.DescribeHostReservationsOutput, error) {
 	var output ec2.DescribeHostReservationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeHostsFuture struct {
+type DescribeHostsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeHostsFuture) Get(ctx workflow.Context) (*ec2.DescribeHostsOutput, error) {
+func (r *DescribeHostsFuture) Get(ctx workflow.Context) (*ec2.DescribeHostsOutput, error) {
 	var output ec2.DescribeHostsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeIamInstanceProfileAssociationsFuture struct {
+type DescribeIamInstanceProfileAssociationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeIamInstanceProfileAssociationsFuture) Get(ctx workflow.Context) (*ec2.DescribeIamInstanceProfileAssociationsOutput, error) {
+func (r *DescribeIamInstanceProfileAssociationsFuture) Get(ctx workflow.Context) (*ec2.DescribeIamInstanceProfileAssociationsOutput, error) {
 	var output ec2.DescribeIamInstanceProfileAssociationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeIdFormatFuture struct {
+type DescribeIdFormatFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeIdFormatFuture) Get(ctx workflow.Context) (*ec2.DescribeIdFormatOutput, error) {
+func (r *DescribeIdFormatFuture) Get(ctx workflow.Context) (*ec2.DescribeIdFormatOutput, error) {
 	var output ec2.DescribeIdFormatOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeIdentityIdFormatFuture struct {
+type DescribeIdentityIdFormatFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeIdentityIdFormatFuture) Get(ctx workflow.Context) (*ec2.DescribeIdentityIdFormatOutput, error) {
+func (r *DescribeIdentityIdFormatFuture) Get(ctx workflow.Context) (*ec2.DescribeIdentityIdFormatOutput, error) {
 	var output ec2.DescribeIdentityIdFormatOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeImageAttributeFuture struct {
+type DescribeImageAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeImageAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeImageAttributeOutput, error) {
+func (r *DescribeImageAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeImageAttributeOutput, error) {
 	var output ec2.DescribeImageAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeImagesFuture struct {
+type DescribeImagesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeImagesFuture) Get(ctx workflow.Context) (*ec2.DescribeImagesOutput, error) {
+func (r *DescribeImagesFuture) Get(ctx workflow.Context) (*ec2.DescribeImagesOutput, error) {
 	var output ec2.DescribeImagesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeImportImageTasksFuture struct {
+type DescribeImportImageTasksFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeImportImageTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeImportImageTasksOutput, error) {
+func (r *DescribeImportImageTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeImportImageTasksOutput, error) {
 	var output ec2.DescribeImportImageTasksOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeImportSnapshotTasksFuture struct {
+type DescribeImportSnapshotTasksFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeImportSnapshotTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeImportSnapshotTasksOutput, error) {
+func (r *DescribeImportSnapshotTasksFuture) Get(ctx workflow.Context) (*ec2.DescribeImportSnapshotTasksOutput, error) {
 	var output ec2.DescribeImportSnapshotTasksOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeInstanceAttributeFuture struct {
+type DescribeInstanceAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeInstanceAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceAttributeOutput, error) {
+func (r *DescribeInstanceAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceAttributeOutput, error) {
 	var output ec2.DescribeInstanceAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeInstanceCreditSpecificationsFuture struct {
+type DescribeInstanceCreditSpecificationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeInstanceCreditSpecificationsFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceCreditSpecificationsOutput, error) {
+func (r *DescribeInstanceCreditSpecificationsFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceCreditSpecificationsOutput, error) {
 	var output ec2.DescribeInstanceCreditSpecificationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeInstanceEventNotificationAttributesFuture struct {
+type DescribeInstanceEventNotificationAttributesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeInstanceEventNotificationAttributesFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceEventNotificationAttributesOutput, error) {
+func (r *DescribeInstanceEventNotificationAttributesFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceEventNotificationAttributesOutput, error) {
 	var output ec2.DescribeInstanceEventNotificationAttributesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeInstanceStatusFuture struct {
+type DescribeInstanceStatusFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeInstanceStatusFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceStatusOutput, error) {
+func (r *DescribeInstanceStatusFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceStatusOutput, error) {
 	var output ec2.DescribeInstanceStatusOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeInstanceTypeOfferingsFuture struct {
+type DescribeInstanceTypeOfferingsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeInstanceTypeOfferingsFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceTypeOfferingsOutput, error) {
+func (r *DescribeInstanceTypeOfferingsFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceTypeOfferingsOutput, error) {
 	var output ec2.DescribeInstanceTypeOfferingsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeInstanceTypesFuture struct {
+type DescribeInstanceTypesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeInstanceTypesFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceTypesOutput, error) {
+func (r *DescribeInstanceTypesFuture) Get(ctx workflow.Context) (*ec2.DescribeInstanceTypesOutput, error) {
 	var output ec2.DescribeInstanceTypesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeInstancesFuture struct {
+type DescribeInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeInstancesOutput, error) {
+func (r *DescribeInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeInstancesOutput, error) {
 	var output ec2.DescribeInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeInternetGatewaysFuture struct {
+type DescribeInternetGatewaysFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeInternetGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeInternetGatewaysOutput, error) {
+func (r *DescribeInternetGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeInternetGatewaysOutput, error) {
 	var output ec2.DescribeInternetGatewaysOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeIpv6PoolsFuture struct {
+type DescribeIpv6PoolsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeIpv6PoolsFuture) Get(ctx workflow.Context) (*ec2.DescribeIpv6PoolsOutput, error) {
+func (r *DescribeIpv6PoolsFuture) Get(ctx workflow.Context) (*ec2.DescribeIpv6PoolsOutput, error) {
 	var output ec2.DescribeIpv6PoolsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeKeyPairsFuture struct {
+type DescribeKeyPairsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeKeyPairsFuture) Get(ctx workflow.Context) (*ec2.DescribeKeyPairsOutput, error) {
+func (r *DescribeKeyPairsFuture) Get(ctx workflow.Context) (*ec2.DescribeKeyPairsOutput, error) {
 	var output ec2.DescribeKeyPairsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeLaunchTemplateVersionsFuture struct {
+type DescribeLaunchTemplateVersionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeLaunchTemplateVersionsFuture) Get(ctx workflow.Context) (*ec2.DescribeLaunchTemplateVersionsOutput, error) {
+func (r *DescribeLaunchTemplateVersionsFuture) Get(ctx workflow.Context) (*ec2.DescribeLaunchTemplateVersionsOutput, error) {
 	var output ec2.DescribeLaunchTemplateVersionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeLaunchTemplatesFuture struct {
+type DescribeLaunchTemplatesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeLaunchTemplatesFuture) Get(ctx workflow.Context) (*ec2.DescribeLaunchTemplatesOutput, error) {
+func (r *DescribeLaunchTemplatesFuture) Get(ctx workflow.Context) (*ec2.DescribeLaunchTemplatesOutput, error) {
 	var output ec2.DescribeLaunchTemplatesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture struct {
+type DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, error) {
+func (r *DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, error) {
 	var output ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture struct {
+type DescribeLocalGatewayRouteTableVpcAssociationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, error) {
+func (r *DescribeLocalGatewayRouteTableVpcAssociationsFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, error) {
 	var output ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeLocalGatewayRouteTablesFuture struct {
+type DescribeLocalGatewayRouteTablesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeLocalGatewayRouteTablesFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayRouteTablesOutput, error) {
+func (r *DescribeLocalGatewayRouteTablesFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayRouteTablesOutput, error) {
 	var output ec2.DescribeLocalGatewayRouteTablesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture struct {
+type DescribeLocalGatewayVirtualInterfaceGroupsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, error) {
+func (r *DescribeLocalGatewayVirtualInterfaceGroupsFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, error) {
 	var output ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeLocalGatewayVirtualInterfacesFuture struct {
+type DescribeLocalGatewayVirtualInterfacesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeLocalGatewayVirtualInterfacesFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayVirtualInterfacesOutput, error) {
+func (r *DescribeLocalGatewayVirtualInterfacesFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewayVirtualInterfacesOutput, error) {
 	var output ec2.DescribeLocalGatewayVirtualInterfacesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeLocalGatewaysFuture struct {
+type DescribeLocalGatewaysFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeLocalGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewaysOutput, error) {
+func (r *DescribeLocalGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeLocalGatewaysOutput, error) {
 	var output ec2.DescribeLocalGatewaysOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeManagedPrefixListsFuture struct {
+type DescribeManagedPrefixListsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeManagedPrefixListsFuture) Get(ctx workflow.Context) (*ec2.DescribeManagedPrefixListsOutput, error) {
+func (r *DescribeManagedPrefixListsFuture) Get(ctx workflow.Context) (*ec2.DescribeManagedPrefixListsOutput, error) {
 	var output ec2.DescribeManagedPrefixListsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeMovingAddressesFuture struct {
+type DescribeMovingAddressesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeMovingAddressesFuture) Get(ctx workflow.Context) (*ec2.DescribeMovingAddressesOutput, error) {
+func (r *DescribeMovingAddressesFuture) Get(ctx workflow.Context) (*ec2.DescribeMovingAddressesOutput, error) {
 	var output ec2.DescribeMovingAddressesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeNatGatewaysFuture struct {
+type DescribeNatGatewaysFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeNatGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeNatGatewaysOutput, error) {
+func (r *DescribeNatGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeNatGatewaysOutput, error) {
 	var output ec2.DescribeNatGatewaysOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeNetworkAclsFuture struct {
+type DescribeNetworkAclsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeNetworkAclsFuture) Get(ctx workflow.Context) (*ec2.DescribeNetworkAclsOutput, error) {
+func (r *DescribeNetworkAclsFuture) Get(ctx workflow.Context) (*ec2.DescribeNetworkAclsOutput, error) {
 	var output ec2.DescribeNetworkAclsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeNetworkInterfaceAttributeFuture struct {
+type DescribeNetworkInterfaceAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeNetworkInterfaceAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeNetworkInterfaceAttributeOutput, error) {
+func (r *DescribeNetworkInterfaceAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeNetworkInterfaceAttributeOutput, error) {
 	var output ec2.DescribeNetworkInterfaceAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeNetworkInterfacePermissionsFuture struct {
+type DescribeNetworkInterfacePermissionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeNetworkInterfacePermissionsFuture) Get(ctx workflow.Context) (*ec2.DescribeNetworkInterfacePermissionsOutput, error) {
+func (r *DescribeNetworkInterfacePermissionsFuture) Get(ctx workflow.Context) (*ec2.DescribeNetworkInterfacePermissionsOutput, error) {
 	var output ec2.DescribeNetworkInterfacePermissionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeNetworkInterfacesFuture struct {
+type DescribeNetworkInterfacesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeNetworkInterfacesFuture) Get(ctx workflow.Context) (*ec2.DescribeNetworkInterfacesOutput, error) {
+func (r *DescribeNetworkInterfacesFuture) Get(ctx workflow.Context) (*ec2.DescribeNetworkInterfacesOutput, error) {
 	var output ec2.DescribeNetworkInterfacesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribePlacementGroupsFuture struct {
+type DescribePlacementGroupsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribePlacementGroupsFuture) Get(ctx workflow.Context) (*ec2.DescribePlacementGroupsOutput, error) {
+func (r *DescribePlacementGroupsFuture) Get(ctx workflow.Context) (*ec2.DescribePlacementGroupsOutput, error) {
 	var output ec2.DescribePlacementGroupsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribePrefixListsFuture struct {
+type DescribePrefixListsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribePrefixListsFuture) Get(ctx workflow.Context) (*ec2.DescribePrefixListsOutput, error) {
+func (r *DescribePrefixListsFuture) Get(ctx workflow.Context) (*ec2.DescribePrefixListsOutput, error) {
 	var output ec2.DescribePrefixListsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribePrincipalIdFormatFuture struct {
+type DescribePrincipalIdFormatFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribePrincipalIdFormatFuture) Get(ctx workflow.Context) (*ec2.DescribePrincipalIdFormatOutput, error) {
+func (r *DescribePrincipalIdFormatFuture) Get(ctx workflow.Context) (*ec2.DescribePrincipalIdFormatOutput, error) {
 	var output ec2.DescribePrincipalIdFormatOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribePublicIpv4PoolsFuture struct {
+type DescribePublicIpv4PoolsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribePublicIpv4PoolsFuture) Get(ctx workflow.Context) (*ec2.DescribePublicIpv4PoolsOutput, error) {
+func (r *DescribePublicIpv4PoolsFuture) Get(ctx workflow.Context) (*ec2.DescribePublicIpv4PoolsOutput, error) {
 	var output ec2.DescribePublicIpv4PoolsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeRegionsFuture struct {
+type DescribeRegionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeRegionsFuture) Get(ctx workflow.Context) (*ec2.DescribeRegionsOutput, error) {
+func (r *DescribeRegionsFuture) Get(ctx workflow.Context) (*ec2.DescribeRegionsOutput, error) {
 	var output ec2.DescribeRegionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeReservedInstancesFuture struct {
+type DescribeReservedInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeReservedInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeReservedInstancesOutput, error) {
+func (r *DescribeReservedInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeReservedInstancesOutput, error) {
 	var output ec2.DescribeReservedInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeReservedInstancesListingsFuture struct {
+type DescribeReservedInstancesListingsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeReservedInstancesListingsFuture) Get(ctx workflow.Context) (*ec2.DescribeReservedInstancesListingsOutput, error) {
+func (r *DescribeReservedInstancesListingsFuture) Get(ctx workflow.Context) (*ec2.DescribeReservedInstancesListingsOutput, error) {
 	var output ec2.DescribeReservedInstancesListingsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeReservedInstancesModificationsFuture struct {
+type DescribeReservedInstancesModificationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeReservedInstancesModificationsFuture) Get(ctx workflow.Context) (*ec2.DescribeReservedInstancesModificationsOutput, error) {
+func (r *DescribeReservedInstancesModificationsFuture) Get(ctx workflow.Context) (*ec2.DescribeReservedInstancesModificationsOutput, error) {
 	var output ec2.DescribeReservedInstancesModificationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeReservedInstancesOfferingsFuture struct {
+type DescribeReservedInstancesOfferingsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeReservedInstancesOfferingsFuture) Get(ctx workflow.Context) (*ec2.DescribeReservedInstancesOfferingsOutput, error) {
+func (r *DescribeReservedInstancesOfferingsFuture) Get(ctx workflow.Context) (*ec2.DescribeReservedInstancesOfferingsOutput, error) {
 	var output ec2.DescribeReservedInstancesOfferingsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeRouteTablesFuture struct {
+type DescribeRouteTablesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeRouteTablesFuture) Get(ctx workflow.Context) (*ec2.DescribeRouteTablesOutput, error) {
+func (r *DescribeRouteTablesFuture) Get(ctx workflow.Context) (*ec2.DescribeRouteTablesOutput, error) {
 	var output ec2.DescribeRouteTablesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeScheduledInstanceAvailabilityFuture struct {
+type DescribeScheduledInstanceAvailabilityFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeScheduledInstanceAvailabilityFuture) Get(ctx workflow.Context) (*ec2.DescribeScheduledInstanceAvailabilityOutput, error) {
+func (r *DescribeScheduledInstanceAvailabilityFuture) Get(ctx workflow.Context) (*ec2.DescribeScheduledInstanceAvailabilityOutput, error) {
 	var output ec2.DescribeScheduledInstanceAvailabilityOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeScheduledInstancesFuture struct {
+type DescribeScheduledInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeScheduledInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeScheduledInstancesOutput, error) {
+func (r *DescribeScheduledInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeScheduledInstancesOutput, error) {
 	var output ec2.DescribeScheduledInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSecurityGroupReferencesFuture struct {
+type DescribeSecurityGroupReferencesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSecurityGroupReferencesFuture) Get(ctx workflow.Context) (*ec2.DescribeSecurityGroupReferencesOutput, error) {
+func (r *DescribeSecurityGroupReferencesFuture) Get(ctx workflow.Context) (*ec2.DescribeSecurityGroupReferencesOutput, error) {
 	var output ec2.DescribeSecurityGroupReferencesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSecurityGroupsFuture struct {
+type DescribeSecurityGroupsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSecurityGroupsFuture) Get(ctx workflow.Context) (*ec2.DescribeSecurityGroupsOutput, error) {
+func (r *DescribeSecurityGroupsFuture) Get(ctx workflow.Context) (*ec2.DescribeSecurityGroupsOutput, error) {
 	var output ec2.DescribeSecurityGroupsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSnapshotAttributeFuture struct {
+type DescribeSnapshotAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSnapshotAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeSnapshotAttributeOutput, error) {
+func (r *DescribeSnapshotAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeSnapshotAttributeOutput, error) {
 	var output ec2.DescribeSnapshotAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSnapshotsFuture struct {
+type DescribeSnapshotsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSnapshotsFuture) Get(ctx workflow.Context) (*ec2.DescribeSnapshotsOutput, error) {
+func (r *DescribeSnapshotsFuture) Get(ctx workflow.Context) (*ec2.DescribeSnapshotsOutput, error) {
 	var output ec2.DescribeSnapshotsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSpotDatafeedSubscriptionFuture struct {
+type DescribeSpotDatafeedSubscriptionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSpotDatafeedSubscriptionFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotDatafeedSubscriptionOutput, error) {
+func (r *DescribeSpotDatafeedSubscriptionFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotDatafeedSubscriptionOutput, error) {
 	var output ec2.DescribeSpotDatafeedSubscriptionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSpotFleetInstancesFuture struct {
+type DescribeSpotFleetInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSpotFleetInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotFleetInstancesOutput, error) {
+func (r *DescribeSpotFleetInstancesFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotFleetInstancesOutput, error) {
 	var output ec2.DescribeSpotFleetInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSpotFleetRequestHistoryFuture struct {
+type DescribeSpotFleetRequestHistoryFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSpotFleetRequestHistoryFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotFleetRequestHistoryOutput, error) {
+func (r *DescribeSpotFleetRequestHistoryFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotFleetRequestHistoryOutput, error) {
 	var output ec2.DescribeSpotFleetRequestHistoryOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSpotFleetRequestsFuture struct {
+type DescribeSpotFleetRequestsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSpotFleetRequestsFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotFleetRequestsOutput, error) {
+func (r *DescribeSpotFleetRequestsFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotFleetRequestsOutput, error) {
 	var output ec2.DescribeSpotFleetRequestsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSpotInstanceRequestsFuture struct {
+type DescribeSpotInstanceRequestsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSpotInstanceRequestsFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotInstanceRequestsOutput, error) {
+func (r *DescribeSpotInstanceRequestsFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotInstanceRequestsOutput, error) {
 	var output ec2.DescribeSpotInstanceRequestsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSpotPriceHistoryFuture struct {
+type DescribeSpotPriceHistoryFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSpotPriceHistoryFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotPriceHistoryOutput, error) {
+func (r *DescribeSpotPriceHistoryFuture) Get(ctx workflow.Context) (*ec2.DescribeSpotPriceHistoryOutput, error) {
 	var output ec2.DescribeSpotPriceHistoryOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeStaleSecurityGroupsFuture struct {
+type DescribeStaleSecurityGroupsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeStaleSecurityGroupsFuture) Get(ctx workflow.Context) (*ec2.DescribeStaleSecurityGroupsOutput, error) {
+func (r *DescribeStaleSecurityGroupsFuture) Get(ctx workflow.Context) (*ec2.DescribeStaleSecurityGroupsOutput, error) {
 	var output ec2.DescribeStaleSecurityGroupsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeSubnetsFuture struct {
+type DescribeSubnetsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeSubnetsFuture) Get(ctx workflow.Context) (*ec2.DescribeSubnetsOutput, error) {
+func (r *DescribeSubnetsFuture) Get(ctx workflow.Context) (*ec2.DescribeSubnetsOutput, error) {
 	var output ec2.DescribeSubnetsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTagsFuture struct {
+type DescribeTagsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTagsFuture) Get(ctx workflow.Context) (*ec2.DescribeTagsOutput, error) {
+func (r *DescribeTagsFuture) Get(ctx workflow.Context) (*ec2.DescribeTagsOutput, error) {
 	var output ec2.DescribeTagsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTrafficMirrorFiltersFuture struct {
+type DescribeTrafficMirrorFiltersFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTrafficMirrorFiltersFuture) Get(ctx workflow.Context) (*ec2.DescribeTrafficMirrorFiltersOutput, error) {
+func (r *DescribeTrafficMirrorFiltersFuture) Get(ctx workflow.Context) (*ec2.DescribeTrafficMirrorFiltersOutput, error) {
 	var output ec2.DescribeTrafficMirrorFiltersOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTrafficMirrorSessionsFuture struct {
+type DescribeTrafficMirrorSessionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTrafficMirrorSessionsFuture) Get(ctx workflow.Context) (*ec2.DescribeTrafficMirrorSessionsOutput, error) {
+func (r *DescribeTrafficMirrorSessionsFuture) Get(ctx workflow.Context) (*ec2.DescribeTrafficMirrorSessionsOutput, error) {
 	var output ec2.DescribeTrafficMirrorSessionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTrafficMirrorTargetsFuture struct {
+type DescribeTrafficMirrorTargetsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTrafficMirrorTargetsFuture) Get(ctx workflow.Context) (*ec2.DescribeTrafficMirrorTargetsOutput, error) {
+func (r *DescribeTrafficMirrorTargetsFuture) Get(ctx workflow.Context) (*ec2.DescribeTrafficMirrorTargetsOutput, error) {
 	var output ec2.DescribeTrafficMirrorTargetsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTransitGatewayAttachmentsFuture struct {
+type DescribeTransitGatewayAttachmentsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTransitGatewayAttachmentsFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayAttachmentsOutput, error) {
+func (r *DescribeTransitGatewayAttachmentsFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayAttachmentsOutput, error) {
 	var output ec2.DescribeTransitGatewayAttachmentsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTransitGatewayMulticastDomainsFuture struct {
+type DescribeTransitGatewayMulticastDomainsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTransitGatewayMulticastDomainsFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayMulticastDomainsOutput, error) {
+func (r *DescribeTransitGatewayMulticastDomainsFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayMulticastDomainsOutput, error) {
 	var output ec2.DescribeTransitGatewayMulticastDomainsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTransitGatewayPeeringAttachmentsFuture struct {
+type DescribeTransitGatewayPeeringAttachmentsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTransitGatewayPeeringAttachmentsFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, error) {
+func (r *DescribeTransitGatewayPeeringAttachmentsFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, error) {
 	var output ec2.DescribeTransitGatewayPeeringAttachmentsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTransitGatewayRouteTablesFuture struct {
+type DescribeTransitGatewayRouteTablesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTransitGatewayRouteTablesFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayRouteTablesOutput, error) {
+func (r *DescribeTransitGatewayRouteTablesFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayRouteTablesOutput, error) {
 	var output ec2.DescribeTransitGatewayRouteTablesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTransitGatewayVpcAttachmentsFuture struct {
+type DescribeTransitGatewayVpcAttachmentsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTransitGatewayVpcAttachmentsFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayVpcAttachmentsOutput, error) {
+func (r *DescribeTransitGatewayVpcAttachmentsFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewayVpcAttachmentsOutput, error) {
 	var output ec2.DescribeTransitGatewayVpcAttachmentsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeTransitGatewaysFuture struct {
+type DescribeTransitGatewaysFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeTransitGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewaysOutput, error) {
+func (r *DescribeTransitGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeTransitGatewaysOutput, error) {
 	var output ec2.DescribeTransitGatewaysOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVolumeAttributeFuture struct {
+type DescribeVolumeAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVolumeAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeVolumeAttributeOutput, error) {
+func (r *DescribeVolumeAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeVolumeAttributeOutput, error) {
 	var output ec2.DescribeVolumeAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVolumeStatusFuture struct {
+type DescribeVolumeStatusFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVolumeStatusFuture) Get(ctx workflow.Context) (*ec2.DescribeVolumeStatusOutput, error) {
+func (r *DescribeVolumeStatusFuture) Get(ctx workflow.Context) (*ec2.DescribeVolumeStatusOutput, error) {
 	var output ec2.DescribeVolumeStatusOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVolumesFuture struct {
+type DescribeVolumesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVolumesFuture) Get(ctx workflow.Context) (*ec2.DescribeVolumesOutput, error) {
+func (r *DescribeVolumesFuture) Get(ctx workflow.Context) (*ec2.DescribeVolumesOutput, error) {
 	var output ec2.DescribeVolumesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVolumesModificationsFuture struct {
+type DescribeVolumesModificationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVolumesModificationsFuture) Get(ctx workflow.Context) (*ec2.DescribeVolumesModificationsOutput, error) {
+func (r *DescribeVolumesModificationsFuture) Get(ctx workflow.Context) (*ec2.DescribeVolumesModificationsOutput, error) {
 	var output ec2.DescribeVolumesModificationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcAttributeFuture struct {
+type DescribeVpcAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcAttributeOutput, error) {
+func (r *DescribeVpcAttributeFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcAttributeOutput, error) {
 	var output ec2.DescribeVpcAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcClassicLinkFuture struct {
+type DescribeVpcClassicLinkFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcClassicLinkFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcClassicLinkOutput, error) {
+func (r *DescribeVpcClassicLinkFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcClassicLinkOutput, error) {
 	var output ec2.DescribeVpcClassicLinkOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcClassicLinkDnsSupportFuture struct {
+type DescribeVpcClassicLinkDnsSupportFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcClassicLinkDnsSupportFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcClassicLinkDnsSupportOutput, error) {
+func (r *DescribeVpcClassicLinkDnsSupportFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcClassicLinkDnsSupportOutput, error) {
 	var output ec2.DescribeVpcClassicLinkDnsSupportOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcEndpointConnectionNotificationsFuture struct {
+type DescribeVpcEndpointConnectionNotificationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcEndpointConnectionNotificationsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointConnectionNotificationsOutput, error) {
+func (r *DescribeVpcEndpointConnectionNotificationsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointConnectionNotificationsOutput, error) {
 	var output ec2.DescribeVpcEndpointConnectionNotificationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcEndpointConnectionsFuture struct {
+type DescribeVpcEndpointConnectionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcEndpointConnectionsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointConnectionsOutput, error) {
+func (r *DescribeVpcEndpointConnectionsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointConnectionsOutput, error) {
 	var output ec2.DescribeVpcEndpointConnectionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcEndpointServiceConfigurationsFuture struct {
+type DescribeVpcEndpointServiceConfigurationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcEndpointServiceConfigurationsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointServiceConfigurationsOutput, error) {
+func (r *DescribeVpcEndpointServiceConfigurationsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointServiceConfigurationsOutput, error) {
 	var output ec2.DescribeVpcEndpointServiceConfigurationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcEndpointServicePermissionsFuture struct {
+type DescribeVpcEndpointServicePermissionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcEndpointServicePermissionsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointServicePermissionsOutput, error) {
+func (r *DescribeVpcEndpointServicePermissionsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointServicePermissionsOutput, error) {
 	var output ec2.DescribeVpcEndpointServicePermissionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcEndpointServicesFuture struct {
+type DescribeVpcEndpointServicesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcEndpointServicesFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointServicesOutput, error) {
+func (r *DescribeVpcEndpointServicesFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointServicesOutput, error) {
 	var output ec2.DescribeVpcEndpointServicesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcEndpointsFuture struct {
+type DescribeVpcEndpointsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcEndpointsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointsOutput, error) {
+func (r *DescribeVpcEndpointsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcEndpointsOutput, error) {
 	var output ec2.DescribeVpcEndpointsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcPeeringConnectionsFuture struct {
+type DescribeVpcPeeringConnectionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcPeeringConnectionsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcPeeringConnectionsOutput, error) {
+func (r *DescribeVpcPeeringConnectionsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcPeeringConnectionsOutput, error) {
 	var output ec2.DescribeVpcPeeringConnectionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpcsFuture struct {
+type DescribeVpcsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpcsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcsOutput, error) {
+func (r *DescribeVpcsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpcsOutput, error) {
 	var output ec2.DescribeVpcsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpnConnectionsFuture struct {
+type DescribeVpnConnectionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpnConnectionsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpnConnectionsOutput, error) {
+func (r *DescribeVpnConnectionsFuture) Get(ctx workflow.Context) (*ec2.DescribeVpnConnectionsOutput, error) {
 	var output ec2.DescribeVpnConnectionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DescribeVpnGatewaysFuture struct {
+type DescribeVpnGatewaysFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DescribeVpnGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeVpnGatewaysOutput, error) {
+func (r *DescribeVpnGatewaysFuture) Get(ctx workflow.Context) (*ec2.DescribeVpnGatewaysOutput, error) {
 	var output ec2.DescribeVpnGatewaysOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DetachClassicLinkVpcFuture struct {
+type DetachClassicLinkVpcFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DetachClassicLinkVpcFuture) Get(ctx workflow.Context) (*ec2.DetachClassicLinkVpcOutput, error) {
+func (r *DetachClassicLinkVpcFuture) Get(ctx workflow.Context) (*ec2.DetachClassicLinkVpcOutput, error) {
 	var output ec2.DetachClassicLinkVpcOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DetachInternetGatewayFuture struct {
+type DetachInternetGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DetachInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.DetachInternetGatewayOutput, error) {
+func (r *DetachInternetGatewayFuture) Get(ctx workflow.Context) (*ec2.DetachInternetGatewayOutput, error) {
 	var output ec2.DetachInternetGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DetachNetworkInterfaceFuture struct {
+type DetachNetworkInterfaceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DetachNetworkInterfaceFuture) Get(ctx workflow.Context) (*ec2.DetachNetworkInterfaceOutput, error) {
+func (r *DetachNetworkInterfaceFuture) Get(ctx workflow.Context) (*ec2.DetachNetworkInterfaceOutput, error) {
 	var output ec2.DetachNetworkInterfaceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DetachVolumeFuture struct {
+type DetachVolumeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DetachVolumeFuture) Get(ctx workflow.Context) (*ec2.VolumeAttachment, error) {
+func (r *DetachVolumeFuture) Get(ctx workflow.Context) (*ec2.VolumeAttachment, error) {
 	var output ec2.VolumeAttachment
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DetachVpnGatewayFuture struct {
+type DetachVpnGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DetachVpnGatewayFuture) Get(ctx workflow.Context) (*ec2.DetachVpnGatewayOutput, error) {
+func (r *DetachVpnGatewayFuture) Get(ctx workflow.Context) (*ec2.DetachVpnGatewayOutput, error) {
 	var output ec2.DetachVpnGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisableEbsEncryptionByDefaultFuture struct {
+type DisableEbsEncryptionByDefaultFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisableEbsEncryptionByDefaultFuture) Get(ctx workflow.Context) (*ec2.DisableEbsEncryptionByDefaultOutput, error) {
+func (r *DisableEbsEncryptionByDefaultFuture) Get(ctx workflow.Context) (*ec2.DisableEbsEncryptionByDefaultOutput, error) {
 	var output ec2.DisableEbsEncryptionByDefaultOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisableFastSnapshotRestoresFuture struct {
+type DisableFastSnapshotRestoresFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisableFastSnapshotRestoresFuture) Get(ctx workflow.Context) (*ec2.DisableFastSnapshotRestoresOutput, error) {
+func (r *DisableFastSnapshotRestoresFuture) Get(ctx workflow.Context) (*ec2.DisableFastSnapshotRestoresOutput, error) {
 	var output ec2.DisableFastSnapshotRestoresOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisableTransitGatewayRouteTablePropagationFuture struct {
+type DisableTransitGatewayRouteTablePropagationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisableTransitGatewayRouteTablePropagationFuture) Get(ctx workflow.Context) (*ec2.DisableTransitGatewayRouteTablePropagationOutput, error) {
+func (r *DisableTransitGatewayRouteTablePropagationFuture) Get(ctx workflow.Context) (*ec2.DisableTransitGatewayRouteTablePropagationOutput, error) {
 	var output ec2.DisableTransitGatewayRouteTablePropagationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisableVgwRoutePropagationFuture struct {
+type DisableVgwRoutePropagationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisableVgwRoutePropagationFuture) Get(ctx workflow.Context) (*ec2.DisableVgwRoutePropagationOutput, error) {
+func (r *DisableVgwRoutePropagationFuture) Get(ctx workflow.Context) (*ec2.DisableVgwRoutePropagationOutput, error) {
 	var output ec2.DisableVgwRoutePropagationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisableVpcClassicLinkFuture struct {
+type DisableVpcClassicLinkFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisableVpcClassicLinkFuture) Get(ctx workflow.Context) (*ec2.DisableVpcClassicLinkOutput, error) {
+func (r *DisableVpcClassicLinkFuture) Get(ctx workflow.Context) (*ec2.DisableVpcClassicLinkOutput, error) {
 	var output ec2.DisableVpcClassicLinkOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisableVpcClassicLinkDnsSupportFuture struct {
+type DisableVpcClassicLinkDnsSupportFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisableVpcClassicLinkDnsSupportFuture) Get(ctx workflow.Context) (*ec2.DisableVpcClassicLinkDnsSupportOutput, error) {
+func (r *DisableVpcClassicLinkDnsSupportFuture) Get(ctx workflow.Context) (*ec2.DisableVpcClassicLinkDnsSupportOutput, error) {
 	var output ec2.DisableVpcClassicLinkDnsSupportOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateAddressFuture struct {
+type DisassociateAddressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateAddressFuture) Get(ctx workflow.Context) (*ec2.DisassociateAddressOutput, error) {
+func (r *DisassociateAddressFuture) Get(ctx workflow.Context) (*ec2.DisassociateAddressOutput, error) {
 	var output ec2.DisassociateAddressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateClientVpnTargetNetworkFuture struct {
+type DisassociateClientVpnTargetNetworkFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateClientVpnTargetNetworkFuture) Get(ctx workflow.Context) (*ec2.DisassociateClientVpnTargetNetworkOutput, error) {
+func (r *DisassociateClientVpnTargetNetworkFuture) Get(ctx workflow.Context) (*ec2.DisassociateClientVpnTargetNetworkOutput, error) {
 	var output ec2.DisassociateClientVpnTargetNetworkOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateEnclaveCertificateIamRoleFuture struct {
+type DisassociateEnclaveCertificateIamRoleFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateEnclaveCertificateIamRoleFuture) Get(ctx workflow.Context) (*ec2.DisassociateEnclaveCertificateIamRoleOutput, error) {
+func (r *DisassociateEnclaveCertificateIamRoleFuture) Get(ctx workflow.Context) (*ec2.DisassociateEnclaveCertificateIamRoleOutput, error) {
 	var output ec2.DisassociateEnclaveCertificateIamRoleOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateIamInstanceProfileFuture struct {
+type DisassociateIamInstanceProfileFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateIamInstanceProfileFuture) Get(ctx workflow.Context) (*ec2.DisassociateIamInstanceProfileOutput, error) {
+func (r *DisassociateIamInstanceProfileFuture) Get(ctx workflow.Context) (*ec2.DisassociateIamInstanceProfileOutput, error) {
 	var output ec2.DisassociateIamInstanceProfileOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateRouteTableFuture struct {
+type DisassociateRouteTableFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateRouteTableFuture) Get(ctx workflow.Context) (*ec2.DisassociateRouteTableOutput, error) {
+func (r *DisassociateRouteTableFuture) Get(ctx workflow.Context) (*ec2.DisassociateRouteTableOutput, error) {
 	var output ec2.DisassociateRouteTableOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateSubnetCidrBlockFuture struct {
+type DisassociateSubnetCidrBlockFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateSubnetCidrBlockFuture) Get(ctx workflow.Context) (*ec2.DisassociateSubnetCidrBlockOutput, error) {
+func (r *DisassociateSubnetCidrBlockFuture) Get(ctx workflow.Context) (*ec2.DisassociateSubnetCidrBlockOutput, error) {
 	var output ec2.DisassociateSubnetCidrBlockOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateTransitGatewayMulticastDomainFuture struct {
+type DisassociateTransitGatewayMulticastDomainFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateTransitGatewayMulticastDomainFuture) Get(ctx workflow.Context) (*ec2.DisassociateTransitGatewayMulticastDomainOutput, error) {
+func (r *DisassociateTransitGatewayMulticastDomainFuture) Get(ctx workflow.Context) (*ec2.DisassociateTransitGatewayMulticastDomainOutput, error) {
 	var output ec2.DisassociateTransitGatewayMulticastDomainOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateTransitGatewayRouteTableFuture struct {
+type DisassociateTransitGatewayRouteTableFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateTransitGatewayRouteTableFuture) Get(ctx workflow.Context) (*ec2.DisassociateTransitGatewayRouteTableOutput, error) {
+func (r *DisassociateTransitGatewayRouteTableFuture) Get(ctx workflow.Context) (*ec2.DisassociateTransitGatewayRouteTableOutput, error) {
 	var output ec2.DisassociateTransitGatewayRouteTableOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2DisassociateVpcCidrBlockFuture struct {
+type DisassociateVpcCidrBlockFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2DisassociateVpcCidrBlockFuture) Get(ctx workflow.Context) (*ec2.DisassociateVpcCidrBlockOutput, error) {
+func (r *DisassociateVpcCidrBlockFuture) Get(ctx workflow.Context) (*ec2.DisassociateVpcCidrBlockOutput, error) {
 	var output ec2.DisassociateVpcCidrBlockOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2EnableEbsEncryptionByDefaultFuture struct {
+type EnableEbsEncryptionByDefaultFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2EnableEbsEncryptionByDefaultFuture) Get(ctx workflow.Context) (*ec2.EnableEbsEncryptionByDefaultOutput, error) {
+func (r *EnableEbsEncryptionByDefaultFuture) Get(ctx workflow.Context) (*ec2.EnableEbsEncryptionByDefaultOutput, error) {
 	var output ec2.EnableEbsEncryptionByDefaultOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2EnableFastSnapshotRestoresFuture struct {
+type EnableFastSnapshotRestoresFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2EnableFastSnapshotRestoresFuture) Get(ctx workflow.Context) (*ec2.EnableFastSnapshotRestoresOutput, error) {
+func (r *EnableFastSnapshotRestoresFuture) Get(ctx workflow.Context) (*ec2.EnableFastSnapshotRestoresOutput, error) {
 	var output ec2.EnableFastSnapshotRestoresOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2EnableTransitGatewayRouteTablePropagationFuture struct {
+type EnableTransitGatewayRouteTablePropagationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2EnableTransitGatewayRouteTablePropagationFuture) Get(ctx workflow.Context) (*ec2.EnableTransitGatewayRouteTablePropagationOutput, error) {
+func (r *EnableTransitGatewayRouteTablePropagationFuture) Get(ctx workflow.Context) (*ec2.EnableTransitGatewayRouteTablePropagationOutput, error) {
 	var output ec2.EnableTransitGatewayRouteTablePropagationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2EnableVgwRoutePropagationFuture struct {
+type EnableVgwRoutePropagationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2EnableVgwRoutePropagationFuture) Get(ctx workflow.Context) (*ec2.EnableVgwRoutePropagationOutput, error) {
+func (r *EnableVgwRoutePropagationFuture) Get(ctx workflow.Context) (*ec2.EnableVgwRoutePropagationOutput, error) {
 	var output ec2.EnableVgwRoutePropagationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2EnableVolumeIOFuture struct {
+type EnableVolumeIOFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2EnableVolumeIOFuture) Get(ctx workflow.Context) (*ec2.EnableVolumeIOOutput, error) {
+func (r *EnableVolumeIOFuture) Get(ctx workflow.Context) (*ec2.EnableVolumeIOOutput, error) {
 	var output ec2.EnableVolumeIOOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2EnableVpcClassicLinkFuture struct {
+type EnableVpcClassicLinkFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2EnableVpcClassicLinkFuture) Get(ctx workflow.Context) (*ec2.EnableVpcClassicLinkOutput, error) {
+func (r *EnableVpcClassicLinkFuture) Get(ctx workflow.Context) (*ec2.EnableVpcClassicLinkOutput, error) {
 	var output ec2.EnableVpcClassicLinkOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2EnableVpcClassicLinkDnsSupportFuture struct {
+type EnableVpcClassicLinkDnsSupportFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2EnableVpcClassicLinkDnsSupportFuture) Get(ctx workflow.Context) (*ec2.EnableVpcClassicLinkDnsSupportOutput, error) {
+func (r *EnableVpcClassicLinkDnsSupportFuture) Get(ctx workflow.Context) (*ec2.EnableVpcClassicLinkDnsSupportOutput, error) {
 	var output ec2.EnableVpcClassicLinkDnsSupportOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ExportClientVpnClientCertificateRevocationListFuture struct {
+type ExportClientVpnClientCertificateRevocationListFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ExportClientVpnClientCertificateRevocationListFuture) Get(ctx workflow.Context) (*ec2.ExportClientVpnClientCertificateRevocationListOutput, error) {
+func (r *ExportClientVpnClientCertificateRevocationListFuture) Get(ctx workflow.Context) (*ec2.ExportClientVpnClientCertificateRevocationListOutput, error) {
 	var output ec2.ExportClientVpnClientCertificateRevocationListOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ExportClientVpnClientConfigurationFuture struct {
+type ExportClientVpnClientConfigurationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ExportClientVpnClientConfigurationFuture) Get(ctx workflow.Context) (*ec2.ExportClientVpnClientConfigurationOutput, error) {
+func (r *ExportClientVpnClientConfigurationFuture) Get(ctx workflow.Context) (*ec2.ExportClientVpnClientConfigurationOutput, error) {
 	var output ec2.ExportClientVpnClientConfigurationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ExportImageFuture struct {
+type ExportImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ExportImageFuture) Get(ctx workflow.Context) (*ec2.ExportImageOutput, error) {
+func (r *ExportImageFuture) Get(ctx workflow.Context) (*ec2.ExportImageOutput, error) {
 	var output ec2.ExportImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ExportTransitGatewayRoutesFuture struct {
+type ExportTransitGatewayRoutesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ExportTransitGatewayRoutesFuture) Get(ctx workflow.Context) (*ec2.ExportTransitGatewayRoutesOutput, error) {
+func (r *ExportTransitGatewayRoutesFuture) Get(ctx workflow.Context) (*ec2.ExportTransitGatewayRoutesOutput, error) {
 	var output ec2.ExportTransitGatewayRoutesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetAssociatedEnclaveCertificateIamRolesFuture struct {
+type GetAssociatedEnclaveCertificateIamRolesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetAssociatedEnclaveCertificateIamRolesFuture) Get(ctx workflow.Context) (*ec2.GetAssociatedEnclaveCertificateIamRolesOutput, error) {
+func (r *GetAssociatedEnclaveCertificateIamRolesFuture) Get(ctx workflow.Context) (*ec2.GetAssociatedEnclaveCertificateIamRolesOutput, error) {
 	var output ec2.GetAssociatedEnclaveCertificateIamRolesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetAssociatedIpv6PoolCidrsFuture struct {
+type GetAssociatedIpv6PoolCidrsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetAssociatedIpv6PoolCidrsFuture) Get(ctx workflow.Context) (*ec2.GetAssociatedIpv6PoolCidrsOutput, error) {
+func (r *GetAssociatedIpv6PoolCidrsFuture) Get(ctx workflow.Context) (*ec2.GetAssociatedIpv6PoolCidrsOutput, error) {
 	var output ec2.GetAssociatedIpv6PoolCidrsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetCapacityReservationUsageFuture struct {
+type GetCapacityReservationUsageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetCapacityReservationUsageFuture) Get(ctx workflow.Context) (*ec2.GetCapacityReservationUsageOutput, error) {
+func (r *GetCapacityReservationUsageFuture) Get(ctx workflow.Context) (*ec2.GetCapacityReservationUsageOutput, error) {
 	var output ec2.GetCapacityReservationUsageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetCoipPoolUsageFuture struct {
+type GetCoipPoolUsageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetCoipPoolUsageFuture) Get(ctx workflow.Context) (*ec2.GetCoipPoolUsageOutput, error) {
+func (r *GetCoipPoolUsageFuture) Get(ctx workflow.Context) (*ec2.GetCoipPoolUsageOutput, error) {
 	var output ec2.GetCoipPoolUsageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetConsoleOutputFuture struct {
+type GetConsoleOutputFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetConsoleOutputFuture) Get(ctx workflow.Context) (*ec2.GetConsoleOutputOutput, error) {
+func (r *GetConsoleOutputFuture) Get(ctx workflow.Context) (*ec2.GetConsoleOutputOutput, error) {
 	var output ec2.GetConsoleOutputOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetConsoleScreenshotFuture struct {
+type GetConsoleScreenshotFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetConsoleScreenshotFuture) Get(ctx workflow.Context) (*ec2.GetConsoleScreenshotOutput, error) {
+func (r *GetConsoleScreenshotFuture) Get(ctx workflow.Context) (*ec2.GetConsoleScreenshotOutput, error) {
 	var output ec2.GetConsoleScreenshotOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetDefaultCreditSpecificationFuture struct {
+type GetDefaultCreditSpecificationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetDefaultCreditSpecificationFuture) Get(ctx workflow.Context) (*ec2.GetDefaultCreditSpecificationOutput, error) {
+func (r *GetDefaultCreditSpecificationFuture) Get(ctx workflow.Context) (*ec2.GetDefaultCreditSpecificationOutput, error) {
 	var output ec2.GetDefaultCreditSpecificationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetEbsDefaultKmsKeyIdFuture struct {
+type GetEbsDefaultKmsKeyIdFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetEbsDefaultKmsKeyIdFuture) Get(ctx workflow.Context) (*ec2.GetEbsDefaultKmsKeyIdOutput, error) {
+func (r *GetEbsDefaultKmsKeyIdFuture) Get(ctx workflow.Context) (*ec2.GetEbsDefaultKmsKeyIdOutput, error) {
 	var output ec2.GetEbsDefaultKmsKeyIdOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetEbsEncryptionByDefaultFuture struct {
+type GetEbsEncryptionByDefaultFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetEbsEncryptionByDefaultFuture) Get(ctx workflow.Context) (*ec2.GetEbsEncryptionByDefaultOutput, error) {
+func (r *GetEbsEncryptionByDefaultFuture) Get(ctx workflow.Context) (*ec2.GetEbsEncryptionByDefaultOutput, error) {
 	var output ec2.GetEbsEncryptionByDefaultOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetGroupsForCapacityReservationFuture struct {
+type GetGroupsForCapacityReservationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetGroupsForCapacityReservationFuture) Get(ctx workflow.Context) (*ec2.GetGroupsForCapacityReservationOutput, error) {
+func (r *GetGroupsForCapacityReservationFuture) Get(ctx workflow.Context) (*ec2.GetGroupsForCapacityReservationOutput, error) {
 	var output ec2.GetGroupsForCapacityReservationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetHostReservationPurchasePreviewFuture struct {
+type GetHostReservationPurchasePreviewFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetHostReservationPurchasePreviewFuture) Get(ctx workflow.Context) (*ec2.GetHostReservationPurchasePreviewOutput, error) {
+func (r *GetHostReservationPurchasePreviewFuture) Get(ctx workflow.Context) (*ec2.GetHostReservationPurchasePreviewOutput, error) {
 	var output ec2.GetHostReservationPurchasePreviewOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetLaunchTemplateDataFuture struct {
+type GetLaunchTemplateDataFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetLaunchTemplateDataFuture) Get(ctx workflow.Context) (*ec2.GetLaunchTemplateDataOutput, error) {
+func (r *GetLaunchTemplateDataFuture) Get(ctx workflow.Context) (*ec2.GetLaunchTemplateDataOutput, error) {
 	var output ec2.GetLaunchTemplateDataOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetManagedPrefixListAssociationsFuture struct {
+type GetManagedPrefixListAssociationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetManagedPrefixListAssociationsFuture) Get(ctx workflow.Context) (*ec2.GetManagedPrefixListAssociationsOutput, error) {
+func (r *GetManagedPrefixListAssociationsFuture) Get(ctx workflow.Context) (*ec2.GetManagedPrefixListAssociationsOutput, error) {
 	var output ec2.GetManagedPrefixListAssociationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetManagedPrefixListEntriesFuture struct {
+type GetManagedPrefixListEntriesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetManagedPrefixListEntriesFuture) Get(ctx workflow.Context) (*ec2.GetManagedPrefixListEntriesOutput, error) {
+func (r *GetManagedPrefixListEntriesFuture) Get(ctx workflow.Context) (*ec2.GetManagedPrefixListEntriesOutput, error) {
 	var output ec2.GetManagedPrefixListEntriesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetPasswordDataFuture struct {
+type GetPasswordDataFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetPasswordDataFuture) Get(ctx workflow.Context) (*ec2.GetPasswordDataOutput, error) {
+func (r *GetPasswordDataFuture) Get(ctx workflow.Context) (*ec2.GetPasswordDataOutput, error) {
 	var output ec2.GetPasswordDataOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetReservedInstancesExchangeQuoteFuture struct {
+type GetReservedInstancesExchangeQuoteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetReservedInstancesExchangeQuoteFuture) Get(ctx workflow.Context) (*ec2.GetReservedInstancesExchangeQuoteOutput, error) {
+func (r *GetReservedInstancesExchangeQuoteFuture) Get(ctx workflow.Context) (*ec2.GetReservedInstancesExchangeQuoteOutput, error) {
 	var output ec2.GetReservedInstancesExchangeQuoteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetTransitGatewayAttachmentPropagationsFuture struct {
+type GetTransitGatewayAttachmentPropagationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetTransitGatewayAttachmentPropagationsFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayAttachmentPropagationsOutput, error) {
+func (r *GetTransitGatewayAttachmentPropagationsFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayAttachmentPropagationsOutput, error) {
 	var output ec2.GetTransitGatewayAttachmentPropagationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetTransitGatewayMulticastDomainAssociationsFuture struct {
+type GetTransitGatewayMulticastDomainAssociationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetTransitGatewayMulticastDomainAssociationsFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, error) {
+func (r *GetTransitGatewayMulticastDomainAssociationsFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, error) {
 	var output ec2.GetTransitGatewayMulticastDomainAssociationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetTransitGatewayPrefixListReferencesFuture struct {
+type GetTransitGatewayPrefixListReferencesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetTransitGatewayPrefixListReferencesFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayPrefixListReferencesOutput, error) {
+func (r *GetTransitGatewayPrefixListReferencesFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayPrefixListReferencesOutput, error) {
 	var output ec2.GetTransitGatewayPrefixListReferencesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetTransitGatewayRouteTableAssociationsFuture struct {
+type GetTransitGatewayRouteTableAssociationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetTransitGatewayRouteTableAssociationsFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayRouteTableAssociationsOutput, error) {
+func (r *GetTransitGatewayRouteTableAssociationsFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayRouteTableAssociationsOutput, error) {
 	var output ec2.GetTransitGatewayRouteTableAssociationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2GetTransitGatewayRouteTablePropagationsFuture struct {
+type GetTransitGatewayRouteTablePropagationsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2GetTransitGatewayRouteTablePropagationsFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayRouteTablePropagationsOutput, error) {
+func (r *GetTransitGatewayRouteTablePropagationsFuture) Get(ctx workflow.Context) (*ec2.GetTransitGatewayRouteTablePropagationsOutput, error) {
 	var output ec2.GetTransitGatewayRouteTablePropagationsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ImportClientVpnClientCertificateRevocationListFuture struct {
+type ImportClientVpnClientCertificateRevocationListFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ImportClientVpnClientCertificateRevocationListFuture) Get(ctx workflow.Context) (*ec2.ImportClientVpnClientCertificateRevocationListOutput, error) {
+func (r *ImportClientVpnClientCertificateRevocationListFuture) Get(ctx workflow.Context) (*ec2.ImportClientVpnClientCertificateRevocationListOutput, error) {
 	var output ec2.ImportClientVpnClientCertificateRevocationListOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ImportImageFuture struct {
+type ImportImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ImportImageFuture) Get(ctx workflow.Context) (*ec2.ImportImageOutput, error) {
+func (r *ImportImageFuture) Get(ctx workflow.Context) (*ec2.ImportImageOutput, error) {
 	var output ec2.ImportImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ImportInstanceFuture struct {
+type ImportInstanceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ImportInstanceFuture) Get(ctx workflow.Context) (*ec2.ImportInstanceOutput, error) {
+func (r *ImportInstanceFuture) Get(ctx workflow.Context) (*ec2.ImportInstanceOutput, error) {
 	var output ec2.ImportInstanceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ImportKeyPairFuture struct {
+type ImportKeyPairFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ImportKeyPairFuture) Get(ctx workflow.Context) (*ec2.ImportKeyPairOutput, error) {
+func (r *ImportKeyPairFuture) Get(ctx workflow.Context) (*ec2.ImportKeyPairOutput, error) {
 	var output ec2.ImportKeyPairOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ImportSnapshotFuture struct {
+type ImportSnapshotFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ImportSnapshotFuture) Get(ctx workflow.Context) (*ec2.ImportSnapshotOutput, error) {
+func (r *ImportSnapshotFuture) Get(ctx workflow.Context) (*ec2.ImportSnapshotOutput, error) {
 	var output ec2.ImportSnapshotOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ImportVolumeFuture struct {
+type ImportVolumeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ImportVolumeFuture) Get(ctx workflow.Context) (*ec2.ImportVolumeOutput, error) {
+func (r *ImportVolumeFuture) Get(ctx workflow.Context) (*ec2.ImportVolumeOutput, error) {
 	var output ec2.ImportVolumeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyAvailabilityZoneGroupFuture struct {
+type ModifyAvailabilityZoneGroupFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyAvailabilityZoneGroupFuture) Get(ctx workflow.Context) (*ec2.ModifyAvailabilityZoneGroupOutput, error) {
+func (r *ModifyAvailabilityZoneGroupFuture) Get(ctx workflow.Context) (*ec2.ModifyAvailabilityZoneGroupOutput, error) {
 	var output ec2.ModifyAvailabilityZoneGroupOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyCapacityReservationFuture struct {
+type ModifyCapacityReservationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyCapacityReservationFuture) Get(ctx workflow.Context) (*ec2.ModifyCapacityReservationOutput, error) {
+func (r *ModifyCapacityReservationFuture) Get(ctx workflow.Context) (*ec2.ModifyCapacityReservationOutput, error) {
 	var output ec2.ModifyCapacityReservationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyClientVpnEndpointFuture struct {
+type ModifyClientVpnEndpointFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyClientVpnEndpointFuture) Get(ctx workflow.Context) (*ec2.ModifyClientVpnEndpointOutput, error) {
+func (r *ModifyClientVpnEndpointFuture) Get(ctx workflow.Context) (*ec2.ModifyClientVpnEndpointOutput, error) {
 	var output ec2.ModifyClientVpnEndpointOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyDefaultCreditSpecificationFuture struct {
+type ModifyDefaultCreditSpecificationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyDefaultCreditSpecificationFuture) Get(ctx workflow.Context) (*ec2.ModifyDefaultCreditSpecificationOutput, error) {
+func (r *ModifyDefaultCreditSpecificationFuture) Get(ctx workflow.Context) (*ec2.ModifyDefaultCreditSpecificationOutput, error) {
 	var output ec2.ModifyDefaultCreditSpecificationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyEbsDefaultKmsKeyIdFuture struct {
+type ModifyEbsDefaultKmsKeyIdFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyEbsDefaultKmsKeyIdFuture) Get(ctx workflow.Context) (*ec2.ModifyEbsDefaultKmsKeyIdOutput, error) {
+func (r *ModifyEbsDefaultKmsKeyIdFuture) Get(ctx workflow.Context) (*ec2.ModifyEbsDefaultKmsKeyIdOutput, error) {
 	var output ec2.ModifyEbsDefaultKmsKeyIdOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyFleetFuture struct {
+type ModifyFleetFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyFleetFuture) Get(ctx workflow.Context) (*ec2.ModifyFleetOutput, error) {
+func (r *ModifyFleetFuture) Get(ctx workflow.Context) (*ec2.ModifyFleetOutput, error) {
 	var output ec2.ModifyFleetOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyFpgaImageAttributeFuture struct {
+type ModifyFpgaImageAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyFpgaImageAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyFpgaImageAttributeOutput, error) {
+func (r *ModifyFpgaImageAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyFpgaImageAttributeOutput, error) {
 	var output ec2.ModifyFpgaImageAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyHostsFuture struct {
+type ModifyHostsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyHostsFuture) Get(ctx workflow.Context) (*ec2.ModifyHostsOutput, error) {
+func (r *ModifyHostsFuture) Get(ctx workflow.Context) (*ec2.ModifyHostsOutput, error) {
 	var output ec2.ModifyHostsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyIdFormatFuture struct {
+type ModifyIdFormatFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyIdFormatFuture) Get(ctx workflow.Context) (*ec2.ModifyIdFormatOutput, error) {
+func (r *ModifyIdFormatFuture) Get(ctx workflow.Context) (*ec2.ModifyIdFormatOutput, error) {
 	var output ec2.ModifyIdFormatOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyIdentityIdFormatFuture struct {
+type ModifyIdentityIdFormatFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyIdentityIdFormatFuture) Get(ctx workflow.Context) (*ec2.ModifyIdentityIdFormatOutput, error) {
+func (r *ModifyIdentityIdFormatFuture) Get(ctx workflow.Context) (*ec2.ModifyIdentityIdFormatOutput, error) {
 	var output ec2.ModifyIdentityIdFormatOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyImageAttributeFuture struct {
+type ModifyImageAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyImageAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyImageAttributeOutput, error) {
+func (r *ModifyImageAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyImageAttributeOutput, error) {
 	var output ec2.ModifyImageAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyInstanceAttributeFuture struct {
+type ModifyInstanceAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyInstanceAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceAttributeOutput, error) {
+func (r *ModifyInstanceAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceAttributeOutput, error) {
 	var output ec2.ModifyInstanceAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyInstanceCapacityReservationAttributesFuture struct {
+type ModifyInstanceCapacityReservationAttributesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyInstanceCapacityReservationAttributesFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceCapacityReservationAttributesOutput, error) {
+func (r *ModifyInstanceCapacityReservationAttributesFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceCapacityReservationAttributesOutput, error) {
 	var output ec2.ModifyInstanceCapacityReservationAttributesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyInstanceCreditSpecificationFuture struct {
+type ModifyInstanceCreditSpecificationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyInstanceCreditSpecificationFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceCreditSpecificationOutput, error) {
+func (r *ModifyInstanceCreditSpecificationFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceCreditSpecificationOutput, error) {
 	var output ec2.ModifyInstanceCreditSpecificationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyInstanceEventStartTimeFuture struct {
+type ModifyInstanceEventStartTimeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyInstanceEventStartTimeFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceEventStartTimeOutput, error) {
+func (r *ModifyInstanceEventStartTimeFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceEventStartTimeOutput, error) {
 	var output ec2.ModifyInstanceEventStartTimeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyInstanceMetadataOptionsFuture struct {
+type ModifyInstanceMetadataOptionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyInstanceMetadataOptionsFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceMetadataOptionsOutput, error) {
+func (r *ModifyInstanceMetadataOptionsFuture) Get(ctx workflow.Context) (*ec2.ModifyInstanceMetadataOptionsOutput, error) {
 	var output ec2.ModifyInstanceMetadataOptionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyInstancePlacementFuture struct {
+type ModifyInstancePlacementFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyInstancePlacementFuture) Get(ctx workflow.Context) (*ec2.ModifyInstancePlacementOutput, error) {
+func (r *ModifyInstancePlacementFuture) Get(ctx workflow.Context) (*ec2.ModifyInstancePlacementOutput, error) {
 	var output ec2.ModifyInstancePlacementOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyLaunchTemplateFuture struct {
+type ModifyLaunchTemplateFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyLaunchTemplateFuture) Get(ctx workflow.Context) (*ec2.ModifyLaunchTemplateOutput, error) {
+func (r *ModifyLaunchTemplateFuture) Get(ctx workflow.Context) (*ec2.ModifyLaunchTemplateOutput, error) {
 	var output ec2.ModifyLaunchTemplateOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyManagedPrefixListFuture struct {
+type ModifyManagedPrefixListFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyManagedPrefixListFuture) Get(ctx workflow.Context) (*ec2.ModifyManagedPrefixListOutput, error) {
+func (r *ModifyManagedPrefixListFuture) Get(ctx workflow.Context) (*ec2.ModifyManagedPrefixListOutput, error) {
 	var output ec2.ModifyManagedPrefixListOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyNetworkInterfaceAttributeFuture struct {
+type ModifyNetworkInterfaceAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyNetworkInterfaceAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyNetworkInterfaceAttributeOutput, error) {
+func (r *ModifyNetworkInterfaceAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyNetworkInterfaceAttributeOutput, error) {
 	var output ec2.ModifyNetworkInterfaceAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyReservedInstancesFuture struct {
+type ModifyReservedInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyReservedInstancesFuture) Get(ctx workflow.Context) (*ec2.ModifyReservedInstancesOutput, error) {
+func (r *ModifyReservedInstancesFuture) Get(ctx workflow.Context) (*ec2.ModifyReservedInstancesOutput, error) {
 	var output ec2.ModifyReservedInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifySnapshotAttributeFuture struct {
+type ModifySnapshotAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifySnapshotAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifySnapshotAttributeOutput, error) {
+func (r *ModifySnapshotAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifySnapshotAttributeOutput, error) {
 	var output ec2.ModifySnapshotAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifySubnetAttributeFuture struct {
+type ModifySubnetAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifySubnetAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifySubnetAttributeOutput, error) {
+func (r *ModifySubnetAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifySubnetAttributeOutput, error) {
 	var output ec2.ModifySubnetAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyTrafficMirrorFilterNetworkServicesFuture struct {
+type ModifyTrafficMirrorFilterNetworkServicesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyTrafficMirrorFilterNetworkServicesFuture) Get(ctx workflow.Context) (*ec2.ModifyTrafficMirrorFilterNetworkServicesOutput, error) {
+func (r *ModifyTrafficMirrorFilterNetworkServicesFuture) Get(ctx workflow.Context) (*ec2.ModifyTrafficMirrorFilterNetworkServicesOutput, error) {
 	var output ec2.ModifyTrafficMirrorFilterNetworkServicesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyTrafficMirrorFilterRuleFuture struct {
+type ModifyTrafficMirrorFilterRuleFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyTrafficMirrorFilterRuleFuture) Get(ctx workflow.Context) (*ec2.ModifyTrafficMirrorFilterRuleOutput, error) {
+func (r *ModifyTrafficMirrorFilterRuleFuture) Get(ctx workflow.Context) (*ec2.ModifyTrafficMirrorFilterRuleOutput, error) {
 	var output ec2.ModifyTrafficMirrorFilterRuleOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyTrafficMirrorSessionFuture struct {
+type ModifyTrafficMirrorSessionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyTrafficMirrorSessionFuture) Get(ctx workflow.Context) (*ec2.ModifyTrafficMirrorSessionOutput, error) {
+func (r *ModifyTrafficMirrorSessionFuture) Get(ctx workflow.Context) (*ec2.ModifyTrafficMirrorSessionOutput, error) {
 	var output ec2.ModifyTrafficMirrorSessionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyTransitGatewayFuture struct {
+type ModifyTransitGatewayFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyTransitGatewayFuture) Get(ctx workflow.Context) (*ec2.ModifyTransitGatewayOutput, error) {
+func (r *ModifyTransitGatewayFuture) Get(ctx workflow.Context) (*ec2.ModifyTransitGatewayOutput, error) {
 	var output ec2.ModifyTransitGatewayOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyTransitGatewayPrefixListReferenceFuture struct {
+type ModifyTransitGatewayPrefixListReferenceFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyTransitGatewayPrefixListReferenceFuture) Get(ctx workflow.Context) (*ec2.ModifyTransitGatewayPrefixListReferenceOutput, error) {
+func (r *ModifyTransitGatewayPrefixListReferenceFuture) Get(ctx workflow.Context) (*ec2.ModifyTransitGatewayPrefixListReferenceOutput, error) {
 	var output ec2.ModifyTransitGatewayPrefixListReferenceOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyTransitGatewayVpcAttachmentFuture struct {
+type ModifyTransitGatewayVpcAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.ModifyTransitGatewayVpcAttachmentOutput, error) {
+func (r *ModifyTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.ModifyTransitGatewayVpcAttachmentOutput, error) {
 	var output ec2.ModifyTransitGatewayVpcAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVolumeFuture struct {
+type ModifyVolumeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVolumeFuture) Get(ctx workflow.Context) (*ec2.ModifyVolumeOutput, error) {
+func (r *ModifyVolumeFuture) Get(ctx workflow.Context) (*ec2.ModifyVolumeOutput, error) {
 	var output ec2.ModifyVolumeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVolumeAttributeFuture struct {
+type ModifyVolumeAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVolumeAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyVolumeAttributeOutput, error) {
+func (r *ModifyVolumeAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyVolumeAttributeOutput, error) {
 	var output ec2.ModifyVolumeAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpcAttributeFuture struct {
+type ModifyVpcAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpcAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcAttributeOutput, error) {
+func (r *ModifyVpcAttributeFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcAttributeOutput, error) {
 	var output ec2.ModifyVpcAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpcEndpointFuture struct {
+type ModifyVpcEndpointFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpcEndpointFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcEndpointOutput, error) {
+func (r *ModifyVpcEndpointFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcEndpointOutput, error) {
 	var output ec2.ModifyVpcEndpointOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpcEndpointConnectionNotificationFuture struct {
+type ModifyVpcEndpointConnectionNotificationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpcEndpointConnectionNotificationFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcEndpointConnectionNotificationOutput, error) {
+func (r *ModifyVpcEndpointConnectionNotificationFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcEndpointConnectionNotificationOutput, error) {
 	var output ec2.ModifyVpcEndpointConnectionNotificationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpcEndpointServiceConfigurationFuture struct {
+type ModifyVpcEndpointServiceConfigurationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpcEndpointServiceConfigurationFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcEndpointServiceConfigurationOutput, error) {
+func (r *ModifyVpcEndpointServiceConfigurationFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcEndpointServiceConfigurationOutput, error) {
 	var output ec2.ModifyVpcEndpointServiceConfigurationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpcEndpointServicePermissionsFuture struct {
+type ModifyVpcEndpointServicePermissionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpcEndpointServicePermissionsFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcEndpointServicePermissionsOutput, error) {
+func (r *ModifyVpcEndpointServicePermissionsFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcEndpointServicePermissionsOutput, error) {
 	var output ec2.ModifyVpcEndpointServicePermissionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpcPeeringConnectionOptionsFuture struct {
+type ModifyVpcPeeringConnectionOptionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpcPeeringConnectionOptionsFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcPeeringConnectionOptionsOutput, error) {
+func (r *ModifyVpcPeeringConnectionOptionsFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcPeeringConnectionOptionsOutput, error) {
 	var output ec2.ModifyVpcPeeringConnectionOptionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpcTenancyFuture struct {
+type ModifyVpcTenancyFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpcTenancyFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcTenancyOutput, error) {
+func (r *ModifyVpcTenancyFuture) Get(ctx workflow.Context) (*ec2.ModifyVpcTenancyOutput, error) {
 	var output ec2.ModifyVpcTenancyOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpnConnectionFuture struct {
+type ModifyVpnConnectionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpnConnectionFuture) Get(ctx workflow.Context) (*ec2.ModifyVpnConnectionOutput, error) {
+func (r *ModifyVpnConnectionFuture) Get(ctx workflow.Context) (*ec2.ModifyVpnConnectionOutput, error) {
 	var output ec2.ModifyVpnConnectionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpnConnectionOptionsFuture struct {
+type ModifyVpnConnectionOptionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpnConnectionOptionsFuture) Get(ctx workflow.Context) (*ec2.ModifyVpnConnectionOptionsOutput, error) {
+func (r *ModifyVpnConnectionOptionsFuture) Get(ctx workflow.Context) (*ec2.ModifyVpnConnectionOptionsOutput, error) {
 	var output ec2.ModifyVpnConnectionOptionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpnTunnelCertificateFuture struct {
+type ModifyVpnTunnelCertificateFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpnTunnelCertificateFuture) Get(ctx workflow.Context) (*ec2.ModifyVpnTunnelCertificateOutput, error) {
+func (r *ModifyVpnTunnelCertificateFuture) Get(ctx workflow.Context) (*ec2.ModifyVpnTunnelCertificateOutput, error) {
 	var output ec2.ModifyVpnTunnelCertificateOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ModifyVpnTunnelOptionsFuture struct {
+type ModifyVpnTunnelOptionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ModifyVpnTunnelOptionsFuture) Get(ctx workflow.Context) (*ec2.ModifyVpnTunnelOptionsOutput, error) {
+func (r *ModifyVpnTunnelOptionsFuture) Get(ctx workflow.Context) (*ec2.ModifyVpnTunnelOptionsOutput, error) {
 	var output ec2.ModifyVpnTunnelOptionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2MonitorInstancesFuture struct {
+type MonitorInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2MonitorInstancesFuture) Get(ctx workflow.Context) (*ec2.MonitorInstancesOutput, error) {
+func (r *MonitorInstancesFuture) Get(ctx workflow.Context) (*ec2.MonitorInstancesOutput, error) {
 	var output ec2.MonitorInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2MoveAddressToVpcFuture struct {
+type MoveAddressToVpcFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2MoveAddressToVpcFuture) Get(ctx workflow.Context) (*ec2.MoveAddressToVpcOutput, error) {
+func (r *MoveAddressToVpcFuture) Get(ctx workflow.Context) (*ec2.MoveAddressToVpcOutput, error) {
 	var output ec2.MoveAddressToVpcOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ProvisionByoipCidrFuture struct {
+type ProvisionByoipCidrFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ProvisionByoipCidrFuture) Get(ctx workflow.Context) (*ec2.ProvisionByoipCidrOutput, error) {
+func (r *ProvisionByoipCidrFuture) Get(ctx workflow.Context) (*ec2.ProvisionByoipCidrOutput, error) {
 	var output ec2.ProvisionByoipCidrOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2PurchaseHostReservationFuture struct {
+type PurchaseHostReservationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2PurchaseHostReservationFuture) Get(ctx workflow.Context) (*ec2.PurchaseHostReservationOutput, error) {
+func (r *PurchaseHostReservationFuture) Get(ctx workflow.Context) (*ec2.PurchaseHostReservationOutput, error) {
 	var output ec2.PurchaseHostReservationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2PurchaseReservedInstancesOfferingFuture struct {
+type PurchaseReservedInstancesOfferingFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2PurchaseReservedInstancesOfferingFuture) Get(ctx workflow.Context) (*ec2.PurchaseReservedInstancesOfferingOutput, error) {
+func (r *PurchaseReservedInstancesOfferingFuture) Get(ctx workflow.Context) (*ec2.PurchaseReservedInstancesOfferingOutput, error) {
 	var output ec2.PurchaseReservedInstancesOfferingOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2PurchaseScheduledInstancesFuture struct {
+type PurchaseScheduledInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2PurchaseScheduledInstancesFuture) Get(ctx workflow.Context) (*ec2.PurchaseScheduledInstancesOutput, error) {
+func (r *PurchaseScheduledInstancesFuture) Get(ctx workflow.Context) (*ec2.PurchaseScheduledInstancesOutput, error) {
 	var output ec2.PurchaseScheduledInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RebootInstancesFuture struct {
+type RebootInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RebootInstancesFuture) Get(ctx workflow.Context) (*ec2.RebootInstancesOutput, error) {
+func (r *RebootInstancesFuture) Get(ctx workflow.Context) (*ec2.RebootInstancesOutput, error) {
 	var output ec2.RebootInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RegisterImageFuture struct {
+type RegisterImageFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RegisterImageFuture) Get(ctx workflow.Context) (*ec2.RegisterImageOutput, error) {
+func (r *RegisterImageFuture) Get(ctx workflow.Context) (*ec2.RegisterImageOutput, error) {
 	var output ec2.RegisterImageOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RegisterInstanceEventNotificationAttributesFuture struct {
+type RegisterInstanceEventNotificationAttributesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RegisterInstanceEventNotificationAttributesFuture) Get(ctx workflow.Context) (*ec2.RegisterInstanceEventNotificationAttributesOutput, error) {
+func (r *RegisterInstanceEventNotificationAttributesFuture) Get(ctx workflow.Context) (*ec2.RegisterInstanceEventNotificationAttributesOutput, error) {
 	var output ec2.RegisterInstanceEventNotificationAttributesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RegisterTransitGatewayMulticastGroupMembersFuture struct {
+type RegisterTransitGatewayMulticastGroupMembersFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RegisterTransitGatewayMulticastGroupMembersFuture) Get(ctx workflow.Context) (*ec2.RegisterTransitGatewayMulticastGroupMembersOutput, error) {
+func (r *RegisterTransitGatewayMulticastGroupMembersFuture) Get(ctx workflow.Context) (*ec2.RegisterTransitGatewayMulticastGroupMembersOutput, error) {
 	var output ec2.RegisterTransitGatewayMulticastGroupMembersOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RegisterTransitGatewayMulticastGroupSourcesFuture struct {
+type RegisterTransitGatewayMulticastGroupSourcesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RegisterTransitGatewayMulticastGroupSourcesFuture) Get(ctx workflow.Context) (*ec2.RegisterTransitGatewayMulticastGroupSourcesOutput, error) {
+func (r *RegisterTransitGatewayMulticastGroupSourcesFuture) Get(ctx workflow.Context) (*ec2.RegisterTransitGatewayMulticastGroupSourcesOutput, error) {
 	var output ec2.RegisterTransitGatewayMulticastGroupSourcesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RejectTransitGatewayPeeringAttachmentFuture struct {
+type RejectTransitGatewayPeeringAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RejectTransitGatewayPeeringAttachmentFuture) Get(ctx workflow.Context) (*ec2.RejectTransitGatewayPeeringAttachmentOutput, error) {
+func (r *RejectTransitGatewayPeeringAttachmentFuture) Get(ctx workflow.Context) (*ec2.RejectTransitGatewayPeeringAttachmentOutput, error) {
 	var output ec2.RejectTransitGatewayPeeringAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RejectTransitGatewayVpcAttachmentFuture struct {
+type RejectTransitGatewayVpcAttachmentFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RejectTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.RejectTransitGatewayVpcAttachmentOutput, error) {
+func (r *RejectTransitGatewayVpcAttachmentFuture) Get(ctx workflow.Context) (*ec2.RejectTransitGatewayVpcAttachmentOutput, error) {
 	var output ec2.RejectTransitGatewayVpcAttachmentOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RejectVpcEndpointConnectionsFuture struct {
+type RejectVpcEndpointConnectionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RejectVpcEndpointConnectionsFuture) Get(ctx workflow.Context) (*ec2.RejectVpcEndpointConnectionsOutput, error) {
+func (r *RejectVpcEndpointConnectionsFuture) Get(ctx workflow.Context) (*ec2.RejectVpcEndpointConnectionsOutput, error) {
 	var output ec2.RejectVpcEndpointConnectionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RejectVpcPeeringConnectionFuture struct {
+type RejectVpcPeeringConnectionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RejectVpcPeeringConnectionFuture) Get(ctx workflow.Context) (*ec2.RejectVpcPeeringConnectionOutput, error) {
+func (r *RejectVpcPeeringConnectionFuture) Get(ctx workflow.Context) (*ec2.RejectVpcPeeringConnectionOutput, error) {
 	var output ec2.RejectVpcPeeringConnectionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReleaseAddressFuture struct {
+type ReleaseAddressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReleaseAddressFuture) Get(ctx workflow.Context) (*ec2.ReleaseAddressOutput, error) {
+func (r *ReleaseAddressFuture) Get(ctx workflow.Context) (*ec2.ReleaseAddressOutput, error) {
 	var output ec2.ReleaseAddressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReleaseHostsFuture struct {
+type ReleaseHostsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReleaseHostsFuture) Get(ctx workflow.Context) (*ec2.ReleaseHostsOutput, error) {
+func (r *ReleaseHostsFuture) Get(ctx workflow.Context) (*ec2.ReleaseHostsOutput, error) {
 	var output ec2.ReleaseHostsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReplaceIamInstanceProfileAssociationFuture struct {
+type ReplaceIamInstanceProfileAssociationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReplaceIamInstanceProfileAssociationFuture) Get(ctx workflow.Context) (*ec2.ReplaceIamInstanceProfileAssociationOutput, error) {
+func (r *ReplaceIamInstanceProfileAssociationFuture) Get(ctx workflow.Context) (*ec2.ReplaceIamInstanceProfileAssociationOutput, error) {
 	var output ec2.ReplaceIamInstanceProfileAssociationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReplaceNetworkAclAssociationFuture struct {
+type ReplaceNetworkAclAssociationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReplaceNetworkAclAssociationFuture) Get(ctx workflow.Context) (*ec2.ReplaceNetworkAclAssociationOutput, error) {
+func (r *ReplaceNetworkAclAssociationFuture) Get(ctx workflow.Context) (*ec2.ReplaceNetworkAclAssociationOutput, error) {
 	var output ec2.ReplaceNetworkAclAssociationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReplaceNetworkAclEntryFuture struct {
+type ReplaceNetworkAclEntryFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReplaceNetworkAclEntryFuture) Get(ctx workflow.Context) (*ec2.ReplaceNetworkAclEntryOutput, error) {
+func (r *ReplaceNetworkAclEntryFuture) Get(ctx workflow.Context) (*ec2.ReplaceNetworkAclEntryOutput, error) {
 	var output ec2.ReplaceNetworkAclEntryOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReplaceRouteFuture struct {
+type ReplaceRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReplaceRouteFuture) Get(ctx workflow.Context) (*ec2.ReplaceRouteOutput, error) {
+func (r *ReplaceRouteFuture) Get(ctx workflow.Context) (*ec2.ReplaceRouteOutput, error) {
 	var output ec2.ReplaceRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReplaceRouteTableAssociationFuture struct {
+type ReplaceRouteTableAssociationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReplaceRouteTableAssociationFuture) Get(ctx workflow.Context) (*ec2.ReplaceRouteTableAssociationOutput, error) {
+func (r *ReplaceRouteTableAssociationFuture) Get(ctx workflow.Context) (*ec2.ReplaceRouteTableAssociationOutput, error) {
 	var output ec2.ReplaceRouteTableAssociationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReplaceTransitGatewayRouteFuture struct {
+type ReplaceTransitGatewayRouteFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReplaceTransitGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.ReplaceTransitGatewayRouteOutput, error) {
+func (r *ReplaceTransitGatewayRouteFuture) Get(ctx workflow.Context) (*ec2.ReplaceTransitGatewayRouteOutput, error) {
 	var output ec2.ReplaceTransitGatewayRouteOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ReportInstanceStatusFuture struct {
+type ReportInstanceStatusFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ReportInstanceStatusFuture) Get(ctx workflow.Context) (*ec2.ReportInstanceStatusOutput, error) {
+func (r *ReportInstanceStatusFuture) Get(ctx workflow.Context) (*ec2.ReportInstanceStatusOutput, error) {
 	var output ec2.ReportInstanceStatusOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RequestSpotFleetFuture struct {
+type RequestSpotFleetFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RequestSpotFleetFuture) Get(ctx workflow.Context) (*ec2.RequestSpotFleetOutput, error) {
+func (r *RequestSpotFleetFuture) Get(ctx workflow.Context) (*ec2.RequestSpotFleetOutput, error) {
 	var output ec2.RequestSpotFleetOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RequestSpotInstancesFuture struct {
+type RequestSpotInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RequestSpotInstancesFuture) Get(ctx workflow.Context) (*ec2.RequestSpotInstancesOutput, error) {
+func (r *RequestSpotInstancesFuture) Get(ctx workflow.Context) (*ec2.RequestSpotInstancesOutput, error) {
 	var output ec2.RequestSpotInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ResetEbsDefaultKmsKeyIdFuture struct {
+type ResetEbsDefaultKmsKeyIdFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ResetEbsDefaultKmsKeyIdFuture) Get(ctx workflow.Context) (*ec2.ResetEbsDefaultKmsKeyIdOutput, error) {
+func (r *ResetEbsDefaultKmsKeyIdFuture) Get(ctx workflow.Context) (*ec2.ResetEbsDefaultKmsKeyIdOutput, error) {
 	var output ec2.ResetEbsDefaultKmsKeyIdOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ResetFpgaImageAttributeFuture struct {
+type ResetFpgaImageAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ResetFpgaImageAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetFpgaImageAttributeOutput, error) {
+func (r *ResetFpgaImageAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetFpgaImageAttributeOutput, error) {
 	var output ec2.ResetFpgaImageAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ResetImageAttributeFuture struct {
+type ResetImageAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ResetImageAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetImageAttributeOutput, error) {
+func (r *ResetImageAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetImageAttributeOutput, error) {
 	var output ec2.ResetImageAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ResetInstanceAttributeFuture struct {
+type ResetInstanceAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ResetInstanceAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetInstanceAttributeOutput, error) {
+func (r *ResetInstanceAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetInstanceAttributeOutput, error) {
 	var output ec2.ResetInstanceAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ResetNetworkInterfaceAttributeFuture struct {
+type ResetNetworkInterfaceAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ResetNetworkInterfaceAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetNetworkInterfaceAttributeOutput, error) {
+func (r *ResetNetworkInterfaceAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetNetworkInterfaceAttributeOutput, error) {
 	var output ec2.ResetNetworkInterfaceAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2ResetSnapshotAttributeFuture struct {
+type ResetSnapshotAttributeFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2ResetSnapshotAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetSnapshotAttributeOutput, error) {
+func (r *ResetSnapshotAttributeFuture) Get(ctx workflow.Context) (*ec2.ResetSnapshotAttributeOutput, error) {
 	var output ec2.ResetSnapshotAttributeOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RestoreAddressToClassicFuture struct {
+type RestoreAddressToClassicFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RestoreAddressToClassicFuture) Get(ctx workflow.Context) (*ec2.RestoreAddressToClassicOutput, error) {
+func (r *RestoreAddressToClassicFuture) Get(ctx workflow.Context) (*ec2.RestoreAddressToClassicOutput, error) {
 	var output ec2.RestoreAddressToClassicOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RestoreManagedPrefixListVersionFuture struct {
+type RestoreManagedPrefixListVersionFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RestoreManagedPrefixListVersionFuture) Get(ctx workflow.Context) (*ec2.RestoreManagedPrefixListVersionOutput, error) {
+func (r *RestoreManagedPrefixListVersionFuture) Get(ctx workflow.Context) (*ec2.RestoreManagedPrefixListVersionOutput, error) {
 	var output ec2.RestoreManagedPrefixListVersionOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RevokeClientVpnIngressFuture struct {
+type RevokeClientVpnIngressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RevokeClientVpnIngressFuture) Get(ctx workflow.Context) (*ec2.RevokeClientVpnIngressOutput, error) {
+func (r *RevokeClientVpnIngressFuture) Get(ctx workflow.Context) (*ec2.RevokeClientVpnIngressOutput, error) {
 	var output ec2.RevokeClientVpnIngressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RevokeSecurityGroupEgressFuture struct {
+type RevokeSecurityGroupEgressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RevokeSecurityGroupEgressFuture) Get(ctx workflow.Context) (*ec2.RevokeSecurityGroupEgressOutput, error) {
+func (r *RevokeSecurityGroupEgressFuture) Get(ctx workflow.Context) (*ec2.RevokeSecurityGroupEgressOutput, error) {
 	var output ec2.RevokeSecurityGroupEgressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RevokeSecurityGroupIngressFuture struct {
+type RevokeSecurityGroupIngressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RevokeSecurityGroupIngressFuture) Get(ctx workflow.Context) (*ec2.RevokeSecurityGroupIngressOutput, error) {
+func (r *RevokeSecurityGroupIngressFuture) Get(ctx workflow.Context) (*ec2.RevokeSecurityGroupIngressOutput, error) {
 	var output ec2.RevokeSecurityGroupIngressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RunInstancesFuture struct {
+type RunInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RunInstancesFuture) Get(ctx workflow.Context) (*ec2.Reservation, error) {
+func (r *RunInstancesFuture) Get(ctx workflow.Context) (*ec2.Reservation, error) {
 	var output ec2.Reservation
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2RunScheduledInstancesFuture struct {
+type RunScheduledInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2RunScheduledInstancesFuture) Get(ctx workflow.Context) (*ec2.RunScheduledInstancesOutput, error) {
+func (r *RunScheduledInstancesFuture) Get(ctx workflow.Context) (*ec2.RunScheduledInstancesOutput, error) {
 	var output ec2.RunScheduledInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2SearchLocalGatewayRoutesFuture struct {
+type SearchLocalGatewayRoutesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2SearchLocalGatewayRoutesFuture) Get(ctx workflow.Context) (*ec2.SearchLocalGatewayRoutesOutput, error) {
+func (r *SearchLocalGatewayRoutesFuture) Get(ctx workflow.Context) (*ec2.SearchLocalGatewayRoutesOutput, error) {
 	var output ec2.SearchLocalGatewayRoutesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2SearchTransitGatewayMulticastGroupsFuture struct {
+type SearchTransitGatewayMulticastGroupsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2SearchTransitGatewayMulticastGroupsFuture) Get(ctx workflow.Context) (*ec2.SearchTransitGatewayMulticastGroupsOutput, error) {
+func (r *SearchTransitGatewayMulticastGroupsFuture) Get(ctx workflow.Context) (*ec2.SearchTransitGatewayMulticastGroupsOutput, error) {
 	var output ec2.SearchTransitGatewayMulticastGroupsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2SearchTransitGatewayRoutesFuture struct {
+type SearchTransitGatewayRoutesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2SearchTransitGatewayRoutesFuture) Get(ctx workflow.Context) (*ec2.SearchTransitGatewayRoutesOutput, error) {
+func (r *SearchTransitGatewayRoutesFuture) Get(ctx workflow.Context) (*ec2.SearchTransitGatewayRoutesOutput, error) {
 	var output ec2.SearchTransitGatewayRoutesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2SendDiagnosticInterruptFuture struct {
+type SendDiagnosticInterruptFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2SendDiagnosticInterruptFuture) Get(ctx workflow.Context) (*ec2.SendDiagnosticInterruptOutput, error) {
+func (r *SendDiagnosticInterruptFuture) Get(ctx workflow.Context) (*ec2.SendDiagnosticInterruptOutput, error) {
 	var output ec2.SendDiagnosticInterruptOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2StartInstancesFuture struct {
+type StartInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2StartInstancesFuture) Get(ctx workflow.Context) (*ec2.StartInstancesOutput, error) {
+func (r *StartInstancesFuture) Get(ctx workflow.Context) (*ec2.StartInstancesOutput, error) {
 	var output ec2.StartInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2StartVpcEndpointServicePrivateDnsVerificationFuture struct {
+type StartVpcEndpointServicePrivateDnsVerificationFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2StartVpcEndpointServicePrivateDnsVerificationFuture) Get(ctx workflow.Context) (*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput, error) {
+func (r *StartVpcEndpointServicePrivateDnsVerificationFuture) Get(ctx workflow.Context) (*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput, error) {
 	var output ec2.StartVpcEndpointServicePrivateDnsVerificationOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2StopInstancesFuture struct {
+type StopInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2StopInstancesFuture) Get(ctx workflow.Context) (*ec2.StopInstancesOutput, error) {
+func (r *StopInstancesFuture) Get(ctx workflow.Context) (*ec2.StopInstancesOutput, error) {
 	var output ec2.StopInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2TerminateClientVpnConnectionsFuture struct {
+type TerminateClientVpnConnectionsFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2TerminateClientVpnConnectionsFuture) Get(ctx workflow.Context) (*ec2.TerminateClientVpnConnectionsOutput, error) {
+func (r *TerminateClientVpnConnectionsFuture) Get(ctx workflow.Context) (*ec2.TerminateClientVpnConnectionsOutput, error) {
 	var output ec2.TerminateClientVpnConnectionsOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2TerminateInstancesFuture struct {
+type TerminateInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2TerminateInstancesFuture) Get(ctx workflow.Context) (*ec2.TerminateInstancesOutput, error) {
+func (r *TerminateInstancesFuture) Get(ctx workflow.Context) (*ec2.TerminateInstancesOutput, error) {
 	var output ec2.TerminateInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2UnassignIpv6AddressesFuture struct {
+type UnassignIpv6AddressesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2UnassignIpv6AddressesFuture) Get(ctx workflow.Context) (*ec2.UnassignIpv6AddressesOutput, error) {
+func (r *UnassignIpv6AddressesFuture) Get(ctx workflow.Context) (*ec2.UnassignIpv6AddressesOutput, error) {
 	var output ec2.UnassignIpv6AddressesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2UnassignPrivateIpAddressesFuture struct {
+type UnassignPrivateIpAddressesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2UnassignPrivateIpAddressesFuture) Get(ctx workflow.Context) (*ec2.UnassignPrivateIpAddressesOutput, error) {
+func (r *UnassignPrivateIpAddressesFuture) Get(ctx workflow.Context) (*ec2.UnassignPrivateIpAddressesOutput, error) {
 	var output ec2.UnassignPrivateIpAddressesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2UnmonitorInstancesFuture struct {
+type UnmonitorInstancesFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2UnmonitorInstancesFuture) Get(ctx workflow.Context) (*ec2.UnmonitorInstancesOutput, error) {
+func (r *UnmonitorInstancesFuture) Get(ctx workflow.Context) (*ec2.UnmonitorInstancesOutput, error) {
 	var output ec2.UnmonitorInstancesOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2UpdateSecurityGroupRuleDescriptionsEgressFuture struct {
+type UpdateSecurityGroupRuleDescriptionsEgressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2UpdateSecurityGroupRuleDescriptionsEgressFuture) Get(ctx workflow.Context) (*ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput, error) {
+func (r *UpdateSecurityGroupRuleDescriptionsEgressFuture) Get(ctx workflow.Context) (*ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput, error) {
 	var output ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2UpdateSecurityGroupRuleDescriptionsIngressFuture struct {
+type UpdateSecurityGroupRuleDescriptionsIngressFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2UpdateSecurityGroupRuleDescriptionsIngressFuture) Get(ctx workflow.Context) (*ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput, error) {
+func (r *UpdateSecurityGroupRuleDescriptionsIngressFuture) Get(ctx workflow.Context) (*ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput, error) {
 	var output ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
 }
 
-type EC2WithdrawByoipCidrFuture struct {
+type WithdrawByoipCidrFuture struct {
 	// public to support Selector.addFuture
 	Future workflow.Future
 }
 
-func (r *EC2WithdrawByoipCidrFuture) Get(ctx workflow.Context) (*ec2.WithdrawByoipCidrOutput, error) {
+func (r *WithdrawByoipCidrFuture) Get(ctx workflow.Context) (*ec2.WithdrawByoipCidrOutput, error) {
 	var output ec2.WithdrawByoipCidrOutput
 	err := r.Future.Get(ctx, &output)
 	return &output, err
@@ -4663,9 +4663,9 @@ func (a *stub) AcceptReservedInstancesExchangeQuote(ctx workflow.Context, input 
 	return &output, err
 }
 
-func (a *stub) AcceptReservedInstancesExchangeQuoteAsync(ctx workflow.Context, input *ec2.AcceptReservedInstancesExchangeQuoteInput) *EC2AcceptReservedInstancesExchangeQuoteFuture {
+func (a *stub) AcceptReservedInstancesExchangeQuoteAsync(ctx workflow.Context, input *ec2.AcceptReservedInstancesExchangeQuoteInput) *AcceptReservedInstancesExchangeQuoteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AcceptReservedInstancesExchangeQuote", input)
-	return &EC2AcceptReservedInstancesExchangeQuoteFuture{Future: future}
+	return &AcceptReservedInstancesExchangeQuoteFuture{Future: future}
 }
 
 func (a *stub) AcceptTransitGatewayPeeringAttachment(ctx workflow.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) (*ec2.AcceptTransitGatewayPeeringAttachmentOutput, error) {
@@ -4674,9 +4674,9 @@ func (a *stub) AcceptTransitGatewayPeeringAttachment(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) AcceptTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) *EC2AcceptTransitGatewayPeeringAttachmentFuture {
+func (a *stub) AcceptTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) *AcceptTransitGatewayPeeringAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AcceptTransitGatewayPeeringAttachment", input)
-	return &EC2AcceptTransitGatewayPeeringAttachmentFuture{Future: future}
+	return &AcceptTransitGatewayPeeringAttachmentFuture{Future: future}
 }
 
 func (a *stub) AcceptTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.AcceptTransitGatewayVpcAttachmentInput) (*ec2.AcceptTransitGatewayVpcAttachmentOutput, error) {
@@ -4685,9 +4685,9 @@ func (a *stub) AcceptTransitGatewayVpcAttachment(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) AcceptTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.AcceptTransitGatewayVpcAttachmentInput) *EC2AcceptTransitGatewayVpcAttachmentFuture {
+func (a *stub) AcceptTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.AcceptTransitGatewayVpcAttachmentInput) *AcceptTransitGatewayVpcAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AcceptTransitGatewayVpcAttachment", input)
-	return &EC2AcceptTransitGatewayVpcAttachmentFuture{Future: future}
+	return &AcceptTransitGatewayVpcAttachmentFuture{Future: future}
 }
 
 func (a *stub) AcceptVpcEndpointConnections(ctx workflow.Context, input *ec2.AcceptVpcEndpointConnectionsInput) (*ec2.AcceptVpcEndpointConnectionsOutput, error) {
@@ -4696,9 +4696,9 @@ func (a *stub) AcceptVpcEndpointConnections(ctx workflow.Context, input *ec2.Acc
 	return &output, err
 }
 
-func (a *stub) AcceptVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.AcceptVpcEndpointConnectionsInput) *EC2AcceptVpcEndpointConnectionsFuture {
+func (a *stub) AcceptVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.AcceptVpcEndpointConnectionsInput) *AcceptVpcEndpointConnectionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AcceptVpcEndpointConnections", input)
-	return &EC2AcceptVpcEndpointConnectionsFuture{Future: future}
+	return &AcceptVpcEndpointConnectionsFuture{Future: future}
 }
 
 func (a *stub) AcceptVpcPeeringConnection(ctx workflow.Context, input *ec2.AcceptVpcPeeringConnectionInput) (*ec2.AcceptVpcPeeringConnectionOutput, error) {
@@ -4707,9 +4707,9 @@ func (a *stub) AcceptVpcPeeringConnection(ctx workflow.Context, input *ec2.Accep
 	return &output, err
 }
 
-func (a *stub) AcceptVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.AcceptVpcPeeringConnectionInput) *EC2AcceptVpcPeeringConnectionFuture {
+func (a *stub) AcceptVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.AcceptVpcPeeringConnectionInput) *AcceptVpcPeeringConnectionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AcceptVpcPeeringConnection", input)
-	return &EC2AcceptVpcPeeringConnectionFuture{Future: future}
+	return &AcceptVpcPeeringConnectionFuture{Future: future}
 }
 
 func (a *stub) AdvertiseByoipCidr(ctx workflow.Context, input *ec2.AdvertiseByoipCidrInput) (*ec2.AdvertiseByoipCidrOutput, error) {
@@ -4718,9 +4718,9 @@ func (a *stub) AdvertiseByoipCidr(ctx workflow.Context, input *ec2.AdvertiseByoi
 	return &output, err
 }
 
-func (a *stub) AdvertiseByoipCidrAsync(ctx workflow.Context, input *ec2.AdvertiseByoipCidrInput) *EC2AdvertiseByoipCidrFuture {
+func (a *stub) AdvertiseByoipCidrAsync(ctx workflow.Context, input *ec2.AdvertiseByoipCidrInput) *AdvertiseByoipCidrFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AdvertiseByoipCidr", input)
-	return &EC2AdvertiseByoipCidrFuture{Future: future}
+	return &AdvertiseByoipCidrFuture{Future: future}
 }
 
 func (a *stub) AllocateAddress(ctx workflow.Context, input *ec2.AllocateAddressInput) (*ec2.AllocateAddressOutput, error) {
@@ -4729,9 +4729,9 @@ func (a *stub) AllocateAddress(ctx workflow.Context, input *ec2.AllocateAddressI
 	return &output, err
 }
 
-func (a *stub) AllocateAddressAsync(ctx workflow.Context, input *ec2.AllocateAddressInput) *EC2AllocateAddressFuture {
+func (a *stub) AllocateAddressAsync(ctx workflow.Context, input *ec2.AllocateAddressInput) *AllocateAddressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AllocateAddress", input)
-	return &EC2AllocateAddressFuture{Future: future}
+	return &AllocateAddressFuture{Future: future}
 }
 
 func (a *stub) AllocateHosts(ctx workflow.Context, input *ec2.AllocateHostsInput) (*ec2.AllocateHostsOutput, error) {
@@ -4740,9 +4740,9 @@ func (a *stub) AllocateHosts(ctx workflow.Context, input *ec2.AllocateHostsInput
 	return &output, err
 }
 
-func (a *stub) AllocateHostsAsync(ctx workflow.Context, input *ec2.AllocateHostsInput) *EC2AllocateHostsFuture {
+func (a *stub) AllocateHostsAsync(ctx workflow.Context, input *ec2.AllocateHostsInput) *AllocateHostsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AllocateHosts", input)
-	return &EC2AllocateHostsFuture{Future: future}
+	return &AllocateHostsFuture{Future: future}
 }
 
 func (a *stub) ApplySecurityGroupsToClientVpnTargetNetwork(ctx workflow.Context, input *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) (*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput, error) {
@@ -4751,9 +4751,9 @@ func (a *stub) ApplySecurityGroupsToClientVpnTargetNetwork(ctx workflow.Context,
 	return &output, err
 }
 
-func (a *stub) ApplySecurityGroupsToClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture {
+func (a *stub) ApplySecurityGroupsToClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *ApplySecurityGroupsToClientVpnTargetNetworkFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ApplySecurityGroupsToClientVpnTargetNetwork", input)
-	return &EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture{Future: future}
+	return &ApplySecurityGroupsToClientVpnTargetNetworkFuture{Future: future}
 }
 
 func (a *stub) AssignIpv6Addresses(ctx workflow.Context, input *ec2.AssignIpv6AddressesInput) (*ec2.AssignIpv6AddressesOutput, error) {
@@ -4762,9 +4762,9 @@ func (a *stub) AssignIpv6Addresses(ctx workflow.Context, input *ec2.AssignIpv6Ad
 	return &output, err
 }
 
-func (a *stub) AssignIpv6AddressesAsync(ctx workflow.Context, input *ec2.AssignIpv6AddressesInput) *EC2AssignIpv6AddressesFuture {
+func (a *stub) AssignIpv6AddressesAsync(ctx workflow.Context, input *ec2.AssignIpv6AddressesInput) *AssignIpv6AddressesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssignIpv6Addresses", input)
-	return &EC2AssignIpv6AddressesFuture{Future: future}
+	return &AssignIpv6AddressesFuture{Future: future}
 }
 
 func (a *stub) AssignPrivateIpAddresses(ctx workflow.Context, input *ec2.AssignPrivateIpAddressesInput) (*ec2.AssignPrivateIpAddressesOutput, error) {
@@ -4773,9 +4773,9 @@ func (a *stub) AssignPrivateIpAddresses(ctx workflow.Context, input *ec2.AssignP
 	return &output, err
 }
 
-func (a *stub) AssignPrivateIpAddressesAsync(ctx workflow.Context, input *ec2.AssignPrivateIpAddressesInput) *EC2AssignPrivateIpAddressesFuture {
+func (a *stub) AssignPrivateIpAddressesAsync(ctx workflow.Context, input *ec2.AssignPrivateIpAddressesInput) *AssignPrivateIpAddressesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssignPrivateIpAddresses", input)
-	return &EC2AssignPrivateIpAddressesFuture{Future: future}
+	return &AssignPrivateIpAddressesFuture{Future: future}
 }
 
 func (a *stub) AssociateAddress(ctx workflow.Context, input *ec2.AssociateAddressInput) (*ec2.AssociateAddressOutput, error) {
@@ -4784,9 +4784,9 @@ func (a *stub) AssociateAddress(ctx workflow.Context, input *ec2.AssociateAddres
 	return &output, err
 }
 
-func (a *stub) AssociateAddressAsync(ctx workflow.Context, input *ec2.AssociateAddressInput) *EC2AssociateAddressFuture {
+func (a *stub) AssociateAddressAsync(ctx workflow.Context, input *ec2.AssociateAddressInput) *AssociateAddressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateAddress", input)
-	return &EC2AssociateAddressFuture{Future: future}
+	return &AssociateAddressFuture{Future: future}
 }
 
 func (a *stub) AssociateClientVpnTargetNetwork(ctx workflow.Context, input *ec2.AssociateClientVpnTargetNetworkInput) (*ec2.AssociateClientVpnTargetNetworkOutput, error) {
@@ -4795,9 +4795,9 @@ func (a *stub) AssociateClientVpnTargetNetwork(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) AssociateClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.AssociateClientVpnTargetNetworkInput) *EC2AssociateClientVpnTargetNetworkFuture {
+func (a *stub) AssociateClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.AssociateClientVpnTargetNetworkInput) *AssociateClientVpnTargetNetworkFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateClientVpnTargetNetwork", input)
-	return &EC2AssociateClientVpnTargetNetworkFuture{Future: future}
+	return &AssociateClientVpnTargetNetworkFuture{Future: future}
 }
 
 func (a *stub) AssociateDhcpOptions(ctx workflow.Context, input *ec2.AssociateDhcpOptionsInput) (*ec2.AssociateDhcpOptionsOutput, error) {
@@ -4806,9 +4806,9 @@ func (a *stub) AssociateDhcpOptions(ctx workflow.Context, input *ec2.AssociateDh
 	return &output, err
 }
 
-func (a *stub) AssociateDhcpOptionsAsync(ctx workflow.Context, input *ec2.AssociateDhcpOptionsInput) *EC2AssociateDhcpOptionsFuture {
+func (a *stub) AssociateDhcpOptionsAsync(ctx workflow.Context, input *ec2.AssociateDhcpOptionsInput) *AssociateDhcpOptionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateDhcpOptions", input)
-	return &EC2AssociateDhcpOptionsFuture{Future: future}
+	return &AssociateDhcpOptionsFuture{Future: future}
 }
 
 func (a *stub) AssociateEnclaveCertificateIamRole(ctx workflow.Context, input *ec2.AssociateEnclaveCertificateIamRoleInput) (*ec2.AssociateEnclaveCertificateIamRoleOutput, error) {
@@ -4817,9 +4817,9 @@ func (a *stub) AssociateEnclaveCertificateIamRole(ctx workflow.Context, input *e
 	return &output, err
 }
 
-func (a *stub) AssociateEnclaveCertificateIamRoleAsync(ctx workflow.Context, input *ec2.AssociateEnclaveCertificateIamRoleInput) *EC2AssociateEnclaveCertificateIamRoleFuture {
+func (a *stub) AssociateEnclaveCertificateIamRoleAsync(ctx workflow.Context, input *ec2.AssociateEnclaveCertificateIamRoleInput) *AssociateEnclaveCertificateIamRoleFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateEnclaveCertificateIamRole", input)
-	return &EC2AssociateEnclaveCertificateIamRoleFuture{Future: future}
+	return &AssociateEnclaveCertificateIamRoleFuture{Future: future}
 }
 
 func (a *stub) AssociateIamInstanceProfile(ctx workflow.Context, input *ec2.AssociateIamInstanceProfileInput) (*ec2.AssociateIamInstanceProfileOutput, error) {
@@ -4828,9 +4828,9 @@ func (a *stub) AssociateIamInstanceProfile(ctx workflow.Context, input *ec2.Asso
 	return &output, err
 }
 
-func (a *stub) AssociateIamInstanceProfileAsync(ctx workflow.Context, input *ec2.AssociateIamInstanceProfileInput) *EC2AssociateIamInstanceProfileFuture {
+func (a *stub) AssociateIamInstanceProfileAsync(ctx workflow.Context, input *ec2.AssociateIamInstanceProfileInput) *AssociateIamInstanceProfileFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateIamInstanceProfile", input)
-	return &EC2AssociateIamInstanceProfileFuture{Future: future}
+	return &AssociateIamInstanceProfileFuture{Future: future}
 }
 
 func (a *stub) AssociateRouteTable(ctx workflow.Context, input *ec2.AssociateRouteTableInput) (*ec2.AssociateRouteTableOutput, error) {
@@ -4839,9 +4839,9 @@ func (a *stub) AssociateRouteTable(ctx workflow.Context, input *ec2.AssociateRou
 	return &output, err
 }
 
-func (a *stub) AssociateRouteTableAsync(ctx workflow.Context, input *ec2.AssociateRouteTableInput) *EC2AssociateRouteTableFuture {
+func (a *stub) AssociateRouteTableAsync(ctx workflow.Context, input *ec2.AssociateRouteTableInput) *AssociateRouteTableFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateRouteTable", input)
-	return &EC2AssociateRouteTableFuture{Future: future}
+	return &AssociateRouteTableFuture{Future: future}
 }
 
 func (a *stub) AssociateSubnetCidrBlock(ctx workflow.Context, input *ec2.AssociateSubnetCidrBlockInput) (*ec2.AssociateSubnetCidrBlockOutput, error) {
@@ -4850,9 +4850,9 @@ func (a *stub) AssociateSubnetCidrBlock(ctx workflow.Context, input *ec2.Associa
 	return &output, err
 }
 
-func (a *stub) AssociateSubnetCidrBlockAsync(ctx workflow.Context, input *ec2.AssociateSubnetCidrBlockInput) *EC2AssociateSubnetCidrBlockFuture {
+func (a *stub) AssociateSubnetCidrBlockAsync(ctx workflow.Context, input *ec2.AssociateSubnetCidrBlockInput) *AssociateSubnetCidrBlockFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateSubnetCidrBlock", input)
-	return &EC2AssociateSubnetCidrBlockFuture{Future: future}
+	return &AssociateSubnetCidrBlockFuture{Future: future}
 }
 
 func (a *stub) AssociateTransitGatewayMulticastDomain(ctx workflow.Context, input *ec2.AssociateTransitGatewayMulticastDomainInput) (*ec2.AssociateTransitGatewayMulticastDomainOutput, error) {
@@ -4861,9 +4861,9 @@ func (a *stub) AssociateTransitGatewayMulticastDomain(ctx workflow.Context, inpu
 	return &output, err
 }
 
-func (a *stub) AssociateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.AssociateTransitGatewayMulticastDomainInput) *EC2AssociateTransitGatewayMulticastDomainFuture {
+func (a *stub) AssociateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.AssociateTransitGatewayMulticastDomainInput) *AssociateTransitGatewayMulticastDomainFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateTransitGatewayMulticastDomain", input)
-	return &EC2AssociateTransitGatewayMulticastDomainFuture{Future: future}
+	return &AssociateTransitGatewayMulticastDomainFuture{Future: future}
 }
 
 func (a *stub) AssociateTransitGatewayRouteTable(ctx workflow.Context, input *ec2.AssociateTransitGatewayRouteTableInput) (*ec2.AssociateTransitGatewayRouteTableOutput, error) {
@@ -4872,9 +4872,9 @@ func (a *stub) AssociateTransitGatewayRouteTable(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) AssociateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.AssociateTransitGatewayRouteTableInput) *EC2AssociateTransitGatewayRouteTableFuture {
+func (a *stub) AssociateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.AssociateTransitGatewayRouteTableInput) *AssociateTransitGatewayRouteTableFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateTransitGatewayRouteTable", input)
-	return &EC2AssociateTransitGatewayRouteTableFuture{Future: future}
+	return &AssociateTransitGatewayRouteTableFuture{Future: future}
 }
 
 func (a *stub) AssociateVpcCidrBlock(ctx workflow.Context, input *ec2.AssociateVpcCidrBlockInput) (*ec2.AssociateVpcCidrBlockOutput, error) {
@@ -4883,9 +4883,9 @@ func (a *stub) AssociateVpcCidrBlock(ctx workflow.Context, input *ec2.AssociateV
 	return &output, err
 }
 
-func (a *stub) AssociateVpcCidrBlockAsync(ctx workflow.Context, input *ec2.AssociateVpcCidrBlockInput) *EC2AssociateVpcCidrBlockFuture {
+func (a *stub) AssociateVpcCidrBlockAsync(ctx workflow.Context, input *ec2.AssociateVpcCidrBlockInput) *AssociateVpcCidrBlockFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AssociateVpcCidrBlock", input)
-	return &EC2AssociateVpcCidrBlockFuture{Future: future}
+	return &AssociateVpcCidrBlockFuture{Future: future}
 }
 
 func (a *stub) AttachClassicLinkVpc(ctx workflow.Context, input *ec2.AttachClassicLinkVpcInput) (*ec2.AttachClassicLinkVpcOutput, error) {
@@ -4894,9 +4894,9 @@ func (a *stub) AttachClassicLinkVpc(ctx workflow.Context, input *ec2.AttachClass
 	return &output, err
 }
 
-func (a *stub) AttachClassicLinkVpcAsync(ctx workflow.Context, input *ec2.AttachClassicLinkVpcInput) *EC2AttachClassicLinkVpcFuture {
+func (a *stub) AttachClassicLinkVpcAsync(ctx workflow.Context, input *ec2.AttachClassicLinkVpcInput) *AttachClassicLinkVpcFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AttachClassicLinkVpc", input)
-	return &EC2AttachClassicLinkVpcFuture{Future: future}
+	return &AttachClassicLinkVpcFuture{Future: future}
 }
 
 func (a *stub) AttachInternetGateway(ctx workflow.Context, input *ec2.AttachInternetGatewayInput) (*ec2.AttachInternetGatewayOutput, error) {
@@ -4905,9 +4905,9 @@ func (a *stub) AttachInternetGateway(ctx workflow.Context, input *ec2.AttachInte
 	return &output, err
 }
 
-func (a *stub) AttachInternetGatewayAsync(ctx workflow.Context, input *ec2.AttachInternetGatewayInput) *EC2AttachInternetGatewayFuture {
+func (a *stub) AttachInternetGatewayAsync(ctx workflow.Context, input *ec2.AttachInternetGatewayInput) *AttachInternetGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AttachInternetGateway", input)
-	return &EC2AttachInternetGatewayFuture{Future: future}
+	return &AttachInternetGatewayFuture{Future: future}
 }
 
 func (a *stub) AttachNetworkInterface(ctx workflow.Context, input *ec2.AttachNetworkInterfaceInput) (*ec2.AttachNetworkInterfaceOutput, error) {
@@ -4916,9 +4916,9 @@ func (a *stub) AttachNetworkInterface(ctx workflow.Context, input *ec2.AttachNet
 	return &output, err
 }
 
-func (a *stub) AttachNetworkInterfaceAsync(ctx workflow.Context, input *ec2.AttachNetworkInterfaceInput) *EC2AttachNetworkInterfaceFuture {
+func (a *stub) AttachNetworkInterfaceAsync(ctx workflow.Context, input *ec2.AttachNetworkInterfaceInput) *AttachNetworkInterfaceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AttachNetworkInterface", input)
-	return &EC2AttachNetworkInterfaceFuture{Future: future}
+	return &AttachNetworkInterfaceFuture{Future: future}
 }
 
 func (a *stub) AttachVolume(ctx workflow.Context, input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error) {
@@ -4927,9 +4927,9 @@ func (a *stub) AttachVolume(ctx workflow.Context, input *ec2.AttachVolumeInput) 
 	return &output, err
 }
 
-func (a *stub) AttachVolumeAsync(ctx workflow.Context, input *ec2.AttachVolumeInput) *EC2AttachVolumeFuture {
+func (a *stub) AttachVolumeAsync(ctx workflow.Context, input *ec2.AttachVolumeInput) *AttachVolumeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AttachVolume", input)
-	return &EC2AttachVolumeFuture{Future: future}
+	return &AttachVolumeFuture{Future: future}
 }
 
 func (a *stub) AttachVpnGateway(ctx workflow.Context, input *ec2.AttachVpnGatewayInput) (*ec2.AttachVpnGatewayOutput, error) {
@@ -4938,9 +4938,9 @@ func (a *stub) AttachVpnGateway(ctx workflow.Context, input *ec2.AttachVpnGatewa
 	return &output, err
 }
 
-func (a *stub) AttachVpnGatewayAsync(ctx workflow.Context, input *ec2.AttachVpnGatewayInput) *EC2AttachVpnGatewayFuture {
+func (a *stub) AttachVpnGatewayAsync(ctx workflow.Context, input *ec2.AttachVpnGatewayInput) *AttachVpnGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AttachVpnGateway", input)
-	return &EC2AttachVpnGatewayFuture{Future: future}
+	return &AttachVpnGatewayFuture{Future: future}
 }
 
 func (a *stub) AuthorizeClientVpnIngress(ctx workflow.Context, input *ec2.AuthorizeClientVpnIngressInput) (*ec2.AuthorizeClientVpnIngressOutput, error) {
@@ -4949,9 +4949,9 @@ func (a *stub) AuthorizeClientVpnIngress(ctx workflow.Context, input *ec2.Author
 	return &output, err
 }
 
-func (a *stub) AuthorizeClientVpnIngressAsync(ctx workflow.Context, input *ec2.AuthorizeClientVpnIngressInput) *EC2AuthorizeClientVpnIngressFuture {
+func (a *stub) AuthorizeClientVpnIngressAsync(ctx workflow.Context, input *ec2.AuthorizeClientVpnIngressInput) *AuthorizeClientVpnIngressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AuthorizeClientVpnIngress", input)
-	return &EC2AuthorizeClientVpnIngressFuture{Future: future}
+	return &AuthorizeClientVpnIngressFuture{Future: future}
 }
 
 func (a *stub) AuthorizeSecurityGroupEgress(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupEgressInput) (*ec2.AuthorizeSecurityGroupEgressOutput, error) {
@@ -4960,9 +4960,9 @@ func (a *stub) AuthorizeSecurityGroupEgress(ctx workflow.Context, input *ec2.Aut
 	return &output, err
 }
 
-func (a *stub) AuthorizeSecurityGroupEgressAsync(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupEgressInput) *EC2AuthorizeSecurityGroupEgressFuture {
+func (a *stub) AuthorizeSecurityGroupEgressAsync(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupEgressInput) *AuthorizeSecurityGroupEgressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AuthorizeSecurityGroupEgress", input)
-	return &EC2AuthorizeSecurityGroupEgressFuture{Future: future}
+	return &AuthorizeSecurityGroupEgressFuture{Future: future}
 }
 
 func (a *stub) AuthorizeSecurityGroupIngress(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupIngressInput) (*ec2.AuthorizeSecurityGroupIngressOutput, error) {
@@ -4971,9 +4971,9 @@ func (a *stub) AuthorizeSecurityGroupIngress(ctx workflow.Context, input *ec2.Au
 	return &output, err
 }
 
-func (a *stub) AuthorizeSecurityGroupIngressAsync(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupIngressInput) *EC2AuthorizeSecurityGroupIngressFuture {
+func (a *stub) AuthorizeSecurityGroupIngressAsync(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupIngressInput) *AuthorizeSecurityGroupIngressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-AuthorizeSecurityGroupIngress", input)
-	return &EC2AuthorizeSecurityGroupIngressFuture{Future: future}
+	return &AuthorizeSecurityGroupIngressFuture{Future: future}
 }
 
 func (a *stub) BundleInstance(ctx workflow.Context, input *ec2.BundleInstanceInput) (*ec2.BundleInstanceOutput, error) {
@@ -4982,9 +4982,9 @@ func (a *stub) BundleInstance(ctx workflow.Context, input *ec2.BundleInstanceInp
 	return &output, err
 }
 
-func (a *stub) BundleInstanceAsync(ctx workflow.Context, input *ec2.BundleInstanceInput) *EC2BundleInstanceFuture {
+func (a *stub) BundleInstanceAsync(ctx workflow.Context, input *ec2.BundleInstanceInput) *BundleInstanceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-BundleInstance", input)
-	return &EC2BundleInstanceFuture{Future: future}
+	return &BundleInstanceFuture{Future: future}
 }
 
 func (a *stub) CancelBundleTask(ctx workflow.Context, input *ec2.CancelBundleTaskInput) (*ec2.CancelBundleTaskOutput, error) {
@@ -4993,9 +4993,9 @@ func (a *stub) CancelBundleTask(ctx workflow.Context, input *ec2.CancelBundleTas
 	return &output, err
 }
 
-func (a *stub) CancelBundleTaskAsync(ctx workflow.Context, input *ec2.CancelBundleTaskInput) *EC2CancelBundleTaskFuture {
+func (a *stub) CancelBundleTaskAsync(ctx workflow.Context, input *ec2.CancelBundleTaskInput) *CancelBundleTaskFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CancelBundleTask", input)
-	return &EC2CancelBundleTaskFuture{Future: future}
+	return &CancelBundleTaskFuture{Future: future}
 }
 
 func (a *stub) CancelCapacityReservation(ctx workflow.Context, input *ec2.CancelCapacityReservationInput) (*ec2.CancelCapacityReservationOutput, error) {
@@ -5004,9 +5004,9 @@ func (a *stub) CancelCapacityReservation(ctx workflow.Context, input *ec2.Cancel
 	return &output, err
 }
 
-func (a *stub) CancelCapacityReservationAsync(ctx workflow.Context, input *ec2.CancelCapacityReservationInput) *EC2CancelCapacityReservationFuture {
+func (a *stub) CancelCapacityReservationAsync(ctx workflow.Context, input *ec2.CancelCapacityReservationInput) *CancelCapacityReservationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CancelCapacityReservation", input)
-	return &EC2CancelCapacityReservationFuture{Future: future}
+	return &CancelCapacityReservationFuture{Future: future}
 }
 
 func (a *stub) CancelConversionTask(ctx workflow.Context, input *ec2.CancelConversionTaskInput) (*ec2.CancelConversionTaskOutput, error) {
@@ -5015,9 +5015,9 @@ func (a *stub) CancelConversionTask(ctx workflow.Context, input *ec2.CancelConve
 	return &output, err
 }
 
-func (a *stub) CancelConversionTaskAsync(ctx workflow.Context, input *ec2.CancelConversionTaskInput) *EC2CancelConversionTaskFuture {
+func (a *stub) CancelConversionTaskAsync(ctx workflow.Context, input *ec2.CancelConversionTaskInput) *CancelConversionTaskFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CancelConversionTask", input)
-	return &EC2CancelConversionTaskFuture{Future: future}
+	return &CancelConversionTaskFuture{Future: future}
 }
 
 func (a *stub) CancelExportTask(ctx workflow.Context, input *ec2.CancelExportTaskInput) (*ec2.CancelExportTaskOutput, error) {
@@ -5026,9 +5026,9 @@ func (a *stub) CancelExportTask(ctx workflow.Context, input *ec2.CancelExportTas
 	return &output, err
 }
 
-func (a *stub) CancelExportTaskAsync(ctx workflow.Context, input *ec2.CancelExportTaskInput) *EC2CancelExportTaskFuture {
+func (a *stub) CancelExportTaskAsync(ctx workflow.Context, input *ec2.CancelExportTaskInput) *CancelExportTaskFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CancelExportTask", input)
-	return &EC2CancelExportTaskFuture{Future: future}
+	return &CancelExportTaskFuture{Future: future}
 }
 
 func (a *stub) CancelImportTask(ctx workflow.Context, input *ec2.CancelImportTaskInput) (*ec2.CancelImportTaskOutput, error) {
@@ -5037,9 +5037,9 @@ func (a *stub) CancelImportTask(ctx workflow.Context, input *ec2.CancelImportTas
 	return &output, err
 }
 
-func (a *stub) CancelImportTaskAsync(ctx workflow.Context, input *ec2.CancelImportTaskInput) *EC2CancelImportTaskFuture {
+func (a *stub) CancelImportTaskAsync(ctx workflow.Context, input *ec2.CancelImportTaskInput) *CancelImportTaskFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CancelImportTask", input)
-	return &EC2CancelImportTaskFuture{Future: future}
+	return &CancelImportTaskFuture{Future: future}
 }
 
 func (a *stub) CancelReservedInstancesListing(ctx workflow.Context, input *ec2.CancelReservedInstancesListingInput) (*ec2.CancelReservedInstancesListingOutput, error) {
@@ -5048,9 +5048,9 @@ func (a *stub) CancelReservedInstancesListing(ctx workflow.Context, input *ec2.C
 	return &output, err
 }
 
-func (a *stub) CancelReservedInstancesListingAsync(ctx workflow.Context, input *ec2.CancelReservedInstancesListingInput) *EC2CancelReservedInstancesListingFuture {
+func (a *stub) CancelReservedInstancesListingAsync(ctx workflow.Context, input *ec2.CancelReservedInstancesListingInput) *CancelReservedInstancesListingFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CancelReservedInstancesListing", input)
-	return &EC2CancelReservedInstancesListingFuture{Future: future}
+	return &CancelReservedInstancesListingFuture{Future: future}
 }
 
 func (a *stub) CancelSpotFleetRequests(ctx workflow.Context, input *ec2.CancelSpotFleetRequestsInput) (*ec2.CancelSpotFleetRequestsOutput, error) {
@@ -5059,9 +5059,9 @@ func (a *stub) CancelSpotFleetRequests(ctx workflow.Context, input *ec2.CancelSp
 	return &output, err
 }
 
-func (a *stub) CancelSpotFleetRequestsAsync(ctx workflow.Context, input *ec2.CancelSpotFleetRequestsInput) *EC2CancelSpotFleetRequestsFuture {
+func (a *stub) CancelSpotFleetRequestsAsync(ctx workflow.Context, input *ec2.CancelSpotFleetRequestsInput) *CancelSpotFleetRequestsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CancelSpotFleetRequests", input)
-	return &EC2CancelSpotFleetRequestsFuture{Future: future}
+	return &CancelSpotFleetRequestsFuture{Future: future}
 }
 
 func (a *stub) CancelSpotInstanceRequests(ctx workflow.Context, input *ec2.CancelSpotInstanceRequestsInput) (*ec2.CancelSpotInstanceRequestsOutput, error) {
@@ -5070,9 +5070,9 @@ func (a *stub) CancelSpotInstanceRequests(ctx workflow.Context, input *ec2.Cance
 	return &output, err
 }
 
-func (a *stub) CancelSpotInstanceRequestsAsync(ctx workflow.Context, input *ec2.CancelSpotInstanceRequestsInput) *EC2CancelSpotInstanceRequestsFuture {
+func (a *stub) CancelSpotInstanceRequestsAsync(ctx workflow.Context, input *ec2.CancelSpotInstanceRequestsInput) *CancelSpotInstanceRequestsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CancelSpotInstanceRequests", input)
-	return &EC2CancelSpotInstanceRequestsFuture{Future: future}
+	return &CancelSpotInstanceRequestsFuture{Future: future}
 }
 
 func (a *stub) ConfirmProductInstance(ctx workflow.Context, input *ec2.ConfirmProductInstanceInput) (*ec2.ConfirmProductInstanceOutput, error) {
@@ -5081,9 +5081,9 @@ func (a *stub) ConfirmProductInstance(ctx workflow.Context, input *ec2.ConfirmPr
 	return &output, err
 }
 
-func (a *stub) ConfirmProductInstanceAsync(ctx workflow.Context, input *ec2.ConfirmProductInstanceInput) *EC2ConfirmProductInstanceFuture {
+func (a *stub) ConfirmProductInstanceAsync(ctx workflow.Context, input *ec2.ConfirmProductInstanceInput) *ConfirmProductInstanceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ConfirmProductInstance", input)
-	return &EC2ConfirmProductInstanceFuture{Future: future}
+	return &ConfirmProductInstanceFuture{Future: future}
 }
 
 func (a *stub) CopyFpgaImage(ctx workflow.Context, input *ec2.CopyFpgaImageInput) (*ec2.CopyFpgaImageOutput, error) {
@@ -5092,9 +5092,9 @@ func (a *stub) CopyFpgaImage(ctx workflow.Context, input *ec2.CopyFpgaImageInput
 	return &output, err
 }
 
-func (a *stub) CopyFpgaImageAsync(ctx workflow.Context, input *ec2.CopyFpgaImageInput) *EC2CopyFpgaImageFuture {
+func (a *stub) CopyFpgaImageAsync(ctx workflow.Context, input *ec2.CopyFpgaImageInput) *CopyFpgaImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CopyFpgaImage", input)
-	return &EC2CopyFpgaImageFuture{Future: future}
+	return &CopyFpgaImageFuture{Future: future}
 }
 
 func (a *stub) CopyImage(ctx workflow.Context, input *ec2.CopyImageInput) (*ec2.CopyImageOutput, error) {
@@ -5103,9 +5103,9 @@ func (a *stub) CopyImage(ctx workflow.Context, input *ec2.CopyImageInput) (*ec2.
 	return &output, err
 }
 
-func (a *stub) CopyImageAsync(ctx workflow.Context, input *ec2.CopyImageInput) *EC2CopyImageFuture {
+func (a *stub) CopyImageAsync(ctx workflow.Context, input *ec2.CopyImageInput) *CopyImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CopyImage", input)
-	return &EC2CopyImageFuture{Future: future}
+	return &CopyImageFuture{Future: future}
 }
 
 func (a *stub) CopySnapshot(ctx workflow.Context, input *ec2.CopySnapshotInput) (*ec2.CopySnapshotOutput, error) {
@@ -5114,9 +5114,9 @@ func (a *stub) CopySnapshot(ctx workflow.Context, input *ec2.CopySnapshotInput) 
 	return &output, err
 }
 
-func (a *stub) CopySnapshotAsync(ctx workflow.Context, input *ec2.CopySnapshotInput) *EC2CopySnapshotFuture {
+func (a *stub) CopySnapshotAsync(ctx workflow.Context, input *ec2.CopySnapshotInput) *CopySnapshotFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CopySnapshot", input)
-	return &EC2CopySnapshotFuture{Future: future}
+	return &CopySnapshotFuture{Future: future}
 }
 
 func (a *stub) CreateCapacityReservation(ctx workflow.Context, input *ec2.CreateCapacityReservationInput) (*ec2.CreateCapacityReservationOutput, error) {
@@ -5125,9 +5125,9 @@ func (a *stub) CreateCapacityReservation(ctx workflow.Context, input *ec2.Create
 	return &output, err
 }
 
-func (a *stub) CreateCapacityReservationAsync(ctx workflow.Context, input *ec2.CreateCapacityReservationInput) *EC2CreateCapacityReservationFuture {
+func (a *stub) CreateCapacityReservationAsync(ctx workflow.Context, input *ec2.CreateCapacityReservationInput) *CreateCapacityReservationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateCapacityReservation", input)
-	return &EC2CreateCapacityReservationFuture{Future: future}
+	return &CreateCapacityReservationFuture{Future: future}
 }
 
 func (a *stub) CreateCarrierGateway(ctx workflow.Context, input *ec2.CreateCarrierGatewayInput) (*ec2.CreateCarrierGatewayOutput, error) {
@@ -5136,9 +5136,9 @@ func (a *stub) CreateCarrierGateway(ctx workflow.Context, input *ec2.CreateCarri
 	return &output, err
 }
 
-func (a *stub) CreateCarrierGatewayAsync(ctx workflow.Context, input *ec2.CreateCarrierGatewayInput) *EC2CreateCarrierGatewayFuture {
+func (a *stub) CreateCarrierGatewayAsync(ctx workflow.Context, input *ec2.CreateCarrierGatewayInput) *CreateCarrierGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateCarrierGateway", input)
-	return &EC2CreateCarrierGatewayFuture{Future: future}
+	return &CreateCarrierGatewayFuture{Future: future}
 }
 
 func (a *stub) CreateClientVpnEndpoint(ctx workflow.Context, input *ec2.CreateClientVpnEndpointInput) (*ec2.CreateClientVpnEndpointOutput, error) {
@@ -5147,9 +5147,9 @@ func (a *stub) CreateClientVpnEndpoint(ctx workflow.Context, input *ec2.CreateCl
 	return &output, err
 }
 
-func (a *stub) CreateClientVpnEndpointAsync(ctx workflow.Context, input *ec2.CreateClientVpnEndpointInput) *EC2CreateClientVpnEndpointFuture {
+func (a *stub) CreateClientVpnEndpointAsync(ctx workflow.Context, input *ec2.CreateClientVpnEndpointInput) *CreateClientVpnEndpointFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateClientVpnEndpoint", input)
-	return &EC2CreateClientVpnEndpointFuture{Future: future}
+	return &CreateClientVpnEndpointFuture{Future: future}
 }
 
 func (a *stub) CreateClientVpnRoute(ctx workflow.Context, input *ec2.CreateClientVpnRouteInput) (*ec2.CreateClientVpnRouteOutput, error) {
@@ -5158,9 +5158,9 @@ func (a *stub) CreateClientVpnRoute(ctx workflow.Context, input *ec2.CreateClien
 	return &output, err
 }
 
-func (a *stub) CreateClientVpnRouteAsync(ctx workflow.Context, input *ec2.CreateClientVpnRouteInput) *EC2CreateClientVpnRouteFuture {
+func (a *stub) CreateClientVpnRouteAsync(ctx workflow.Context, input *ec2.CreateClientVpnRouteInput) *CreateClientVpnRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateClientVpnRoute", input)
-	return &EC2CreateClientVpnRouteFuture{Future: future}
+	return &CreateClientVpnRouteFuture{Future: future}
 }
 
 func (a *stub) CreateCustomerGateway(ctx workflow.Context, input *ec2.CreateCustomerGatewayInput) (*ec2.CreateCustomerGatewayOutput, error) {
@@ -5169,9 +5169,9 @@ func (a *stub) CreateCustomerGateway(ctx workflow.Context, input *ec2.CreateCust
 	return &output, err
 }
 
-func (a *stub) CreateCustomerGatewayAsync(ctx workflow.Context, input *ec2.CreateCustomerGatewayInput) *EC2CreateCustomerGatewayFuture {
+func (a *stub) CreateCustomerGatewayAsync(ctx workflow.Context, input *ec2.CreateCustomerGatewayInput) *CreateCustomerGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateCustomerGateway", input)
-	return &EC2CreateCustomerGatewayFuture{Future: future}
+	return &CreateCustomerGatewayFuture{Future: future}
 }
 
 func (a *stub) CreateDefaultSubnet(ctx workflow.Context, input *ec2.CreateDefaultSubnetInput) (*ec2.CreateDefaultSubnetOutput, error) {
@@ -5180,9 +5180,9 @@ func (a *stub) CreateDefaultSubnet(ctx workflow.Context, input *ec2.CreateDefaul
 	return &output, err
 }
 
-func (a *stub) CreateDefaultSubnetAsync(ctx workflow.Context, input *ec2.CreateDefaultSubnetInput) *EC2CreateDefaultSubnetFuture {
+func (a *stub) CreateDefaultSubnetAsync(ctx workflow.Context, input *ec2.CreateDefaultSubnetInput) *CreateDefaultSubnetFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateDefaultSubnet", input)
-	return &EC2CreateDefaultSubnetFuture{Future: future}
+	return &CreateDefaultSubnetFuture{Future: future}
 }
 
 func (a *stub) CreateDefaultVpc(ctx workflow.Context, input *ec2.CreateDefaultVpcInput) (*ec2.CreateDefaultVpcOutput, error) {
@@ -5191,9 +5191,9 @@ func (a *stub) CreateDefaultVpc(ctx workflow.Context, input *ec2.CreateDefaultVp
 	return &output, err
 }
 
-func (a *stub) CreateDefaultVpcAsync(ctx workflow.Context, input *ec2.CreateDefaultVpcInput) *EC2CreateDefaultVpcFuture {
+func (a *stub) CreateDefaultVpcAsync(ctx workflow.Context, input *ec2.CreateDefaultVpcInput) *CreateDefaultVpcFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateDefaultVpc", input)
-	return &EC2CreateDefaultVpcFuture{Future: future}
+	return &CreateDefaultVpcFuture{Future: future}
 }
 
 func (a *stub) CreateDhcpOptions(ctx workflow.Context, input *ec2.CreateDhcpOptionsInput) (*ec2.CreateDhcpOptionsOutput, error) {
@@ -5202,9 +5202,9 @@ func (a *stub) CreateDhcpOptions(ctx workflow.Context, input *ec2.CreateDhcpOpti
 	return &output, err
 }
 
-func (a *stub) CreateDhcpOptionsAsync(ctx workflow.Context, input *ec2.CreateDhcpOptionsInput) *EC2CreateDhcpOptionsFuture {
+func (a *stub) CreateDhcpOptionsAsync(ctx workflow.Context, input *ec2.CreateDhcpOptionsInput) *CreateDhcpOptionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateDhcpOptions", input)
-	return &EC2CreateDhcpOptionsFuture{Future: future}
+	return &CreateDhcpOptionsFuture{Future: future}
 }
 
 func (a *stub) CreateEgressOnlyInternetGateway(ctx workflow.Context, input *ec2.CreateEgressOnlyInternetGatewayInput) (*ec2.CreateEgressOnlyInternetGatewayOutput, error) {
@@ -5213,9 +5213,9 @@ func (a *stub) CreateEgressOnlyInternetGateway(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) CreateEgressOnlyInternetGatewayAsync(ctx workflow.Context, input *ec2.CreateEgressOnlyInternetGatewayInput) *EC2CreateEgressOnlyInternetGatewayFuture {
+func (a *stub) CreateEgressOnlyInternetGatewayAsync(ctx workflow.Context, input *ec2.CreateEgressOnlyInternetGatewayInput) *CreateEgressOnlyInternetGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateEgressOnlyInternetGateway", input)
-	return &EC2CreateEgressOnlyInternetGatewayFuture{Future: future}
+	return &CreateEgressOnlyInternetGatewayFuture{Future: future}
 }
 
 func (a *stub) CreateFleet(ctx workflow.Context, input *ec2.CreateFleetInput) (*ec2.CreateFleetOutput, error) {
@@ -5224,9 +5224,9 @@ func (a *stub) CreateFleet(ctx workflow.Context, input *ec2.CreateFleetInput) (*
 	return &output, err
 }
 
-func (a *stub) CreateFleetAsync(ctx workflow.Context, input *ec2.CreateFleetInput) *EC2CreateFleetFuture {
+func (a *stub) CreateFleetAsync(ctx workflow.Context, input *ec2.CreateFleetInput) *CreateFleetFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateFleet", input)
-	return &EC2CreateFleetFuture{Future: future}
+	return &CreateFleetFuture{Future: future}
 }
 
 func (a *stub) CreateFlowLogs(ctx workflow.Context, input *ec2.CreateFlowLogsInput) (*ec2.CreateFlowLogsOutput, error) {
@@ -5235,9 +5235,9 @@ func (a *stub) CreateFlowLogs(ctx workflow.Context, input *ec2.CreateFlowLogsInp
 	return &output, err
 }
 
-func (a *stub) CreateFlowLogsAsync(ctx workflow.Context, input *ec2.CreateFlowLogsInput) *EC2CreateFlowLogsFuture {
+func (a *stub) CreateFlowLogsAsync(ctx workflow.Context, input *ec2.CreateFlowLogsInput) *CreateFlowLogsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateFlowLogs", input)
-	return &EC2CreateFlowLogsFuture{Future: future}
+	return &CreateFlowLogsFuture{Future: future}
 }
 
 func (a *stub) CreateFpgaImage(ctx workflow.Context, input *ec2.CreateFpgaImageInput) (*ec2.CreateFpgaImageOutput, error) {
@@ -5246,9 +5246,9 @@ func (a *stub) CreateFpgaImage(ctx workflow.Context, input *ec2.CreateFpgaImageI
 	return &output, err
 }
 
-func (a *stub) CreateFpgaImageAsync(ctx workflow.Context, input *ec2.CreateFpgaImageInput) *EC2CreateFpgaImageFuture {
+func (a *stub) CreateFpgaImageAsync(ctx workflow.Context, input *ec2.CreateFpgaImageInput) *CreateFpgaImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateFpgaImage", input)
-	return &EC2CreateFpgaImageFuture{Future: future}
+	return &CreateFpgaImageFuture{Future: future}
 }
 
 func (a *stub) CreateImage(ctx workflow.Context, input *ec2.CreateImageInput) (*ec2.CreateImageOutput, error) {
@@ -5257,9 +5257,9 @@ func (a *stub) CreateImage(ctx workflow.Context, input *ec2.CreateImageInput) (*
 	return &output, err
 }
 
-func (a *stub) CreateImageAsync(ctx workflow.Context, input *ec2.CreateImageInput) *EC2CreateImageFuture {
+func (a *stub) CreateImageAsync(ctx workflow.Context, input *ec2.CreateImageInput) *CreateImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateImage", input)
-	return &EC2CreateImageFuture{Future: future}
+	return &CreateImageFuture{Future: future}
 }
 
 func (a *stub) CreateInstanceExportTask(ctx workflow.Context, input *ec2.CreateInstanceExportTaskInput) (*ec2.CreateInstanceExportTaskOutput, error) {
@@ -5268,9 +5268,9 @@ func (a *stub) CreateInstanceExportTask(ctx workflow.Context, input *ec2.CreateI
 	return &output, err
 }
 
-func (a *stub) CreateInstanceExportTaskAsync(ctx workflow.Context, input *ec2.CreateInstanceExportTaskInput) *EC2CreateInstanceExportTaskFuture {
+func (a *stub) CreateInstanceExportTaskAsync(ctx workflow.Context, input *ec2.CreateInstanceExportTaskInput) *CreateInstanceExportTaskFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateInstanceExportTask", input)
-	return &EC2CreateInstanceExportTaskFuture{Future: future}
+	return &CreateInstanceExportTaskFuture{Future: future}
 }
 
 func (a *stub) CreateInternetGateway(ctx workflow.Context, input *ec2.CreateInternetGatewayInput) (*ec2.CreateInternetGatewayOutput, error) {
@@ -5279,9 +5279,9 @@ func (a *stub) CreateInternetGateway(ctx workflow.Context, input *ec2.CreateInte
 	return &output, err
 }
 
-func (a *stub) CreateInternetGatewayAsync(ctx workflow.Context, input *ec2.CreateInternetGatewayInput) *EC2CreateInternetGatewayFuture {
+func (a *stub) CreateInternetGatewayAsync(ctx workflow.Context, input *ec2.CreateInternetGatewayInput) *CreateInternetGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateInternetGateway", input)
-	return &EC2CreateInternetGatewayFuture{Future: future}
+	return &CreateInternetGatewayFuture{Future: future}
 }
 
 func (a *stub) CreateKeyPair(ctx workflow.Context, input *ec2.CreateKeyPairInput) (*ec2.CreateKeyPairOutput, error) {
@@ -5290,9 +5290,9 @@ func (a *stub) CreateKeyPair(ctx workflow.Context, input *ec2.CreateKeyPairInput
 	return &output, err
 }
 
-func (a *stub) CreateKeyPairAsync(ctx workflow.Context, input *ec2.CreateKeyPairInput) *EC2CreateKeyPairFuture {
+func (a *stub) CreateKeyPairAsync(ctx workflow.Context, input *ec2.CreateKeyPairInput) *CreateKeyPairFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateKeyPair", input)
-	return &EC2CreateKeyPairFuture{Future: future}
+	return &CreateKeyPairFuture{Future: future}
 }
 
 func (a *stub) CreateLaunchTemplate(ctx workflow.Context, input *ec2.CreateLaunchTemplateInput) (*ec2.CreateLaunchTemplateOutput, error) {
@@ -5301,9 +5301,9 @@ func (a *stub) CreateLaunchTemplate(ctx workflow.Context, input *ec2.CreateLaunc
 	return &output, err
 }
 
-func (a *stub) CreateLaunchTemplateAsync(ctx workflow.Context, input *ec2.CreateLaunchTemplateInput) *EC2CreateLaunchTemplateFuture {
+func (a *stub) CreateLaunchTemplateAsync(ctx workflow.Context, input *ec2.CreateLaunchTemplateInput) *CreateLaunchTemplateFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateLaunchTemplate", input)
-	return &EC2CreateLaunchTemplateFuture{Future: future}
+	return &CreateLaunchTemplateFuture{Future: future}
 }
 
 func (a *stub) CreateLaunchTemplateVersion(ctx workflow.Context, input *ec2.CreateLaunchTemplateVersionInput) (*ec2.CreateLaunchTemplateVersionOutput, error) {
@@ -5312,9 +5312,9 @@ func (a *stub) CreateLaunchTemplateVersion(ctx workflow.Context, input *ec2.Crea
 	return &output, err
 }
 
-func (a *stub) CreateLaunchTemplateVersionAsync(ctx workflow.Context, input *ec2.CreateLaunchTemplateVersionInput) *EC2CreateLaunchTemplateVersionFuture {
+func (a *stub) CreateLaunchTemplateVersionAsync(ctx workflow.Context, input *ec2.CreateLaunchTemplateVersionInput) *CreateLaunchTemplateVersionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateLaunchTemplateVersion", input)
-	return &EC2CreateLaunchTemplateVersionFuture{Future: future}
+	return &CreateLaunchTemplateVersionFuture{Future: future}
 }
 
 func (a *stub) CreateLocalGatewayRoute(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteInput) (*ec2.CreateLocalGatewayRouteOutput, error) {
@@ -5323,9 +5323,9 @@ func (a *stub) CreateLocalGatewayRoute(ctx workflow.Context, input *ec2.CreateLo
 	return &output, err
 }
 
-func (a *stub) CreateLocalGatewayRouteAsync(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteInput) *EC2CreateLocalGatewayRouteFuture {
+func (a *stub) CreateLocalGatewayRouteAsync(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteInput) *CreateLocalGatewayRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateLocalGatewayRoute", input)
-	return &EC2CreateLocalGatewayRouteFuture{Future: future}
+	return &CreateLocalGatewayRouteFuture{Future: future}
 }
 
 func (a *stub) CreateLocalGatewayRouteTableVpcAssociation(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) (*ec2.CreateLocalGatewayRouteTableVpcAssociationOutput, error) {
@@ -5334,9 +5334,9 @@ func (a *stub) CreateLocalGatewayRouteTableVpcAssociation(ctx workflow.Context, 
 	return &output, err
 }
 
-func (a *stub) CreateLocalGatewayRouteTableVpcAssociationAsync(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) *EC2CreateLocalGatewayRouteTableVpcAssociationFuture {
+func (a *stub) CreateLocalGatewayRouteTableVpcAssociationAsync(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) *CreateLocalGatewayRouteTableVpcAssociationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateLocalGatewayRouteTableVpcAssociation", input)
-	return &EC2CreateLocalGatewayRouteTableVpcAssociationFuture{Future: future}
+	return &CreateLocalGatewayRouteTableVpcAssociationFuture{Future: future}
 }
 
 func (a *stub) CreateManagedPrefixList(ctx workflow.Context, input *ec2.CreateManagedPrefixListInput) (*ec2.CreateManagedPrefixListOutput, error) {
@@ -5345,9 +5345,9 @@ func (a *stub) CreateManagedPrefixList(ctx workflow.Context, input *ec2.CreateMa
 	return &output, err
 }
 
-func (a *stub) CreateManagedPrefixListAsync(ctx workflow.Context, input *ec2.CreateManagedPrefixListInput) *EC2CreateManagedPrefixListFuture {
+func (a *stub) CreateManagedPrefixListAsync(ctx workflow.Context, input *ec2.CreateManagedPrefixListInput) *CreateManagedPrefixListFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateManagedPrefixList", input)
-	return &EC2CreateManagedPrefixListFuture{Future: future}
+	return &CreateManagedPrefixListFuture{Future: future}
 }
 
 func (a *stub) CreateNatGateway(ctx workflow.Context, input *ec2.CreateNatGatewayInput) (*ec2.CreateNatGatewayOutput, error) {
@@ -5356,9 +5356,9 @@ func (a *stub) CreateNatGateway(ctx workflow.Context, input *ec2.CreateNatGatewa
 	return &output, err
 }
 
-func (a *stub) CreateNatGatewayAsync(ctx workflow.Context, input *ec2.CreateNatGatewayInput) *EC2CreateNatGatewayFuture {
+func (a *stub) CreateNatGatewayAsync(ctx workflow.Context, input *ec2.CreateNatGatewayInput) *CreateNatGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateNatGateway", input)
-	return &EC2CreateNatGatewayFuture{Future: future}
+	return &CreateNatGatewayFuture{Future: future}
 }
 
 func (a *stub) CreateNetworkAcl(ctx workflow.Context, input *ec2.CreateNetworkAclInput) (*ec2.CreateNetworkAclOutput, error) {
@@ -5367,9 +5367,9 @@ func (a *stub) CreateNetworkAcl(ctx workflow.Context, input *ec2.CreateNetworkAc
 	return &output, err
 }
 
-func (a *stub) CreateNetworkAclAsync(ctx workflow.Context, input *ec2.CreateNetworkAclInput) *EC2CreateNetworkAclFuture {
+func (a *stub) CreateNetworkAclAsync(ctx workflow.Context, input *ec2.CreateNetworkAclInput) *CreateNetworkAclFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateNetworkAcl", input)
-	return &EC2CreateNetworkAclFuture{Future: future}
+	return &CreateNetworkAclFuture{Future: future}
 }
 
 func (a *stub) CreateNetworkAclEntry(ctx workflow.Context, input *ec2.CreateNetworkAclEntryInput) (*ec2.CreateNetworkAclEntryOutput, error) {
@@ -5378,9 +5378,9 @@ func (a *stub) CreateNetworkAclEntry(ctx workflow.Context, input *ec2.CreateNetw
 	return &output, err
 }
 
-func (a *stub) CreateNetworkAclEntryAsync(ctx workflow.Context, input *ec2.CreateNetworkAclEntryInput) *EC2CreateNetworkAclEntryFuture {
+func (a *stub) CreateNetworkAclEntryAsync(ctx workflow.Context, input *ec2.CreateNetworkAclEntryInput) *CreateNetworkAclEntryFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateNetworkAclEntry", input)
-	return &EC2CreateNetworkAclEntryFuture{Future: future}
+	return &CreateNetworkAclEntryFuture{Future: future}
 }
 
 func (a *stub) CreateNetworkInterface(ctx workflow.Context, input *ec2.CreateNetworkInterfaceInput) (*ec2.CreateNetworkInterfaceOutput, error) {
@@ -5389,9 +5389,9 @@ func (a *stub) CreateNetworkInterface(ctx workflow.Context, input *ec2.CreateNet
 	return &output, err
 }
 
-func (a *stub) CreateNetworkInterfaceAsync(ctx workflow.Context, input *ec2.CreateNetworkInterfaceInput) *EC2CreateNetworkInterfaceFuture {
+func (a *stub) CreateNetworkInterfaceAsync(ctx workflow.Context, input *ec2.CreateNetworkInterfaceInput) *CreateNetworkInterfaceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateNetworkInterface", input)
-	return &EC2CreateNetworkInterfaceFuture{Future: future}
+	return &CreateNetworkInterfaceFuture{Future: future}
 }
 
 func (a *stub) CreateNetworkInterfacePermission(ctx workflow.Context, input *ec2.CreateNetworkInterfacePermissionInput) (*ec2.CreateNetworkInterfacePermissionOutput, error) {
@@ -5400,9 +5400,9 @@ func (a *stub) CreateNetworkInterfacePermission(ctx workflow.Context, input *ec2
 	return &output, err
 }
 
-func (a *stub) CreateNetworkInterfacePermissionAsync(ctx workflow.Context, input *ec2.CreateNetworkInterfacePermissionInput) *EC2CreateNetworkInterfacePermissionFuture {
+func (a *stub) CreateNetworkInterfacePermissionAsync(ctx workflow.Context, input *ec2.CreateNetworkInterfacePermissionInput) *CreateNetworkInterfacePermissionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateNetworkInterfacePermission", input)
-	return &EC2CreateNetworkInterfacePermissionFuture{Future: future}
+	return &CreateNetworkInterfacePermissionFuture{Future: future}
 }
 
 func (a *stub) CreatePlacementGroup(ctx workflow.Context, input *ec2.CreatePlacementGroupInput) (*ec2.CreatePlacementGroupOutput, error) {
@@ -5411,9 +5411,9 @@ func (a *stub) CreatePlacementGroup(ctx workflow.Context, input *ec2.CreatePlace
 	return &output, err
 }
 
-func (a *stub) CreatePlacementGroupAsync(ctx workflow.Context, input *ec2.CreatePlacementGroupInput) *EC2CreatePlacementGroupFuture {
+func (a *stub) CreatePlacementGroupAsync(ctx workflow.Context, input *ec2.CreatePlacementGroupInput) *CreatePlacementGroupFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreatePlacementGroup", input)
-	return &EC2CreatePlacementGroupFuture{Future: future}
+	return &CreatePlacementGroupFuture{Future: future}
 }
 
 func (a *stub) CreateReservedInstancesListing(ctx workflow.Context, input *ec2.CreateReservedInstancesListingInput) (*ec2.CreateReservedInstancesListingOutput, error) {
@@ -5422,9 +5422,9 @@ func (a *stub) CreateReservedInstancesListing(ctx workflow.Context, input *ec2.C
 	return &output, err
 }
 
-func (a *stub) CreateReservedInstancesListingAsync(ctx workflow.Context, input *ec2.CreateReservedInstancesListingInput) *EC2CreateReservedInstancesListingFuture {
+func (a *stub) CreateReservedInstancesListingAsync(ctx workflow.Context, input *ec2.CreateReservedInstancesListingInput) *CreateReservedInstancesListingFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateReservedInstancesListing", input)
-	return &EC2CreateReservedInstancesListingFuture{Future: future}
+	return &CreateReservedInstancesListingFuture{Future: future}
 }
 
 func (a *stub) CreateRoute(ctx workflow.Context, input *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
@@ -5433,9 +5433,9 @@ func (a *stub) CreateRoute(ctx workflow.Context, input *ec2.CreateRouteInput) (*
 	return &output, err
 }
 
-func (a *stub) CreateRouteAsync(ctx workflow.Context, input *ec2.CreateRouteInput) *EC2CreateRouteFuture {
+func (a *stub) CreateRouteAsync(ctx workflow.Context, input *ec2.CreateRouteInput) *CreateRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateRoute", input)
-	return &EC2CreateRouteFuture{Future: future}
+	return &CreateRouteFuture{Future: future}
 }
 
 func (a *stub) CreateRouteTable(ctx workflow.Context, input *ec2.CreateRouteTableInput) (*ec2.CreateRouteTableOutput, error) {
@@ -5444,9 +5444,9 @@ func (a *stub) CreateRouteTable(ctx workflow.Context, input *ec2.CreateRouteTabl
 	return &output, err
 }
 
-func (a *stub) CreateRouteTableAsync(ctx workflow.Context, input *ec2.CreateRouteTableInput) *EC2CreateRouteTableFuture {
+func (a *stub) CreateRouteTableAsync(ctx workflow.Context, input *ec2.CreateRouteTableInput) *CreateRouteTableFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateRouteTable", input)
-	return &EC2CreateRouteTableFuture{Future: future}
+	return &CreateRouteTableFuture{Future: future}
 }
 
 func (a *stub) CreateSecurityGroup(ctx workflow.Context, input *ec2.CreateSecurityGroupInput) (*ec2.CreateSecurityGroupOutput, error) {
@@ -5455,9 +5455,9 @@ func (a *stub) CreateSecurityGroup(ctx workflow.Context, input *ec2.CreateSecuri
 	return &output, err
 }
 
-func (a *stub) CreateSecurityGroupAsync(ctx workflow.Context, input *ec2.CreateSecurityGroupInput) *EC2CreateSecurityGroupFuture {
+func (a *stub) CreateSecurityGroupAsync(ctx workflow.Context, input *ec2.CreateSecurityGroupInput) *CreateSecurityGroupFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateSecurityGroup", input)
-	return &EC2CreateSecurityGroupFuture{Future: future}
+	return &CreateSecurityGroupFuture{Future: future}
 }
 
 func (a *stub) CreateSnapshot(ctx workflow.Context, input *ec2.CreateSnapshotInput) (*ec2.Snapshot, error) {
@@ -5466,9 +5466,9 @@ func (a *stub) CreateSnapshot(ctx workflow.Context, input *ec2.CreateSnapshotInp
 	return &output, err
 }
 
-func (a *stub) CreateSnapshotAsync(ctx workflow.Context, input *ec2.CreateSnapshotInput) *EC2CreateSnapshotFuture {
+func (a *stub) CreateSnapshotAsync(ctx workflow.Context, input *ec2.CreateSnapshotInput) *CreateSnapshotFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateSnapshot", input)
-	return &EC2CreateSnapshotFuture{Future: future}
+	return &CreateSnapshotFuture{Future: future}
 }
 
 func (a *stub) CreateSnapshots(ctx workflow.Context, input *ec2.CreateSnapshotsInput) (*ec2.CreateSnapshotsOutput, error) {
@@ -5477,9 +5477,9 @@ func (a *stub) CreateSnapshots(ctx workflow.Context, input *ec2.CreateSnapshotsI
 	return &output, err
 }
 
-func (a *stub) CreateSnapshotsAsync(ctx workflow.Context, input *ec2.CreateSnapshotsInput) *EC2CreateSnapshotsFuture {
+func (a *stub) CreateSnapshotsAsync(ctx workflow.Context, input *ec2.CreateSnapshotsInput) *CreateSnapshotsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateSnapshots", input)
-	return &EC2CreateSnapshotsFuture{Future: future}
+	return &CreateSnapshotsFuture{Future: future}
 }
 
 func (a *stub) CreateSpotDatafeedSubscription(ctx workflow.Context, input *ec2.CreateSpotDatafeedSubscriptionInput) (*ec2.CreateSpotDatafeedSubscriptionOutput, error) {
@@ -5488,9 +5488,9 @@ func (a *stub) CreateSpotDatafeedSubscription(ctx workflow.Context, input *ec2.C
 	return &output, err
 }
 
-func (a *stub) CreateSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.CreateSpotDatafeedSubscriptionInput) *EC2CreateSpotDatafeedSubscriptionFuture {
+func (a *stub) CreateSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.CreateSpotDatafeedSubscriptionInput) *CreateSpotDatafeedSubscriptionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateSpotDatafeedSubscription", input)
-	return &EC2CreateSpotDatafeedSubscriptionFuture{Future: future}
+	return &CreateSpotDatafeedSubscriptionFuture{Future: future}
 }
 
 func (a *stub) CreateSubnet(ctx workflow.Context, input *ec2.CreateSubnetInput) (*ec2.CreateSubnetOutput, error) {
@@ -5499,9 +5499,9 @@ func (a *stub) CreateSubnet(ctx workflow.Context, input *ec2.CreateSubnetInput) 
 	return &output, err
 }
 
-func (a *stub) CreateSubnetAsync(ctx workflow.Context, input *ec2.CreateSubnetInput) *EC2CreateSubnetFuture {
+func (a *stub) CreateSubnetAsync(ctx workflow.Context, input *ec2.CreateSubnetInput) *CreateSubnetFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateSubnet", input)
-	return &EC2CreateSubnetFuture{Future: future}
+	return &CreateSubnetFuture{Future: future}
 }
 
 func (a *stub) CreateTags(ctx workflow.Context, input *ec2.CreateTagsInput) (*ec2.CreateTagsOutput, error) {
@@ -5510,9 +5510,9 @@ func (a *stub) CreateTags(ctx workflow.Context, input *ec2.CreateTagsInput) (*ec
 	return &output, err
 }
 
-func (a *stub) CreateTagsAsync(ctx workflow.Context, input *ec2.CreateTagsInput) *EC2CreateTagsFuture {
+func (a *stub) CreateTagsAsync(ctx workflow.Context, input *ec2.CreateTagsInput) *CreateTagsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTags", input)
-	return &EC2CreateTagsFuture{Future: future}
+	return &CreateTagsFuture{Future: future}
 }
 
 func (a *stub) CreateTrafficMirrorFilter(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterInput) (*ec2.CreateTrafficMirrorFilterOutput, error) {
@@ -5521,9 +5521,9 @@ func (a *stub) CreateTrafficMirrorFilter(ctx workflow.Context, input *ec2.Create
 	return &output, err
 }
 
-func (a *stub) CreateTrafficMirrorFilterAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterInput) *EC2CreateTrafficMirrorFilterFuture {
+func (a *stub) CreateTrafficMirrorFilterAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterInput) *CreateTrafficMirrorFilterFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTrafficMirrorFilter", input)
-	return &EC2CreateTrafficMirrorFilterFuture{Future: future}
+	return &CreateTrafficMirrorFilterFuture{Future: future}
 }
 
 func (a *stub) CreateTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterRuleInput) (*ec2.CreateTrafficMirrorFilterRuleOutput, error) {
@@ -5532,9 +5532,9 @@ func (a *stub) CreateTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.Cr
 	return &output, err
 }
 
-func (a *stub) CreateTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterRuleInput) *EC2CreateTrafficMirrorFilterRuleFuture {
+func (a *stub) CreateTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterRuleInput) *CreateTrafficMirrorFilterRuleFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTrafficMirrorFilterRule", input)
-	return &EC2CreateTrafficMirrorFilterRuleFuture{Future: future}
+	return &CreateTrafficMirrorFilterRuleFuture{Future: future}
 }
 
 func (a *stub) CreateTrafficMirrorSession(ctx workflow.Context, input *ec2.CreateTrafficMirrorSessionInput) (*ec2.CreateTrafficMirrorSessionOutput, error) {
@@ -5543,9 +5543,9 @@ func (a *stub) CreateTrafficMirrorSession(ctx workflow.Context, input *ec2.Creat
 	return &output, err
 }
 
-func (a *stub) CreateTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorSessionInput) *EC2CreateTrafficMirrorSessionFuture {
+func (a *stub) CreateTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorSessionInput) *CreateTrafficMirrorSessionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTrafficMirrorSession", input)
-	return &EC2CreateTrafficMirrorSessionFuture{Future: future}
+	return &CreateTrafficMirrorSessionFuture{Future: future}
 }
 
 func (a *stub) CreateTrafficMirrorTarget(ctx workflow.Context, input *ec2.CreateTrafficMirrorTargetInput) (*ec2.CreateTrafficMirrorTargetOutput, error) {
@@ -5554,9 +5554,9 @@ func (a *stub) CreateTrafficMirrorTarget(ctx workflow.Context, input *ec2.Create
 	return &output, err
 }
 
-func (a *stub) CreateTrafficMirrorTargetAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorTargetInput) *EC2CreateTrafficMirrorTargetFuture {
+func (a *stub) CreateTrafficMirrorTargetAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorTargetInput) *CreateTrafficMirrorTargetFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTrafficMirrorTarget", input)
-	return &EC2CreateTrafficMirrorTargetFuture{Future: future}
+	return &CreateTrafficMirrorTargetFuture{Future: future}
 }
 
 func (a *stub) CreateTransitGateway(ctx workflow.Context, input *ec2.CreateTransitGatewayInput) (*ec2.CreateTransitGatewayOutput, error) {
@@ -5565,9 +5565,9 @@ func (a *stub) CreateTransitGateway(ctx workflow.Context, input *ec2.CreateTrans
 	return &output, err
 }
 
-func (a *stub) CreateTransitGatewayAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayInput) *EC2CreateTransitGatewayFuture {
+func (a *stub) CreateTransitGatewayAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayInput) *CreateTransitGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTransitGateway", input)
-	return &EC2CreateTransitGatewayFuture{Future: future}
+	return &CreateTransitGatewayFuture{Future: future}
 }
 
 func (a *stub) CreateTransitGatewayMulticastDomain(ctx workflow.Context, input *ec2.CreateTransitGatewayMulticastDomainInput) (*ec2.CreateTransitGatewayMulticastDomainOutput, error) {
@@ -5576,9 +5576,9 @@ func (a *stub) CreateTransitGatewayMulticastDomain(ctx workflow.Context, input *
 	return &output, err
 }
 
-func (a *stub) CreateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayMulticastDomainInput) *EC2CreateTransitGatewayMulticastDomainFuture {
+func (a *stub) CreateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayMulticastDomainInput) *CreateTransitGatewayMulticastDomainFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTransitGatewayMulticastDomain", input)
-	return &EC2CreateTransitGatewayMulticastDomainFuture{Future: future}
+	return &CreateTransitGatewayMulticastDomainFuture{Future: future}
 }
 
 func (a *stub) CreateTransitGatewayPeeringAttachment(ctx workflow.Context, input *ec2.CreateTransitGatewayPeeringAttachmentInput) (*ec2.CreateTransitGatewayPeeringAttachmentOutput, error) {
@@ -5587,9 +5587,9 @@ func (a *stub) CreateTransitGatewayPeeringAttachment(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) CreateTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayPeeringAttachmentInput) *EC2CreateTransitGatewayPeeringAttachmentFuture {
+func (a *stub) CreateTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayPeeringAttachmentInput) *CreateTransitGatewayPeeringAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTransitGatewayPeeringAttachment", input)
-	return &EC2CreateTransitGatewayPeeringAttachmentFuture{Future: future}
+	return &CreateTransitGatewayPeeringAttachmentFuture{Future: future}
 }
 
 func (a *stub) CreateTransitGatewayPrefixListReference(ctx workflow.Context, input *ec2.CreateTransitGatewayPrefixListReferenceInput) (*ec2.CreateTransitGatewayPrefixListReferenceOutput, error) {
@@ -5598,9 +5598,9 @@ func (a *stub) CreateTransitGatewayPrefixListReference(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) CreateTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayPrefixListReferenceInput) *EC2CreateTransitGatewayPrefixListReferenceFuture {
+func (a *stub) CreateTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayPrefixListReferenceInput) *CreateTransitGatewayPrefixListReferenceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTransitGatewayPrefixListReference", input)
-	return &EC2CreateTransitGatewayPrefixListReferenceFuture{Future: future}
+	return &CreateTransitGatewayPrefixListReferenceFuture{Future: future}
 }
 
 func (a *stub) CreateTransitGatewayRoute(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteInput) (*ec2.CreateTransitGatewayRouteOutput, error) {
@@ -5609,9 +5609,9 @@ func (a *stub) CreateTransitGatewayRoute(ctx workflow.Context, input *ec2.Create
 	return &output, err
 }
 
-func (a *stub) CreateTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteInput) *EC2CreateTransitGatewayRouteFuture {
+func (a *stub) CreateTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteInput) *CreateTransitGatewayRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTransitGatewayRoute", input)
-	return &EC2CreateTransitGatewayRouteFuture{Future: future}
+	return &CreateTransitGatewayRouteFuture{Future: future}
 }
 
 func (a *stub) CreateTransitGatewayRouteTable(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteTableInput) (*ec2.CreateTransitGatewayRouteTableOutput, error) {
@@ -5620,9 +5620,9 @@ func (a *stub) CreateTransitGatewayRouteTable(ctx workflow.Context, input *ec2.C
 	return &output, err
 }
 
-func (a *stub) CreateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteTableInput) *EC2CreateTransitGatewayRouteTableFuture {
+func (a *stub) CreateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteTableInput) *CreateTransitGatewayRouteTableFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTransitGatewayRouteTable", input)
-	return &EC2CreateTransitGatewayRouteTableFuture{Future: future}
+	return &CreateTransitGatewayRouteTableFuture{Future: future}
 }
 
 func (a *stub) CreateTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.CreateTransitGatewayVpcAttachmentInput) (*ec2.CreateTransitGatewayVpcAttachmentOutput, error) {
@@ -5631,9 +5631,9 @@ func (a *stub) CreateTransitGatewayVpcAttachment(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) CreateTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayVpcAttachmentInput) *EC2CreateTransitGatewayVpcAttachmentFuture {
+func (a *stub) CreateTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayVpcAttachmentInput) *CreateTransitGatewayVpcAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateTransitGatewayVpcAttachment", input)
-	return &EC2CreateTransitGatewayVpcAttachmentFuture{Future: future}
+	return &CreateTransitGatewayVpcAttachmentFuture{Future: future}
 }
 
 func (a *stub) CreateVolume(ctx workflow.Context, input *ec2.CreateVolumeInput) (*ec2.Volume, error) {
@@ -5642,9 +5642,9 @@ func (a *stub) CreateVolume(ctx workflow.Context, input *ec2.CreateVolumeInput) 
 	return &output, err
 }
 
-func (a *stub) CreateVolumeAsync(ctx workflow.Context, input *ec2.CreateVolumeInput) *EC2CreateVolumeFuture {
+func (a *stub) CreateVolumeAsync(ctx workflow.Context, input *ec2.CreateVolumeInput) *CreateVolumeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVolume", input)
-	return &EC2CreateVolumeFuture{Future: future}
+	return &CreateVolumeFuture{Future: future}
 }
 
 func (a *stub) CreateVpc(ctx workflow.Context, input *ec2.CreateVpcInput) (*ec2.CreateVpcOutput, error) {
@@ -5653,9 +5653,9 @@ func (a *stub) CreateVpc(ctx workflow.Context, input *ec2.CreateVpcInput) (*ec2.
 	return &output, err
 }
 
-func (a *stub) CreateVpcAsync(ctx workflow.Context, input *ec2.CreateVpcInput) *EC2CreateVpcFuture {
+func (a *stub) CreateVpcAsync(ctx workflow.Context, input *ec2.CreateVpcInput) *CreateVpcFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVpc", input)
-	return &EC2CreateVpcFuture{Future: future}
+	return &CreateVpcFuture{Future: future}
 }
 
 func (a *stub) CreateVpcEndpoint(ctx workflow.Context, input *ec2.CreateVpcEndpointInput) (*ec2.CreateVpcEndpointOutput, error) {
@@ -5664,9 +5664,9 @@ func (a *stub) CreateVpcEndpoint(ctx workflow.Context, input *ec2.CreateVpcEndpo
 	return &output, err
 }
 
-func (a *stub) CreateVpcEndpointAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointInput) *EC2CreateVpcEndpointFuture {
+func (a *stub) CreateVpcEndpointAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointInput) *CreateVpcEndpointFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVpcEndpoint", input)
-	return &EC2CreateVpcEndpointFuture{Future: future}
+	return &CreateVpcEndpointFuture{Future: future}
 }
 
 func (a *stub) CreateVpcEndpointConnectionNotification(ctx workflow.Context, input *ec2.CreateVpcEndpointConnectionNotificationInput) (*ec2.CreateVpcEndpointConnectionNotificationOutput, error) {
@@ -5675,9 +5675,9 @@ func (a *stub) CreateVpcEndpointConnectionNotification(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) CreateVpcEndpointConnectionNotificationAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointConnectionNotificationInput) *EC2CreateVpcEndpointConnectionNotificationFuture {
+func (a *stub) CreateVpcEndpointConnectionNotificationAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointConnectionNotificationInput) *CreateVpcEndpointConnectionNotificationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVpcEndpointConnectionNotification", input)
-	return &EC2CreateVpcEndpointConnectionNotificationFuture{Future: future}
+	return &CreateVpcEndpointConnectionNotificationFuture{Future: future}
 }
 
 func (a *stub) CreateVpcEndpointServiceConfiguration(ctx workflow.Context, input *ec2.CreateVpcEndpointServiceConfigurationInput) (*ec2.CreateVpcEndpointServiceConfigurationOutput, error) {
@@ -5686,9 +5686,9 @@ func (a *stub) CreateVpcEndpointServiceConfiguration(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) CreateVpcEndpointServiceConfigurationAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointServiceConfigurationInput) *EC2CreateVpcEndpointServiceConfigurationFuture {
+func (a *stub) CreateVpcEndpointServiceConfigurationAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointServiceConfigurationInput) *CreateVpcEndpointServiceConfigurationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVpcEndpointServiceConfiguration", input)
-	return &EC2CreateVpcEndpointServiceConfigurationFuture{Future: future}
+	return &CreateVpcEndpointServiceConfigurationFuture{Future: future}
 }
 
 func (a *stub) CreateVpcPeeringConnection(ctx workflow.Context, input *ec2.CreateVpcPeeringConnectionInput) (*ec2.CreateVpcPeeringConnectionOutput, error) {
@@ -5697,9 +5697,9 @@ func (a *stub) CreateVpcPeeringConnection(ctx workflow.Context, input *ec2.Creat
 	return &output, err
 }
 
-func (a *stub) CreateVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.CreateVpcPeeringConnectionInput) *EC2CreateVpcPeeringConnectionFuture {
+func (a *stub) CreateVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.CreateVpcPeeringConnectionInput) *CreateVpcPeeringConnectionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVpcPeeringConnection", input)
-	return &EC2CreateVpcPeeringConnectionFuture{Future: future}
+	return &CreateVpcPeeringConnectionFuture{Future: future}
 }
 
 func (a *stub) CreateVpnConnection(ctx workflow.Context, input *ec2.CreateVpnConnectionInput) (*ec2.CreateVpnConnectionOutput, error) {
@@ -5708,9 +5708,9 @@ func (a *stub) CreateVpnConnection(ctx workflow.Context, input *ec2.CreateVpnCon
 	return &output, err
 }
 
-func (a *stub) CreateVpnConnectionAsync(ctx workflow.Context, input *ec2.CreateVpnConnectionInput) *EC2CreateVpnConnectionFuture {
+func (a *stub) CreateVpnConnectionAsync(ctx workflow.Context, input *ec2.CreateVpnConnectionInput) *CreateVpnConnectionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVpnConnection", input)
-	return &EC2CreateVpnConnectionFuture{Future: future}
+	return &CreateVpnConnectionFuture{Future: future}
 }
 
 func (a *stub) CreateVpnConnectionRoute(ctx workflow.Context, input *ec2.CreateVpnConnectionRouteInput) (*ec2.CreateVpnConnectionRouteOutput, error) {
@@ -5719,9 +5719,9 @@ func (a *stub) CreateVpnConnectionRoute(ctx workflow.Context, input *ec2.CreateV
 	return &output, err
 }
 
-func (a *stub) CreateVpnConnectionRouteAsync(ctx workflow.Context, input *ec2.CreateVpnConnectionRouteInput) *EC2CreateVpnConnectionRouteFuture {
+func (a *stub) CreateVpnConnectionRouteAsync(ctx workflow.Context, input *ec2.CreateVpnConnectionRouteInput) *CreateVpnConnectionRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVpnConnectionRoute", input)
-	return &EC2CreateVpnConnectionRouteFuture{Future: future}
+	return &CreateVpnConnectionRouteFuture{Future: future}
 }
 
 func (a *stub) CreateVpnGateway(ctx workflow.Context, input *ec2.CreateVpnGatewayInput) (*ec2.CreateVpnGatewayOutput, error) {
@@ -5730,9 +5730,9 @@ func (a *stub) CreateVpnGateway(ctx workflow.Context, input *ec2.CreateVpnGatewa
 	return &output, err
 }
 
-func (a *stub) CreateVpnGatewayAsync(ctx workflow.Context, input *ec2.CreateVpnGatewayInput) *EC2CreateVpnGatewayFuture {
+func (a *stub) CreateVpnGatewayAsync(ctx workflow.Context, input *ec2.CreateVpnGatewayInput) *CreateVpnGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-CreateVpnGateway", input)
-	return &EC2CreateVpnGatewayFuture{Future: future}
+	return &CreateVpnGatewayFuture{Future: future}
 }
 
 func (a *stub) DeleteCarrierGateway(ctx workflow.Context, input *ec2.DeleteCarrierGatewayInput) (*ec2.DeleteCarrierGatewayOutput, error) {
@@ -5741,9 +5741,9 @@ func (a *stub) DeleteCarrierGateway(ctx workflow.Context, input *ec2.DeleteCarri
 	return &output, err
 }
 
-func (a *stub) DeleteCarrierGatewayAsync(ctx workflow.Context, input *ec2.DeleteCarrierGatewayInput) *EC2DeleteCarrierGatewayFuture {
+func (a *stub) DeleteCarrierGatewayAsync(ctx workflow.Context, input *ec2.DeleteCarrierGatewayInput) *DeleteCarrierGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteCarrierGateway", input)
-	return &EC2DeleteCarrierGatewayFuture{Future: future}
+	return &DeleteCarrierGatewayFuture{Future: future}
 }
 
 func (a *stub) DeleteClientVpnEndpoint(ctx workflow.Context, input *ec2.DeleteClientVpnEndpointInput) (*ec2.DeleteClientVpnEndpointOutput, error) {
@@ -5752,9 +5752,9 @@ func (a *stub) DeleteClientVpnEndpoint(ctx workflow.Context, input *ec2.DeleteCl
 	return &output, err
 }
 
-func (a *stub) DeleteClientVpnEndpointAsync(ctx workflow.Context, input *ec2.DeleteClientVpnEndpointInput) *EC2DeleteClientVpnEndpointFuture {
+func (a *stub) DeleteClientVpnEndpointAsync(ctx workflow.Context, input *ec2.DeleteClientVpnEndpointInput) *DeleteClientVpnEndpointFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteClientVpnEndpoint", input)
-	return &EC2DeleteClientVpnEndpointFuture{Future: future}
+	return &DeleteClientVpnEndpointFuture{Future: future}
 }
 
 func (a *stub) DeleteClientVpnRoute(ctx workflow.Context, input *ec2.DeleteClientVpnRouteInput) (*ec2.DeleteClientVpnRouteOutput, error) {
@@ -5763,9 +5763,9 @@ func (a *stub) DeleteClientVpnRoute(ctx workflow.Context, input *ec2.DeleteClien
 	return &output, err
 }
 
-func (a *stub) DeleteClientVpnRouteAsync(ctx workflow.Context, input *ec2.DeleteClientVpnRouteInput) *EC2DeleteClientVpnRouteFuture {
+func (a *stub) DeleteClientVpnRouteAsync(ctx workflow.Context, input *ec2.DeleteClientVpnRouteInput) *DeleteClientVpnRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteClientVpnRoute", input)
-	return &EC2DeleteClientVpnRouteFuture{Future: future}
+	return &DeleteClientVpnRouteFuture{Future: future}
 }
 
 func (a *stub) DeleteCustomerGateway(ctx workflow.Context, input *ec2.DeleteCustomerGatewayInput) (*ec2.DeleteCustomerGatewayOutput, error) {
@@ -5774,9 +5774,9 @@ func (a *stub) DeleteCustomerGateway(ctx workflow.Context, input *ec2.DeleteCust
 	return &output, err
 }
 
-func (a *stub) DeleteCustomerGatewayAsync(ctx workflow.Context, input *ec2.DeleteCustomerGatewayInput) *EC2DeleteCustomerGatewayFuture {
+func (a *stub) DeleteCustomerGatewayAsync(ctx workflow.Context, input *ec2.DeleteCustomerGatewayInput) *DeleteCustomerGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteCustomerGateway", input)
-	return &EC2DeleteCustomerGatewayFuture{Future: future}
+	return &DeleteCustomerGatewayFuture{Future: future}
 }
 
 func (a *stub) DeleteDhcpOptions(ctx workflow.Context, input *ec2.DeleteDhcpOptionsInput) (*ec2.DeleteDhcpOptionsOutput, error) {
@@ -5785,9 +5785,9 @@ func (a *stub) DeleteDhcpOptions(ctx workflow.Context, input *ec2.DeleteDhcpOpti
 	return &output, err
 }
 
-func (a *stub) DeleteDhcpOptionsAsync(ctx workflow.Context, input *ec2.DeleteDhcpOptionsInput) *EC2DeleteDhcpOptionsFuture {
+func (a *stub) DeleteDhcpOptionsAsync(ctx workflow.Context, input *ec2.DeleteDhcpOptionsInput) *DeleteDhcpOptionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteDhcpOptions", input)
-	return &EC2DeleteDhcpOptionsFuture{Future: future}
+	return &DeleteDhcpOptionsFuture{Future: future}
 }
 
 func (a *stub) DeleteEgressOnlyInternetGateway(ctx workflow.Context, input *ec2.DeleteEgressOnlyInternetGatewayInput) (*ec2.DeleteEgressOnlyInternetGatewayOutput, error) {
@@ -5796,9 +5796,9 @@ func (a *stub) DeleteEgressOnlyInternetGateway(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) DeleteEgressOnlyInternetGatewayAsync(ctx workflow.Context, input *ec2.DeleteEgressOnlyInternetGatewayInput) *EC2DeleteEgressOnlyInternetGatewayFuture {
+func (a *stub) DeleteEgressOnlyInternetGatewayAsync(ctx workflow.Context, input *ec2.DeleteEgressOnlyInternetGatewayInput) *DeleteEgressOnlyInternetGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteEgressOnlyInternetGateway", input)
-	return &EC2DeleteEgressOnlyInternetGatewayFuture{Future: future}
+	return &DeleteEgressOnlyInternetGatewayFuture{Future: future}
 }
 
 func (a *stub) DeleteFleets(ctx workflow.Context, input *ec2.DeleteFleetsInput) (*ec2.DeleteFleetsOutput, error) {
@@ -5807,9 +5807,9 @@ func (a *stub) DeleteFleets(ctx workflow.Context, input *ec2.DeleteFleetsInput) 
 	return &output, err
 }
 
-func (a *stub) DeleteFleetsAsync(ctx workflow.Context, input *ec2.DeleteFleetsInput) *EC2DeleteFleetsFuture {
+func (a *stub) DeleteFleetsAsync(ctx workflow.Context, input *ec2.DeleteFleetsInput) *DeleteFleetsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteFleets", input)
-	return &EC2DeleteFleetsFuture{Future: future}
+	return &DeleteFleetsFuture{Future: future}
 }
 
 func (a *stub) DeleteFlowLogs(ctx workflow.Context, input *ec2.DeleteFlowLogsInput) (*ec2.DeleteFlowLogsOutput, error) {
@@ -5818,9 +5818,9 @@ func (a *stub) DeleteFlowLogs(ctx workflow.Context, input *ec2.DeleteFlowLogsInp
 	return &output, err
 }
 
-func (a *stub) DeleteFlowLogsAsync(ctx workflow.Context, input *ec2.DeleteFlowLogsInput) *EC2DeleteFlowLogsFuture {
+func (a *stub) DeleteFlowLogsAsync(ctx workflow.Context, input *ec2.DeleteFlowLogsInput) *DeleteFlowLogsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteFlowLogs", input)
-	return &EC2DeleteFlowLogsFuture{Future: future}
+	return &DeleteFlowLogsFuture{Future: future}
 }
 
 func (a *stub) DeleteFpgaImage(ctx workflow.Context, input *ec2.DeleteFpgaImageInput) (*ec2.DeleteFpgaImageOutput, error) {
@@ -5829,9 +5829,9 @@ func (a *stub) DeleteFpgaImage(ctx workflow.Context, input *ec2.DeleteFpgaImageI
 	return &output, err
 }
 
-func (a *stub) DeleteFpgaImageAsync(ctx workflow.Context, input *ec2.DeleteFpgaImageInput) *EC2DeleteFpgaImageFuture {
+func (a *stub) DeleteFpgaImageAsync(ctx workflow.Context, input *ec2.DeleteFpgaImageInput) *DeleteFpgaImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteFpgaImage", input)
-	return &EC2DeleteFpgaImageFuture{Future: future}
+	return &DeleteFpgaImageFuture{Future: future}
 }
 
 func (a *stub) DeleteInternetGateway(ctx workflow.Context, input *ec2.DeleteInternetGatewayInput) (*ec2.DeleteInternetGatewayOutput, error) {
@@ -5840,9 +5840,9 @@ func (a *stub) DeleteInternetGateway(ctx workflow.Context, input *ec2.DeleteInte
 	return &output, err
 }
 
-func (a *stub) DeleteInternetGatewayAsync(ctx workflow.Context, input *ec2.DeleteInternetGatewayInput) *EC2DeleteInternetGatewayFuture {
+func (a *stub) DeleteInternetGatewayAsync(ctx workflow.Context, input *ec2.DeleteInternetGatewayInput) *DeleteInternetGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteInternetGateway", input)
-	return &EC2DeleteInternetGatewayFuture{Future: future}
+	return &DeleteInternetGatewayFuture{Future: future}
 }
 
 func (a *stub) DeleteKeyPair(ctx workflow.Context, input *ec2.DeleteKeyPairInput) (*ec2.DeleteKeyPairOutput, error) {
@@ -5851,9 +5851,9 @@ func (a *stub) DeleteKeyPair(ctx workflow.Context, input *ec2.DeleteKeyPairInput
 	return &output, err
 }
 
-func (a *stub) DeleteKeyPairAsync(ctx workflow.Context, input *ec2.DeleteKeyPairInput) *EC2DeleteKeyPairFuture {
+func (a *stub) DeleteKeyPairAsync(ctx workflow.Context, input *ec2.DeleteKeyPairInput) *DeleteKeyPairFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteKeyPair", input)
-	return &EC2DeleteKeyPairFuture{Future: future}
+	return &DeleteKeyPairFuture{Future: future}
 }
 
 func (a *stub) DeleteLaunchTemplate(ctx workflow.Context, input *ec2.DeleteLaunchTemplateInput) (*ec2.DeleteLaunchTemplateOutput, error) {
@@ -5862,9 +5862,9 @@ func (a *stub) DeleteLaunchTemplate(ctx workflow.Context, input *ec2.DeleteLaunc
 	return &output, err
 }
 
-func (a *stub) DeleteLaunchTemplateAsync(ctx workflow.Context, input *ec2.DeleteLaunchTemplateInput) *EC2DeleteLaunchTemplateFuture {
+func (a *stub) DeleteLaunchTemplateAsync(ctx workflow.Context, input *ec2.DeleteLaunchTemplateInput) *DeleteLaunchTemplateFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteLaunchTemplate", input)
-	return &EC2DeleteLaunchTemplateFuture{Future: future}
+	return &DeleteLaunchTemplateFuture{Future: future}
 }
 
 func (a *stub) DeleteLaunchTemplateVersions(ctx workflow.Context, input *ec2.DeleteLaunchTemplateVersionsInput) (*ec2.DeleteLaunchTemplateVersionsOutput, error) {
@@ -5873,9 +5873,9 @@ func (a *stub) DeleteLaunchTemplateVersions(ctx workflow.Context, input *ec2.Del
 	return &output, err
 }
 
-func (a *stub) DeleteLaunchTemplateVersionsAsync(ctx workflow.Context, input *ec2.DeleteLaunchTemplateVersionsInput) *EC2DeleteLaunchTemplateVersionsFuture {
+func (a *stub) DeleteLaunchTemplateVersionsAsync(ctx workflow.Context, input *ec2.DeleteLaunchTemplateVersionsInput) *DeleteLaunchTemplateVersionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteLaunchTemplateVersions", input)
-	return &EC2DeleteLaunchTemplateVersionsFuture{Future: future}
+	return &DeleteLaunchTemplateVersionsFuture{Future: future}
 }
 
 func (a *stub) DeleteLocalGatewayRoute(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteInput) (*ec2.DeleteLocalGatewayRouteOutput, error) {
@@ -5884,9 +5884,9 @@ func (a *stub) DeleteLocalGatewayRoute(ctx workflow.Context, input *ec2.DeleteLo
 	return &output, err
 }
 
-func (a *stub) DeleteLocalGatewayRouteAsync(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteInput) *EC2DeleteLocalGatewayRouteFuture {
+func (a *stub) DeleteLocalGatewayRouteAsync(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteInput) *DeleteLocalGatewayRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteLocalGatewayRoute", input)
-	return &EC2DeleteLocalGatewayRouteFuture{Future: future}
+	return &DeleteLocalGatewayRouteFuture{Future: future}
 }
 
 func (a *stub) DeleteLocalGatewayRouteTableVpcAssociation(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) (*ec2.DeleteLocalGatewayRouteTableVpcAssociationOutput, error) {
@@ -5895,9 +5895,9 @@ func (a *stub) DeleteLocalGatewayRouteTableVpcAssociation(ctx workflow.Context, 
 	return &output, err
 }
 
-func (a *stub) DeleteLocalGatewayRouteTableVpcAssociationAsync(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) *EC2DeleteLocalGatewayRouteTableVpcAssociationFuture {
+func (a *stub) DeleteLocalGatewayRouteTableVpcAssociationAsync(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) *DeleteLocalGatewayRouteTableVpcAssociationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteLocalGatewayRouteTableVpcAssociation", input)
-	return &EC2DeleteLocalGatewayRouteTableVpcAssociationFuture{Future: future}
+	return &DeleteLocalGatewayRouteTableVpcAssociationFuture{Future: future}
 }
 
 func (a *stub) DeleteManagedPrefixList(ctx workflow.Context, input *ec2.DeleteManagedPrefixListInput) (*ec2.DeleteManagedPrefixListOutput, error) {
@@ -5906,9 +5906,9 @@ func (a *stub) DeleteManagedPrefixList(ctx workflow.Context, input *ec2.DeleteMa
 	return &output, err
 }
 
-func (a *stub) DeleteManagedPrefixListAsync(ctx workflow.Context, input *ec2.DeleteManagedPrefixListInput) *EC2DeleteManagedPrefixListFuture {
+func (a *stub) DeleteManagedPrefixListAsync(ctx workflow.Context, input *ec2.DeleteManagedPrefixListInput) *DeleteManagedPrefixListFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteManagedPrefixList", input)
-	return &EC2DeleteManagedPrefixListFuture{Future: future}
+	return &DeleteManagedPrefixListFuture{Future: future}
 }
 
 func (a *stub) DeleteNatGateway(ctx workflow.Context, input *ec2.DeleteNatGatewayInput) (*ec2.DeleteNatGatewayOutput, error) {
@@ -5917,9 +5917,9 @@ func (a *stub) DeleteNatGateway(ctx workflow.Context, input *ec2.DeleteNatGatewa
 	return &output, err
 }
 
-func (a *stub) DeleteNatGatewayAsync(ctx workflow.Context, input *ec2.DeleteNatGatewayInput) *EC2DeleteNatGatewayFuture {
+func (a *stub) DeleteNatGatewayAsync(ctx workflow.Context, input *ec2.DeleteNatGatewayInput) *DeleteNatGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteNatGateway", input)
-	return &EC2DeleteNatGatewayFuture{Future: future}
+	return &DeleteNatGatewayFuture{Future: future}
 }
 
 func (a *stub) DeleteNetworkAcl(ctx workflow.Context, input *ec2.DeleteNetworkAclInput) (*ec2.DeleteNetworkAclOutput, error) {
@@ -5928,9 +5928,9 @@ func (a *stub) DeleteNetworkAcl(ctx workflow.Context, input *ec2.DeleteNetworkAc
 	return &output, err
 }
 
-func (a *stub) DeleteNetworkAclAsync(ctx workflow.Context, input *ec2.DeleteNetworkAclInput) *EC2DeleteNetworkAclFuture {
+func (a *stub) DeleteNetworkAclAsync(ctx workflow.Context, input *ec2.DeleteNetworkAclInput) *DeleteNetworkAclFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteNetworkAcl", input)
-	return &EC2DeleteNetworkAclFuture{Future: future}
+	return &DeleteNetworkAclFuture{Future: future}
 }
 
 func (a *stub) DeleteNetworkAclEntry(ctx workflow.Context, input *ec2.DeleteNetworkAclEntryInput) (*ec2.DeleteNetworkAclEntryOutput, error) {
@@ -5939,9 +5939,9 @@ func (a *stub) DeleteNetworkAclEntry(ctx workflow.Context, input *ec2.DeleteNetw
 	return &output, err
 }
 
-func (a *stub) DeleteNetworkAclEntryAsync(ctx workflow.Context, input *ec2.DeleteNetworkAclEntryInput) *EC2DeleteNetworkAclEntryFuture {
+func (a *stub) DeleteNetworkAclEntryAsync(ctx workflow.Context, input *ec2.DeleteNetworkAclEntryInput) *DeleteNetworkAclEntryFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteNetworkAclEntry", input)
-	return &EC2DeleteNetworkAclEntryFuture{Future: future}
+	return &DeleteNetworkAclEntryFuture{Future: future}
 }
 
 func (a *stub) DeleteNetworkInterface(ctx workflow.Context, input *ec2.DeleteNetworkInterfaceInput) (*ec2.DeleteNetworkInterfaceOutput, error) {
@@ -5950,9 +5950,9 @@ func (a *stub) DeleteNetworkInterface(ctx workflow.Context, input *ec2.DeleteNet
 	return &output, err
 }
 
-func (a *stub) DeleteNetworkInterfaceAsync(ctx workflow.Context, input *ec2.DeleteNetworkInterfaceInput) *EC2DeleteNetworkInterfaceFuture {
+func (a *stub) DeleteNetworkInterfaceAsync(ctx workflow.Context, input *ec2.DeleteNetworkInterfaceInput) *DeleteNetworkInterfaceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteNetworkInterface", input)
-	return &EC2DeleteNetworkInterfaceFuture{Future: future}
+	return &DeleteNetworkInterfaceFuture{Future: future}
 }
 
 func (a *stub) DeleteNetworkInterfacePermission(ctx workflow.Context, input *ec2.DeleteNetworkInterfacePermissionInput) (*ec2.DeleteNetworkInterfacePermissionOutput, error) {
@@ -5961,9 +5961,9 @@ func (a *stub) DeleteNetworkInterfacePermission(ctx workflow.Context, input *ec2
 	return &output, err
 }
 
-func (a *stub) DeleteNetworkInterfacePermissionAsync(ctx workflow.Context, input *ec2.DeleteNetworkInterfacePermissionInput) *EC2DeleteNetworkInterfacePermissionFuture {
+func (a *stub) DeleteNetworkInterfacePermissionAsync(ctx workflow.Context, input *ec2.DeleteNetworkInterfacePermissionInput) *DeleteNetworkInterfacePermissionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteNetworkInterfacePermission", input)
-	return &EC2DeleteNetworkInterfacePermissionFuture{Future: future}
+	return &DeleteNetworkInterfacePermissionFuture{Future: future}
 }
 
 func (a *stub) DeletePlacementGroup(ctx workflow.Context, input *ec2.DeletePlacementGroupInput) (*ec2.DeletePlacementGroupOutput, error) {
@@ -5972,9 +5972,9 @@ func (a *stub) DeletePlacementGroup(ctx workflow.Context, input *ec2.DeletePlace
 	return &output, err
 }
 
-func (a *stub) DeletePlacementGroupAsync(ctx workflow.Context, input *ec2.DeletePlacementGroupInput) *EC2DeletePlacementGroupFuture {
+func (a *stub) DeletePlacementGroupAsync(ctx workflow.Context, input *ec2.DeletePlacementGroupInput) *DeletePlacementGroupFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeletePlacementGroup", input)
-	return &EC2DeletePlacementGroupFuture{Future: future}
+	return &DeletePlacementGroupFuture{Future: future}
 }
 
 func (a *stub) DeleteQueuedReservedInstances(ctx workflow.Context, input *ec2.DeleteQueuedReservedInstancesInput) (*ec2.DeleteQueuedReservedInstancesOutput, error) {
@@ -5983,9 +5983,9 @@ func (a *stub) DeleteQueuedReservedInstances(ctx workflow.Context, input *ec2.De
 	return &output, err
 }
 
-func (a *stub) DeleteQueuedReservedInstancesAsync(ctx workflow.Context, input *ec2.DeleteQueuedReservedInstancesInput) *EC2DeleteQueuedReservedInstancesFuture {
+func (a *stub) DeleteQueuedReservedInstancesAsync(ctx workflow.Context, input *ec2.DeleteQueuedReservedInstancesInput) *DeleteQueuedReservedInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteQueuedReservedInstances", input)
-	return &EC2DeleteQueuedReservedInstancesFuture{Future: future}
+	return &DeleteQueuedReservedInstancesFuture{Future: future}
 }
 
 func (a *stub) DeleteRoute(ctx workflow.Context, input *ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error) {
@@ -5994,9 +5994,9 @@ func (a *stub) DeleteRoute(ctx workflow.Context, input *ec2.DeleteRouteInput) (*
 	return &output, err
 }
 
-func (a *stub) DeleteRouteAsync(ctx workflow.Context, input *ec2.DeleteRouteInput) *EC2DeleteRouteFuture {
+func (a *stub) DeleteRouteAsync(ctx workflow.Context, input *ec2.DeleteRouteInput) *DeleteRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteRoute", input)
-	return &EC2DeleteRouteFuture{Future: future}
+	return &DeleteRouteFuture{Future: future}
 }
 
 func (a *stub) DeleteRouteTable(ctx workflow.Context, input *ec2.DeleteRouteTableInput) (*ec2.DeleteRouteTableOutput, error) {
@@ -6005,9 +6005,9 @@ func (a *stub) DeleteRouteTable(ctx workflow.Context, input *ec2.DeleteRouteTabl
 	return &output, err
 }
 
-func (a *stub) DeleteRouteTableAsync(ctx workflow.Context, input *ec2.DeleteRouteTableInput) *EC2DeleteRouteTableFuture {
+func (a *stub) DeleteRouteTableAsync(ctx workflow.Context, input *ec2.DeleteRouteTableInput) *DeleteRouteTableFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteRouteTable", input)
-	return &EC2DeleteRouteTableFuture{Future: future}
+	return &DeleteRouteTableFuture{Future: future}
 }
 
 func (a *stub) DeleteSecurityGroup(ctx workflow.Context, input *ec2.DeleteSecurityGroupInput) (*ec2.DeleteSecurityGroupOutput, error) {
@@ -6016,9 +6016,9 @@ func (a *stub) DeleteSecurityGroup(ctx workflow.Context, input *ec2.DeleteSecuri
 	return &output, err
 }
 
-func (a *stub) DeleteSecurityGroupAsync(ctx workflow.Context, input *ec2.DeleteSecurityGroupInput) *EC2DeleteSecurityGroupFuture {
+func (a *stub) DeleteSecurityGroupAsync(ctx workflow.Context, input *ec2.DeleteSecurityGroupInput) *DeleteSecurityGroupFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteSecurityGroup", input)
-	return &EC2DeleteSecurityGroupFuture{Future: future}
+	return &DeleteSecurityGroupFuture{Future: future}
 }
 
 func (a *stub) DeleteSnapshot(ctx workflow.Context, input *ec2.DeleteSnapshotInput) (*ec2.DeleteSnapshotOutput, error) {
@@ -6027,9 +6027,9 @@ func (a *stub) DeleteSnapshot(ctx workflow.Context, input *ec2.DeleteSnapshotInp
 	return &output, err
 }
 
-func (a *stub) DeleteSnapshotAsync(ctx workflow.Context, input *ec2.DeleteSnapshotInput) *EC2DeleteSnapshotFuture {
+func (a *stub) DeleteSnapshotAsync(ctx workflow.Context, input *ec2.DeleteSnapshotInput) *DeleteSnapshotFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteSnapshot", input)
-	return &EC2DeleteSnapshotFuture{Future: future}
+	return &DeleteSnapshotFuture{Future: future}
 }
 
 func (a *stub) DeleteSpotDatafeedSubscription(ctx workflow.Context, input *ec2.DeleteSpotDatafeedSubscriptionInput) (*ec2.DeleteSpotDatafeedSubscriptionOutput, error) {
@@ -6038,9 +6038,9 @@ func (a *stub) DeleteSpotDatafeedSubscription(ctx workflow.Context, input *ec2.D
 	return &output, err
 }
 
-func (a *stub) DeleteSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.DeleteSpotDatafeedSubscriptionInput) *EC2DeleteSpotDatafeedSubscriptionFuture {
+func (a *stub) DeleteSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.DeleteSpotDatafeedSubscriptionInput) *DeleteSpotDatafeedSubscriptionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteSpotDatafeedSubscription", input)
-	return &EC2DeleteSpotDatafeedSubscriptionFuture{Future: future}
+	return &DeleteSpotDatafeedSubscriptionFuture{Future: future}
 }
 
 func (a *stub) DeleteSubnet(ctx workflow.Context, input *ec2.DeleteSubnetInput) (*ec2.DeleteSubnetOutput, error) {
@@ -6049,9 +6049,9 @@ func (a *stub) DeleteSubnet(ctx workflow.Context, input *ec2.DeleteSubnetInput) 
 	return &output, err
 }
 
-func (a *stub) DeleteSubnetAsync(ctx workflow.Context, input *ec2.DeleteSubnetInput) *EC2DeleteSubnetFuture {
+func (a *stub) DeleteSubnetAsync(ctx workflow.Context, input *ec2.DeleteSubnetInput) *DeleteSubnetFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteSubnet", input)
-	return &EC2DeleteSubnetFuture{Future: future}
+	return &DeleteSubnetFuture{Future: future}
 }
 
 func (a *stub) DeleteTags(ctx workflow.Context, input *ec2.DeleteTagsInput) (*ec2.DeleteTagsOutput, error) {
@@ -6060,9 +6060,9 @@ func (a *stub) DeleteTags(ctx workflow.Context, input *ec2.DeleteTagsInput) (*ec
 	return &output, err
 }
 
-func (a *stub) DeleteTagsAsync(ctx workflow.Context, input *ec2.DeleteTagsInput) *EC2DeleteTagsFuture {
+func (a *stub) DeleteTagsAsync(ctx workflow.Context, input *ec2.DeleteTagsInput) *DeleteTagsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTags", input)
-	return &EC2DeleteTagsFuture{Future: future}
+	return &DeleteTagsFuture{Future: future}
 }
 
 func (a *stub) DeleteTrafficMirrorFilter(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterInput) (*ec2.DeleteTrafficMirrorFilterOutput, error) {
@@ -6071,9 +6071,9 @@ func (a *stub) DeleteTrafficMirrorFilter(ctx workflow.Context, input *ec2.Delete
 	return &output, err
 }
 
-func (a *stub) DeleteTrafficMirrorFilterAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterInput) *EC2DeleteTrafficMirrorFilterFuture {
+func (a *stub) DeleteTrafficMirrorFilterAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterInput) *DeleteTrafficMirrorFilterFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTrafficMirrorFilter", input)
-	return &EC2DeleteTrafficMirrorFilterFuture{Future: future}
+	return &DeleteTrafficMirrorFilterFuture{Future: future}
 }
 
 func (a *stub) DeleteTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterRuleInput) (*ec2.DeleteTrafficMirrorFilterRuleOutput, error) {
@@ -6082,9 +6082,9 @@ func (a *stub) DeleteTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.De
 	return &output, err
 }
 
-func (a *stub) DeleteTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterRuleInput) *EC2DeleteTrafficMirrorFilterRuleFuture {
+func (a *stub) DeleteTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterRuleInput) *DeleteTrafficMirrorFilterRuleFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTrafficMirrorFilterRule", input)
-	return &EC2DeleteTrafficMirrorFilterRuleFuture{Future: future}
+	return &DeleteTrafficMirrorFilterRuleFuture{Future: future}
 }
 
 func (a *stub) DeleteTrafficMirrorSession(ctx workflow.Context, input *ec2.DeleteTrafficMirrorSessionInput) (*ec2.DeleteTrafficMirrorSessionOutput, error) {
@@ -6093,9 +6093,9 @@ func (a *stub) DeleteTrafficMirrorSession(ctx workflow.Context, input *ec2.Delet
 	return &output, err
 }
 
-func (a *stub) DeleteTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorSessionInput) *EC2DeleteTrafficMirrorSessionFuture {
+func (a *stub) DeleteTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorSessionInput) *DeleteTrafficMirrorSessionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTrafficMirrorSession", input)
-	return &EC2DeleteTrafficMirrorSessionFuture{Future: future}
+	return &DeleteTrafficMirrorSessionFuture{Future: future}
 }
 
 func (a *stub) DeleteTrafficMirrorTarget(ctx workflow.Context, input *ec2.DeleteTrafficMirrorTargetInput) (*ec2.DeleteTrafficMirrorTargetOutput, error) {
@@ -6104,9 +6104,9 @@ func (a *stub) DeleteTrafficMirrorTarget(ctx workflow.Context, input *ec2.Delete
 	return &output, err
 }
 
-func (a *stub) DeleteTrafficMirrorTargetAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorTargetInput) *EC2DeleteTrafficMirrorTargetFuture {
+func (a *stub) DeleteTrafficMirrorTargetAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorTargetInput) *DeleteTrafficMirrorTargetFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTrafficMirrorTarget", input)
-	return &EC2DeleteTrafficMirrorTargetFuture{Future: future}
+	return &DeleteTrafficMirrorTargetFuture{Future: future}
 }
 
 func (a *stub) DeleteTransitGateway(ctx workflow.Context, input *ec2.DeleteTransitGatewayInput) (*ec2.DeleteTransitGatewayOutput, error) {
@@ -6115,9 +6115,9 @@ func (a *stub) DeleteTransitGateway(ctx workflow.Context, input *ec2.DeleteTrans
 	return &output, err
 }
 
-func (a *stub) DeleteTransitGatewayAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayInput) *EC2DeleteTransitGatewayFuture {
+func (a *stub) DeleteTransitGatewayAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayInput) *DeleteTransitGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTransitGateway", input)
-	return &EC2DeleteTransitGatewayFuture{Future: future}
+	return &DeleteTransitGatewayFuture{Future: future}
 }
 
 func (a *stub) DeleteTransitGatewayMulticastDomain(ctx workflow.Context, input *ec2.DeleteTransitGatewayMulticastDomainInput) (*ec2.DeleteTransitGatewayMulticastDomainOutput, error) {
@@ -6126,9 +6126,9 @@ func (a *stub) DeleteTransitGatewayMulticastDomain(ctx workflow.Context, input *
 	return &output, err
 }
 
-func (a *stub) DeleteTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayMulticastDomainInput) *EC2DeleteTransitGatewayMulticastDomainFuture {
+func (a *stub) DeleteTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayMulticastDomainInput) *DeleteTransitGatewayMulticastDomainFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTransitGatewayMulticastDomain", input)
-	return &EC2DeleteTransitGatewayMulticastDomainFuture{Future: future}
+	return &DeleteTransitGatewayMulticastDomainFuture{Future: future}
 }
 
 func (a *stub) DeleteTransitGatewayPeeringAttachment(ctx workflow.Context, input *ec2.DeleteTransitGatewayPeeringAttachmentInput) (*ec2.DeleteTransitGatewayPeeringAttachmentOutput, error) {
@@ -6137,9 +6137,9 @@ func (a *stub) DeleteTransitGatewayPeeringAttachment(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) DeleteTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayPeeringAttachmentInput) *EC2DeleteTransitGatewayPeeringAttachmentFuture {
+func (a *stub) DeleteTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayPeeringAttachmentInput) *DeleteTransitGatewayPeeringAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTransitGatewayPeeringAttachment", input)
-	return &EC2DeleteTransitGatewayPeeringAttachmentFuture{Future: future}
+	return &DeleteTransitGatewayPeeringAttachmentFuture{Future: future}
 }
 
 func (a *stub) DeleteTransitGatewayPrefixListReference(ctx workflow.Context, input *ec2.DeleteTransitGatewayPrefixListReferenceInput) (*ec2.DeleteTransitGatewayPrefixListReferenceOutput, error) {
@@ -6148,9 +6148,9 @@ func (a *stub) DeleteTransitGatewayPrefixListReference(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) DeleteTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayPrefixListReferenceInput) *EC2DeleteTransitGatewayPrefixListReferenceFuture {
+func (a *stub) DeleteTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayPrefixListReferenceInput) *DeleteTransitGatewayPrefixListReferenceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTransitGatewayPrefixListReference", input)
-	return &EC2DeleteTransitGatewayPrefixListReferenceFuture{Future: future}
+	return &DeleteTransitGatewayPrefixListReferenceFuture{Future: future}
 }
 
 func (a *stub) DeleteTransitGatewayRoute(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteInput) (*ec2.DeleteTransitGatewayRouteOutput, error) {
@@ -6159,9 +6159,9 @@ func (a *stub) DeleteTransitGatewayRoute(ctx workflow.Context, input *ec2.Delete
 	return &output, err
 }
 
-func (a *stub) DeleteTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteInput) *EC2DeleteTransitGatewayRouteFuture {
+func (a *stub) DeleteTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteInput) *DeleteTransitGatewayRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTransitGatewayRoute", input)
-	return &EC2DeleteTransitGatewayRouteFuture{Future: future}
+	return &DeleteTransitGatewayRouteFuture{Future: future}
 }
 
 func (a *stub) DeleteTransitGatewayRouteTable(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteTableInput) (*ec2.DeleteTransitGatewayRouteTableOutput, error) {
@@ -6170,9 +6170,9 @@ func (a *stub) DeleteTransitGatewayRouteTable(ctx workflow.Context, input *ec2.D
 	return &output, err
 }
 
-func (a *stub) DeleteTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteTableInput) *EC2DeleteTransitGatewayRouteTableFuture {
+func (a *stub) DeleteTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteTableInput) *DeleteTransitGatewayRouteTableFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTransitGatewayRouteTable", input)
-	return &EC2DeleteTransitGatewayRouteTableFuture{Future: future}
+	return &DeleteTransitGatewayRouteTableFuture{Future: future}
 }
 
 func (a *stub) DeleteTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.DeleteTransitGatewayVpcAttachmentInput) (*ec2.DeleteTransitGatewayVpcAttachmentOutput, error) {
@@ -6181,9 +6181,9 @@ func (a *stub) DeleteTransitGatewayVpcAttachment(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) DeleteTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayVpcAttachmentInput) *EC2DeleteTransitGatewayVpcAttachmentFuture {
+func (a *stub) DeleteTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayVpcAttachmentInput) *DeleteTransitGatewayVpcAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteTransitGatewayVpcAttachment", input)
-	return &EC2DeleteTransitGatewayVpcAttachmentFuture{Future: future}
+	return &DeleteTransitGatewayVpcAttachmentFuture{Future: future}
 }
 
 func (a *stub) DeleteVolume(ctx workflow.Context, input *ec2.DeleteVolumeInput) (*ec2.DeleteVolumeOutput, error) {
@@ -6192,9 +6192,9 @@ func (a *stub) DeleteVolume(ctx workflow.Context, input *ec2.DeleteVolumeInput) 
 	return &output, err
 }
 
-func (a *stub) DeleteVolumeAsync(ctx workflow.Context, input *ec2.DeleteVolumeInput) *EC2DeleteVolumeFuture {
+func (a *stub) DeleteVolumeAsync(ctx workflow.Context, input *ec2.DeleteVolumeInput) *DeleteVolumeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVolume", input)
-	return &EC2DeleteVolumeFuture{Future: future}
+	return &DeleteVolumeFuture{Future: future}
 }
 
 func (a *stub) DeleteVpc(ctx workflow.Context, input *ec2.DeleteVpcInput) (*ec2.DeleteVpcOutput, error) {
@@ -6203,9 +6203,9 @@ func (a *stub) DeleteVpc(ctx workflow.Context, input *ec2.DeleteVpcInput) (*ec2.
 	return &output, err
 }
 
-func (a *stub) DeleteVpcAsync(ctx workflow.Context, input *ec2.DeleteVpcInput) *EC2DeleteVpcFuture {
+func (a *stub) DeleteVpcAsync(ctx workflow.Context, input *ec2.DeleteVpcInput) *DeleteVpcFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVpc", input)
-	return &EC2DeleteVpcFuture{Future: future}
+	return &DeleteVpcFuture{Future: future}
 }
 
 func (a *stub) DeleteVpcEndpointConnectionNotifications(ctx workflow.Context, input *ec2.DeleteVpcEndpointConnectionNotificationsInput) (*ec2.DeleteVpcEndpointConnectionNotificationsOutput, error) {
@@ -6214,9 +6214,9 @@ func (a *stub) DeleteVpcEndpointConnectionNotifications(ctx workflow.Context, in
 	return &output, err
 }
 
-func (a *stub) DeleteVpcEndpointConnectionNotificationsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointConnectionNotificationsInput) *EC2DeleteVpcEndpointConnectionNotificationsFuture {
+func (a *stub) DeleteVpcEndpointConnectionNotificationsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointConnectionNotificationsInput) *DeleteVpcEndpointConnectionNotificationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVpcEndpointConnectionNotifications", input)
-	return &EC2DeleteVpcEndpointConnectionNotificationsFuture{Future: future}
+	return &DeleteVpcEndpointConnectionNotificationsFuture{Future: future}
 }
 
 func (a *stub) DeleteVpcEndpointServiceConfigurations(ctx workflow.Context, input *ec2.DeleteVpcEndpointServiceConfigurationsInput) (*ec2.DeleteVpcEndpointServiceConfigurationsOutput, error) {
@@ -6225,9 +6225,9 @@ func (a *stub) DeleteVpcEndpointServiceConfigurations(ctx workflow.Context, inpu
 	return &output, err
 }
 
-func (a *stub) DeleteVpcEndpointServiceConfigurationsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointServiceConfigurationsInput) *EC2DeleteVpcEndpointServiceConfigurationsFuture {
+func (a *stub) DeleteVpcEndpointServiceConfigurationsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointServiceConfigurationsInput) *DeleteVpcEndpointServiceConfigurationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVpcEndpointServiceConfigurations", input)
-	return &EC2DeleteVpcEndpointServiceConfigurationsFuture{Future: future}
+	return &DeleteVpcEndpointServiceConfigurationsFuture{Future: future}
 }
 
 func (a *stub) DeleteVpcEndpoints(ctx workflow.Context, input *ec2.DeleteVpcEndpointsInput) (*ec2.DeleteVpcEndpointsOutput, error) {
@@ -6236,9 +6236,9 @@ func (a *stub) DeleteVpcEndpoints(ctx workflow.Context, input *ec2.DeleteVpcEndp
 	return &output, err
 }
 
-func (a *stub) DeleteVpcEndpointsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointsInput) *EC2DeleteVpcEndpointsFuture {
+func (a *stub) DeleteVpcEndpointsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointsInput) *DeleteVpcEndpointsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVpcEndpoints", input)
-	return &EC2DeleteVpcEndpointsFuture{Future: future}
+	return &DeleteVpcEndpointsFuture{Future: future}
 }
 
 func (a *stub) DeleteVpcPeeringConnection(ctx workflow.Context, input *ec2.DeleteVpcPeeringConnectionInput) (*ec2.DeleteVpcPeeringConnectionOutput, error) {
@@ -6247,9 +6247,9 @@ func (a *stub) DeleteVpcPeeringConnection(ctx workflow.Context, input *ec2.Delet
 	return &output, err
 }
 
-func (a *stub) DeleteVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.DeleteVpcPeeringConnectionInput) *EC2DeleteVpcPeeringConnectionFuture {
+func (a *stub) DeleteVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.DeleteVpcPeeringConnectionInput) *DeleteVpcPeeringConnectionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVpcPeeringConnection", input)
-	return &EC2DeleteVpcPeeringConnectionFuture{Future: future}
+	return &DeleteVpcPeeringConnectionFuture{Future: future}
 }
 
 func (a *stub) DeleteVpnConnection(ctx workflow.Context, input *ec2.DeleteVpnConnectionInput) (*ec2.DeleteVpnConnectionOutput, error) {
@@ -6258,9 +6258,9 @@ func (a *stub) DeleteVpnConnection(ctx workflow.Context, input *ec2.DeleteVpnCon
 	return &output, err
 }
 
-func (a *stub) DeleteVpnConnectionAsync(ctx workflow.Context, input *ec2.DeleteVpnConnectionInput) *EC2DeleteVpnConnectionFuture {
+func (a *stub) DeleteVpnConnectionAsync(ctx workflow.Context, input *ec2.DeleteVpnConnectionInput) *DeleteVpnConnectionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVpnConnection", input)
-	return &EC2DeleteVpnConnectionFuture{Future: future}
+	return &DeleteVpnConnectionFuture{Future: future}
 }
 
 func (a *stub) DeleteVpnConnectionRoute(ctx workflow.Context, input *ec2.DeleteVpnConnectionRouteInput) (*ec2.DeleteVpnConnectionRouteOutput, error) {
@@ -6269,9 +6269,9 @@ func (a *stub) DeleteVpnConnectionRoute(ctx workflow.Context, input *ec2.DeleteV
 	return &output, err
 }
 
-func (a *stub) DeleteVpnConnectionRouteAsync(ctx workflow.Context, input *ec2.DeleteVpnConnectionRouteInput) *EC2DeleteVpnConnectionRouteFuture {
+func (a *stub) DeleteVpnConnectionRouteAsync(ctx workflow.Context, input *ec2.DeleteVpnConnectionRouteInput) *DeleteVpnConnectionRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVpnConnectionRoute", input)
-	return &EC2DeleteVpnConnectionRouteFuture{Future: future}
+	return &DeleteVpnConnectionRouteFuture{Future: future}
 }
 
 func (a *stub) DeleteVpnGateway(ctx workflow.Context, input *ec2.DeleteVpnGatewayInput) (*ec2.DeleteVpnGatewayOutput, error) {
@@ -6280,9 +6280,9 @@ func (a *stub) DeleteVpnGateway(ctx workflow.Context, input *ec2.DeleteVpnGatewa
 	return &output, err
 }
 
-func (a *stub) DeleteVpnGatewayAsync(ctx workflow.Context, input *ec2.DeleteVpnGatewayInput) *EC2DeleteVpnGatewayFuture {
+func (a *stub) DeleteVpnGatewayAsync(ctx workflow.Context, input *ec2.DeleteVpnGatewayInput) *DeleteVpnGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeleteVpnGateway", input)
-	return &EC2DeleteVpnGatewayFuture{Future: future}
+	return &DeleteVpnGatewayFuture{Future: future}
 }
 
 func (a *stub) DeprovisionByoipCidr(ctx workflow.Context, input *ec2.DeprovisionByoipCidrInput) (*ec2.DeprovisionByoipCidrOutput, error) {
@@ -6291,9 +6291,9 @@ func (a *stub) DeprovisionByoipCidr(ctx workflow.Context, input *ec2.Deprovision
 	return &output, err
 }
 
-func (a *stub) DeprovisionByoipCidrAsync(ctx workflow.Context, input *ec2.DeprovisionByoipCidrInput) *EC2DeprovisionByoipCidrFuture {
+func (a *stub) DeprovisionByoipCidrAsync(ctx workflow.Context, input *ec2.DeprovisionByoipCidrInput) *DeprovisionByoipCidrFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeprovisionByoipCidr", input)
-	return &EC2DeprovisionByoipCidrFuture{Future: future}
+	return &DeprovisionByoipCidrFuture{Future: future}
 }
 
 func (a *stub) DeregisterImage(ctx workflow.Context, input *ec2.DeregisterImageInput) (*ec2.DeregisterImageOutput, error) {
@@ -6302,9 +6302,9 @@ func (a *stub) DeregisterImage(ctx workflow.Context, input *ec2.DeregisterImageI
 	return &output, err
 }
 
-func (a *stub) DeregisterImageAsync(ctx workflow.Context, input *ec2.DeregisterImageInput) *EC2DeregisterImageFuture {
+func (a *stub) DeregisterImageAsync(ctx workflow.Context, input *ec2.DeregisterImageInput) *DeregisterImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeregisterImage", input)
-	return &EC2DeregisterImageFuture{Future: future}
+	return &DeregisterImageFuture{Future: future}
 }
 
 func (a *stub) DeregisterInstanceEventNotificationAttributes(ctx workflow.Context, input *ec2.DeregisterInstanceEventNotificationAttributesInput) (*ec2.DeregisterInstanceEventNotificationAttributesOutput, error) {
@@ -6313,9 +6313,9 @@ func (a *stub) DeregisterInstanceEventNotificationAttributes(ctx workflow.Contex
 	return &output, err
 }
 
-func (a *stub) DeregisterInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.DeregisterInstanceEventNotificationAttributesInput) *EC2DeregisterInstanceEventNotificationAttributesFuture {
+func (a *stub) DeregisterInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.DeregisterInstanceEventNotificationAttributesInput) *DeregisterInstanceEventNotificationAttributesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeregisterInstanceEventNotificationAttributes", input)
-	return &EC2DeregisterInstanceEventNotificationAttributesFuture{Future: future}
+	return &DeregisterInstanceEventNotificationAttributesFuture{Future: future}
 }
 
 func (a *stub) DeregisterTransitGatewayMulticastGroupMembers(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) (*ec2.DeregisterTransitGatewayMulticastGroupMembersOutput, error) {
@@ -6324,9 +6324,9 @@ func (a *stub) DeregisterTransitGatewayMulticastGroupMembers(ctx workflow.Contex
 	return &output, err
 }
 
-func (a *stub) DeregisterTransitGatewayMulticastGroupMembersAsync(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) *EC2DeregisterTransitGatewayMulticastGroupMembersFuture {
+func (a *stub) DeregisterTransitGatewayMulticastGroupMembersAsync(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) *DeregisterTransitGatewayMulticastGroupMembersFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeregisterTransitGatewayMulticastGroupMembers", input)
-	return &EC2DeregisterTransitGatewayMulticastGroupMembersFuture{Future: future}
+	return &DeregisterTransitGatewayMulticastGroupMembersFuture{Future: future}
 }
 
 func (a *stub) DeregisterTransitGatewayMulticastGroupSources(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) (*ec2.DeregisterTransitGatewayMulticastGroupSourcesOutput, error) {
@@ -6335,9 +6335,9 @@ func (a *stub) DeregisterTransitGatewayMulticastGroupSources(ctx workflow.Contex
 	return &output, err
 }
 
-func (a *stub) DeregisterTransitGatewayMulticastGroupSourcesAsync(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) *EC2DeregisterTransitGatewayMulticastGroupSourcesFuture {
+func (a *stub) DeregisterTransitGatewayMulticastGroupSourcesAsync(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) *DeregisterTransitGatewayMulticastGroupSourcesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DeregisterTransitGatewayMulticastGroupSources", input)
-	return &EC2DeregisterTransitGatewayMulticastGroupSourcesFuture{Future: future}
+	return &DeregisterTransitGatewayMulticastGroupSourcesFuture{Future: future}
 }
 
 func (a *stub) DescribeAccountAttributes(ctx workflow.Context, input *ec2.DescribeAccountAttributesInput) (*ec2.DescribeAccountAttributesOutput, error) {
@@ -6346,9 +6346,9 @@ func (a *stub) DescribeAccountAttributes(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribeAccountAttributesAsync(ctx workflow.Context, input *ec2.DescribeAccountAttributesInput) *EC2DescribeAccountAttributesFuture {
+func (a *stub) DescribeAccountAttributesAsync(ctx workflow.Context, input *ec2.DescribeAccountAttributesInput) *DescribeAccountAttributesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeAccountAttributes", input)
-	return &EC2DescribeAccountAttributesFuture{Future: future}
+	return &DescribeAccountAttributesFuture{Future: future}
 }
 
 func (a *stub) DescribeAddresses(ctx workflow.Context, input *ec2.DescribeAddressesInput) (*ec2.DescribeAddressesOutput, error) {
@@ -6357,9 +6357,9 @@ func (a *stub) DescribeAddresses(ctx workflow.Context, input *ec2.DescribeAddres
 	return &output, err
 }
 
-func (a *stub) DescribeAddressesAsync(ctx workflow.Context, input *ec2.DescribeAddressesInput) *EC2DescribeAddressesFuture {
+func (a *stub) DescribeAddressesAsync(ctx workflow.Context, input *ec2.DescribeAddressesInput) *DescribeAddressesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeAddresses", input)
-	return &EC2DescribeAddressesFuture{Future: future}
+	return &DescribeAddressesFuture{Future: future}
 }
 
 func (a *stub) DescribeAggregateIdFormat(ctx workflow.Context, input *ec2.DescribeAggregateIdFormatInput) (*ec2.DescribeAggregateIdFormatOutput, error) {
@@ -6368,9 +6368,9 @@ func (a *stub) DescribeAggregateIdFormat(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribeAggregateIdFormatAsync(ctx workflow.Context, input *ec2.DescribeAggregateIdFormatInput) *EC2DescribeAggregateIdFormatFuture {
+func (a *stub) DescribeAggregateIdFormatAsync(ctx workflow.Context, input *ec2.DescribeAggregateIdFormatInput) *DescribeAggregateIdFormatFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeAggregateIdFormat", input)
-	return &EC2DescribeAggregateIdFormatFuture{Future: future}
+	return &DescribeAggregateIdFormatFuture{Future: future}
 }
 
 func (a *stub) DescribeAvailabilityZones(ctx workflow.Context, input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error) {
@@ -6379,9 +6379,9 @@ func (a *stub) DescribeAvailabilityZones(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribeAvailabilityZonesAsync(ctx workflow.Context, input *ec2.DescribeAvailabilityZonesInput) *EC2DescribeAvailabilityZonesFuture {
+func (a *stub) DescribeAvailabilityZonesAsync(ctx workflow.Context, input *ec2.DescribeAvailabilityZonesInput) *DescribeAvailabilityZonesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeAvailabilityZones", input)
-	return &EC2DescribeAvailabilityZonesFuture{Future: future}
+	return &DescribeAvailabilityZonesFuture{Future: future}
 }
 
 func (a *stub) DescribeBundleTasks(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) (*ec2.DescribeBundleTasksOutput, error) {
@@ -6390,9 +6390,9 @@ func (a *stub) DescribeBundleTasks(ctx workflow.Context, input *ec2.DescribeBund
 	return &output, err
 }
 
-func (a *stub) DescribeBundleTasksAsync(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) *EC2DescribeBundleTasksFuture {
+func (a *stub) DescribeBundleTasksAsync(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) *DescribeBundleTasksFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeBundleTasks", input)
-	return &EC2DescribeBundleTasksFuture{Future: future}
+	return &DescribeBundleTasksFuture{Future: future}
 }
 
 func (a *stub) DescribeByoipCidrs(ctx workflow.Context, input *ec2.DescribeByoipCidrsInput) (*ec2.DescribeByoipCidrsOutput, error) {
@@ -6401,9 +6401,9 @@ func (a *stub) DescribeByoipCidrs(ctx workflow.Context, input *ec2.DescribeByoip
 	return &output, err
 }
 
-func (a *stub) DescribeByoipCidrsAsync(ctx workflow.Context, input *ec2.DescribeByoipCidrsInput) *EC2DescribeByoipCidrsFuture {
+func (a *stub) DescribeByoipCidrsAsync(ctx workflow.Context, input *ec2.DescribeByoipCidrsInput) *DescribeByoipCidrsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeByoipCidrs", input)
-	return &EC2DescribeByoipCidrsFuture{Future: future}
+	return &DescribeByoipCidrsFuture{Future: future}
 }
 
 func (a *stub) DescribeCapacityReservations(ctx workflow.Context, input *ec2.DescribeCapacityReservationsInput) (*ec2.DescribeCapacityReservationsOutput, error) {
@@ -6412,9 +6412,9 @@ func (a *stub) DescribeCapacityReservations(ctx workflow.Context, input *ec2.Des
 	return &output, err
 }
 
-func (a *stub) DescribeCapacityReservationsAsync(ctx workflow.Context, input *ec2.DescribeCapacityReservationsInput) *EC2DescribeCapacityReservationsFuture {
+func (a *stub) DescribeCapacityReservationsAsync(ctx workflow.Context, input *ec2.DescribeCapacityReservationsInput) *DescribeCapacityReservationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeCapacityReservations", input)
-	return &EC2DescribeCapacityReservationsFuture{Future: future}
+	return &DescribeCapacityReservationsFuture{Future: future}
 }
 
 func (a *stub) DescribeCarrierGateways(ctx workflow.Context, input *ec2.DescribeCarrierGatewaysInput) (*ec2.DescribeCarrierGatewaysOutput, error) {
@@ -6423,9 +6423,9 @@ func (a *stub) DescribeCarrierGateways(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribeCarrierGatewaysAsync(ctx workflow.Context, input *ec2.DescribeCarrierGatewaysInput) *EC2DescribeCarrierGatewaysFuture {
+func (a *stub) DescribeCarrierGatewaysAsync(ctx workflow.Context, input *ec2.DescribeCarrierGatewaysInput) *DescribeCarrierGatewaysFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeCarrierGateways", input)
-	return &EC2DescribeCarrierGatewaysFuture{Future: future}
+	return &DescribeCarrierGatewaysFuture{Future: future}
 }
 
 func (a *stub) DescribeClassicLinkInstances(ctx workflow.Context, input *ec2.DescribeClassicLinkInstancesInput) (*ec2.DescribeClassicLinkInstancesOutput, error) {
@@ -6434,9 +6434,9 @@ func (a *stub) DescribeClassicLinkInstances(ctx workflow.Context, input *ec2.Des
 	return &output, err
 }
 
-func (a *stub) DescribeClassicLinkInstancesAsync(ctx workflow.Context, input *ec2.DescribeClassicLinkInstancesInput) *EC2DescribeClassicLinkInstancesFuture {
+func (a *stub) DescribeClassicLinkInstancesAsync(ctx workflow.Context, input *ec2.DescribeClassicLinkInstancesInput) *DescribeClassicLinkInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeClassicLinkInstances", input)
-	return &EC2DescribeClassicLinkInstancesFuture{Future: future}
+	return &DescribeClassicLinkInstancesFuture{Future: future}
 }
 
 func (a *stub) DescribeClientVpnAuthorizationRules(ctx workflow.Context, input *ec2.DescribeClientVpnAuthorizationRulesInput) (*ec2.DescribeClientVpnAuthorizationRulesOutput, error) {
@@ -6445,9 +6445,9 @@ func (a *stub) DescribeClientVpnAuthorizationRules(ctx workflow.Context, input *
 	return &output, err
 }
 
-func (a *stub) DescribeClientVpnAuthorizationRulesAsync(ctx workflow.Context, input *ec2.DescribeClientVpnAuthorizationRulesInput) *EC2DescribeClientVpnAuthorizationRulesFuture {
+func (a *stub) DescribeClientVpnAuthorizationRulesAsync(ctx workflow.Context, input *ec2.DescribeClientVpnAuthorizationRulesInput) *DescribeClientVpnAuthorizationRulesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeClientVpnAuthorizationRules", input)
-	return &EC2DescribeClientVpnAuthorizationRulesFuture{Future: future}
+	return &DescribeClientVpnAuthorizationRulesFuture{Future: future}
 }
 
 func (a *stub) DescribeClientVpnConnections(ctx workflow.Context, input *ec2.DescribeClientVpnConnectionsInput) (*ec2.DescribeClientVpnConnectionsOutput, error) {
@@ -6456,9 +6456,9 @@ func (a *stub) DescribeClientVpnConnections(ctx workflow.Context, input *ec2.Des
 	return &output, err
 }
 
-func (a *stub) DescribeClientVpnConnectionsAsync(ctx workflow.Context, input *ec2.DescribeClientVpnConnectionsInput) *EC2DescribeClientVpnConnectionsFuture {
+func (a *stub) DescribeClientVpnConnectionsAsync(ctx workflow.Context, input *ec2.DescribeClientVpnConnectionsInput) *DescribeClientVpnConnectionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeClientVpnConnections", input)
-	return &EC2DescribeClientVpnConnectionsFuture{Future: future}
+	return &DescribeClientVpnConnectionsFuture{Future: future}
 }
 
 func (a *stub) DescribeClientVpnEndpoints(ctx workflow.Context, input *ec2.DescribeClientVpnEndpointsInput) (*ec2.DescribeClientVpnEndpointsOutput, error) {
@@ -6467,9 +6467,9 @@ func (a *stub) DescribeClientVpnEndpoints(ctx workflow.Context, input *ec2.Descr
 	return &output, err
 }
 
-func (a *stub) DescribeClientVpnEndpointsAsync(ctx workflow.Context, input *ec2.DescribeClientVpnEndpointsInput) *EC2DescribeClientVpnEndpointsFuture {
+func (a *stub) DescribeClientVpnEndpointsAsync(ctx workflow.Context, input *ec2.DescribeClientVpnEndpointsInput) *DescribeClientVpnEndpointsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeClientVpnEndpoints", input)
-	return &EC2DescribeClientVpnEndpointsFuture{Future: future}
+	return &DescribeClientVpnEndpointsFuture{Future: future}
 }
 
 func (a *stub) DescribeClientVpnRoutes(ctx workflow.Context, input *ec2.DescribeClientVpnRoutesInput) (*ec2.DescribeClientVpnRoutesOutput, error) {
@@ -6478,9 +6478,9 @@ func (a *stub) DescribeClientVpnRoutes(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribeClientVpnRoutesAsync(ctx workflow.Context, input *ec2.DescribeClientVpnRoutesInput) *EC2DescribeClientVpnRoutesFuture {
+func (a *stub) DescribeClientVpnRoutesAsync(ctx workflow.Context, input *ec2.DescribeClientVpnRoutesInput) *DescribeClientVpnRoutesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeClientVpnRoutes", input)
-	return &EC2DescribeClientVpnRoutesFuture{Future: future}
+	return &DescribeClientVpnRoutesFuture{Future: future}
 }
 
 func (a *stub) DescribeClientVpnTargetNetworks(ctx workflow.Context, input *ec2.DescribeClientVpnTargetNetworksInput) (*ec2.DescribeClientVpnTargetNetworksOutput, error) {
@@ -6489,9 +6489,9 @@ func (a *stub) DescribeClientVpnTargetNetworks(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) DescribeClientVpnTargetNetworksAsync(ctx workflow.Context, input *ec2.DescribeClientVpnTargetNetworksInput) *EC2DescribeClientVpnTargetNetworksFuture {
+func (a *stub) DescribeClientVpnTargetNetworksAsync(ctx workflow.Context, input *ec2.DescribeClientVpnTargetNetworksInput) *DescribeClientVpnTargetNetworksFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeClientVpnTargetNetworks", input)
-	return &EC2DescribeClientVpnTargetNetworksFuture{Future: future}
+	return &DescribeClientVpnTargetNetworksFuture{Future: future}
 }
 
 func (a *stub) DescribeCoipPools(ctx workflow.Context, input *ec2.DescribeCoipPoolsInput) (*ec2.DescribeCoipPoolsOutput, error) {
@@ -6500,9 +6500,9 @@ func (a *stub) DescribeCoipPools(ctx workflow.Context, input *ec2.DescribeCoipPo
 	return &output, err
 }
 
-func (a *stub) DescribeCoipPoolsAsync(ctx workflow.Context, input *ec2.DescribeCoipPoolsInput) *EC2DescribeCoipPoolsFuture {
+func (a *stub) DescribeCoipPoolsAsync(ctx workflow.Context, input *ec2.DescribeCoipPoolsInput) *DescribeCoipPoolsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeCoipPools", input)
-	return &EC2DescribeCoipPoolsFuture{Future: future}
+	return &DescribeCoipPoolsFuture{Future: future}
 }
 
 func (a *stub) DescribeConversionTasks(ctx workflow.Context, input *ec2.DescribeConversionTasksInput) (*ec2.DescribeConversionTasksOutput, error) {
@@ -6511,9 +6511,9 @@ func (a *stub) DescribeConversionTasks(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribeConversionTasksAsync(ctx workflow.Context, input *ec2.DescribeConversionTasksInput) *EC2DescribeConversionTasksFuture {
+func (a *stub) DescribeConversionTasksAsync(ctx workflow.Context, input *ec2.DescribeConversionTasksInput) *DescribeConversionTasksFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeConversionTasks", input)
-	return &EC2DescribeConversionTasksFuture{Future: future}
+	return &DescribeConversionTasksFuture{Future: future}
 }
 
 func (a *stub) DescribeCustomerGateways(ctx workflow.Context, input *ec2.DescribeCustomerGatewaysInput) (*ec2.DescribeCustomerGatewaysOutput, error) {
@@ -6522,9 +6522,9 @@ func (a *stub) DescribeCustomerGateways(ctx workflow.Context, input *ec2.Describ
 	return &output, err
 }
 
-func (a *stub) DescribeCustomerGatewaysAsync(ctx workflow.Context, input *ec2.DescribeCustomerGatewaysInput) *EC2DescribeCustomerGatewaysFuture {
+func (a *stub) DescribeCustomerGatewaysAsync(ctx workflow.Context, input *ec2.DescribeCustomerGatewaysInput) *DescribeCustomerGatewaysFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeCustomerGateways", input)
-	return &EC2DescribeCustomerGatewaysFuture{Future: future}
+	return &DescribeCustomerGatewaysFuture{Future: future}
 }
 
 func (a *stub) DescribeDhcpOptions(ctx workflow.Context, input *ec2.DescribeDhcpOptionsInput) (*ec2.DescribeDhcpOptionsOutput, error) {
@@ -6533,9 +6533,9 @@ func (a *stub) DescribeDhcpOptions(ctx workflow.Context, input *ec2.DescribeDhcp
 	return &output, err
 }
 
-func (a *stub) DescribeDhcpOptionsAsync(ctx workflow.Context, input *ec2.DescribeDhcpOptionsInput) *EC2DescribeDhcpOptionsFuture {
+func (a *stub) DescribeDhcpOptionsAsync(ctx workflow.Context, input *ec2.DescribeDhcpOptionsInput) *DescribeDhcpOptionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeDhcpOptions", input)
-	return &EC2DescribeDhcpOptionsFuture{Future: future}
+	return &DescribeDhcpOptionsFuture{Future: future}
 }
 
 func (a *stub) DescribeEgressOnlyInternetGateways(ctx workflow.Context, input *ec2.DescribeEgressOnlyInternetGatewaysInput) (*ec2.DescribeEgressOnlyInternetGatewaysOutput, error) {
@@ -6544,9 +6544,9 @@ func (a *stub) DescribeEgressOnlyInternetGateways(ctx workflow.Context, input *e
 	return &output, err
 }
 
-func (a *stub) DescribeEgressOnlyInternetGatewaysAsync(ctx workflow.Context, input *ec2.DescribeEgressOnlyInternetGatewaysInput) *EC2DescribeEgressOnlyInternetGatewaysFuture {
+func (a *stub) DescribeEgressOnlyInternetGatewaysAsync(ctx workflow.Context, input *ec2.DescribeEgressOnlyInternetGatewaysInput) *DescribeEgressOnlyInternetGatewaysFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeEgressOnlyInternetGateways", input)
-	return &EC2DescribeEgressOnlyInternetGatewaysFuture{Future: future}
+	return &DescribeEgressOnlyInternetGatewaysFuture{Future: future}
 }
 
 func (a *stub) DescribeElasticGpus(ctx workflow.Context, input *ec2.DescribeElasticGpusInput) (*ec2.DescribeElasticGpusOutput, error) {
@@ -6555,9 +6555,9 @@ func (a *stub) DescribeElasticGpus(ctx workflow.Context, input *ec2.DescribeElas
 	return &output, err
 }
 
-func (a *stub) DescribeElasticGpusAsync(ctx workflow.Context, input *ec2.DescribeElasticGpusInput) *EC2DescribeElasticGpusFuture {
+func (a *stub) DescribeElasticGpusAsync(ctx workflow.Context, input *ec2.DescribeElasticGpusInput) *DescribeElasticGpusFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeElasticGpus", input)
-	return &EC2DescribeElasticGpusFuture{Future: future}
+	return &DescribeElasticGpusFuture{Future: future}
 }
 
 func (a *stub) DescribeExportImageTasks(ctx workflow.Context, input *ec2.DescribeExportImageTasksInput) (*ec2.DescribeExportImageTasksOutput, error) {
@@ -6566,9 +6566,9 @@ func (a *stub) DescribeExportImageTasks(ctx workflow.Context, input *ec2.Describ
 	return &output, err
 }
 
-func (a *stub) DescribeExportImageTasksAsync(ctx workflow.Context, input *ec2.DescribeExportImageTasksInput) *EC2DescribeExportImageTasksFuture {
+func (a *stub) DescribeExportImageTasksAsync(ctx workflow.Context, input *ec2.DescribeExportImageTasksInput) *DescribeExportImageTasksFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeExportImageTasks", input)
-	return &EC2DescribeExportImageTasksFuture{Future: future}
+	return &DescribeExportImageTasksFuture{Future: future}
 }
 
 func (a *stub) DescribeExportTasks(ctx workflow.Context, input *ec2.DescribeExportTasksInput) (*ec2.DescribeExportTasksOutput, error) {
@@ -6577,9 +6577,9 @@ func (a *stub) DescribeExportTasks(ctx workflow.Context, input *ec2.DescribeExpo
 	return &output, err
 }
 
-func (a *stub) DescribeExportTasksAsync(ctx workflow.Context, input *ec2.DescribeExportTasksInput) *EC2DescribeExportTasksFuture {
+func (a *stub) DescribeExportTasksAsync(ctx workflow.Context, input *ec2.DescribeExportTasksInput) *DescribeExportTasksFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeExportTasks", input)
-	return &EC2DescribeExportTasksFuture{Future: future}
+	return &DescribeExportTasksFuture{Future: future}
 }
 
 func (a *stub) DescribeFastSnapshotRestores(ctx workflow.Context, input *ec2.DescribeFastSnapshotRestoresInput) (*ec2.DescribeFastSnapshotRestoresOutput, error) {
@@ -6588,9 +6588,9 @@ func (a *stub) DescribeFastSnapshotRestores(ctx workflow.Context, input *ec2.Des
 	return &output, err
 }
 
-func (a *stub) DescribeFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.DescribeFastSnapshotRestoresInput) *EC2DescribeFastSnapshotRestoresFuture {
+func (a *stub) DescribeFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.DescribeFastSnapshotRestoresInput) *DescribeFastSnapshotRestoresFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeFastSnapshotRestores", input)
-	return &EC2DescribeFastSnapshotRestoresFuture{Future: future}
+	return &DescribeFastSnapshotRestoresFuture{Future: future}
 }
 
 func (a *stub) DescribeFleetHistory(ctx workflow.Context, input *ec2.DescribeFleetHistoryInput) (*ec2.DescribeFleetHistoryOutput, error) {
@@ -6599,9 +6599,9 @@ func (a *stub) DescribeFleetHistory(ctx workflow.Context, input *ec2.DescribeFle
 	return &output, err
 }
 
-func (a *stub) DescribeFleetHistoryAsync(ctx workflow.Context, input *ec2.DescribeFleetHistoryInput) *EC2DescribeFleetHistoryFuture {
+func (a *stub) DescribeFleetHistoryAsync(ctx workflow.Context, input *ec2.DescribeFleetHistoryInput) *DescribeFleetHistoryFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeFleetHistory", input)
-	return &EC2DescribeFleetHistoryFuture{Future: future}
+	return &DescribeFleetHistoryFuture{Future: future}
 }
 
 func (a *stub) DescribeFleetInstances(ctx workflow.Context, input *ec2.DescribeFleetInstancesInput) (*ec2.DescribeFleetInstancesOutput, error) {
@@ -6610,9 +6610,9 @@ func (a *stub) DescribeFleetInstances(ctx workflow.Context, input *ec2.DescribeF
 	return &output, err
 }
 
-func (a *stub) DescribeFleetInstancesAsync(ctx workflow.Context, input *ec2.DescribeFleetInstancesInput) *EC2DescribeFleetInstancesFuture {
+func (a *stub) DescribeFleetInstancesAsync(ctx workflow.Context, input *ec2.DescribeFleetInstancesInput) *DescribeFleetInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeFleetInstances", input)
-	return &EC2DescribeFleetInstancesFuture{Future: future}
+	return &DescribeFleetInstancesFuture{Future: future}
 }
 
 func (a *stub) DescribeFleets(ctx workflow.Context, input *ec2.DescribeFleetsInput) (*ec2.DescribeFleetsOutput, error) {
@@ -6621,9 +6621,9 @@ func (a *stub) DescribeFleets(ctx workflow.Context, input *ec2.DescribeFleetsInp
 	return &output, err
 }
 
-func (a *stub) DescribeFleetsAsync(ctx workflow.Context, input *ec2.DescribeFleetsInput) *EC2DescribeFleetsFuture {
+func (a *stub) DescribeFleetsAsync(ctx workflow.Context, input *ec2.DescribeFleetsInput) *DescribeFleetsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeFleets", input)
-	return &EC2DescribeFleetsFuture{Future: future}
+	return &DescribeFleetsFuture{Future: future}
 }
 
 func (a *stub) DescribeFlowLogs(ctx workflow.Context, input *ec2.DescribeFlowLogsInput) (*ec2.DescribeFlowLogsOutput, error) {
@@ -6632,9 +6632,9 @@ func (a *stub) DescribeFlowLogs(ctx workflow.Context, input *ec2.DescribeFlowLog
 	return &output, err
 }
 
-func (a *stub) DescribeFlowLogsAsync(ctx workflow.Context, input *ec2.DescribeFlowLogsInput) *EC2DescribeFlowLogsFuture {
+func (a *stub) DescribeFlowLogsAsync(ctx workflow.Context, input *ec2.DescribeFlowLogsInput) *DescribeFlowLogsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeFlowLogs", input)
-	return &EC2DescribeFlowLogsFuture{Future: future}
+	return &DescribeFlowLogsFuture{Future: future}
 }
 
 func (a *stub) DescribeFpgaImageAttribute(ctx workflow.Context, input *ec2.DescribeFpgaImageAttributeInput) (*ec2.DescribeFpgaImageAttributeOutput, error) {
@@ -6643,9 +6643,9 @@ func (a *stub) DescribeFpgaImageAttribute(ctx workflow.Context, input *ec2.Descr
 	return &output, err
 }
 
-func (a *stub) DescribeFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.DescribeFpgaImageAttributeInput) *EC2DescribeFpgaImageAttributeFuture {
+func (a *stub) DescribeFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.DescribeFpgaImageAttributeInput) *DescribeFpgaImageAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeFpgaImageAttribute", input)
-	return &EC2DescribeFpgaImageAttributeFuture{Future: future}
+	return &DescribeFpgaImageAttributeFuture{Future: future}
 }
 
 func (a *stub) DescribeFpgaImages(ctx workflow.Context, input *ec2.DescribeFpgaImagesInput) (*ec2.DescribeFpgaImagesOutput, error) {
@@ -6654,9 +6654,9 @@ func (a *stub) DescribeFpgaImages(ctx workflow.Context, input *ec2.DescribeFpgaI
 	return &output, err
 }
 
-func (a *stub) DescribeFpgaImagesAsync(ctx workflow.Context, input *ec2.DescribeFpgaImagesInput) *EC2DescribeFpgaImagesFuture {
+func (a *stub) DescribeFpgaImagesAsync(ctx workflow.Context, input *ec2.DescribeFpgaImagesInput) *DescribeFpgaImagesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeFpgaImages", input)
-	return &EC2DescribeFpgaImagesFuture{Future: future}
+	return &DescribeFpgaImagesFuture{Future: future}
 }
 
 func (a *stub) DescribeHostReservationOfferings(ctx workflow.Context, input *ec2.DescribeHostReservationOfferingsInput) (*ec2.DescribeHostReservationOfferingsOutput, error) {
@@ -6665,9 +6665,9 @@ func (a *stub) DescribeHostReservationOfferings(ctx workflow.Context, input *ec2
 	return &output, err
 }
 
-func (a *stub) DescribeHostReservationOfferingsAsync(ctx workflow.Context, input *ec2.DescribeHostReservationOfferingsInput) *EC2DescribeHostReservationOfferingsFuture {
+func (a *stub) DescribeHostReservationOfferingsAsync(ctx workflow.Context, input *ec2.DescribeHostReservationOfferingsInput) *DescribeHostReservationOfferingsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeHostReservationOfferings", input)
-	return &EC2DescribeHostReservationOfferingsFuture{Future: future}
+	return &DescribeHostReservationOfferingsFuture{Future: future}
 }
 
 func (a *stub) DescribeHostReservations(ctx workflow.Context, input *ec2.DescribeHostReservationsInput) (*ec2.DescribeHostReservationsOutput, error) {
@@ -6676,9 +6676,9 @@ func (a *stub) DescribeHostReservations(ctx workflow.Context, input *ec2.Describ
 	return &output, err
 }
 
-func (a *stub) DescribeHostReservationsAsync(ctx workflow.Context, input *ec2.DescribeHostReservationsInput) *EC2DescribeHostReservationsFuture {
+func (a *stub) DescribeHostReservationsAsync(ctx workflow.Context, input *ec2.DescribeHostReservationsInput) *DescribeHostReservationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeHostReservations", input)
-	return &EC2DescribeHostReservationsFuture{Future: future}
+	return &DescribeHostReservationsFuture{Future: future}
 }
 
 func (a *stub) DescribeHosts(ctx workflow.Context, input *ec2.DescribeHostsInput) (*ec2.DescribeHostsOutput, error) {
@@ -6687,9 +6687,9 @@ func (a *stub) DescribeHosts(ctx workflow.Context, input *ec2.DescribeHostsInput
 	return &output, err
 }
 
-func (a *stub) DescribeHostsAsync(ctx workflow.Context, input *ec2.DescribeHostsInput) *EC2DescribeHostsFuture {
+func (a *stub) DescribeHostsAsync(ctx workflow.Context, input *ec2.DescribeHostsInput) *DescribeHostsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeHosts", input)
-	return &EC2DescribeHostsFuture{Future: future}
+	return &DescribeHostsFuture{Future: future}
 }
 
 func (a *stub) DescribeIamInstanceProfileAssociations(ctx workflow.Context, input *ec2.DescribeIamInstanceProfileAssociationsInput) (*ec2.DescribeIamInstanceProfileAssociationsOutput, error) {
@@ -6698,9 +6698,9 @@ func (a *stub) DescribeIamInstanceProfileAssociations(ctx workflow.Context, inpu
 	return &output, err
 }
 
-func (a *stub) DescribeIamInstanceProfileAssociationsAsync(ctx workflow.Context, input *ec2.DescribeIamInstanceProfileAssociationsInput) *EC2DescribeIamInstanceProfileAssociationsFuture {
+func (a *stub) DescribeIamInstanceProfileAssociationsAsync(ctx workflow.Context, input *ec2.DescribeIamInstanceProfileAssociationsInput) *DescribeIamInstanceProfileAssociationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeIamInstanceProfileAssociations", input)
-	return &EC2DescribeIamInstanceProfileAssociationsFuture{Future: future}
+	return &DescribeIamInstanceProfileAssociationsFuture{Future: future}
 }
 
 func (a *stub) DescribeIdFormat(ctx workflow.Context, input *ec2.DescribeIdFormatInput) (*ec2.DescribeIdFormatOutput, error) {
@@ -6709,9 +6709,9 @@ func (a *stub) DescribeIdFormat(ctx workflow.Context, input *ec2.DescribeIdForma
 	return &output, err
 }
 
-func (a *stub) DescribeIdFormatAsync(ctx workflow.Context, input *ec2.DescribeIdFormatInput) *EC2DescribeIdFormatFuture {
+func (a *stub) DescribeIdFormatAsync(ctx workflow.Context, input *ec2.DescribeIdFormatInput) *DescribeIdFormatFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeIdFormat", input)
-	return &EC2DescribeIdFormatFuture{Future: future}
+	return &DescribeIdFormatFuture{Future: future}
 }
 
 func (a *stub) DescribeIdentityIdFormat(ctx workflow.Context, input *ec2.DescribeIdentityIdFormatInput) (*ec2.DescribeIdentityIdFormatOutput, error) {
@@ -6720,9 +6720,9 @@ func (a *stub) DescribeIdentityIdFormat(ctx workflow.Context, input *ec2.Describ
 	return &output, err
 }
 
-func (a *stub) DescribeIdentityIdFormatAsync(ctx workflow.Context, input *ec2.DescribeIdentityIdFormatInput) *EC2DescribeIdentityIdFormatFuture {
+func (a *stub) DescribeIdentityIdFormatAsync(ctx workflow.Context, input *ec2.DescribeIdentityIdFormatInput) *DescribeIdentityIdFormatFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeIdentityIdFormat", input)
-	return &EC2DescribeIdentityIdFormatFuture{Future: future}
+	return &DescribeIdentityIdFormatFuture{Future: future}
 }
 
 func (a *stub) DescribeImageAttribute(ctx workflow.Context, input *ec2.DescribeImageAttributeInput) (*ec2.DescribeImageAttributeOutput, error) {
@@ -6731,9 +6731,9 @@ func (a *stub) DescribeImageAttribute(ctx workflow.Context, input *ec2.DescribeI
 	return &output, err
 }
 
-func (a *stub) DescribeImageAttributeAsync(ctx workflow.Context, input *ec2.DescribeImageAttributeInput) *EC2DescribeImageAttributeFuture {
+func (a *stub) DescribeImageAttributeAsync(ctx workflow.Context, input *ec2.DescribeImageAttributeInput) *DescribeImageAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeImageAttribute", input)
-	return &EC2DescribeImageAttributeFuture{Future: future}
+	return &DescribeImageAttributeFuture{Future: future}
 }
 
 func (a *stub) DescribeImages(ctx workflow.Context, input *ec2.DescribeImagesInput) (*ec2.DescribeImagesOutput, error) {
@@ -6742,9 +6742,9 @@ func (a *stub) DescribeImages(ctx workflow.Context, input *ec2.DescribeImagesInp
 	return &output, err
 }
 
-func (a *stub) DescribeImagesAsync(ctx workflow.Context, input *ec2.DescribeImagesInput) *EC2DescribeImagesFuture {
+func (a *stub) DescribeImagesAsync(ctx workflow.Context, input *ec2.DescribeImagesInput) *DescribeImagesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeImages", input)
-	return &EC2DescribeImagesFuture{Future: future}
+	return &DescribeImagesFuture{Future: future}
 }
 
 func (a *stub) DescribeImportImageTasks(ctx workflow.Context, input *ec2.DescribeImportImageTasksInput) (*ec2.DescribeImportImageTasksOutput, error) {
@@ -6753,9 +6753,9 @@ func (a *stub) DescribeImportImageTasks(ctx workflow.Context, input *ec2.Describ
 	return &output, err
 }
 
-func (a *stub) DescribeImportImageTasksAsync(ctx workflow.Context, input *ec2.DescribeImportImageTasksInput) *EC2DescribeImportImageTasksFuture {
+func (a *stub) DescribeImportImageTasksAsync(ctx workflow.Context, input *ec2.DescribeImportImageTasksInput) *DescribeImportImageTasksFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeImportImageTasks", input)
-	return &EC2DescribeImportImageTasksFuture{Future: future}
+	return &DescribeImportImageTasksFuture{Future: future}
 }
 
 func (a *stub) DescribeImportSnapshotTasks(ctx workflow.Context, input *ec2.DescribeImportSnapshotTasksInput) (*ec2.DescribeImportSnapshotTasksOutput, error) {
@@ -6764,9 +6764,9 @@ func (a *stub) DescribeImportSnapshotTasks(ctx workflow.Context, input *ec2.Desc
 	return &output, err
 }
 
-func (a *stub) DescribeImportSnapshotTasksAsync(ctx workflow.Context, input *ec2.DescribeImportSnapshotTasksInput) *EC2DescribeImportSnapshotTasksFuture {
+func (a *stub) DescribeImportSnapshotTasksAsync(ctx workflow.Context, input *ec2.DescribeImportSnapshotTasksInput) *DescribeImportSnapshotTasksFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeImportSnapshotTasks", input)
-	return &EC2DescribeImportSnapshotTasksFuture{Future: future}
+	return &DescribeImportSnapshotTasksFuture{Future: future}
 }
 
 func (a *stub) DescribeInstanceAttribute(ctx workflow.Context, input *ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error) {
@@ -6775,9 +6775,9 @@ func (a *stub) DescribeInstanceAttribute(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribeInstanceAttributeAsync(ctx workflow.Context, input *ec2.DescribeInstanceAttributeInput) *EC2DescribeInstanceAttributeFuture {
+func (a *stub) DescribeInstanceAttributeAsync(ctx workflow.Context, input *ec2.DescribeInstanceAttributeInput) *DescribeInstanceAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeInstanceAttribute", input)
-	return &EC2DescribeInstanceAttributeFuture{Future: future}
+	return &DescribeInstanceAttributeFuture{Future: future}
 }
 
 func (a *stub) DescribeInstanceCreditSpecifications(ctx workflow.Context, input *ec2.DescribeInstanceCreditSpecificationsInput) (*ec2.DescribeInstanceCreditSpecificationsOutput, error) {
@@ -6786,9 +6786,9 @@ func (a *stub) DescribeInstanceCreditSpecifications(ctx workflow.Context, input 
 	return &output, err
 }
 
-func (a *stub) DescribeInstanceCreditSpecificationsAsync(ctx workflow.Context, input *ec2.DescribeInstanceCreditSpecificationsInput) *EC2DescribeInstanceCreditSpecificationsFuture {
+func (a *stub) DescribeInstanceCreditSpecificationsAsync(ctx workflow.Context, input *ec2.DescribeInstanceCreditSpecificationsInput) *DescribeInstanceCreditSpecificationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeInstanceCreditSpecifications", input)
-	return &EC2DescribeInstanceCreditSpecificationsFuture{Future: future}
+	return &DescribeInstanceCreditSpecificationsFuture{Future: future}
 }
 
 func (a *stub) DescribeInstanceEventNotificationAttributes(ctx workflow.Context, input *ec2.DescribeInstanceEventNotificationAttributesInput) (*ec2.DescribeInstanceEventNotificationAttributesOutput, error) {
@@ -6797,9 +6797,9 @@ func (a *stub) DescribeInstanceEventNotificationAttributes(ctx workflow.Context,
 	return &output, err
 }
 
-func (a *stub) DescribeInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.DescribeInstanceEventNotificationAttributesInput) *EC2DescribeInstanceEventNotificationAttributesFuture {
+func (a *stub) DescribeInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.DescribeInstanceEventNotificationAttributesInput) *DescribeInstanceEventNotificationAttributesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeInstanceEventNotificationAttributes", input)
-	return &EC2DescribeInstanceEventNotificationAttributesFuture{Future: future}
+	return &DescribeInstanceEventNotificationAttributesFuture{Future: future}
 }
 
 func (a *stub) DescribeInstanceStatus(ctx workflow.Context, input *ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error) {
@@ -6808,9 +6808,9 @@ func (a *stub) DescribeInstanceStatus(ctx workflow.Context, input *ec2.DescribeI
 	return &output, err
 }
 
-func (a *stub) DescribeInstanceStatusAsync(ctx workflow.Context, input *ec2.DescribeInstanceStatusInput) *EC2DescribeInstanceStatusFuture {
+func (a *stub) DescribeInstanceStatusAsync(ctx workflow.Context, input *ec2.DescribeInstanceStatusInput) *DescribeInstanceStatusFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeInstanceStatus", input)
-	return &EC2DescribeInstanceStatusFuture{Future: future}
+	return &DescribeInstanceStatusFuture{Future: future}
 }
 
 func (a *stub) DescribeInstanceTypeOfferings(ctx workflow.Context, input *ec2.DescribeInstanceTypeOfferingsInput) (*ec2.DescribeInstanceTypeOfferingsOutput, error) {
@@ -6819,9 +6819,9 @@ func (a *stub) DescribeInstanceTypeOfferings(ctx workflow.Context, input *ec2.De
 	return &output, err
 }
 
-func (a *stub) DescribeInstanceTypeOfferingsAsync(ctx workflow.Context, input *ec2.DescribeInstanceTypeOfferingsInput) *EC2DescribeInstanceTypeOfferingsFuture {
+func (a *stub) DescribeInstanceTypeOfferingsAsync(ctx workflow.Context, input *ec2.DescribeInstanceTypeOfferingsInput) *DescribeInstanceTypeOfferingsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeInstanceTypeOfferings", input)
-	return &EC2DescribeInstanceTypeOfferingsFuture{Future: future}
+	return &DescribeInstanceTypeOfferingsFuture{Future: future}
 }
 
 func (a *stub) DescribeInstanceTypes(ctx workflow.Context, input *ec2.DescribeInstanceTypesInput) (*ec2.DescribeInstanceTypesOutput, error) {
@@ -6830,9 +6830,9 @@ func (a *stub) DescribeInstanceTypes(ctx workflow.Context, input *ec2.DescribeIn
 	return &output, err
 }
 
-func (a *stub) DescribeInstanceTypesAsync(ctx workflow.Context, input *ec2.DescribeInstanceTypesInput) *EC2DescribeInstanceTypesFuture {
+func (a *stub) DescribeInstanceTypesAsync(ctx workflow.Context, input *ec2.DescribeInstanceTypesInput) *DescribeInstanceTypesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeInstanceTypes", input)
-	return &EC2DescribeInstanceTypesFuture{Future: future}
+	return &DescribeInstanceTypesFuture{Future: future}
 }
 
 func (a *stub) DescribeInstances(ctx workflow.Context, input *ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error) {
@@ -6841,9 +6841,9 @@ func (a *stub) DescribeInstances(ctx workflow.Context, input *ec2.DescribeInstan
 	return &output, err
 }
 
-func (a *stub) DescribeInstancesAsync(ctx workflow.Context, input *ec2.DescribeInstancesInput) *EC2DescribeInstancesFuture {
+func (a *stub) DescribeInstancesAsync(ctx workflow.Context, input *ec2.DescribeInstancesInput) *DescribeInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeInstances", input)
-	return &EC2DescribeInstancesFuture{Future: future}
+	return &DescribeInstancesFuture{Future: future}
 }
 
 func (a *stub) DescribeInternetGateways(ctx workflow.Context, input *ec2.DescribeInternetGatewaysInput) (*ec2.DescribeInternetGatewaysOutput, error) {
@@ -6852,9 +6852,9 @@ func (a *stub) DescribeInternetGateways(ctx workflow.Context, input *ec2.Describ
 	return &output, err
 }
 
-func (a *stub) DescribeInternetGatewaysAsync(ctx workflow.Context, input *ec2.DescribeInternetGatewaysInput) *EC2DescribeInternetGatewaysFuture {
+func (a *stub) DescribeInternetGatewaysAsync(ctx workflow.Context, input *ec2.DescribeInternetGatewaysInput) *DescribeInternetGatewaysFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeInternetGateways", input)
-	return &EC2DescribeInternetGatewaysFuture{Future: future}
+	return &DescribeInternetGatewaysFuture{Future: future}
 }
 
 func (a *stub) DescribeIpv6Pools(ctx workflow.Context, input *ec2.DescribeIpv6PoolsInput) (*ec2.DescribeIpv6PoolsOutput, error) {
@@ -6863,9 +6863,9 @@ func (a *stub) DescribeIpv6Pools(ctx workflow.Context, input *ec2.DescribeIpv6Po
 	return &output, err
 }
 
-func (a *stub) DescribeIpv6PoolsAsync(ctx workflow.Context, input *ec2.DescribeIpv6PoolsInput) *EC2DescribeIpv6PoolsFuture {
+func (a *stub) DescribeIpv6PoolsAsync(ctx workflow.Context, input *ec2.DescribeIpv6PoolsInput) *DescribeIpv6PoolsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeIpv6Pools", input)
-	return &EC2DescribeIpv6PoolsFuture{Future: future}
+	return &DescribeIpv6PoolsFuture{Future: future}
 }
 
 func (a *stub) DescribeKeyPairs(ctx workflow.Context, input *ec2.DescribeKeyPairsInput) (*ec2.DescribeKeyPairsOutput, error) {
@@ -6874,9 +6874,9 @@ func (a *stub) DescribeKeyPairs(ctx workflow.Context, input *ec2.DescribeKeyPair
 	return &output, err
 }
 
-func (a *stub) DescribeKeyPairsAsync(ctx workflow.Context, input *ec2.DescribeKeyPairsInput) *EC2DescribeKeyPairsFuture {
+func (a *stub) DescribeKeyPairsAsync(ctx workflow.Context, input *ec2.DescribeKeyPairsInput) *DescribeKeyPairsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeKeyPairs", input)
-	return &EC2DescribeKeyPairsFuture{Future: future}
+	return &DescribeKeyPairsFuture{Future: future}
 }
 
 func (a *stub) DescribeLaunchTemplateVersions(ctx workflow.Context, input *ec2.DescribeLaunchTemplateVersionsInput) (*ec2.DescribeLaunchTemplateVersionsOutput, error) {
@@ -6885,9 +6885,9 @@ func (a *stub) DescribeLaunchTemplateVersions(ctx workflow.Context, input *ec2.D
 	return &output, err
 }
 
-func (a *stub) DescribeLaunchTemplateVersionsAsync(ctx workflow.Context, input *ec2.DescribeLaunchTemplateVersionsInput) *EC2DescribeLaunchTemplateVersionsFuture {
+func (a *stub) DescribeLaunchTemplateVersionsAsync(ctx workflow.Context, input *ec2.DescribeLaunchTemplateVersionsInput) *DescribeLaunchTemplateVersionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeLaunchTemplateVersions", input)
-	return &EC2DescribeLaunchTemplateVersionsFuture{Future: future}
+	return &DescribeLaunchTemplateVersionsFuture{Future: future}
 }
 
 func (a *stub) DescribeLaunchTemplates(ctx workflow.Context, input *ec2.DescribeLaunchTemplatesInput) (*ec2.DescribeLaunchTemplatesOutput, error) {
@@ -6896,9 +6896,9 @@ func (a *stub) DescribeLaunchTemplates(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribeLaunchTemplatesAsync(ctx workflow.Context, input *ec2.DescribeLaunchTemplatesInput) *EC2DescribeLaunchTemplatesFuture {
+func (a *stub) DescribeLaunchTemplatesAsync(ctx workflow.Context, input *ec2.DescribeLaunchTemplatesInput) *DescribeLaunchTemplatesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeLaunchTemplates", input)
-	return &EC2DescribeLaunchTemplatesFuture{Future: future}
+	return &DescribeLaunchTemplatesFuture{Future: future}
 }
 
 func (a *stub) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) (*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, error) {
@@ -6907,9 +6907,9 @@ func (a *stub) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(c
 	return &output, err
 }
 
-func (a *stub) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) *EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture {
+func (a *stub) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) *DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations", input)
-	return &EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture{Future: future}
+	return &DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture{Future: future}
 }
 
 func (a *stub) DescribeLocalGatewayRouteTableVpcAssociations(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) (*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, error) {
@@ -6918,9 +6918,9 @@ func (a *stub) DescribeLocalGatewayRouteTableVpcAssociations(ctx workflow.Contex
 	return &output, err
 }
 
-func (a *stub) DescribeLocalGatewayRouteTableVpcAssociationsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) *EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture {
+func (a *stub) DescribeLocalGatewayRouteTableVpcAssociationsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) *DescribeLocalGatewayRouteTableVpcAssociationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeLocalGatewayRouteTableVpcAssociations", input)
-	return &EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture{Future: future}
+	return &DescribeLocalGatewayRouteTableVpcAssociationsFuture{Future: future}
 }
 
 func (a *stub) DescribeLocalGatewayRouteTables(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTablesInput) (*ec2.DescribeLocalGatewayRouteTablesOutput, error) {
@@ -6929,9 +6929,9 @@ func (a *stub) DescribeLocalGatewayRouteTables(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) DescribeLocalGatewayRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTablesInput) *EC2DescribeLocalGatewayRouteTablesFuture {
+func (a *stub) DescribeLocalGatewayRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTablesInput) *DescribeLocalGatewayRouteTablesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeLocalGatewayRouteTables", input)
-	return &EC2DescribeLocalGatewayRouteTablesFuture{Future: future}
+	return &DescribeLocalGatewayRouteTablesFuture{Future: future}
 }
 
 func (a *stub) DescribeLocalGatewayVirtualInterfaceGroups(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) (*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, error) {
@@ -6940,9 +6940,9 @@ func (a *stub) DescribeLocalGatewayVirtualInterfaceGroups(ctx workflow.Context, 
 	return &output, err
 }
 
-func (a *stub) DescribeLocalGatewayVirtualInterfaceGroupsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) *EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture {
+func (a *stub) DescribeLocalGatewayVirtualInterfaceGroupsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) *DescribeLocalGatewayVirtualInterfaceGroupsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeLocalGatewayVirtualInterfaceGroups", input)
-	return &EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture{Future: future}
+	return &DescribeLocalGatewayVirtualInterfaceGroupsFuture{Future: future}
 }
 
 func (a *stub) DescribeLocalGatewayVirtualInterfaces(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfacesInput) (*ec2.DescribeLocalGatewayVirtualInterfacesOutput, error) {
@@ -6951,9 +6951,9 @@ func (a *stub) DescribeLocalGatewayVirtualInterfaces(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) DescribeLocalGatewayVirtualInterfacesAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfacesInput) *EC2DescribeLocalGatewayVirtualInterfacesFuture {
+func (a *stub) DescribeLocalGatewayVirtualInterfacesAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfacesInput) *DescribeLocalGatewayVirtualInterfacesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeLocalGatewayVirtualInterfaces", input)
-	return &EC2DescribeLocalGatewayVirtualInterfacesFuture{Future: future}
+	return &DescribeLocalGatewayVirtualInterfacesFuture{Future: future}
 }
 
 func (a *stub) DescribeLocalGateways(ctx workflow.Context, input *ec2.DescribeLocalGatewaysInput) (*ec2.DescribeLocalGatewaysOutput, error) {
@@ -6962,9 +6962,9 @@ func (a *stub) DescribeLocalGateways(ctx workflow.Context, input *ec2.DescribeLo
 	return &output, err
 }
 
-func (a *stub) DescribeLocalGatewaysAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewaysInput) *EC2DescribeLocalGatewaysFuture {
+func (a *stub) DescribeLocalGatewaysAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewaysInput) *DescribeLocalGatewaysFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeLocalGateways", input)
-	return &EC2DescribeLocalGatewaysFuture{Future: future}
+	return &DescribeLocalGatewaysFuture{Future: future}
 }
 
 func (a *stub) DescribeManagedPrefixLists(ctx workflow.Context, input *ec2.DescribeManagedPrefixListsInput) (*ec2.DescribeManagedPrefixListsOutput, error) {
@@ -6973,9 +6973,9 @@ func (a *stub) DescribeManagedPrefixLists(ctx workflow.Context, input *ec2.Descr
 	return &output, err
 }
 
-func (a *stub) DescribeManagedPrefixListsAsync(ctx workflow.Context, input *ec2.DescribeManagedPrefixListsInput) *EC2DescribeManagedPrefixListsFuture {
+func (a *stub) DescribeManagedPrefixListsAsync(ctx workflow.Context, input *ec2.DescribeManagedPrefixListsInput) *DescribeManagedPrefixListsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeManagedPrefixLists", input)
-	return &EC2DescribeManagedPrefixListsFuture{Future: future}
+	return &DescribeManagedPrefixListsFuture{Future: future}
 }
 
 func (a *stub) DescribeMovingAddresses(ctx workflow.Context, input *ec2.DescribeMovingAddressesInput) (*ec2.DescribeMovingAddressesOutput, error) {
@@ -6984,9 +6984,9 @@ func (a *stub) DescribeMovingAddresses(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribeMovingAddressesAsync(ctx workflow.Context, input *ec2.DescribeMovingAddressesInput) *EC2DescribeMovingAddressesFuture {
+func (a *stub) DescribeMovingAddressesAsync(ctx workflow.Context, input *ec2.DescribeMovingAddressesInput) *DescribeMovingAddressesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeMovingAddresses", input)
-	return &EC2DescribeMovingAddressesFuture{Future: future}
+	return &DescribeMovingAddressesFuture{Future: future}
 }
 
 func (a *stub) DescribeNatGateways(ctx workflow.Context, input *ec2.DescribeNatGatewaysInput) (*ec2.DescribeNatGatewaysOutput, error) {
@@ -6995,9 +6995,9 @@ func (a *stub) DescribeNatGateways(ctx workflow.Context, input *ec2.DescribeNatG
 	return &output, err
 }
 
-func (a *stub) DescribeNatGatewaysAsync(ctx workflow.Context, input *ec2.DescribeNatGatewaysInput) *EC2DescribeNatGatewaysFuture {
+func (a *stub) DescribeNatGatewaysAsync(ctx workflow.Context, input *ec2.DescribeNatGatewaysInput) *DescribeNatGatewaysFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeNatGateways", input)
-	return &EC2DescribeNatGatewaysFuture{Future: future}
+	return &DescribeNatGatewaysFuture{Future: future}
 }
 
 func (a *stub) DescribeNetworkAcls(ctx workflow.Context, input *ec2.DescribeNetworkAclsInput) (*ec2.DescribeNetworkAclsOutput, error) {
@@ -7006,9 +7006,9 @@ func (a *stub) DescribeNetworkAcls(ctx workflow.Context, input *ec2.DescribeNetw
 	return &output, err
 }
 
-func (a *stub) DescribeNetworkAclsAsync(ctx workflow.Context, input *ec2.DescribeNetworkAclsInput) *EC2DescribeNetworkAclsFuture {
+func (a *stub) DescribeNetworkAclsAsync(ctx workflow.Context, input *ec2.DescribeNetworkAclsInput) *DescribeNetworkAclsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeNetworkAcls", input)
-	return &EC2DescribeNetworkAclsFuture{Future: future}
+	return &DescribeNetworkAclsFuture{Future: future}
 }
 
 func (a *stub) DescribeNetworkInterfaceAttribute(ctx workflow.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) (*ec2.DescribeNetworkInterfaceAttributeOutput, error) {
@@ -7017,9 +7017,9 @@ func (a *stub) DescribeNetworkInterfaceAttribute(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) DescribeNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) *EC2DescribeNetworkInterfaceAttributeFuture {
+func (a *stub) DescribeNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) *DescribeNetworkInterfaceAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeNetworkInterfaceAttribute", input)
-	return &EC2DescribeNetworkInterfaceAttributeFuture{Future: future}
+	return &DescribeNetworkInterfaceAttributeFuture{Future: future}
 }
 
 func (a *stub) DescribeNetworkInterfacePermissions(ctx workflow.Context, input *ec2.DescribeNetworkInterfacePermissionsInput) (*ec2.DescribeNetworkInterfacePermissionsOutput, error) {
@@ -7028,9 +7028,9 @@ func (a *stub) DescribeNetworkInterfacePermissions(ctx workflow.Context, input *
 	return &output, err
 }
 
-func (a *stub) DescribeNetworkInterfacePermissionsAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfacePermissionsInput) *EC2DescribeNetworkInterfacePermissionsFuture {
+func (a *stub) DescribeNetworkInterfacePermissionsAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfacePermissionsInput) *DescribeNetworkInterfacePermissionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeNetworkInterfacePermissions", input)
-	return &EC2DescribeNetworkInterfacePermissionsFuture{Future: future}
+	return &DescribeNetworkInterfacePermissionsFuture{Future: future}
 }
 
 func (a *stub) DescribeNetworkInterfaces(ctx workflow.Context, input *ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error) {
@@ -7039,9 +7039,9 @@ func (a *stub) DescribeNetworkInterfaces(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribeNetworkInterfacesAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfacesInput) *EC2DescribeNetworkInterfacesFuture {
+func (a *stub) DescribeNetworkInterfacesAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfacesInput) *DescribeNetworkInterfacesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeNetworkInterfaces", input)
-	return &EC2DescribeNetworkInterfacesFuture{Future: future}
+	return &DescribeNetworkInterfacesFuture{Future: future}
 }
 
 func (a *stub) DescribePlacementGroups(ctx workflow.Context, input *ec2.DescribePlacementGroupsInput) (*ec2.DescribePlacementGroupsOutput, error) {
@@ -7050,9 +7050,9 @@ func (a *stub) DescribePlacementGroups(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribePlacementGroupsAsync(ctx workflow.Context, input *ec2.DescribePlacementGroupsInput) *EC2DescribePlacementGroupsFuture {
+func (a *stub) DescribePlacementGroupsAsync(ctx workflow.Context, input *ec2.DescribePlacementGroupsInput) *DescribePlacementGroupsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribePlacementGroups", input)
-	return &EC2DescribePlacementGroupsFuture{Future: future}
+	return &DescribePlacementGroupsFuture{Future: future}
 }
 
 func (a *stub) DescribePrefixLists(ctx workflow.Context, input *ec2.DescribePrefixListsInput) (*ec2.DescribePrefixListsOutput, error) {
@@ -7061,9 +7061,9 @@ func (a *stub) DescribePrefixLists(ctx workflow.Context, input *ec2.DescribePref
 	return &output, err
 }
 
-func (a *stub) DescribePrefixListsAsync(ctx workflow.Context, input *ec2.DescribePrefixListsInput) *EC2DescribePrefixListsFuture {
+func (a *stub) DescribePrefixListsAsync(ctx workflow.Context, input *ec2.DescribePrefixListsInput) *DescribePrefixListsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribePrefixLists", input)
-	return &EC2DescribePrefixListsFuture{Future: future}
+	return &DescribePrefixListsFuture{Future: future}
 }
 
 func (a *stub) DescribePrincipalIdFormat(ctx workflow.Context, input *ec2.DescribePrincipalIdFormatInput) (*ec2.DescribePrincipalIdFormatOutput, error) {
@@ -7072,9 +7072,9 @@ func (a *stub) DescribePrincipalIdFormat(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribePrincipalIdFormatAsync(ctx workflow.Context, input *ec2.DescribePrincipalIdFormatInput) *EC2DescribePrincipalIdFormatFuture {
+func (a *stub) DescribePrincipalIdFormatAsync(ctx workflow.Context, input *ec2.DescribePrincipalIdFormatInput) *DescribePrincipalIdFormatFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribePrincipalIdFormat", input)
-	return &EC2DescribePrincipalIdFormatFuture{Future: future}
+	return &DescribePrincipalIdFormatFuture{Future: future}
 }
 
 func (a *stub) DescribePublicIpv4Pools(ctx workflow.Context, input *ec2.DescribePublicIpv4PoolsInput) (*ec2.DescribePublicIpv4PoolsOutput, error) {
@@ -7083,9 +7083,9 @@ func (a *stub) DescribePublicIpv4Pools(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribePublicIpv4PoolsAsync(ctx workflow.Context, input *ec2.DescribePublicIpv4PoolsInput) *EC2DescribePublicIpv4PoolsFuture {
+func (a *stub) DescribePublicIpv4PoolsAsync(ctx workflow.Context, input *ec2.DescribePublicIpv4PoolsInput) *DescribePublicIpv4PoolsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribePublicIpv4Pools", input)
-	return &EC2DescribePublicIpv4PoolsFuture{Future: future}
+	return &DescribePublicIpv4PoolsFuture{Future: future}
 }
 
 func (a *stub) DescribeRegions(ctx workflow.Context, input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error) {
@@ -7094,9 +7094,9 @@ func (a *stub) DescribeRegions(ctx workflow.Context, input *ec2.DescribeRegionsI
 	return &output, err
 }
 
-func (a *stub) DescribeRegionsAsync(ctx workflow.Context, input *ec2.DescribeRegionsInput) *EC2DescribeRegionsFuture {
+func (a *stub) DescribeRegionsAsync(ctx workflow.Context, input *ec2.DescribeRegionsInput) *DescribeRegionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeRegions", input)
-	return &EC2DescribeRegionsFuture{Future: future}
+	return &DescribeRegionsFuture{Future: future}
 }
 
 func (a *stub) DescribeReservedInstances(ctx workflow.Context, input *ec2.DescribeReservedInstancesInput) (*ec2.DescribeReservedInstancesOutput, error) {
@@ -7105,9 +7105,9 @@ func (a *stub) DescribeReservedInstances(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribeReservedInstancesAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesInput) *EC2DescribeReservedInstancesFuture {
+func (a *stub) DescribeReservedInstancesAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesInput) *DescribeReservedInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeReservedInstances", input)
-	return &EC2DescribeReservedInstancesFuture{Future: future}
+	return &DescribeReservedInstancesFuture{Future: future}
 }
 
 func (a *stub) DescribeReservedInstancesListings(ctx workflow.Context, input *ec2.DescribeReservedInstancesListingsInput) (*ec2.DescribeReservedInstancesListingsOutput, error) {
@@ -7116,9 +7116,9 @@ func (a *stub) DescribeReservedInstancesListings(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) DescribeReservedInstancesListingsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesListingsInput) *EC2DescribeReservedInstancesListingsFuture {
+func (a *stub) DescribeReservedInstancesListingsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesListingsInput) *DescribeReservedInstancesListingsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeReservedInstancesListings", input)
-	return &EC2DescribeReservedInstancesListingsFuture{Future: future}
+	return &DescribeReservedInstancesListingsFuture{Future: future}
 }
 
 func (a *stub) DescribeReservedInstancesModifications(ctx workflow.Context, input *ec2.DescribeReservedInstancesModificationsInput) (*ec2.DescribeReservedInstancesModificationsOutput, error) {
@@ -7127,9 +7127,9 @@ func (a *stub) DescribeReservedInstancesModifications(ctx workflow.Context, inpu
 	return &output, err
 }
 
-func (a *stub) DescribeReservedInstancesModificationsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesModificationsInput) *EC2DescribeReservedInstancesModificationsFuture {
+func (a *stub) DescribeReservedInstancesModificationsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesModificationsInput) *DescribeReservedInstancesModificationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeReservedInstancesModifications", input)
-	return &EC2DescribeReservedInstancesModificationsFuture{Future: future}
+	return &DescribeReservedInstancesModificationsFuture{Future: future}
 }
 
 func (a *stub) DescribeReservedInstancesOfferings(ctx workflow.Context, input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput, error) {
@@ -7138,9 +7138,9 @@ func (a *stub) DescribeReservedInstancesOfferings(ctx workflow.Context, input *e
 	return &output, err
 }
 
-func (a *stub) DescribeReservedInstancesOfferingsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesOfferingsInput) *EC2DescribeReservedInstancesOfferingsFuture {
+func (a *stub) DescribeReservedInstancesOfferingsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesOfferingsInput) *DescribeReservedInstancesOfferingsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeReservedInstancesOfferings", input)
-	return &EC2DescribeReservedInstancesOfferingsFuture{Future: future}
+	return &DescribeReservedInstancesOfferingsFuture{Future: future}
 }
 
 func (a *stub) DescribeRouteTables(ctx workflow.Context, input *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
@@ -7149,9 +7149,9 @@ func (a *stub) DescribeRouteTables(ctx workflow.Context, input *ec2.DescribeRout
 	return &output, err
 }
 
-func (a *stub) DescribeRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeRouteTablesInput) *EC2DescribeRouteTablesFuture {
+func (a *stub) DescribeRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeRouteTablesInput) *DescribeRouteTablesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeRouteTables", input)
-	return &EC2DescribeRouteTablesFuture{Future: future}
+	return &DescribeRouteTablesFuture{Future: future}
 }
 
 func (a *stub) DescribeScheduledInstanceAvailability(ctx workflow.Context, input *ec2.DescribeScheduledInstanceAvailabilityInput) (*ec2.DescribeScheduledInstanceAvailabilityOutput, error) {
@@ -7160,9 +7160,9 @@ func (a *stub) DescribeScheduledInstanceAvailability(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) DescribeScheduledInstanceAvailabilityAsync(ctx workflow.Context, input *ec2.DescribeScheduledInstanceAvailabilityInput) *EC2DescribeScheduledInstanceAvailabilityFuture {
+func (a *stub) DescribeScheduledInstanceAvailabilityAsync(ctx workflow.Context, input *ec2.DescribeScheduledInstanceAvailabilityInput) *DescribeScheduledInstanceAvailabilityFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeScheduledInstanceAvailability", input)
-	return &EC2DescribeScheduledInstanceAvailabilityFuture{Future: future}
+	return &DescribeScheduledInstanceAvailabilityFuture{Future: future}
 }
 
 func (a *stub) DescribeScheduledInstances(ctx workflow.Context, input *ec2.DescribeScheduledInstancesInput) (*ec2.DescribeScheduledInstancesOutput, error) {
@@ -7171,9 +7171,9 @@ func (a *stub) DescribeScheduledInstances(ctx workflow.Context, input *ec2.Descr
 	return &output, err
 }
 
-func (a *stub) DescribeScheduledInstancesAsync(ctx workflow.Context, input *ec2.DescribeScheduledInstancesInput) *EC2DescribeScheduledInstancesFuture {
+func (a *stub) DescribeScheduledInstancesAsync(ctx workflow.Context, input *ec2.DescribeScheduledInstancesInput) *DescribeScheduledInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeScheduledInstances", input)
-	return &EC2DescribeScheduledInstancesFuture{Future: future}
+	return &DescribeScheduledInstancesFuture{Future: future}
 }
 
 func (a *stub) DescribeSecurityGroupReferences(ctx workflow.Context, input *ec2.DescribeSecurityGroupReferencesInput) (*ec2.DescribeSecurityGroupReferencesOutput, error) {
@@ -7182,9 +7182,9 @@ func (a *stub) DescribeSecurityGroupReferences(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) DescribeSecurityGroupReferencesAsync(ctx workflow.Context, input *ec2.DescribeSecurityGroupReferencesInput) *EC2DescribeSecurityGroupReferencesFuture {
+func (a *stub) DescribeSecurityGroupReferencesAsync(ctx workflow.Context, input *ec2.DescribeSecurityGroupReferencesInput) *DescribeSecurityGroupReferencesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSecurityGroupReferences", input)
-	return &EC2DescribeSecurityGroupReferencesFuture{Future: future}
+	return &DescribeSecurityGroupReferencesFuture{Future: future}
 }
 
 func (a *stub) DescribeSecurityGroups(ctx workflow.Context, input *ec2.DescribeSecurityGroupsInput) (*ec2.DescribeSecurityGroupsOutput, error) {
@@ -7193,9 +7193,9 @@ func (a *stub) DescribeSecurityGroups(ctx workflow.Context, input *ec2.DescribeS
 	return &output, err
 }
 
-func (a *stub) DescribeSecurityGroupsAsync(ctx workflow.Context, input *ec2.DescribeSecurityGroupsInput) *EC2DescribeSecurityGroupsFuture {
+func (a *stub) DescribeSecurityGroupsAsync(ctx workflow.Context, input *ec2.DescribeSecurityGroupsInput) *DescribeSecurityGroupsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSecurityGroups", input)
-	return &EC2DescribeSecurityGroupsFuture{Future: future}
+	return &DescribeSecurityGroupsFuture{Future: future}
 }
 
 func (a *stub) DescribeSnapshotAttribute(ctx workflow.Context, input *ec2.DescribeSnapshotAttributeInput) (*ec2.DescribeSnapshotAttributeOutput, error) {
@@ -7204,9 +7204,9 @@ func (a *stub) DescribeSnapshotAttribute(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribeSnapshotAttributeAsync(ctx workflow.Context, input *ec2.DescribeSnapshotAttributeInput) *EC2DescribeSnapshotAttributeFuture {
+func (a *stub) DescribeSnapshotAttributeAsync(ctx workflow.Context, input *ec2.DescribeSnapshotAttributeInput) *DescribeSnapshotAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSnapshotAttribute", input)
-	return &EC2DescribeSnapshotAttributeFuture{Future: future}
+	return &DescribeSnapshotAttributeFuture{Future: future}
 }
 
 func (a *stub) DescribeSnapshots(ctx workflow.Context, input *ec2.DescribeSnapshotsInput) (*ec2.DescribeSnapshotsOutput, error) {
@@ -7215,9 +7215,9 @@ func (a *stub) DescribeSnapshots(ctx workflow.Context, input *ec2.DescribeSnapsh
 	return &output, err
 }
 
-func (a *stub) DescribeSnapshotsAsync(ctx workflow.Context, input *ec2.DescribeSnapshotsInput) *EC2DescribeSnapshotsFuture {
+func (a *stub) DescribeSnapshotsAsync(ctx workflow.Context, input *ec2.DescribeSnapshotsInput) *DescribeSnapshotsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSnapshots", input)
-	return &EC2DescribeSnapshotsFuture{Future: future}
+	return &DescribeSnapshotsFuture{Future: future}
 }
 
 func (a *stub) DescribeSpotDatafeedSubscription(ctx workflow.Context, input *ec2.DescribeSpotDatafeedSubscriptionInput) (*ec2.DescribeSpotDatafeedSubscriptionOutput, error) {
@@ -7226,9 +7226,9 @@ func (a *stub) DescribeSpotDatafeedSubscription(ctx workflow.Context, input *ec2
 	return &output, err
 }
 
-func (a *stub) DescribeSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.DescribeSpotDatafeedSubscriptionInput) *EC2DescribeSpotDatafeedSubscriptionFuture {
+func (a *stub) DescribeSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.DescribeSpotDatafeedSubscriptionInput) *DescribeSpotDatafeedSubscriptionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSpotDatafeedSubscription", input)
-	return &EC2DescribeSpotDatafeedSubscriptionFuture{Future: future}
+	return &DescribeSpotDatafeedSubscriptionFuture{Future: future}
 }
 
 func (a *stub) DescribeSpotFleetInstances(ctx workflow.Context, input *ec2.DescribeSpotFleetInstancesInput) (*ec2.DescribeSpotFleetInstancesOutput, error) {
@@ -7237,9 +7237,9 @@ func (a *stub) DescribeSpotFleetInstances(ctx workflow.Context, input *ec2.Descr
 	return &output, err
 }
 
-func (a *stub) DescribeSpotFleetInstancesAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetInstancesInput) *EC2DescribeSpotFleetInstancesFuture {
+func (a *stub) DescribeSpotFleetInstancesAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetInstancesInput) *DescribeSpotFleetInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSpotFleetInstances", input)
-	return &EC2DescribeSpotFleetInstancesFuture{Future: future}
+	return &DescribeSpotFleetInstancesFuture{Future: future}
 }
 
 func (a *stub) DescribeSpotFleetRequestHistory(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestHistoryInput) (*ec2.DescribeSpotFleetRequestHistoryOutput, error) {
@@ -7248,9 +7248,9 @@ func (a *stub) DescribeSpotFleetRequestHistory(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) DescribeSpotFleetRequestHistoryAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestHistoryInput) *EC2DescribeSpotFleetRequestHistoryFuture {
+func (a *stub) DescribeSpotFleetRequestHistoryAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestHistoryInput) *DescribeSpotFleetRequestHistoryFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSpotFleetRequestHistory", input)
-	return &EC2DescribeSpotFleetRequestHistoryFuture{Future: future}
+	return &DescribeSpotFleetRequestHistoryFuture{Future: future}
 }
 
 func (a *stub) DescribeSpotFleetRequests(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestsInput) (*ec2.DescribeSpotFleetRequestsOutput, error) {
@@ -7259,9 +7259,9 @@ func (a *stub) DescribeSpotFleetRequests(ctx workflow.Context, input *ec2.Descri
 	return &output, err
 }
 
-func (a *stub) DescribeSpotFleetRequestsAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestsInput) *EC2DescribeSpotFleetRequestsFuture {
+func (a *stub) DescribeSpotFleetRequestsAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestsInput) *DescribeSpotFleetRequestsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSpotFleetRequests", input)
-	return &EC2DescribeSpotFleetRequestsFuture{Future: future}
+	return &DescribeSpotFleetRequestsFuture{Future: future}
 }
 
 func (a *stub) DescribeSpotInstanceRequests(ctx workflow.Context, input *ec2.DescribeSpotInstanceRequestsInput) (*ec2.DescribeSpotInstanceRequestsOutput, error) {
@@ -7270,9 +7270,9 @@ func (a *stub) DescribeSpotInstanceRequests(ctx workflow.Context, input *ec2.Des
 	return &output, err
 }
 
-func (a *stub) DescribeSpotInstanceRequestsAsync(ctx workflow.Context, input *ec2.DescribeSpotInstanceRequestsInput) *EC2DescribeSpotInstanceRequestsFuture {
+func (a *stub) DescribeSpotInstanceRequestsAsync(ctx workflow.Context, input *ec2.DescribeSpotInstanceRequestsInput) *DescribeSpotInstanceRequestsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSpotInstanceRequests", input)
-	return &EC2DescribeSpotInstanceRequestsFuture{Future: future}
+	return &DescribeSpotInstanceRequestsFuture{Future: future}
 }
 
 func (a *stub) DescribeSpotPriceHistory(ctx workflow.Context, input *ec2.DescribeSpotPriceHistoryInput) (*ec2.DescribeSpotPriceHistoryOutput, error) {
@@ -7281,9 +7281,9 @@ func (a *stub) DescribeSpotPriceHistory(ctx workflow.Context, input *ec2.Describ
 	return &output, err
 }
 
-func (a *stub) DescribeSpotPriceHistoryAsync(ctx workflow.Context, input *ec2.DescribeSpotPriceHistoryInput) *EC2DescribeSpotPriceHistoryFuture {
+func (a *stub) DescribeSpotPriceHistoryAsync(ctx workflow.Context, input *ec2.DescribeSpotPriceHistoryInput) *DescribeSpotPriceHistoryFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSpotPriceHistory", input)
-	return &EC2DescribeSpotPriceHistoryFuture{Future: future}
+	return &DescribeSpotPriceHistoryFuture{Future: future}
 }
 
 func (a *stub) DescribeStaleSecurityGroups(ctx workflow.Context, input *ec2.DescribeStaleSecurityGroupsInput) (*ec2.DescribeStaleSecurityGroupsOutput, error) {
@@ -7292,9 +7292,9 @@ func (a *stub) DescribeStaleSecurityGroups(ctx workflow.Context, input *ec2.Desc
 	return &output, err
 }
 
-func (a *stub) DescribeStaleSecurityGroupsAsync(ctx workflow.Context, input *ec2.DescribeStaleSecurityGroupsInput) *EC2DescribeStaleSecurityGroupsFuture {
+func (a *stub) DescribeStaleSecurityGroupsAsync(ctx workflow.Context, input *ec2.DescribeStaleSecurityGroupsInput) *DescribeStaleSecurityGroupsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeStaleSecurityGroups", input)
-	return &EC2DescribeStaleSecurityGroupsFuture{Future: future}
+	return &DescribeStaleSecurityGroupsFuture{Future: future}
 }
 
 func (a *stub) DescribeSubnets(ctx workflow.Context, input *ec2.DescribeSubnetsInput) (*ec2.DescribeSubnetsOutput, error) {
@@ -7303,9 +7303,9 @@ func (a *stub) DescribeSubnets(ctx workflow.Context, input *ec2.DescribeSubnetsI
 	return &output, err
 }
 
-func (a *stub) DescribeSubnetsAsync(ctx workflow.Context, input *ec2.DescribeSubnetsInput) *EC2DescribeSubnetsFuture {
+func (a *stub) DescribeSubnetsAsync(ctx workflow.Context, input *ec2.DescribeSubnetsInput) *DescribeSubnetsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeSubnets", input)
-	return &EC2DescribeSubnetsFuture{Future: future}
+	return &DescribeSubnetsFuture{Future: future}
 }
 
 func (a *stub) DescribeTags(ctx workflow.Context, input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error) {
@@ -7314,9 +7314,9 @@ func (a *stub) DescribeTags(ctx workflow.Context, input *ec2.DescribeTagsInput) 
 	return &output, err
 }
 
-func (a *stub) DescribeTagsAsync(ctx workflow.Context, input *ec2.DescribeTagsInput) *EC2DescribeTagsFuture {
+func (a *stub) DescribeTagsAsync(ctx workflow.Context, input *ec2.DescribeTagsInput) *DescribeTagsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTags", input)
-	return &EC2DescribeTagsFuture{Future: future}
+	return &DescribeTagsFuture{Future: future}
 }
 
 func (a *stub) DescribeTrafficMirrorFilters(ctx workflow.Context, input *ec2.DescribeTrafficMirrorFiltersInput) (*ec2.DescribeTrafficMirrorFiltersOutput, error) {
@@ -7325,9 +7325,9 @@ func (a *stub) DescribeTrafficMirrorFilters(ctx workflow.Context, input *ec2.Des
 	return &output, err
 }
 
-func (a *stub) DescribeTrafficMirrorFiltersAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorFiltersInput) *EC2DescribeTrafficMirrorFiltersFuture {
+func (a *stub) DescribeTrafficMirrorFiltersAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorFiltersInput) *DescribeTrafficMirrorFiltersFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTrafficMirrorFilters", input)
-	return &EC2DescribeTrafficMirrorFiltersFuture{Future: future}
+	return &DescribeTrafficMirrorFiltersFuture{Future: future}
 }
 
 func (a *stub) DescribeTrafficMirrorSessions(ctx workflow.Context, input *ec2.DescribeTrafficMirrorSessionsInput) (*ec2.DescribeTrafficMirrorSessionsOutput, error) {
@@ -7336,9 +7336,9 @@ func (a *stub) DescribeTrafficMirrorSessions(ctx workflow.Context, input *ec2.De
 	return &output, err
 }
 
-func (a *stub) DescribeTrafficMirrorSessionsAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorSessionsInput) *EC2DescribeTrafficMirrorSessionsFuture {
+func (a *stub) DescribeTrafficMirrorSessionsAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorSessionsInput) *DescribeTrafficMirrorSessionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTrafficMirrorSessions", input)
-	return &EC2DescribeTrafficMirrorSessionsFuture{Future: future}
+	return &DescribeTrafficMirrorSessionsFuture{Future: future}
 }
 
 func (a *stub) DescribeTrafficMirrorTargets(ctx workflow.Context, input *ec2.DescribeTrafficMirrorTargetsInput) (*ec2.DescribeTrafficMirrorTargetsOutput, error) {
@@ -7347,9 +7347,9 @@ func (a *stub) DescribeTrafficMirrorTargets(ctx workflow.Context, input *ec2.Des
 	return &output, err
 }
 
-func (a *stub) DescribeTrafficMirrorTargetsAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorTargetsInput) *EC2DescribeTrafficMirrorTargetsFuture {
+func (a *stub) DescribeTrafficMirrorTargetsAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorTargetsInput) *DescribeTrafficMirrorTargetsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTrafficMirrorTargets", input)
-	return &EC2DescribeTrafficMirrorTargetsFuture{Future: future}
+	return &DescribeTrafficMirrorTargetsFuture{Future: future}
 }
 
 func (a *stub) DescribeTransitGatewayAttachments(ctx workflow.Context, input *ec2.DescribeTransitGatewayAttachmentsInput) (*ec2.DescribeTransitGatewayAttachmentsOutput, error) {
@@ -7358,9 +7358,9 @@ func (a *stub) DescribeTransitGatewayAttachments(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) DescribeTransitGatewayAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayAttachmentsInput) *EC2DescribeTransitGatewayAttachmentsFuture {
+func (a *stub) DescribeTransitGatewayAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayAttachmentsInput) *DescribeTransitGatewayAttachmentsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTransitGatewayAttachments", input)
-	return &EC2DescribeTransitGatewayAttachmentsFuture{Future: future}
+	return &DescribeTransitGatewayAttachmentsFuture{Future: future}
 }
 
 func (a *stub) DescribeTransitGatewayMulticastDomains(ctx workflow.Context, input *ec2.DescribeTransitGatewayMulticastDomainsInput) (*ec2.DescribeTransitGatewayMulticastDomainsOutput, error) {
@@ -7369,9 +7369,9 @@ func (a *stub) DescribeTransitGatewayMulticastDomains(ctx workflow.Context, inpu
 	return &output, err
 }
 
-func (a *stub) DescribeTransitGatewayMulticastDomainsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayMulticastDomainsInput) *EC2DescribeTransitGatewayMulticastDomainsFuture {
+func (a *stub) DescribeTransitGatewayMulticastDomainsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayMulticastDomainsInput) *DescribeTransitGatewayMulticastDomainsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTransitGatewayMulticastDomains", input)
-	return &EC2DescribeTransitGatewayMulticastDomainsFuture{Future: future}
+	return &DescribeTransitGatewayMulticastDomainsFuture{Future: future}
 }
 
 func (a *stub) DescribeTransitGatewayPeeringAttachments(ctx workflow.Context, input *ec2.DescribeTransitGatewayPeeringAttachmentsInput) (*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, error) {
@@ -7380,9 +7380,9 @@ func (a *stub) DescribeTransitGatewayPeeringAttachments(ctx workflow.Context, in
 	return &output, err
 }
 
-func (a *stub) DescribeTransitGatewayPeeringAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayPeeringAttachmentsInput) *EC2DescribeTransitGatewayPeeringAttachmentsFuture {
+func (a *stub) DescribeTransitGatewayPeeringAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayPeeringAttachmentsInput) *DescribeTransitGatewayPeeringAttachmentsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTransitGatewayPeeringAttachments", input)
-	return &EC2DescribeTransitGatewayPeeringAttachmentsFuture{Future: future}
+	return &DescribeTransitGatewayPeeringAttachmentsFuture{Future: future}
 }
 
 func (a *stub) DescribeTransitGatewayRouteTables(ctx workflow.Context, input *ec2.DescribeTransitGatewayRouteTablesInput) (*ec2.DescribeTransitGatewayRouteTablesOutput, error) {
@@ -7391,9 +7391,9 @@ func (a *stub) DescribeTransitGatewayRouteTables(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) DescribeTransitGatewayRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayRouteTablesInput) *EC2DescribeTransitGatewayRouteTablesFuture {
+func (a *stub) DescribeTransitGatewayRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayRouteTablesInput) *DescribeTransitGatewayRouteTablesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTransitGatewayRouteTables", input)
-	return &EC2DescribeTransitGatewayRouteTablesFuture{Future: future}
+	return &DescribeTransitGatewayRouteTablesFuture{Future: future}
 }
 
 func (a *stub) DescribeTransitGatewayVpcAttachments(ctx workflow.Context, input *ec2.DescribeTransitGatewayVpcAttachmentsInput) (*ec2.DescribeTransitGatewayVpcAttachmentsOutput, error) {
@@ -7402,9 +7402,9 @@ func (a *stub) DescribeTransitGatewayVpcAttachments(ctx workflow.Context, input 
 	return &output, err
 }
 
-func (a *stub) DescribeTransitGatewayVpcAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayVpcAttachmentsInput) *EC2DescribeTransitGatewayVpcAttachmentsFuture {
+func (a *stub) DescribeTransitGatewayVpcAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayVpcAttachmentsInput) *DescribeTransitGatewayVpcAttachmentsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTransitGatewayVpcAttachments", input)
-	return &EC2DescribeTransitGatewayVpcAttachmentsFuture{Future: future}
+	return &DescribeTransitGatewayVpcAttachmentsFuture{Future: future}
 }
 
 func (a *stub) DescribeTransitGateways(ctx workflow.Context, input *ec2.DescribeTransitGatewaysInput) (*ec2.DescribeTransitGatewaysOutput, error) {
@@ -7413,9 +7413,9 @@ func (a *stub) DescribeTransitGateways(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribeTransitGatewaysAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewaysInput) *EC2DescribeTransitGatewaysFuture {
+func (a *stub) DescribeTransitGatewaysAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewaysInput) *DescribeTransitGatewaysFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeTransitGateways", input)
-	return &EC2DescribeTransitGatewaysFuture{Future: future}
+	return &DescribeTransitGatewaysFuture{Future: future}
 }
 
 func (a *stub) DescribeVolumeAttribute(ctx workflow.Context, input *ec2.DescribeVolumeAttributeInput) (*ec2.DescribeVolumeAttributeOutput, error) {
@@ -7424,9 +7424,9 @@ func (a *stub) DescribeVolumeAttribute(ctx workflow.Context, input *ec2.Describe
 	return &output, err
 }
 
-func (a *stub) DescribeVolumeAttributeAsync(ctx workflow.Context, input *ec2.DescribeVolumeAttributeInput) *EC2DescribeVolumeAttributeFuture {
+func (a *stub) DescribeVolumeAttributeAsync(ctx workflow.Context, input *ec2.DescribeVolumeAttributeInput) *DescribeVolumeAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVolumeAttribute", input)
-	return &EC2DescribeVolumeAttributeFuture{Future: future}
+	return &DescribeVolumeAttributeFuture{Future: future}
 }
 
 func (a *stub) DescribeVolumeStatus(ctx workflow.Context, input *ec2.DescribeVolumeStatusInput) (*ec2.DescribeVolumeStatusOutput, error) {
@@ -7435,9 +7435,9 @@ func (a *stub) DescribeVolumeStatus(ctx workflow.Context, input *ec2.DescribeVol
 	return &output, err
 }
 
-func (a *stub) DescribeVolumeStatusAsync(ctx workflow.Context, input *ec2.DescribeVolumeStatusInput) *EC2DescribeVolumeStatusFuture {
+func (a *stub) DescribeVolumeStatusAsync(ctx workflow.Context, input *ec2.DescribeVolumeStatusInput) *DescribeVolumeStatusFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVolumeStatus", input)
-	return &EC2DescribeVolumeStatusFuture{Future: future}
+	return &DescribeVolumeStatusFuture{Future: future}
 }
 
 func (a *stub) DescribeVolumes(ctx workflow.Context, input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error) {
@@ -7446,9 +7446,9 @@ func (a *stub) DescribeVolumes(ctx workflow.Context, input *ec2.DescribeVolumesI
 	return &output, err
 }
 
-func (a *stub) DescribeVolumesAsync(ctx workflow.Context, input *ec2.DescribeVolumesInput) *EC2DescribeVolumesFuture {
+func (a *stub) DescribeVolumesAsync(ctx workflow.Context, input *ec2.DescribeVolumesInput) *DescribeVolumesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVolumes", input)
-	return &EC2DescribeVolumesFuture{Future: future}
+	return &DescribeVolumesFuture{Future: future}
 }
 
 func (a *stub) DescribeVolumesModifications(ctx workflow.Context, input *ec2.DescribeVolumesModificationsInput) (*ec2.DescribeVolumesModificationsOutput, error) {
@@ -7457,9 +7457,9 @@ func (a *stub) DescribeVolumesModifications(ctx workflow.Context, input *ec2.Des
 	return &output, err
 }
 
-func (a *stub) DescribeVolumesModificationsAsync(ctx workflow.Context, input *ec2.DescribeVolumesModificationsInput) *EC2DescribeVolumesModificationsFuture {
+func (a *stub) DescribeVolumesModificationsAsync(ctx workflow.Context, input *ec2.DescribeVolumesModificationsInput) *DescribeVolumesModificationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVolumesModifications", input)
-	return &EC2DescribeVolumesModificationsFuture{Future: future}
+	return &DescribeVolumesModificationsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcAttribute(ctx workflow.Context, input *ec2.DescribeVpcAttributeInput) (*ec2.DescribeVpcAttributeOutput, error) {
@@ -7468,9 +7468,9 @@ func (a *stub) DescribeVpcAttribute(ctx workflow.Context, input *ec2.DescribeVpc
 	return &output, err
 }
 
-func (a *stub) DescribeVpcAttributeAsync(ctx workflow.Context, input *ec2.DescribeVpcAttributeInput) *EC2DescribeVpcAttributeFuture {
+func (a *stub) DescribeVpcAttributeAsync(ctx workflow.Context, input *ec2.DescribeVpcAttributeInput) *DescribeVpcAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcAttribute", input)
-	return &EC2DescribeVpcAttributeFuture{Future: future}
+	return &DescribeVpcAttributeFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcClassicLink(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkInput) (*ec2.DescribeVpcClassicLinkOutput, error) {
@@ -7479,9 +7479,9 @@ func (a *stub) DescribeVpcClassicLink(ctx workflow.Context, input *ec2.DescribeV
 	return &output, err
 }
 
-func (a *stub) DescribeVpcClassicLinkAsync(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkInput) *EC2DescribeVpcClassicLinkFuture {
+func (a *stub) DescribeVpcClassicLinkAsync(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkInput) *DescribeVpcClassicLinkFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcClassicLink", input)
-	return &EC2DescribeVpcClassicLinkFuture{Future: future}
+	return &DescribeVpcClassicLinkFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkDnsSupportInput) (*ec2.DescribeVpcClassicLinkDnsSupportOutput, error) {
@@ -7490,9 +7490,9 @@ func (a *stub) DescribeVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2
 	return &output, err
 }
 
-func (a *stub) DescribeVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkDnsSupportInput) *EC2DescribeVpcClassicLinkDnsSupportFuture {
+func (a *stub) DescribeVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkDnsSupportInput) *DescribeVpcClassicLinkDnsSupportFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcClassicLinkDnsSupport", input)
-	return &EC2DescribeVpcClassicLinkDnsSupportFuture{Future: future}
+	return &DescribeVpcClassicLinkDnsSupportFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcEndpointConnectionNotifications(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionNotificationsInput) (*ec2.DescribeVpcEndpointConnectionNotificationsOutput, error) {
@@ -7501,9 +7501,9 @@ func (a *stub) DescribeVpcEndpointConnectionNotifications(ctx workflow.Context, 
 	return &output, err
 }
 
-func (a *stub) DescribeVpcEndpointConnectionNotificationsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionNotificationsInput) *EC2DescribeVpcEndpointConnectionNotificationsFuture {
+func (a *stub) DescribeVpcEndpointConnectionNotificationsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionNotificationsInput) *DescribeVpcEndpointConnectionNotificationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcEndpointConnectionNotifications", input)
-	return &EC2DescribeVpcEndpointConnectionNotificationsFuture{Future: future}
+	return &DescribeVpcEndpointConnectionNotificationsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcEndpointConnections(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionsInput) (*ec2.DescribeVpcEndpointConnectionsOutput, error) {
@@ -7512,9 +7512,9 @@ func (a *stub) DescribeVpcEndpointConnections(ctx workflow.Context, input *ec2.D
 	return &output, err
 }
 
-func (a *stub) DescribeVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionsInput) *EC2DescribeVpcEndpointConnectionsFuture {
+func (a *stub) DescribeVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionsInput) *DescribeVpcEndpointConnectionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcEndpointConnections", input)
-	return &EC2DescribeVpcEndpointConnectionsFuture{Future: future}
+	return &DescribeVpcEndpointConnectionsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcEndpointServiceConfigurations(ctx workflow.Context, input *ec2.DescribeVpcEndpointServiceConfigurationsInput) (*ec2.DescribeVpcEndpointServiceConfigurationsOutput, error) {
@@ -7523,9 +7523,9 @@ func (a *stub) DescribeVpcEndpointServiceConfigurations(ctx workflow.Context, in
 	return &output, err
 }
 
-func (a *stub) DescribeVpcEndpointServiceConfigurationsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServiceConfigurationsInput) *EC2DescribeVpcEndpointServiceConfigurationsFuture {
+func (a *stub) DescribeVpcEndpointServiceConfigurationsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServiceConfigurationsInput) *DescribeVpcEndpointServiceConfigurationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcEndpointServiceConfigurations", input)
-	return &EC2DescribeVpcEndpointServiceConfigurationsFuture{Future: future}
+	return &DescribeVpcEndpointServiceConfigurationsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcEndpointServicePermissions(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicePermissionsInput) (*ec2.DescribeVpcEndpointServicePermissionsOutput, error) {
@@ -7534,9 +7534,9 @@ func (a *stub) DescribeVpcEndpointServicePermissions(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) DescribeVpcEndpointServicePermissionsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicePermissionsInput) *EC2DescribeVpcEndpointServicePermissionsFuture {
+func (a *stub) DescribeVpcEndpointServicePermissionsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicePermissionsInput) *DescribeVpcEndpointServicePermissionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcEndpointServicePermissions", input)
-	return &EC2DescribeVpcEndpointServicePermissionsFuture{Future: future}
+	return &DescribeVpcEndpointServicePermissionsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcEndpointServices(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicesInput) (*ec2.DescribeVpcEndpointServicesOutput, error) {
@@ -7545,9 +7545,9 @@ func (a *stub) DescribeVpcEndpointServices(ctx workflow.Context, input *ec2.Desc
 	return &output, err
 }
 
-func (a *stub) DescribeVpcEndpointServicesAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicesInput) *EC2DescribeVpcEndpointServicesFuture {
+func (a *stub) DescribeVpcEndpointServicesAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicesInput) *DescribeVpcEndpointServicesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcEndpointServices", input)
-	return &EC2DescribeVpcEndpointServicesFuture{Future: future}
+	return &DescribeVpcEndpointServicesFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcEndpoints(ctx workflow.Context, input *ec2.DescribeVpcEndpointsInput) (*ec2.DescribeVpcEndpointsOutput, error) {
@@ -7556,9 +7556,9 @@ func (a *stub) DescribeVpcEndpoints(ctx workflow.Context, input *ec2.DescribeVpc
 	return &output, err
 }
 
-func (a *stub) DescribeVpcEndpointsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointsInput) *EC2DescribeVpcEndpointsFuture {
+func (a *stub) DescribeVpcEndpointsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointsInput) *DescribeVpcEndpointsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcEndpoints", input)
-	return &EC2DescribeVpcEndpointsFuture{Future: future}
+	return &DescribeVpcEndpointsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcPeeringConnections(ctx workflow.Context, input *ec2.DescribeVpcPeeringConnectionsInput) (*ec2.DescribeVpcPeeringConnectionsOutput, error) {
@@ -7567,9 +7567,9 @@ func (a *stub) DescribeVpcPeeringConnections(ctx workflow.Context, input *ec2.De
 	return &output, err
 }
 
-func (a *stub) DescribeVpcPeeringConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpcPeeringConnectionsInput) *EC2DescribeVpcPeeringConnectionsFuture {
+func (a *stub) DescribeVpcPeeringConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpcPeeringConnectionsInput) *DescribeVpcPeeringConnectionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcPeeringConnections", input)
-	return &EC2DescribeVpcPeeringConnectionsFuture{Future: future}
+	return &DescribeVpcPeeringConnectionsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpcs(ctx workflow.Context, input *ec2.DescribeVpcsInput) (*ec2.DescribeVpcsOutput, error) {
@@ -7578,9 +7578,9 @@ func (a *stub) DescribeVpcs(ctx workflow.Context, input *ec2.DescribeVpcsInput) 
 	return &output, err
 }
 
-func (a *stub) DescribeVpcsAsync(ctx workflow.Context, input *ec2.DescribeVpcsInput) *EC2DescribeVpcsFuture {
+func (a *stub) DescribeVpcsAsync(ctx workflow.Context, input *ec2.DescribeVpcsInput) *DescribeVpcsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpcs", input)
-	return &EC2DescribeVpcsFuture{Future: future}
+	return &DescribeVpcsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpnConnections(ctx workflow.Context, input *ec2.DescribeVpnConnectionsInput) (*ec2.DescribeVpnConnectionsOutput, error) {
@@ -7589,9 +7589,9 @@ func (a *stub) DescribeVpnConnections(ctx workflow.Context, input *ec2.DescribeV
 	return &output, err
 }
 
-func (a *stub) DescribeVpnConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpnConnectionsInput) *EC2DescribeVpnConnectionsFuture {
+func (a *stub) DescribeVpnConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpnConnectionsInput) *DescribeVpnConnectionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpnConnections", input)
-	return &EC2DescribeVpnConnectionsFuture{Future: future}
+	return &DescribeVpnConnectionsFuture{Future: future}
 }
 
 func (a *stub) DescribeVpnGateways(ctx workflow.Context, input *ec2.DescribeVpnGatewaysInput) (*ec2.DescribeVpnGatewaysOutput, error) {
@@ -7600,9 +7600,9 @@ func (a *stub) DescribeVpnGateways(ctx workflow.Context, input *ec2.DescribeVpnG
 	return &output, err
 }
 
-func (a *stub) DescribeVpnGatewaysAsync(ctx workflow.Context, input *ec2.DescribeVpnGatewaysInput) *EC2DescribeVpnGatewaysFuture {
+func (a *stub) DescribeVpnGatewaysAsync(ctx workflow.Context, input *ec2.DescribeVpnGatewaysInput) *DescribeVpnGatewaysFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DescribeVpnGateways", input)
-	return &EC2DescribeVpnGatewaysFuture{Future: future}
+	return &DescribeVpnGatewaysFuture{Future: future}
 }
 
 func (a *stub) DetachClassicLinkVpc(ctx workflow.Context, input *ec2.DetachClassicLinkVpcInput) (*ec2.DetachClassicLinkVpcOutput, error) {
@@ -7611,9 +7611,9 @@ func (a *stub) DetachClassicLinkVpc(ctx workflow.Context, input *ec2.DetachClass
 	return &output, err
 }
 
-func (a *stub) DetachClassicLinkVpcAsync(ctx workflow.Context, input *ec2.DetachClassicLinkVpcInput) *EC2DetachClassicLinkVpcFuture {
+func (a *stub) DetachClassicLinkVpcAsync(ctx workflow.Context, input *ec2.DetachClassicLinkVpcInput) *DetachClassicLinkVpcFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DetachClassicLinkVpc", input)
-	return &EC2DetachClassicLinkVpcFuture{Future: future}
+	return &DetachClassicLinkVpcFuture{Future: future}
 }
 
 func (a *stub) DetachInternetGateway(ctx workflow.Context, input *ec2.DetachInternetGatewayInput) (*ec2.DetachInternetGatewayOutput, error) {
@@ -7622,9 +7622,9 @@ func (a *stub) DetachInternetGateway(ctx workflow.Context, input *ec2.DetachInte
 	return &output, err
 }
 
-func (a *stub) DetachInternetGatewayAsync(ctx workflow.Context, input *ec2.DetachInternetGatewayInput) *EC2DetachInternetGatewayFuture {
+func (a *stub) DetachInternetGatewayAsync(ctx workflow.Context, input *ec2.DetachInternetGatewayInput) *DetachInternetGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DetachInternetGateway", input)
-	return &EC2DetachInternetGatewayFuture{Future: future}
+	return &DetachInternetGatewayFuture{Future: future}
 }
 
 func (a *stub) DetachNetworkInterface(ctx workflow.Context, input *ec2.DetachNetworkInterfaceInput) (*ec2.DetachNetworkInterfaceOutput, error) {
@@ -7633,9 +7633,9 @@ func (a *stub) DetachNetworkInterface(ctx workflow.Context, input *ec2.DetachNet
 	return &output, err
 }
 
-func (a *stub) DetachNetworkInterfaceAsync(ctx workflow.Context, input *ec2.DetachNetworkInterfaceInput) *EC2DetachNetworkInterfaceFuture {
+func (a *stub) DetachNetworkInterfaceAsync(ctx workflow.Context, input *ec2.DetachNetworkInterfaceInput) *DetachNetworkInterfaceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DetachNetworkInterface", input)
-	return &EC2DetachNetworkInterfaceFuture{Future: future}
+	return &DetachNetworkInterfaceFuture{Future: future}
 }
 
 func (a *stub) DetachVolume(ctx workflow.Context, input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error) {
@@ -7644,9 +7644,9 @@ func (a *stub) DetachVolume(ctx workflow.Context, input *ec2.DetachVolumeInput) 
 	return &output, err
 }
 
-func (a *stub) DetachVolumeAsync(ctx workflow.Context, input *ec2.DetachVolumeInput) *EC2DetachVolumeFuture {
+func (a *stub) DetachVolumeAsync(ctx workflow.Context, input *ec2.DetachVolumeInput) *DetachVolumeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DetachVolume", input)
-	return &EC2DetachVolumeFuture{Future: future}
+	return &DetachVolumeFuture{Future: future}
 }
 
 func (a *stub) DetachVpnGateway(ctx workflow.Context, input *ec2.DetachVpnGatewayInput) (*ec2.DetachVpnGatewayOutput, error) {
@@ -7655,9 +7655,9 @@ func (a *stub) DetachVpnGateway(ctx workflow.Context, input *ec2.DetachVpnGatewa
 	return &output, err
 }
 
-func (a *stub) DetachVpnGatewayAsync(ctx workflow.Context, input *ec2.DetachVpnGatewayInput) *EC2DetachVpnGatewayFuture {
+func (a *stub) DetachVpnGatewayAsync(ctx workflow.Context, input *ec2.DetachVpnGatewayInput) *DetachVpnGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DetachVpnGateway", input)
-	return &EC2DetachVpnGatewayFuture{Future: future}
+	return &DetachVpnGatewayFuture{Future: future}
 }
 
 func (a *stub) DisableEbsEncryptionByDefault(ctx workflow.Context, input *ec2.DisableEbsEncryptionByDefaultInput) (*ec2.DisableEbsEncryptionByDefaultOutput, error) {
@@ -7666,9 +7666,9 @@ func (a *stub) DisableEbsEncryptionByDefault(ctx workflow.Context, input *ec2.Di
 	return &output, err
 }
 
-func (a *stub) DisableEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.DisableEbsEncryptionByDefaultInput) *EC2DisableEbsEncryptionByDefaultFuture {
+func (a *stub) DisableEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.DisableEbsEncryptionByDefaultInput) *DisableEbsEncryptionByDefaultFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisableEbsEncryptionByDefault", input)
-	return &EC2DisableEbsEncryptionByDefaultFuture{Future: future}
+	return &DisableEbsEncryptionByDefaultFuture{Future: future}
 }
 
 func (a *stub) DisableFastSnapshotRestores(ctx workflow.Context, input *ec2.DisableFastSnapshotRestoresInput) (*ec2.DisableFastSnapshotRestoresOutput, error) {
@@ -7677,9 +7677,9 @@ func (a *stub) DisableFastSnapshotRestores(ctx workflow.Context, input *ec2.Disa
 	return &output, err
 }
 
-func (a *stub) DisableFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.DisableFastSnapshotRestoresInput) *EC2DisableFastSnapshotRestoresFuture {
+func (a *stub) DisableFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.DisableFastSnapshotRestoresInput) *DisableFastSnapshotRestoresFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisableFastSnapshotRestores", input)
-	return &EC2DisableFastSnapshotRestoresFuture{Future: future}
+	return &DisableFastSnapshotRestoresFuture{Future: future}
 }
 
 func (a *stub) DisableTransitGatewayRouteTablePropagation(ctx workflow.Context, input *ec2.DisableTransitGatewayRouteTablePropagationInput) (*ec2.DisableTransitGatewayRouteTablePropagationOutput, error) {
@@ -7688,9 +7688,9 @@ func (a *stub) DisableTransitGatewayRouteTablePropagation(ctx workflow.Context, 
 	return &output, err
 }
 
-func (a *stub) DisableTransitGatewayRouteTablePropagationAsync(ctx workflow.Context, input *ec2.DisableTransitGatewayRouteTablePropagationInput) *EC2DisableTransitGatewayRouteTablePropagationFuture {
+func (a *stub) DisableTransitGatewayRouteTablePropagationAsync(ctx workflow.Context, input *ec2.DisableTransitGatewayRouteTablePropagationInput) *DisableTransitGatewayRouteTablePropagationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisableTransitGatewayRouteTablePropagation", input)
-	return &EC2DisableTransitGatewayRouteTablePropagationFuture{Future: future}
+	return &DisableTransitGatewayRouteTablePropagationFuture{Future: future}
 }
 
 func (a *stub) DisableVgwRoutePropagation(ctx workflow.Context, input *ec2.DisableVgwRoutePropagationInput) (*ec2.DisableVgwRoutePropagationOutput, error) {
@@ -7699,9 +7699,9 @@ func (a *stub) DisableVgwRoutePropagation(ctx workflow.Context, input *ec2.Disab
 	return &output, err
 }
 
-func (a *stub) DisableVgwRoutePropagationAsync(ctx workflow.Context, input *ec2.DisableVgwRoutePropagationInput) *EC2DisableVgwRoutePropagationFuture {
+func (a *stub) DisableVgwRoutePropagationAsync(ctx workflow.Context, input *ec2.DisableVgwRoutePropagationInput) *DisableVgwRoutePropagationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisableVgwRoutePropagation", input)
-	return &EC2DisableVgwRoutePropagationFuture{Future: future}
+	return &DisableVgwRoutePropagationFuture{Future: future}
 }
 
 func (a *stub) DisableVpcClassicLink(ctx workflow.Context, input *ec2.DisableVpcClassicLinkInput) (*ec2.DisableVpcClassicLinkOutput, error) {
@@ -7710,9 +7710,9 @@ func (a *stub) DisableVpcClassicLink(ctx workflow.Context, input *ec2.DisableVpc
 	return &output, err
 }
 
-func (a *stub) DisableVpcClassicLinkAsync(ctx workflow.Context, input *ec2.DisableVpcClassicLinkInput) *EC2DisableVpcClassicLinkFuture {
+func (a *stub) DisableVpcClassicLinkAsync(ctx workflow.Context, input *ec2.DisableVpcClassicLinkInput) *DisableVpcClassicLinkFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisableVpcClassicLink", input)
-	return &EC2DisableVpcClassicLinkFuture{Future: future}
+	return &DisableVpcClassicLinkFuture{Future: future}
 }
 
 func (a *stub) DisableVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2.DisableVpcClassicLinkDnsSupportInput) (*ec2.DisableVpcClassicLinkDnsSupportOutput, error) {
@@ -7721,9 +7721,9 @@ func (a *stub) DisableVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) DisableVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.DisableVpcClassicLinkDnsSupportInput) *EC2DisableVpcClassicLinkDnsSupportFuture {
+func (a *stub) DisableVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.DisableVpcClassicLinkDnsSupportInput) *DisableVpcClassicLinkDnsSupportFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisableVpcClassicLinkDnsSupport", input)
-	return &EC2DisableVpcClassicLinkDnsSupportFuture{Future: future}
+	return &DisableVpcClassicLinkDnsSupportFuture{Future: future}
 }
 
 func (a *stub) DisassociateAddress(ctx workflow.Context, input *ec2.DisassociateAddressInput) (*ec2.DisassociateAddressOutput, error) {
@@ -7732,9 +7732,9 @@ func (a *stub) DisassociateAddress(ctx workflow.Context, input *ec2.Disassociate
 	return &output, err
 }
 
-func (a *stub) DisassociateAddressAsync(ctx workflow.Context, input *ec2.DisassociateAddressInput) *EC2DisassociateAddressFuture {
+func (a *stub) DisassociateAddressAsync(ctx workflow.Context, input *ec2.DisassociateAddressInput) *DisassociateAddressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateAddress", input)
-	return &EC2DisassociateAddressFuture{Future: future}
+	return &DisassociateAddressFuture{Future: future}
 }
 
 func (a *stub) DisassociateClientVpnTargetNetwork(ctx workflow.Context, input *ec2.DisassociateClientVpnTargetNetworkInput) (*ec2.DisassociateClientVpnTargetNetworkOutput, error) {
@@ -7743,9 +7743,9 @@ func (a *stub) DisassociateClientVpnTargetNetwork(ctx workflow.Context, input *e
 	return &output, err
 }
 
-func (a *stub) DisassociateClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.DisassociateClientVpnTargetNetworkInput) *EC2DisassociateClientVpnTargetNetworkFuture {
+func (a *stub) DisassociateClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.DisassociateClientVpnTargetNetworkInput) *DisassociateClientVpnTargetNetworkFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateClientVpnTargetNetwork", input)
-	return &EC2DisassociateClientVpnTargetNetworkFuture{Future: future}
+	return &DisassociateClientVpnTargetNetworkFuture{Future: future}
 }
 
 func (a *stub) DisassociateEnclaveCertificateIamRole(ctx workflow.Context, input *ec2.DisassociateEnclaveCertificateIamRoleInput) (*ec2.DisassociateEnclaveCertificateIamRoleOutput, error) {
@@ -7754,9 +7754,9 @@ func (a *stub) DisassociateEnclaveCertificateIamRole(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) DisassociateEnclaveCertificateIamRoleAsync(ctx workflow.Context, input *ec2.DisassociateEnclaveCertificateIamRoleInput) *EC2DisassociateEnclaveCertificateIamRoleFuture {
+func (a *stub) DisassociateEnclaveCertificateIamRoleAsync(ctx workflow.Context, input *ec2.DisassociateEnclaveCertificateIamRoleInput) *DisassociateEnclaveCertificateIamRoleFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateEnclaveCertificateIamRole", input)
-	return &EC2DisassociateEnclaveCertificateIamRoleFuture{Future: future}
+	return &DisassociateEnclaveCertificateIamRoleFuture{Future: future}
 }
 
 func (a *stub) DisassociateIamInstanceProfile(ctx workflow.Context, input *ec2.DisassociateIamInstanceProfileInput) (*ec2.DisassociateIamInstanceProfileOutput, error) {
@@ -7765,9 +7765,9 @@ func (a *stub) DisassociateIamInstanceProfile(ctx workflow.Context, input *ec2.D
 	return &output, err
 }
 
-func (a *stub) DisassociateIamInstanceProfileAsync(ctx workflow.Context, input *ec2.DisassociateIamInstanceProfileInput) *EC2DisassociateIamInstanceProfileFuture {
+func (a *stub) DisassociateIamInstanceProfileAsync(ctx workflow.Context, input *ec2.DisassociateIamInstanceProfileInput) *DisassociateIamInstanceProfileFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateIamInstanceProfile", input)
-	return &EC2DisassociateIamInstanceProfileFuture{Future: future}
+	return &DisassociateIamInstanceProfileFuture{Future: future}
 }
 
 func (a *stub) DisassociateRouteTable(ctx workflow.Context, input *ec2.DisassociateRouteTableInput) (*ec2.DisassociateRouteTableOutput, error) {
@@ -7776,9 +7776,9 @@ func (a *stub) DisassociateRouteTable(ctx workflow.Context, input *ec2.Disassoci
 	return &output, err
 }
 
-func (a *stub) DisassociateRouteTableAsync(ctx workflow.Context, input *ec2.DisassociateRouteTableInput) *EC2DisassociateRouteTableFuture {
+func (a *stub) DisassociateRouteTableAsync(ctx workflow.Context, input *ec2.DisassociateRouteTableInput) *DisassociateRouteTableFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateRouteTable", input)
-	return &EC2DisassociateRouteTableFuture{Future: future}
+	return &DisassociateRouteTableFuture{Future: future}
 }
 
 func (a *stub) DisassociateSubnetCidrBlock(ctx workflow.Context, input *ec2.DisassociateSubnetCidrBlockInput) (*ec2.DisassociateSubnetCidrBlockOutput, error) {
@@ -7787,9 +7787,9 @@ func (a *stub) DisassociateSubnetCidrBlock(ctx workflow.Context, input *ec2.Disa
 	return &output, err
 }
 
-func (a *stub) DisassociateSubnetCidrBlockAsync(ctx workflow.Context, input *ec2.DisassociateSubnetCidrBlockInput) *EC2DisassociateSubnetCidrBlockFuture {
+func (a *stub) DisassociateSubnetCidrBlockAsync(ctx workflow.Context, input *ec2.DisassociateSubnetCidrBlockInput) *DisassociateSubnetCidrBlockFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateSubnetCidrBlock", input)
-	return &EC2DisassociateSubnetCidrBlockFuture{Future: future}
+	return &DisassociateSubnetCidrBlockFuture{Future: future}
 }
 
 func (a *stub) DisassociateTransitGatewayMulticastDomain(ctx workflow.Context, input *ec2.DisassociateTransitGatewayMulticastDomainInput) (*ec2.DisassociateTransitGatewayMulticastDomainOutput, error) {
@@ -7798,9 +7798,9 @@ func (a *stub) DisassociateTransitGatewayMulticastDomain(ctx workflow.Context, i
 	return &output, err
 }
 
-func (a *stub) DisassociateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.DisassociateTransitGatewayMulticastDomainInput) *EC2DisassociateTransitGatewayMulticastDomainFuture {
+func (a *stub) DisassociateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.DisassociateTransitGatewayMulticastDomainInput) *DisassociateTransitGatewayMulticastDomainFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateTransitGatewayMulticastDomain", input)
-	return &EC2DisassociateTransitGatewayMulticastDomainFuture{Future: future}
+	return &DisassociateTransitGatewayMulticastDomainFuture{Future: future}
 }
 
 func (a *stub) DisassociateTransitGatewayRouteTable(ctx workflow.Context, input *ec2.DisassociateTransitGatewayRouteTableInput) (*ec2.DisassociateTransitGatewayRouteTableOutput, error) {
@@ -7809,9 +7809,9 @@ func (a *stub) DisassociateTransitGatewayRouteTable(ctx workflow.Context, input 
 	return &output, err
 }
 
-func (a *stub) DisassociateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.DisassociateTransitGatewayRouteTableInput) *EC2DisassociateTransitGatewayRouteTableFuture {
+func (a *stub) DisassociateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.DisassociateTransitGatewayRouteTableInput) *DisassociateTransitGatewayRouteTableFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateTransitGatewayRouteTable", input)
-	return &EC2DisassociateTransitGatewayRouteTableFuture{Future: future}
+	return &DisassociateTransitGatewayRouteTableFuture{Future: future}
 }
 
 func (a *stub) DisassociateVpcCidrBlock(ctx workflow.Context, input *ec2.DisassociateVpcCidrBlockInput) (*ec2.DisassociateVpcCidrBlockOutput, error) {
@@ -7820,9 +7820,9 @@ func (a *stub) DisassociateVpcCidrBlock(ctx workflow.Context, input *ec2.Disasso
 	return &output, err
 }
 
-func (a *stub) DisassociateVpcCidrBlockAsync(ctx workflow.Context, input *ec2.DisassociateVpcCidrBlockInput) *EC2DisassociateVpcCidrBlockFuture {
+func (a *stub) DisassociateVpcCidrBlockAsync(ctx workflow.Context, input *ec2.DisassociateVpcCidrBlockInput) *DisassociateVpcCidrBlockFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-DisassociateVpcCidrBlock", input)
-	return &EC2DisassociateVpcCidrBlockFuture{Future: future}
+	return &DisassociateVpcCidrBlockFuture{Future: future}
 }
 
 func (a *stub) EnableEbsEncryptionByDefault(ctx workflow.Context, input *ec2.EnableEbsEncryptionByDefaultInput) (*ec2.EnableEbsEncryptionByDefaultOutput, error) {
@@ -7831,9 +7831,9 @@ func (a *stub) EnableEbsEncryptionByDefault(ctx workflow.Context, input *ec2.Ena
 	return &output, err
 }
 
-func (a *stub) EnableEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.EnableEbsEncryptionByDefaultInput) *EC2EnableEbsEncryptionByDefaultFuture {
+func (a *stub) EnableEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.EnableEbsEncryptionByDefaultInput) *EnableEbsEncryptionByDefaultFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-EnableEbsEncryptionByDefault", input)
-	return &EC2EnableEbsEncryptionByDefaultFuture{Future: future}
+	return &EnableEbsEncryptionByDefaultFuture{Future: future}
 }
 
 func (a *stub) EnableFastSnapshotRestores(ctx workflow.Context, input *ec2.EnableFastSnapshotRestoresInput) (*ec2.EnableFastSnapshotRestoresOutput, error) {
@@ -7842,9 +7842,9 @@ func (a *stub) EnableFastSnapshotRestores(ctx workflow.Context, input *ec2.Enabl
 	return &output, err
 }
 
-func (a *stub) EnableFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.EnableFastSnapshotRestoresInput) *EC2EnableFastSnapshotRestoresFuture {
+func (a *stub) EnableFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.EnableFastSnapshotRestoresInput) *EnableFastSnapshotRestoresFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-EnableFastSnapshotRestores", input)
-	return &EC2EnableFastSnapshotRestoresFuture{Future: future}
+	return &EnableFastSnapshotRestoresFuture{Future: future}
 }
 
 func (a *stub) EnableTransitGatewayRouteTablePropagation(ctx workflow.Context, input *ec2.EnableTransitGatewayRouteTablePropagationInput) (*ec2.EnableTransitGatewayRouteTablePropagationOutput, error) {
@@ -7853,9 +7853,9 @@ func (a *stub) EnableTransitGatewayRouteTablePropagation(ctx workflow.Context, i
 	return &output, err
 }
 
-func (a *stub) EnableTransitGatewayRouteTablePropagationAsync(ctx workflow.Context, input *ec2.EnableTransitGatewayRouteTablePropagationInput) *EC2EnableTransitGatewayRouteTablePropagationFuture {
+func (a *stub) EnableTransitGatewayRouteTablePropagationAsync(ctx workflow.Context, input *ec2.EnableTransitGatewayRouteTablePropagationInput) *EnableTransitGatewayRouteTablePropagationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-EnableTransitGatewayRouteTablePropagation", input)
-	return &EC2EnableTransitGatewayRouteTablePropagationFuture{Future: future}
+	return &EnableTransitGatewayRouteTablePropagationFuture{Future: future}
 }
 
 func (a *stub) EnableVgwRoutePropagation(ctx workflow.Context, input *ec2.EnableVgwRoutePropagationInput) (*ec2.EnableVgwRoutePropagationOutput, error) {
@@ -7864,9 +7864,9 @@ func (a *stub) EnableVgwRoutePropagation(ctx workflow.Context, input *ec2.Enable
 	return &output, err
 }
 
-func (a *stub) EnableVgwRoutePropagationAsync(ctx workflow.Context, input *ec2.EnableVgwRoutePropagationInput) *EC2EnableVgwRoutePropagationFuture {
+func (a *stub) EnableVgwRoutePropagationAsync(ctx workflow.Context, input *ec2.EnableVgwRoutePropagationInput) *EnableVgwRoutePropagationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-EnableVgwRoutePropagation", input)
-	return &EC2EnableVgwRoutePropagationFuture{Future: future}
+	return &EnableVgwRoutePropagationFuture{Future: future}
 }
 
 func (a *stub) EnableVolumeIO(ctx workflow.Context, input *ec2.EnableVolumeIOInput) (*ec2.EnableVolumeIOOutput, error) {
@@ -7875,9 +7875,9 @@ func (a *stub) EnableVolumeIO(ctx workflow.Context, input *ec2.EnableVolumeIOInp
 	return &output, err
 }
 
-func (a *stub) EnableVolumeIOAsync(ctx workflow.Context, input *ec2.EnableVolumeIOInput) *EC2EnableVolumeIOFuture {
+func (a *stub) EnableVolumeIOAsync(ctx workflow.Context, input *ec2.EnableVolumeIOInput) *EnableVolumeIOFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-EnableVolumeIO", input)
-	return &EC2EnableVolumeIOFuture{Future: future}
+	return &EnableVolumeIOFuture{Future: future}
 }
 
 func (a *stub) EnableVpcClassicLink(ctx workflow.Context, input *ec2.EnableVpcClassicLinkInput) (*ec2.EnableVpcClassicLinkOutput, error) {
@@ -7886,9 +7886,9 @@ func (a *stub) EnableVpcClassicLink(ctx workflow.Context, input *ec2.EnableVpcCl
 	return &output, err
 }
 
-func (a *stub) EnableVpcClassicLinkAsync(ctx workflow.Context, input *ec2.EnableVpcClassicLinkInput) *EC2EnableVpcClassicLinkFuture {
+func (a *stub) EnableVpcClassicLinkAsync(ctx workflow.Context, input *ec2.EnableVpcClassicLinkInput) *EnableVpcClassicLinkFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-EnableVpcClassicLink", input)
-	return &EC2EnableVpcClassicLinkFuture{Future: future}
+	return &EnableVpcClassicLinkFuture{Future: future}
 }
 
 func (a *stub) EnableVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2.EnableVpcClassicLinkDnsSupportInput) (*ec2.EnableVpcClassicLinkDnsSupportOutput, error) {
@@ -7897,9 +7897,9 @@ func (a *stub) EnableVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2.E
 	return &output, err
 }
 
-func (a *stub) EnableVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.EnableVpcClassicLinkDnsSupportInput) *EC2EnableVpcClassicLinkDnsSupportFuture {
+func (a *stub) EnableVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.EnableVpcClassicLinkDnsSupportInput) *EnableVpcClassicLinkDnsSupportFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-EnableVpcClassicLinkDnsSupport", input)
-	return &EC2EnableVpcClassicLinkDnsSupportFuture{Future: future}
+	return &EnableVpcClassicLinkDnsSupportFuture{Future: future}
 }
 
 func (a *stub) ExportClientVpnClientCertificateRevocationList(ctx workflow.Context, input *ec2.ExportClientVpnClientCertificateRevocationListInput) (*ec2.ExportClientVpnClientCertificateRevocationListOutput, error) {
@@ -7908,9 +7908,9 @@ func (a *stub) ExportClientVpnClientCertificateRevocationList(ctx workflow.Conte
 	return &output, err
 }
 
-func (a *stub) ExportClientVpnClientCertificateRevocationListAsync(ctx workflow.Context, input *ec2.ExportClientVpnClientCertificateRevocationListInput) *EC2ExportClientVpnClientCertificateRevocationListFuture {
+func (a *stub) ExportClientVpnClientCertificateRevocationListAsync(ctx workflow.Context, input *ec2.ExportClientVpnClientCertificateRevocationListInput) *ExportClientVpnClientCertificateRevocationListFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ExportClientVpnClientCertificateRevocationList", input)
-	return &EC2ExportClientVpnClientCertificateRevocationListFuture{Future: future}
+	return &ExportClientVpnClientCertificateRevocationListFuture{Future: future}
 }
 
 func (a *stub) ExportClientVpnClientConfiguration(ctx workflow.Context, input *ec2.ExportClientVpnClientConfigurationInput) (*ec2.ExportClientVpnClientConfigurationOutput, error) {
@@ -7919,9 +7919,9 @@ func (a *stub) ExportClientVpnClientConfiguration(ctx workflow.Context, input *e
 	return &output, err
 }
 
-func (a *stub) ExportClientVpnClientConfigurationAsync(ctx workflow.Context, input *ec2.ExportClientVpnClientConfigurationInput) *EC2ExportClientVpnClientConfigurationFuture {
+func (a *stub) ExportClientVpnClientConfigurationAsync(ctx workflow.Context, input *ec2.ExportClientVpnClientConfigurationInput) *ExportClientVpnClientConfigurationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ExportClientVpnClientConfiguration", input)
-	return &EC2ExportClientVpnClientConfigurationFuture{Future: future}
+	return &ExportClientVpnClientConfigurationFuture{Future: future}
 }
 
 func (a *stub) ExportImage(ctx workflow.Context, input *ec2.ExportImageInput) (*ec2.ExportImageOutput, error) {
@@ -7930,9 +7930,9 @@ func (a *stub) ExportImage(ctx workflow.Context, input *ec2.ExportImageInput) (*
 	return &output, err
 }
 
-func (a *stub) ExportImageAsync(ctx workflow.Context, input *ec2.ExportImageInput) *EC2ExportImageFuture {
+func (a *stub) ExportImageAsync(ctx workflow.Context, input *ec2.ExportImageInput) *ExportImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ExportImage", input)
-	return &EC2ExportImageFuture{Future: future}
+	return &ExportImageFuture{Future: future}
 }
 
 func (a *stub) ExportTransitGatewayRoutes(ctx workflow.Context, input *ec2.ExportTransitGatewayRoutesInput) (*ec2.ExportTransitGatewayRoutesOutput, error) {
@@ -7941,9 +7941,9 @@ func (a *stub) ExportTransitGatewayRoutes(ctx workflow.Context, input *ec2.Expor
 	return &output, err
 }
 
-func (a *stub) ExportTransitGatewayRoutesAsync(ctx workflow.Context, input *ec2.ExportTransitGatewayRoutesInput) *EC2ExportTransitGatewayRoutesFuture {
+func (a *stub) ExportTransitGatewayRoutesAsync(ctx workflow.Context, input *ec2.ExportTransitGatewayRoutesInput) *ExportTransitGatewayRoutesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ExportTransitGatewayRoutes", input)
-	return &EC2ExportTransitGatewayRoutesFuture{Future: future}
+	return &ExportTransitGatewayRoutesFuture{Future: future}
 }
 
 func (a *stub) GetAssociatedEnclaveCertificateIamRoles(ctx workflow.Context, input *ec2.GetAssociatedEnclaveCertificateIamRolesInput) (*ec2.GetAssociatedEnclaveCertificateIamRolesOutput, error) {
@@ -7952,9 +7952,9 @@ func (a *stub) GetAssociatedEnclaveCertificateIamRoles(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) GetAssociatedEnclaveCertificateIamRolesAsync(ctx workflow.Context, input *ec2.GetAssociatedEnclaveCertificateIamRolesInput) *EC2GetAssociatedEnclaveCertificateIamRolesFuture {
+func (a *stub) GetAssociatedEnclaveCertificateIamRolesAsync(ctx workflow.Context, input *ec2.GetAssociatedEnclaveCertificateIamRolesInput) *GetAssociatedEnclaveCertificateIamRolesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetAssociatedEnclaveCertificateIamRoles", input)
-	return &EC2GetAssociatedEnclaveCertificateIamRolesFuture{Future: future}
+	return &GetAssociatedEnclaveCertificateIamRolesFuture{Future: future}
 }
 
 func (a *stub) GetAssociatedIpv6PoolCidrs(ctx workflow.Context, input *ec2.GetAssociatedIpv6PoolCidrsInput) (*ec2.GetAssociatedIpv6PoolCidrsOutput, error) {
@@ -7963,9 +7963,9 @@ func (a *stub) GetAssociatedIpv6PoolCidrs(ctx workflow.Context, input *ec2.GetAs
 	return &output, err
 }
 
-func (a *stub) GetAssociatedIpv6PoolCidrsAsync(ctx workflow.Context, input *ec2.GetAssociatedIpv6PoolCidrsInput) *EC2GetAssociatedIpv6PoolCidrsFuture {
+func (a *stub) GetAssociatedIpv6PoolCidrsAsync(ctx workflow.Context, input *ec2.GetAssociatedIpv6PoolCidrsInput) *GetAssociatedIpv6PoolCidrsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetAssociatedIpv6PoolCidrs", input)
-	return &EC2GetAssociatedIpv6PoolCidrsFuture{Future: future}
+	return &GetAssociatedIpv6PoolCidrsFuture{Future: future}
 }
 
 func (a *stub) GetCapacityReservationUsage(ctx workflow.Context, input *ec2.GetCapacityReservationUsageInput) (*ec2.GetCapacityReservationUsageOutput, error) {
@@ -7974,9 +7974,9 @@ func (a *stub) GetCapacityReservationUsage(ctx workflow.Context, input *ec2.GetC
 	return &output, err
 }
 
-func (a *stub) GetCapacityReservationUsageAsync(ctx workflow.Context, input *ec2.GetCapacityReservationUsageInput) *EC2GetCapacityReservationUsageFuture {
+func (a *stub) GetCapacityReservationUsageAsync(ctx workflow.Context, input *ec2.GetCapacityReservationUsageInput) *GetCapacityReservationUsageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetCapacityReservationUsage", input)
-	return &EC2GetCapacityReservationUsageFuture{Future: future}
+	return &GetCapacityReservationUsageFuture{Future: future}
 }
 
 func (a *stub) GetCoipPoolUsage(ctx workflow.Context, input *ec2.GetCoipPoolUsageInput) (*ec2.GetCoipPoolUsageOutput, error) {
@@ -7985,9 +7985,9 @@ func (a *stub) GetCoipPoolUsage(ctx workflow.Context, input *ec2.GetCoipPoolUsag
 	return &output, err
 }
 
-func (a *stub) GetCoipPoolUsageAsync(ctx workflow.Context, input *ec2.GetCoipPoolUsageInput) *EC2GetCoipPoolUsageFuture {
+func (a *stub) GetCoipPoolUsageAsync(ctx workflow.Context, input *ec2.GetCoipPoolUsageInput) *GetCoipPoolUsageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetCoipPoolUsage", input)
-	return &EC2GetCoipPoolUsageFuture{Future: future}
+	return &GetCoipPoolUsageFuture{Future: future}
 }
 
 func (a *stub) GetConsoleOutput(ctx workflow.Context, input *ec2.GetConsoleOutputInput) (*ec2.GetConsoleOutputOutput, error) {
@@ -7996,9 +7996,9 @@ func (a *stub) GetConsoleOutput(ctx workflow.Context, input *ec2.GetConsoleOutpu
 	return &output, err
 }
 
-func (a *stub) GetConsoleOutputAsync(ctx workflow.Context, input *ec2.GetConsoleOutputInput) *EC2GetConsoleOutputFuture {
+func (a *stub) GetConsoleOutputAsync(ctx workflow.Context, input *ec2.GetConsoleOutputInput) *GetConsoleOutputFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetConsoleOutput", input)
-	return &EC2GetConsoleOutputFuture{Future: future}
+	return &GetConsoleOutputFuture{Future: future}
 }
 
 func (a *stub) GetConsoleScreenshot(ctx workflow.Context, input *ec2.GetConsoleScreenshotInput) (*ec2.GetConsoleScreenshotOutput, error) {
@@ -8007,9 +8007,9 @@ func (a *stub) GetConsoleScreenshot(ctx workflow.Context, input *ec2.GetConsoleS
 	return &output, err
 }
 
-func (a *stub) GetConsoleScreenshotAsync(ctx workflow.Context, input *ec2.GetConsoleScreenshotInput) *EC2GetConsoleScreenshotFuture {
+func (a *stub) GetConsoleScreenshotAsync(ctx workflow.Context, input *ec2.GetConsoleScreenshotInput) *GetConsoleScreenshotFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetConsoleScreenshot", input)
-	return &EC2GetConsoleScreenshotFuture{Future: future}
+	return &GetConsoleScreenshotFuture{Future: future}
 }
 
 func (a *stub) GetDefaultCreditSpecification(ctx workflow.Context, input *ec2.GetDefaultCreditSpecificationInput) (*ec2.GetDefaultCreditSpecificationOutput, error) {
@@ -8018,9 +8018,9 @@ func (a *stub) GetDefaultCreditSpecification(ctx workflow.Context, input *ec2.Ge
 	return &output, err
 }
 
-func (a *stub) GetDefaultCreditSpecificationAsync(ctx workflow.Context, input *ec2.GetDefaultCreditSpecificationInput) *EC2GetDefaultCreditSpecificationFuture {
+func (a *stub) GetDefaultCreditSpecificationAsync(ctx workflow.Context, input *ec2.GetDefaultCreditSpecificationInput) *GetDefaultCreditSpecificationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetDefaultCreditSpecification", input)
-	return &EC2GetDefaultCreditSpecificationFuture{Future: future}
+	return &GetDefaultCreditSpecificationFuture{Future: future}
 }
 
 func (a *stub) GetEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.GetEbsDefaultKmsKeyIdInput) (*ec2.GetEbsDefaultKmsKeyIdOutput, error) {
@@ -8029,9 +8029,9 @@ func (a *stub) GetEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.GetEbsDefa
 	return &output, err
 }
 
-func (a *stub) GetEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.GetEbsDefaultKmsKeyIdInput) *EC2GetEbsDefaultKmsKeyIdFuture {
+func (a *stub) GetEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.GetEbsDefaultKmsKeyIdInput) *GetEbsDefaultKmsKeyIdFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetEbsDefaultKmsKeyId", input)
-	return &EC2GetEbsDefaultKmsKeyIdFuture{Future: future}
+	return &GetEbsDefaultKmsKeyIdFuture{Future: future}
 }
 
 func (a *stub) GetEbsEncryptionByDefault(ctx workflow.Context, input *ec2.GetEbsEncryptionByDefaultInput) (*ec2.GetEbsEncryptionByDefaultOutput, error) {
@@ -8040,9 +8040,9 @@ func (a *stub) GetEbsEncryptionByDefault(ctx workflow.Context, input *ec2.GetEbs
 	return &output, err
 }
 
-func (a *stub) GetEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.GetEbsEncryptionByDefaultInput) *EC2GetEbsEncryptionByDefaultFuture {
+func (a *stub) GetEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.GetEbsEncryptionByDefaultInput) *GetEbsEncryptionByDefaultFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetEbsEncryptionByDefault", input)
-	return &EC2GetEbsEncryptionByDefaultFuture{Future: future}
+	return &GetEbsEncryptionByDefaultFuture{Future: future}
 }
 
 func (a *stub) GetGroupsForCapacityReservation(ctx workflow.Context, input *ec2.GetGroupsForCapacityReservationInput) (*ec2.GetGroupsForCapacityReservationOutput, error) {
@@ -8051,9 +8051,9 @@ func (a *stub) GetGroupsForCapacityReservation(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) GetGroupsForCapacityReservationAsync(ctx workflow.Context, input *ec2.GetGroupsForCapacityReservationInput) *EC2GetGroupsForCapacityReservationFuture {
+func (a *stub) GetGroupsForCapacityReservationAsync(ctx workflow.Context, input *ec2.GetGroupsForCapacityReservationInput) *GetGroupsForCapacityReservationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetGroupsForCapacityReservation", input)
-	return &EC2GetGroupsForCapacityReservationFuture{Future: future}
+	return &GetGroupsForCapacityReservationFuture{Future: future}
 }
 
 func (a *stub) GetHostReservationPurchasePreview(ctx workflow.Context, input *ec2.GetHostReservationPurchasePreviewInput) (*ec2.GetHostReservationPurchasePreviewOutput, error) {
@@ -8062,9 +8062,9 @@ func (a *stub) GetHostReservationPurchasePreview(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) GetHostReservationPurchasePreviewAsync(ctx workflow.Context, input *ec2.GetHostReservationPurchasePreviewInput) *EC2GetHostReservationPurchasePreviewFuture {
+func (a *stub) GetHostReservationPurchasePreviewAsync(ctx workflow.Context, input *ec2.GetHostReservationPurchasePreviewInput) *GetHostReservationPurchasePreviewFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetHostReservationPurchasePreview", input)
-	return &EC2GetHostReservationPurchasePreviewFuture{Future: future}
+	return &GetHostReservationPurchasePreviewFuture{Future: future}
 }
 
 func (a *stub) GetLaunchTemplateData(ctx workflow.Context, input *ec2.GetLaunchTemplateDataInput) (*ec2.GetLaunchTemplateDataOutput, error) {
@@ -8073,9 +8073,9 @@ func (a *stub) GetLaunchTemplateData(ctx workflow.Context, input *ec2.GetLaunchT
 	return &output, err
 }
 
-func (a *stub) GetLaunchTemplateDataAsync(ctx workflow.Context, input *ec2.GetLaunchTemplateDataInput) *EC2GetLaunchTemplateDataFuture {
+func (a *stub) GetLaunchTemplateDataAsync(ctx workflow.Context, input *ec2.GetLaunchTemplateDataInput) *GetLaunchTemplateDataFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetLaunchTemplateData", input)
-	return &EC2GetLaunchTemplateDataFuture{Future: future}
+	return &GetLaunchTemplateDataFuture{Future: future}
 }
 
 func (a *stub) GetManagedPrefixListAssociations(ctx workflow.Context, input *ec2.GetManagedPrefixListAssociationsInput) (*ec2.GetManagedPrefixListAssociationsOutput, error) {
@@ -8084,9 +8084,9 @@ func (a *stub) GetManagedPrefixListAssociations(ctx workflow.Context, input *ec2
 	return &output, err
 }
 
-func (a *stub) GetManagedPrefixListAssociationsAsync(ctx workflow.Context, input *ec2.GetManagedPrefixListAssociationsInput) *EC2GetManagedPrefixListAssociationsFuture {
+func (a *stub) GetManagedPrefixListAssociationsAsync(ctx workflow.Context, input *ec2.GetManagedPrefixListAssociationsInput) *GetManagedPrefixListAssociationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetManagedPrefixListAssociations", input)
-	return &EC2GetManagedPrefixListAssociationsFuture{Future: future}
+	return &GetManagedPrefixListAssociationsFuture{Future: future}
 }
 
 func (a *stub) GetManagedPrefixListEntries(ctx workflow.Context, input *ec2.GetManagedPrefixListEntriesInput) (*ec2.GetManagedPrefixListEntriesOutput, error) {
@@ -8095,9 +8095,9 @@ func (a *stub) GetManagedPrefixListEntries(ctx workflow.Context, input *ec2.GetM
 	return &output, err
 }
 
-func (a *stub) GetManagedPrefixListEntriesAsync(ctx workflow.Context, input *ec2.GetManagedPrefixListEntriesInput) *EC2GetManagedPrefixListEntriesFuture {
+func (a *stub) GetManagedPrefixListEntriesAsync(ctx workflow.Context, input *ec2.GetManagedPrefixListEntriesInput) *GetManagedPrefixListEntriesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetManagedPrefixListEntries", input)
-	return &EC2GetManagedPrefixListEntriesFuture{Future: future}
+	return &GetManagedPrefixListEntriesFuture{Future: future}
 }
 
 func (a *stub) GetPasswordData(ctx workflow.Context, input *ec2.GetPasswordDataInput) (*ec2.GetPasswordDataOutput, error) {
@@ -8106,9 +8106,9 @@ func (a *stub) GetPasswordData(ctx workflow.Context, input *ec2.GetPasswordDataI
 	return &output, err
 }
 
-func (a *stub) GetPasswordDataAsync(ctx workflow.Context, input *ec2.GetPasswordDataInput) *EC2GetPasswordDataFuture {
+func (a *stub) GetPasswordDataAsync(ctx workflow.Context, input *ec2.GetPasswordDataInput) *GetPasswordDataFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetPasswordData", input)
-	return &EC2GetPasswordDataFuture{Future: future}
+	return &GetPasswordDataFuture{Future: future}
 }
 
 func (a *stub) GetReservedInstancesExchangeQuote(ctx workflow.Context, input *ec2.GetReservedInstancesExchangeQuoteInput) (*ec2.GetReservedInstancesExchangeQuoteOutput, error) {
@@ -8117,9 +8117,9 @@ func (a *stub) GetReservedInstancesExchangeQuote(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) GetReservedInstancesExchangeQuoteAsync(ctx workflow.Context, input *ec2.GetReservedInstancesExchangeQuoteInput) *EC2GetReservedInstancesExchangeQuoteFuture {
+func (a *stub) GetReservedInstancesExchangeQuoteAsync(ctx workflow.Context, input *ec2.GetReservedInstancesExchangeQuoteInput) *GetReservedInstancesExchangeQuoteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetReservedInstancesExchangeQuote", input)
-	return &EC2GetReservedInstancesExchangeQuoteFuture{Future: future}
+	return &GetReservedInstancesExchangeQuoteFuture{Future: future}
 }
 
 func (a *stub) GetTransitGatewayAttachmentPropagations(ctx workflow.Context, input *ec2.GetTransitGatewayAttachmentPropagationsInput) (*ec2.GetTransitGatewayAttachmentPropagationsOutput, error) {
@@ -8128,9 +8128,9 @@ func (a *stub) GetTransitGatewayAttachmentPropagations(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) GetTransitGatewayAttachmentPropagationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayAttachmentPropagationsInput) *EC2GetTransitGatewayAttachmentPropagationsFuture {
+func (a *stub) GetTransitGatewayAttachmentPropagationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayAttachmentPropagationsInput) *GetTransitGatewayAttachmentPropagationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetTransitGatewayAttachmentPropagations", input)
-	return &EC2GetTransitGatewayAttachmentPropagationsFuture{Future: future}
+	return &GetTransitGatewayAttachmentPropagationsFuture{Future: future}
 }
 
 func (a *stub) GetTransitGatewayMulticastDomainAssociations(ctx workflow.Context, input *ec2.GetTransitGatewayMulticastDomainAssociationsInput) (*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, error) {
@@ -8139,9 +8139,9 @@ func (a *stub) GetTransitGatewayMulticastDomainAssociations(ctx workflow.Context
 	return &output, err
 }
 
-func (a *stub) GetTransitGatewayMulticastDomainAssociationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayMulticastDomainAssociationsInput) *EC2GetTransitGatewayMulticastDomainAssociationsFuture {
+func (a *stub) GetTransitGatewayMulticastDomainAssociationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayMulticastDomainAssociationsInput) *GetTransitGatewayMulticastDomainAssociationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetTransitGatewayMulticastDomainAssociations", input)
-	return &EC2GetTransitGatewayMulticastDomainAssociationsFuture{Future: future}
+	return &GetTransitGatewayMulticastDomainAssociationsFuture{Future: future}
 }
 
 func (a *stub) GetTransitGatewayPrefixListReferences(ctx workflow.Context, input *ec2.GetTransitGatewayPrefixListReferencesInput) (*ec2.GetTransitGatewayPrefixListReferencesOutput, error) {
@@ -8150,9 +8150,9 @@ func (a *stub) GetTransitGatewayPrefixListReferences(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) GetTransitGatewayPrefixListReferencesAsync(ctx workflow.Context, input *ec2.GetTransitGatewayPrefixListReferencesInput) *EC2GetTransitGatewayPrefixListReferencesFuture {
+func (a *stub) GetTransitGatewayPrefixListReferencesAsync(ctx workflow.Context, input *ec2.GetTransitGatewayPrefixListReferencesInput) *GetTransitGatewayPrefixListReferencesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetTransitGatewayPrefixListReferences", input)
-	return &EC2GetTransitGatewayPrefixListReferencesFuture{Future: future}
+	return &GetTransitGatewayPrefixListReferencesFuture{Future: future}
 }
 
 func (a *stub) GetTransitGatewayRouteTableAssociations(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTableAssociationsInput) (*ec2.GetTransitGatewayRouteTableAssociationsOutput, error) {
@@ -8161,9 +8161,9 @@ func (a *stub) GetTransitGatewayRouteTableAssociations(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) GetTransitGatewayRouteTableAssociationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTableAssociationsInput) *EC2GetTransitGatewayRouteTableAssociationsFuture {
+func (a *stub) GetTransitGatewayRouteTableAssociationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTableAssociationsInput) *GetTransitGatewayRouteTableAssociationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetTransitGatewayRouteTableAssociations", input)
-	return &EC2GetTransitGatewayRouteTableAssociationsFuture{Future: future}
+	return &GetTransitGatewayRouteTableAssociationsFuture{Future: future}
 }
 
 func (a *stub) GetTransitGatewayRouteTablePropagations(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTablePropagationsInput) (*ec2.GetTransitGatewayRouteTablePropagationsOutput, error) {
@@ -8172,9 +8172,9 @@ func (a *stub) GetTransitGatewayRouteTablePropagations(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) GetTransitGatewayRouteTablePropagationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTablePropagationsInput) *EC2GetTransitGatewayRouteTablePropagationsFuture {
+func (a *stub) GetTransitGatewayRouteTablePropagationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTablePropagationsInput) *GetTransitGatewayRouteTablePropagationsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-GetTransitGatewayRouteTablePropagations", input)
-	return &EC2GetTransitGatewayRouteTablePropagationsFuture{Future: future}
+	return &GetTransitGatewayRouteTablePropagationsFuture{Future: future}
 }
 
 func (a *stub) ImportClientVpnClientCertificateRevocationList(ctx workflow.Context, input *ec2.ImportClientVpnClientCertificateRevocationListInput) (*ec2.ImportClientVpnClientCertificateRevocationListOutput, error) {
@@ -8183,9 +8183,9 @@ func (a *stub) ImportClientVpnClientCertificateRevocationList(ctx workflow.Conte
 	return &output, err
 }
 
-func (a *stub) ImportClientVpnClientCertificateRevocationListAsync(ctx workflow.Context, input *ec2.ImportClientVpnClientCertificateRevocationListInput) *EC2ImportClientVpnClientCertificateRevocationListFuture {
+func (a *stub) ImportClientVpnClientCertificateRevocationListAsync(ctx workflow.Context, input *ec2.ImportClientVpnClientCertificateRevocationListInput) *ImportClientVpnClientCertificateRevocationListFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ImportClientVpnClientCertificateRevocationList", input)
-	return &EC2ImportClientVpnClientCertificateRevocationListFuture{Future: future}
+	return &ImportClientVpnClientCertificateRevocationListFuture{Future: future}
 }
 
 func (a *stub) ImportImage(ctx workflow.Context, input *ec2.ImportImageInput) (*ec2.ImportImageOutput, error) {
@@ -8194,9 +8194,9 @@ func (a *stub) ImportImage(ctx workflow.Context, input *ec2.ImportImageInput) (*
 	return &output, err
 }
 
-func (a *stub) ImportImageAsync(ctx workflow.Context, input *ec2.ImportImageInput) *EC2ImportImageFuture {
+func (a *stub) ImportImageAsync(ctx workflow.Context, input *ec2.ImportImageInput) *ImportImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ImportImage", input)
-	return &EC2ImportImageFuture{Future: future}
+	return &ImportImageFuture{Future: future}
 }
 
 func (a *stub) ImportInstance(ctx workflow.Context, input *ec2.ImportInstanceInput) (*ec2.ImportInstanceOutput, error) {
@@ -8205,9 +8205,9 @@ func (a *stub) ImportInstance(ctx workflow.Context, input *ec2.ImportInstanceInp
 	return &output, err
 }
 
-func (a *stub) ImportInstanceAsync(ctx workflow.Context, input *ec2.ImportInstanceInput) *EC2ImportInstanceFuture {
+func (a *stub) ImportInstanceAsync(ctx workflow.Context, input *ec2.ImportInstanceInput) *ImportInstanceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ImportInstance", input)
-	return &EC2ImportInstanceFuture{Future: future}
+	return &ImportInstanceFuture{Future: future}
 }
 
 func (a *stub) ImportKeyPair(ctx workflow.Context, input *ec2.ImportKeyPairInput) (*ec2.ImportKeyPairOutput, error) {
@@ -8216,9 +8216,9 @@ func (a *stub) ImportKeyPair(ctx workflow.Context, input *ec2.ImportKeyPairInput
 	return &output, err
 }
 
-func (a *stub) ImportKeyPairAsync(ctx workflow.Context, input *ec2.ImportKeyPairInput) *EC2ImportKeyPairFuture {
+func (a *stub) ImportKeyPairAsync(ctx workflow.Context, input *ec2.ImportKeyPairInput) *ImportKeyPairFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ImportKeyPair", input)
-	return &EC2ImportKeyPairFuture{Future: future}
+	return &ImportKeyPairFuture{Future: future}
 }
 
 func (a *stub) ImportSnapshot(ctx workflow.Context, input *ec2.ImportSnapshotInput) (*ec2.ImportSnapshotOutput, error) {
@@ -8227,9 +8227,9 @@ func (a *stub) ImportSnapshot(ctx workflow.Context, input *ec2.ImportSnapshotInp
 	return &output, err
 }
 
-func (a *stub) ImportSnapshotAsync(ctx workflow.Context, input *ec2.ImportSnapshotInput) *EC2ImportSnapshotFuture {
+func (a *stub) ImportSnapshotAsync(ctx workflow.Context, input *ec2.ImportSnapshotInput) *ImportSnapshotFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ImportSnapshot", input)
-	return &EC2ImportSnapshotFuture{Future: future}
+	return &ImportSnapshotFuture{Future: future}
 }
 
 func (a *stub) ImportVolume(ctx workflow.Context, input *ec2.ImportVolumeInput) (*ec2.ImportVolumeOutput, error) {
@@ -8238,9 +8238,9 @@ func (a *stub) ImportVolume(ctx workflow.Context, input *ec2.ImportVolumeInput) 
 	return &output, err
 }
 
-func (a *stub) ImportVolumeAsync(ctx workflow.Context, input *ec2.ImportVolumeInput) *EC2ImportVolumeFuture {
+func (a *stub) ImportVolumeAsync(ctx workflow.Context, input *ec2.ImportVolumeInput) *ImportVolumeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ImportVolume", input)
-	return &EC2ImportVolumeFuture{Future: future}
+	return &ImportVolumeFuture{Future: future}
 }
 
 func (a *stub) ModifyAvailabilityZoneGroup(ctx workflow.Context, input *ec2.ModifyAvailabilityZoneGroupInput) (*ec2.ModifyAvailabilityZoneGroupOutput, error) {
@@ -8249,9 +8249,9 @@ func (a *stub) ModifyAvailabilityZoneGroup(ctx workflow.Context, input *ec2.Modi
 	return &output, err
 }
 
-func (a *stub) ModifyAvailabilityZoneGroupAsync(ctx workflow.Context, input *ec2.ModifyAvailabilityZoneGroupInput) *EC2ModifyAvailabilityZoneGroupFuture {
+func (a *stub) ModifyAvailabilityZoneGroupAsync(ctx workflow.Context, input *ec2.ModifyAvailabilityZoneGroupInput) *ModifyAvailabilityZoneGroupFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyAvailabilityZoneGroup", input)
-	return &EC2ModifyAvailabilityZoneGroupFuture{Future: future}
+	return &ModifyAvailabilityZoneGroupFuture{Future: future}
 }
 
 func (a *stub) ModifyCapacityReservation(ctx workflow.Context, input *ec2.ModifyCapacityReservationInput) (*ec2.ModifyCapacityReservationOutput, error) {
@@ -8260,9 +8260,9 @@ func (a *stub) ModifyCapacityReservation(ctx workflow.Context, input *ec2.Modify
 	return &output, err
 }
 
-func (a *stub) ModifyCapacityReservationAsync(ctx workflow.Context, input *ec2.ModifyCapacityReservationInput) *EC2ModifyCapacityReservationFuture {
+func (a *stub) ModifyCapacityReservationAsync(ctx workflow.Context, input *ec2.ModifyCapacityReservationInput) *ModifyCapacityReservationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyCapacityReservation", input)
-	return &EC2ModifyCapacityReservationFuture{Future: future}
+	return &ModifyCapacityReservationFuture{Future: future}
 }
 
 func (a *stub) ModifyClientVpnEndpoint(ctx workflow.Context, input *ec2.ModifyClientVpnEndpointInput) (*ec2.ModifyClientVpnEndpointOutput, error) {
@@ -8271,9 +8271,9 @@ func (a *stub) ModifyClientVpnEndpoint(ctx workflow.Context, input *ec2.ModifyCl
 	return &output, err
 }
 
-func (a *stub) ModifyClientVpnEndpointAsync(ctx workflow.Context, input *ec2.ModifyClientVpnEndpointInput) *EC2ModifyClientVpnEndpointFuture {
+func (a *stub) ModifyClientVpnEndpointAsync(ctx workflow.Context, input *ec2.ModifyClientVpnEndpointInput) *ModifyClientVpnEndpointFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyClientVpnEndpoint", input)
-	return &EC2ModifyClientVpnEndpointFuture{Future: future}
+	return &ModifyClientVpnEndpointFuture{Future: future}
 }
 
 func (a *stub) ModifyDefaultCreditSpecification(ctx workflow.Context, input *ec2.ModifyDefaultCreditSpecificationInput) (*ec2.ModifyDefaultCreditSpecificationOutput, error) {
@@ -8282,9 +8282,9 @@ func (a *stub) ModifyDefaultCreditSpecification(ctx workflow.Context, input *ec2
 	return &output, err
 }
 
-func (a *stub) ModifyDefaultCreditSpecificationAsync(ctx workflow.Context, input *ec2.ModifyDefaultCreditSpecificationInput) *EC2ModifyDefaultCreditSpecificationFuture {
+func (a *stub) ModifyDefaultCreditSpecificationAsync(ctx workflow.Context, input *ec2.ModifyDefaultCreditSpecificationInput) *ModifyDefaultCreditSpecificationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyDefaultCreditSpecification", input)
-	return &EC2ModifyDefaultCreditSpecificationFuture{Future: future}
+	return &ModifyDefaultCreditSpecificationFuture{Future: future}
 }
 
 func (a *stub) ModifyEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.ModifyEbsDefaultKmsKeyIdInput) (*ec2.ModifyEbsDefaultKmsKeyIdOutput, error) {
@@ -8293,9 +8293,9 @@ func (a *stub) ModifyEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.ModifyE
 	return &output, err
 }
 
-func (a *stub) ModifyEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.ModifyEbsDefaultKmsKeyIdInput) *EC2ModifyEbsDefaultKmsKeyIdFuture {
+func (a *stub) ModifyEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.ModifyEbsDefaultKmsKeyIdInput) *ModifyEbsDefaultKmsKeyIdFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyEbsDefaultKmsKeyId", input)
-	return &EC2ModifyEbsDefaultKmsKeyIdFuture{Future: future}
+	return &ModifyEbsDefaultKmsKeyIdFuture{Future: future}
 }
 
 func (a *stub) ModifyFleet(ctx workflow.Context, input *ec2.ModifyFleetInput) (*ec2.ModifyFleetOutput, error) {
@@ -8304,9 +8304,9 @@ func (a *stub) ModifyFleet(ctx workflow.Context, input *ec2.ModifyFleetInput) (*
 	return &output, err
 }
 
-func (a *stub) ModifyFleetAsync(ctx workflow.Context, input *ec2.ModifyFleetInput) *EC2ModifyFleetFuture {
+func (a *stub) ModifyFleetAsync(ctx workflow.Context, input *ec2.ModifyFleetInput) *ModifyFleetFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyFleet", input)
-	return &EC2ModifyFleetFuture{Future: future}
+	return &ModifyFleetFuture{Future: future}
 }
 
 func (a *stub) ModifyFpgaImageAttribute(ctx workflow.Context, input *ec2.ModifyFpgaImageAttributeInput) (*ec2.ModifyFpgaImageAttributeOutput, error) {
@@ -8315,9 +8315,9 @@ func (a *stub) ModifyFpgaImageAttribute(ctx workflow.Context, input *ec2.ModifyF
 	return &output, err
 }
 
-func (a *stub) ModifyFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.ModifyFpgaImageAttributeInput) *EC2ModifyFpgaImageAttributeFuture {
+func (a *stub) ModifyFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.ModifyFpgaImageAttributeInput) *ModifyFpgaImageAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyFpgaImageAttribute", input)
-	return &EC2ModifyFpgaImageAttributeFuture{Future: future}
+	return &ModifyFpgaImageAttributeFuture{Future: future}
 }
 
 func (a *stub) ModifyHosts(ctx workflow.Context, input *ec2.ModifyHostsInput) (*ec2.ModifyHostsOutput, error) {
@@ -8326,9 +8326,9 @@ func (a *stub) ModifyHosts(ctx workflow.Context, input *ec2.ModifyHostsInput) (*
 	return &output, err
 }
 
-func (a *stub) ModifyHostsAsync(ctx workflow.Context, input *ec2.ModifyHostsInput) *EC2ModifyHostsFuture {
+func (a *stub) ModifyHostsAsync(ctx workflow.Context, input *ec2.ModifyHostsInput) *ModifyHostsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyHosts", input)
-	return &EC2ModifyHostsFuture{Future: future}
+	return &ModifyHostsFuture{Future: future}
 }
 
 func (a *stub) ModifyIdFormat(ctx workflow.Context, input *ec2.ModifyIdFormatInput) (*ec2.ModifyIdFormatOutput, error) {
@@ -8337,9 +8337,9 @@ func (a *stub) ModifyIdFormat(ctx workflow.Context, input *ec2.ModifyIdFormatInp
 	return &output, err
 }
 
-func (a *stub) ModifyIdFormatAsync(ctx workflow.Context, input *ec2.ModifyIdFormatInput) *EC2ModifyIdFormatFuture {
+func (a *stub) ModifyIdFormatAsync(ctx workflow.Context, input *ec2.ModifyIdFormatInput) *ModifyIdFormatFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyIdFormat", input)
-	return &EC2ModifyIdFormatFuture{Future: future}
+	return &ModifyIdFormatFuture{Future: future}
 }
 
 func (a *stub) ModifyIdentityIdFormat(ctx workflow.Context, input *ec2.ModifyIdentityIdFormatInput) (*ec2.ModifyIdentityIdFormatOutput, error) {
@@ -8348,9 +8348,9 @@ func (a *stub) ModifyIdentityIdFormat(ctx workflow.Context, input *ec2.ModifyIde
 	return &output, err
 }
 
-func (a *stub) ModifyIdentityIdFormatAsync(ctx workflow.Context, input *ec2.ModifyIdentityIdFormatInput) *EC2ModifyIdentityIdFormatFuture {
+func (a *stub) ModifyIdentityIdFormatAsync(ctx workflow.Context, input *ec2.ModifyIdentityIdFormatInput) *ModifyIdentityIdFormatFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyIdentityIdFormat", input)
-	return &EC2ModifyIdentityIdFormatFuture{Future: future}
+	return &ModifyIdentityIdFormatFuture{Future: future}
 }
 
 func (a *stub) ModifyImageAttribute(ctx workflow.Context, input *ec2.ModifyImageAttributeInput) (*ec2.ModifyImageAttributeOutput, error) {
@@ -8359,9 +8359,9 @@ func (a *stub) ModifyImageAttribute(ctx workflow.Context, input *ec2.ModifyImage
 	return &output, err
 }
 
-func (a *stub) ModifyImageAttributeAsync(ctx workflow.Context, input *ec2.ModifyImageAttributeInput) *EC2ModifyImageAttributeFuture {
+func (a *stub) ModifyImageAttributeAsync(ctx workflow.Context, input *ec2.ModifyImageAttributeInput) *ModifyImageAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyImageAttribute", input)
-	return &EC2ModifyImageAttributeFuture{Future: future}
+	return &ModifyImageAttributeFuture{Future: future}
 }
 
 func (a *stub) ModifyInstanceAttribute(ctx workflow.Context, input *ec2.ModifyInstanceAttributeInput) (*ec2.ModifyInstanceAttributeOutput, error) {
@@ -8370,9 +8370,9 @@ func (a *stub) ModifyInstanceAttribute(ctx workflow.Context, input *ec2.ModifyIn
 	return &output, err
 }
 
-func (a *stub) ModifyInstanceAttributeAsync(ctx workflow.Context, input *ec2.ModifyInstanceAttributeInput) *EC2ModifyInstanceAttributeFuture {
+func (a *stub) ModifyInstanceAttributeAsync(ctx workflow.Context, input *ec2.ModifyInstanceAttributeInput) *ModifyInstanceAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyInstanceAttribute", input)
-	return &EC2ModifyInstanceAttributeFuture{Future: future}
+	return &ModifyInstanceAttributeFuture{Future: future}
 }
 
 func (a *stub) ModifyInstanceCapacityReservationAttributes(ctx workflow.Context, input *ec2.ModifyInstanceCapacityReservationAttributesInput) (*ec2.ModifyInstanceCapacityReservationAttributesOutput, error) {
@@ -8381,9 +8381,9 @@ func (a *stub) ModifyInstanceCapacityReservationAttributes(ctx workflow.Context,
 	return &output, err
 }
 
-func (a *stub) ModifyInstanceCapacityReservationAttributesAsync(ctx workflow.Context, input *ec2.ModifyInstanceCapacityReservationAttributesInput) *EC2ModifyInstanceCapacityReservationAttributesFuture {
+func (a *stub) ModifyInstanceCapacityReservationAttributesAsync(ctx workflow.Context, input *ec2.ModifyInstanceCapacityReservationAttributesInput) *ModifyInstanceCapacityReservationAttributesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyInstanceCapacityReservationAttributes", input)
-	return &EC2ModifyInstanceCapacityReservationAttributesFuture{Future: future}
+	return &ModifyInstanceCapacityReservationAttributesFuture{Future: future}
 }
 
 func (a *stub) ModifyInstanceCreditSpecification(ctx workflow.Context, input *ec2.ModifyInstanceCreditSpecificationInput) (*ec2.ModifyInstanceCreditSpecificationOutput, error) {
@@ -8392,9 +8392,9 @@ func (a *stub) ModifyInstanceCreditSpecification(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) ModifyInstanceCreditSpecificationAsync(ctx workflow.Context, input *ec2.ModifyInstanceCreditSpecificationInput) *EC2ModifyInstanceCreditSpecificationFuture {
+func (a *stub) ModifyInstanceCreditSpecificationAsync(ctx workflow.Context, input *ec2.ModifyInstanceCreditSpecificationInput) *ModifyInstanceCreditSpecificationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyInstanceCreditSpecification", input)
-	return &EC2ModifyInstanceCreditSpecificationFuture{Future: future}
+	return &ModifyInstanceCreditSpecificationFuture{Future: future}
 }
 
 func (a *stub) ModifyInstanceEventStartTime(ctx workflow.Context, input *ec2.ModifyInstanceEventStartTimeInput) (*ec2.ModifyInstanceEventStartTimeOutput, error) {
@@ -8403,9 +8403,9 @@ func (a *stub) ModifyInstanceEventStartTime(ctx workflow.Context, input *ec2.Mod
 	return &output, err
 }
 
-func (a *stub) ModifyInstanceEventStartTimeAsync(ctx workflow.Context, input *ec2.ModifyInstanceEventStartTimeInput) *EC2ModifyInstanceEventStartTimeFuture {
+func (a *stub) ModifyInstanceEventStartTimeAsync(ctx workflow.Context, input *ec2.ModifyInstanceEventStartTimeInput) *ModifyInstanceEventStartTimeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyInstanceEventStartTime", input)
-	return &EC2ModifyInstanceEventStartTimeFuture{Future: future}
+	return &ModifyInstanceEventStartTimeFuture{Future: future}
 }
 
 func (a *stub) ModifyInstanceMetadataOptions(ctx workflow.Context, input *ec2.ModifyInstanceMetadataOptionsInput) (*ec2.ModifyInstanceMetadataOptionsOutput, error) {
@@ -8414,9 +8414,9 @@ func (a *stub) ModifyInstanceMetadataOptions(ctx workflow.Context, input *ec2.Mo
 	return &output, err
 }
 
-func (a *stub) ModifyInstanceMetadataOptionsAsync(ctx workflow.Context, input *ec2.ModifyInstanceMetadataOptionsInput) *EC2ModifyInstanceMetadataOptionsFuture {
+func (a *stub) ModifyInstanceMetadataOptionsAsync(ctx workflow.Context, input *ec2.ModifyInstanceMetadataOptionsInput) *ModifyInstanceMetadataOptionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyInstanceMetadataOptions", input)
-	return &EC2ModifyInstanceMetadataOptionsFuture{Future: future}
+	return &ModifyInstanceMetadataOptionsFuture{Future: future}
 }
 
 func (a *stub) ModifyInstancePlacement(ctx workflow.Context, input *ec2.ModifyInstancePlacementInput) (*ec2.ModifyInstancePlacementOutput, error) {
@@ -8425,9 +8425,9 @@ func (a *stub) ModifyInstancePlacement(ctx workflow.Context, input *ec2.ModifyIn
 	return &output, err
 }
 
-func (a *stub) ModifyInstancePlacementAsync(ctx workflow.Context, input *ec2.ModifyInstancePlacementInput) *EC2ModifyInstancePlacementFuture {
+func (a *stub) ModifyInstancePlacementAsync(ctx workflow.Context, input *ec2.ModifyInstancePlacementInput) *ModifyInstancePlacementFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyInstancePlacement", input)
-	return &EC2ModifyInstancePlacementFuture{Future: future}
+	return &ModifyInstancePlacementFuture{Future: future}
 }
 
 func (a *stub) ModifyLaunchTemplate(ctx workflow.Context, input *ec2.ModifyLaunchTemplateInput) (*ec2.ModifyLaunchTemplateOutput, error) {
@@ -8436,9 +8436,9 @@ func (a *stub) ModifyLaunchTemplate(ctx workflow.Context, input *ec2.ModifyLaunc
 	return &output, err
 }
 
-func (a *stub) ModifyLaunchTemplateAsync(ctx workflow.Context, input *ec2.ModifyLaunchTemplateInput) *EC2ModifyLaunchTemplateFuture {
+func (a *stub) ModifyLaunchTemplateAsync(ctx workflow.Context, input *ec2.ModifyLaunchTemplateInput) *ModifyLaunchTemplateFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyLaunchTemplate", input)
-	return &EC2ModifyLaunchTemplateFuture{Future: future}
+	return &ModifyLaunchTemplateFuture{Future: future}
 }
 
 func (a *stub) ModifyManagedPrefixList(ctx workflow.Context, input *ec2.ModifyManagedPrefixListInput) (*ec2.ModifyManagedPrefixListOutput, error) {
@@ -8447,9 +8447,9 @@ func (a *stub) ModifyManagedPrefixList(ctx workflow.Context, input *ec2.ModifyMa
 	return &output, err
 }
 
-func (a *stub) ModifyManagedPrefixListAsync(ctx workflow.Context, input *ec2.ModifyManagedPrefixListInput) *EC2ModifyManagedPrefixListFuture {
+func (a *stub) ModifyManagedPrefixListAsync(ctx workflow.Context, input *ec2.ModifyManagedPrefixListInput) *ModifyManagedPrefixListFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyManagedPrefixList", input)
-	return &EC2ModifyManagedPrefixListFuture{Future: future}
+	return &ModifyManagedPrefixListFuture{Future: future}
 }
 
 func (a *stub) ModifyNetworkInterfaceAttribute(ctx workflow.Context, input *ec2.ModifyNetworkInterfaceAttributeInput) (*ec2.ModifyNetworkInterfaceAttributeOutput, error) {
@@ -8458,9 +8458,9 @@ func (a *stub) ModifyNetworkInterfaceAttribute(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) ModifyNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.ModifyNetworkInterfaceAttributeInput) *EC2ModifyNetworkInterfaceAttributeFuture {
+func (a *stub) ModifyNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.ModifyNetworkInterfaceAttributeInput) *ModifyNetworkInterfaceAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyNetworkInterfaceAttribute", input)
-	return &EC2ModifyNetworkInterfaceAttributeFuture{Future: future}
+	return &ModifyNetworkInterfaceAttributeFuture{Future: future}
 }
 
 func (a *stub) ModifyReservedInstances(ctx workflow.Context, input *ec2.ModifyReservedInstancesInput) (*ec2.ModifyReservedInstancesOutput, error) {
@@ -8469,9 +8469,9 @@ func (a *stub) ModifyReservedInstances(ctx workflow.Context, input *ec2.ModifyRe
 	return &output, err
 }
 
-func (a *stub) ModifyReservedInstancesAsync(ctx workflow.Context, input *ec2.ModifyReservedInstancesInput) *EC2ModifyReservedInstancesFuture {
+func (a *stub) ModifyReservedInstancesAsync(ctx workflow.Context, input *ec2.ModifyReservedInstancesInput) *ModifyReservedInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyReservedInstances", input)
-	return &EC2ModifyReservedInstancesFuture{Future: future}
+	return &ModifyReservedInstancesFuture{Future: future}
 }
 
 func (a *stub) ModifySnapshotAttribute(ctx workflow.Context, input *ec2.ModifySnapshotAttributeInput) (*ec2.ModifySnapshotAttributeOutput, error) {
@@ -8480,9 +8480,9 @@ func (a *stub) ModifySnapshotAttribute(ctx workflow.Context, input *ec2.ModifySn
 	return &output, err
 }
 
-func (a *stub) ModifySnapshotAttributeAsync(ctx workflow.Context, input *ec2.ModifySnapshotAttributeInput) *EC2ModifySnapshotAttributeFuture {
+func (a *stub) ModifySnapshotAttributeAsync(ctx workflow.Context, input *ec2.ModifySnapshotAttributeInput) *ModifySnapshotAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifySnapshotAttribute", input)
-	return &EC2ModifySnapshotAttributeFuture{Future: future}
+	return &ModifySnapshotAttributeFuture{Future: future}
 }
 
 func (a *stub) ModifySubnetAttribute(ctx workflow.Context, input *ec2.ModifySubnetAttributeInput) (*ec2.ModifySubnetAttributeOutput, error) {
@@ -8491,9 +8491,9 @@ func (a *stub) ModifySubnetAttribute(ctx workflow.Context, input *ec2.ModifySubn
 	return &output, err
 }
 
-func (a *stub) ModifySubnetAttributeAsync(ctx workflow.Context, input *ec2.ModifySubnetAttributeInput) *EC2ModifySubnetAttributeFuture {
+func (a *stub) ModifySubnetAttributeAsync(ctx workflow.Context, input *ec2.ModifySubnetAttributeInput) *ModifySubnetAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifySubnetAttribute", input)
-	return &EC2ModifySubnetAttributeFuture{Future: future}
+	return &ModifySubnetAttributeFuture{Future: future}
 }
 
 func (a *stub) ModifyTrafficMirrorFilterNetworkServices(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) (*ec2.ModifyTrafficMirrorFilterNetworkServicesOutput, error) {
@@ -8502,9 +8502,9 @@ func (a *stub) ModifyTrafficMirrorFilterNetworkServices(ctx workflow.Context, in
 	return &output, err
 }
 
-func (a *stub) ModifyTrafficMirrorFilterNetworkServicesAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) *EC2ModifyTrafficMirrorFilterNetworkServicesFuture {
+func (a *stub) ModifyTrafficMirrorFilterNetworkServicesAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) *ModifyTrafficMirrorFilterNetworkServicesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyTrafficMirrorFilterNetworkServices", input)
-	return &EC2ModifyTrafficMirrorFilterNetworkServicesFuture{Future: future}
+	return &ModifyTrafficMirrorFilterNetworkServicesFuture{Future: future}
 }
 
 func (a *stub) ModifyTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterRuleInput) (*ec2.ModifyTrafficMirrorFilterRuleOutput, error) {
@@ -8513,9 +8513,9 @@ func (a *stub) ModifyTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.Mo
 	return &output, err
 }
 
-func (a *stub) ModifyTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterRuleInput) *EC2ModifyTrafficMirrorFilterRuleFuture {
+func (a *stub) ModifyTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterRuleInput) *ModifyTrafficMirrorFilterRuleFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyTrafficMirrorFilterRule", input)
-	return &EC2ModifyTrafficMirrorFilterRuleFuture{Future: future}
+	return &ModifyTrafficMirrorFilterRuleFuture{Future: future}
 }
 
 func (a *stub) ModifyTrafficMirrorSession(ctx workflow.Context, input *ec2.ModifyTrafficMirrorSessionInput) (*ec2.ModifyTrafficMirrorSessionOutput, error) {
@@ -8524,9 +8524,9 @@ func (a *stub) ModifyTrafficMirrorSession(ctx workflow.Context, input *ec2.Modif
 	return &output, err
 }
 
-func (a *stub) ModifyTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorSessionInput) *EC2ModifyTrafficMirrorSessionFuture {
+func (a *stub) ModifyTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorSessionInput) *ModifyTrafficMirrorSessionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyTrafficMirrorSession", input)
-	return &EC2ModifyTrafficMirrorSessionFuture{Future: future}
+	return &ModifyTrafficMirrorSessionFuture{Future: future}
 }
 
 func (a *stub) ModifyTransitGateway(ctx workflow.Context, input *ec2.ModifyTransitGatewayInput) (*ec2.ModifyTransitGatewayOutput, error) {
@@ -8535,9 +8535,9 @@ func (a *stub) ModifyTransitGateway(ctx workflow.Context, input *ec2.ModifyTrans
 	return &output, err
 }
 
-func (a *stub) ModifyTransitGatewayAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayInput) *EC2ModifyTransitGatewayFuture {
+func (a *stub) ModifyTransitGatewayAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayInput) *ModifyTransitGatewayFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyTransitGateway", input)
-	return &EC2ModifyTransitGatewayFuture{Future: future}
+	return &ModifyTransitGatewayFuture{Future: future}
 }
 
 func (a *stub) ModifyTransitGatewayPrefixListReference(ctx workflow.Context, input *ec2.ModifyTransitGatewayPrefixListReferenceInput) (*ec2.ModifyTransitGatewayPrefixListReferenceOutput, error) {
@@ -8546,9 +8546,9 @@ func (a *stub) ModifyTransitGatewayPrefixListReference(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) ModifyTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayPrefixListReferenceInput) *EC2ModifyTransitGatewayPrefixListReferenceFuture {
+func (a *stub) ModifyTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayPrefixListReferenceInput) *ModifyTransitGatewayPrefixListReferenceFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyTransitGatewayPrefixListReference", input)
-	return &EC2ModifyTransitGatewayPrefixListReferenceFuture{Future: future}
+	return &ModifyTransitGatewayPrefixListReferenceFuture{Future: future}
 }
 
 func (a *stub) ModifyTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.ModifyTransitGatewayVpcAttachmentInput) (*ec2.ModifyTransitGatewayVpcAttachmentOutput, error) {
@@ -8557,9 +8557,9 @@ func (a *stub) ModifyTransitGatewayVpcAttachment(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) ModifyTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayVpcAttachmentInput) *EC2ModifyTransitGatewayVpcAttachmentFuture {
+func (a *stub) ModifyTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayVpcAttachmentInput) *ModifyTransitGatewayVpcAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyTransitGatewayVpcAttachment", input)
-	return &EC2ModifyTransitGatewayVpcAttachmentFuture{Future: future}
+	return &ModifyTransitGatewayVpcAttachmentFuture{Future: future}
 }
 
 func (a *stub) ModifyVolume(ctx workflow.Context, input *ec2.ModifyVolumeInput) (*ec2.ModifyVolumeOutput, error) {
@@ -8568,9 +8568,9 @@ func (a *stub) ModifyVolume(ctx workflow.Context, input *ec2.ModifyVolumeInput) 
 	return &output, err
 }
 
-func (a *stub) ModifyVolumeAsync(ctx workflow.Context, input *ec2.ModifyVolumeInput) *EC2ModifyVolumeFuture {
+func (a *stub) ModifyVolumeAsync(ctx workflow.Context, input *ec2.ModifyVolumeInput) *ModifyVolumeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVolume", input)
-	return &EC2ModifyVolumeFuture{Future: future}
+	return &ModifyVolumeFuture{Future: future}
 }
 
 func (a *stub) ModifyVolumeAttribute(ctx workflow.Context, input *ec2.ModifyVolumeAttributeInput) (*ec2.ModifyVolumeAttributeOutput, error) {
@@ -8579,9 +8579,9 @@ func (a *stub) ModifyVolumeAttribute(ctx workflow.Context, input *ec2.ModifyVolu
 	return &output, err
 }
 
-func (a *stub) ModifyVolumeAttributeAsync(ctx workflow.Context, input *ec2.ModifyVolumeAttributeInput) *EC2ModifyVolumeAttributeFuture {
+func (a *stub) ModifyVolumeAttributeAsync(ctx workflow.Context, input *ec2.ModifyVolumeAttributeInput) *ModifyVolumeAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVolumeAttribute", input)
-	return &EC2ModifyVolumeAttributeFuture{Future: future}
+	return &ModifyVolumeAttributeFuture{Future: future}
 }
 
 func (a *stub) ModifyVpcAttribute(ctx workflow.Context, input *ec2.ModifyVpcAttributeInput) (*ec2.ModifyVpcAttributeOutput, error) {
@@ -8590,9 +8590,9 @@ func (a *stub) ModifyVpcAttribute(ctx workflow.Context, input *ec2.ModifyVpcAttr
 	return &output, err
 }
 
-func (a *stub) ModifyVpcAttributeAsync(ctx workflow.Context, input *ec2.ModifyVpcAttributeInput) *EC2ModifyVpcAttributeFuture {
+func (a *stub) ModifyVpcAttributeAsync(ctx workflow.Context, input *ec2.ModifyVpcAttributeInput) *ModifyVpcAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpcAttribute", input)
-	return &EC2ModifyVpcAttributeFuture{Future: future}
+	return &ModifyVpcAttributeFuture{Future: future}
 }
 
 func (a *stub) ModifyVpcEndpoint(ctx workflow.Context, input *ec2.ModifyVpcEndpointInput) (*ec2.ModifyVpcEndpointOutput, error) {
@@ -8601,9 +8601,9 @@ func (a *stub) ModifyVpcEndpoint(ctx workflow.Context, input *ec2.ModifyVpcEndpo
 	return &output, err
 }
 
-func (a *stub) ModifyVpcEndpointAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointInput) *EC2ModifyVpcEndpointFuture {
+func (a *stub) ModifyVpcEndpointAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointInput) *ModifyVpcEndpointFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpcEndpoint", input)
-	return &EC2ModifyVpcEndpointFuture{Future: future}
+	return &ModifyVpcEndpointFuture{Future: future}
 }
 
 func (a *stub) ModifyVpcEndpointConnectionNotification(ctx workflow.Context, input *ec2.ModifyVpcEndpointConnectionNotificationInput) (*ec2.ModifyVpcEndpointConnectionNotificationOutput, error) {
@@ -8612,9 +8612,9 @@ func (a *stub) ModifyVpcEndpointConnectionNotification(ctx workflow.Context, inp
 	return &output, err
 }
 
-func (a *stub) ModifyVpcEndpointConnectionNotificationAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointConnectionNotificationInput) *EC2ModifyVpcEndpointConnectionNotificationFuture {
+func (a *stub) ModifyVpcEndpointConnectionNotificationAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointConnectionNotificationInput) *ModifyVpcEndpointConnectionNotificationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpcEndpointConnectionNotification", input)
-	return &EC2ModifyVpcEndpointConnectionNotificationFuture{Future: future}
+	return &ModifyVpcEndpointConnectionNotificationFuture{Future: future}
 }
 
 func (a *stub) ModifyVpcEndpointServiceConfiguration(ctx workflow.Context, input *ec2.ModifyVpcEndpointServiceConfigurationInput) (*ec2.ModifyVpcEndpointServiceConfigurationOutput, error) {
@@ -8623,9 +8623,9 @@ func (a *stub) ModifyVpcEndpointServiceConfiguration(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) ModifyVpcEndpointServiceConfigurationAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointServiceConfigurationInput) *EC2ModifyVpcEndpointServiceConfigurationFuture {
+func (a *stub) ModifyVpcEndpointServiceConfigurationAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointServiceConfigurationInput) *ModifyVpcEndpointServiceConfigurationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpcEndpointServiceConfiguration", input)
-	return &EC2ModifyVpcEndpointServiceConfigurationFuture{Future: future}
+	return &ModifyVpcEndpointServiceConfigurationFuture{Future: future}
 }
 
 func (a *stub) ModifyVpcEndpointServicePermissions(ctx workflow.Context, input *ec2.ModifyVpcEndpointServicePermissionsInput) (*ec2.ModifyVpcEndpointServicePermissionsOutput, error) {
@@ -8634,9 +8634,9 @@ func (a *stub) ModifyVpcEndpointServicePermissions(ctx workflow.Context, input *
 	return &output, err
 }
 
-func (a *stub) ModifyVpcEndpointServicePermissionsAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointServicePermissionsInput) *EC2ModifyVpcEndpointServicePermissionsFuture {
+func (a *stub) ModifyVpcEndpointServicePermissionsAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointServicePermissionsInput) *ModifyVpcEndpointServicePermissionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpcEndpointServicePermissions", input)
-	return &EC2ModifyVpcEndpointServicePermissionsFuture{Future: future}
+	return &ModifyVpcEndpointServicePermissionsFuture{Future: future}
 }
 
 func (a *stub) ModifyVpcPeeringConnectionOptions(ctx workflow.Context, input *ec2.ModifyVpcPeeringConnectionOptionsInput) (*ec2.ModifyVpcPeeringConnectionOptionsOutput, error) {
@@ -8645,9 +8645,9 @@ func (a *stub) ModifyVpcPeeringConnectionOptions(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) ModifyVpcPeeringConnectionOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpcPeeringConnectionOptionsInput) *EC2ModifyVpcPeeringConnectionOptionsFuture {
+func (a *stub) ModifyVpcPeeringConnectionOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpcPeeringConnectionOptionsInput) *ModifyVpcPeeringConnectionOptionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpcPeeringConnectionOptions", input)
-	return &EC2ModifyVpcPeeringConnectionOptionsFuture{Future: future}
+	return &ModifyVpcPeeringConnectionOptionsFuture{Future: future}
 }
 
 func (a *stub) ModifyVpcTenancy(ctx workflow.Context, input *ec2.ModifyVpcTenancyInput) (*ec2.ModifyVpcTenancyOutput, error) {
@@ -8656,9 +8656,9 @@ func (a *stub) ModifyVpcTenancy(ctx workflow.Context, input *ec2.ModifyVpcTenanc
 	return &output, err
 }
 
-func (a *stub) ModifyVpcTenancyAsync(ctx workflow.Context, input *ec2.ModifyVpcTenancyInput) *EC2ModifyVpcTenancyFuture {
+func (a *stub) ModifyVpcTenancyAsync(ctx workflow.Context, input *ec2.ModifyVpcTenancyInput) *ModifyVpcTenancyFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpcTenancy", input)
-	return &EC2ModifyVpcTenancyFuture{Future: future}
+	return &ModifyVpcTenancyFuture{Future: future}
 }
 
 func (a *stub) ModifyVpnConnection(ctx workflow.Context, input *ec2.ModifyVpnConnectionInput) (*ec2.ModifyVpnConnectionOutput, error) {
@@ -8667,9 +8667,9 @@ func (a *stub) ModifyVpnConnection(ctx workflow.Context, input *ec2.ModifyVpnCon
 	return &output, err
 }
 
-func (a *stub) ModifyVpnConnectionAsync(ctx workflow.Context, input *ec2.ModifyVpnConnectionInput) *EC2ModifyVpnConnectionFuture {
+func (a *stub) ModifyVpnConnectionAsync(ctx workflow.Context, input *ec2.ModifyVpnConnectionInput) *ModifyVpnConnectionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpnConnection", input)
-	return &EC2ModifyVpnConnectionFuture{Future: future}
+	return &ModifyVpnConnectionFuture{Future: future}
 }
 
 func (a *stub) ModifyVpnConnectionOptions(ctx workflow.Context, input *ec2.ModifyVpnConnectionOptionsInput) (*ec2.ModifyVpnConnectionOptionsOutput, error) {
@@ -8678,9 +8678,9 @@ func (a *stub) ModifyVpnConnectionOptions(ctx workflow.Context, input *ec2.Modif
 	return &output, err
 }
 
-func (a *stub) ModifyVpnConnectionOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpnConnectionOptionsInput) *EC2ModifyVpnConnectionOptionsFuture {
+func (a *stub) ModifyVpnConnectionOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpnConnectionOptionsInput) *ModifyVpnConnectionOptionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpnConnectionOptions", input)
-	return &EC2ModifyVpnConnectionOptionsFuture{Future: future}
+	return &ModifyVpnConnectionOptionsFuture{Future: future}
 }
 
 func (a *stub) ModifyVpnTunnelCertificate(ctx workflow.Context, input *ec2.ModifyVpnTunnelCertificateInput) (*ec2.ModifyVpnTunnelCertificateOutput, error) {
@@ -8689,9 +8689,9 @@ func (a *stub) ModifyVpnTunnelCertificate(ctx workflow.Context, input *ec2.Modif
 	return &output, err
 }
 
-func (a *stub) ModifyVpnTunnelCertificateAsync(ctx workflow.Context, input *ec2.ModifyVpnTunnelCertificateInput) *EC2ModifyVpnTunnelCertificateFuture {
+func (a *stub) ModifyVpnTunnelCertificateAsync(ctx workflow.Context, input *ec2.ModifyVpnTunnelCertificateInput) *ModifyVpnTunnelCertificateFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpnTunnelCertificate", input)
-	return &EC2ModifyVpnTunnelCertificateFuture{Future: future}
+	return &ModifyVpnTunnelCertificateFuture{Future: future}
 }
 
 func (a *stub) ModifyVpnTunnelOptions(ctx workflow.Context, input *ec2.ModifyVpnTunnelOptionsInput) (*ec2.ModifyVpnTunnelOptionsOutput, error) {
@@ -8700,9 +8700,9 @@ func (a *stub) ModifyVpnTunnelOptions(ctx workflow.Context, input *ec2.ModifyVpn
 	return &output, err
 }
 
-func (a *stub) ModifyVpnTunnelOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpnTunnelOptionsInput) *EC2ModifyVpnTunnelOptionsFuture {
+func (a *stub) ModifyVpnTunnelOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpnTunnelOptionsInput) *ModifyVpnTunnelOptionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ModifyVpnTunnelOptions", input)
-	return &EC2ModifyVpnTunnelOptionsFuture{Future: future}
+	return &ModifyVpnTunnelOptionsFuture{Future: future}
 }
 
 func (a *stub) MonitorInstances(ctx workflow.Context, input *ec2.MonitorInstancesInput) (*ec2.MonitorInstancesOutput, error) {
@@ -8711,9 +8711,9 @@ func (a *stub) MonitorInstances(ctx workflow.Context, input *ec2.MonitorInstance
 	return &output, err
 }
 
-func (a *stub) MonitorInstancesAsync(ctx workflow.Context, input *ec2.MonitorInstancesInput) *EC2MonitorInstancesFuture {
+func (a *stub) MonitorInstancesAsync(ctx workflow.Context, input *ec2.MonitorInstancesInput) *MonitorInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-MonitorInstances", input)
-	return &EC2MonitorInstancesFuture{Future: future}
+	return &MonitorInstancesFuture{Future: future}
 }
 
 func (a *stub) MoveAddressToVpc(ctx workflow.Context, input *ec2.MoveAddressToVpcInput) (*ec2.MoveAddressToVpcOutput, error) {
@@ -8722,9 +8722,9 @@ func (a *stub) MoveAddressToVpc(ctx workflow.Context, input *ec2.MoveAddressToVp
 	return &output, err
 }
 
-func (a *stub) MoveAddressToVpcAsync(ctx workflow.Context, input *ec2.MoveAddressToVpcInput) *EC2MoveAddressToVpcFuture {
+func (a *stub) MoveAddressToVpcAsync(ctx workflow.Context, input *ec2.MoveAddressToVpcInput) *MoveAddressToVpcFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-MoveAddressToVpc", input)
-	return &EC2MoveAddressToVpcFuture{Future: future}
+	return &MoveAddressToVpcFuture{Future: future}
 }
 
 func (a *stub) ProvisionByoipCidr(ctx workflow.Context, input *ec2.ProvisionByoipCidrInput) (*ec2.ProvisionByoipCidrOutput, error) {
@@ -8733,9 +8733,9 @@ func (a *stub) ProvisionByoipCidr(ctx workflow.Context, input *ec2.ProvisionByoi
 	return &output, err
 }
 
-func (a *stub) ProvisionByoipCidrAsync(ctx workflow.Context, input *ec2.ProvisionByoipCidrInput) *EC2ProvisionByoipCidrFuture {
+func (a *stub) ProvisionByoipCidrAsync(ctx workflow.Context, input *ec2.ProvisionByoipCidrInput) *ProvisionByoipCidrFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ProvisionByoipCidr", input)
-	return &EC2ProvisionByoipCidrFuture{Future: future}
+	return &ProvisionByoipCidrFuture{Future: future}
 }
 
 func (a *stub) PurchaseHostReservation(ctx workflow.Context, input *ec2.PurchaseHostReservationInput) (*ec2.PurchaseHostReservationOutput, error) {
@@ -8744,9 +8744,9 @@ func (a *stub) PurchaseHostReservation(ctx workflow.Context, input *ec2.Purchase
 	return &output, err
 }
 
-func (a *stub) PurchaseHostReservationAsync(ctx workflow.Context, input *ec2.PurchaseHostReservationInput) *EC2PurchaseHostReservationFuture {
+func (a *stub) PurchaseHostReservationAsync(ctx workflow.Context, input *ec2.PurchaseHostReservationInput) *PurchaseHostReservationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-PurchaseHostReservation", input)
-	return &EC2PurchaseHostReservationFuture{Future: future}
+	return &PurchaseHostReservationFuture{Future: future}
 }
 
 func (a *stub) PurchaseReservedInstancesOffering(ctx workflow.Context, input *ec2.PurchaseReservedInstancesOfferingInput) (*ec2.PurchaseReservedInstancesOfferingOutput, error) {
@@ -8755,9 +8755,9 @@ func (a *stub) PurchaseReservedInstancesOffering(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) PurchaseReservedInstancesOfferingAsync(ctx workflow.Context, input *ec2.PurchaseReservedInstancesOfferingInput) *EC2PurchaseReservedInstancesOfferingFuture {
+func (a *stub) PurchaseReservedInstancesOfferingAsync(ctx workflow.Context, input *ec2.PurchaseReservedInstancesOfferingInput) *PurchaseReservedInstancesOfferingFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-PurchaseReservedInstancesOffering", input)
-	return &EC2PurchaseReservedInstancesOfferingFuture{Future: future}
+	return &PurchaseReservedInstancesOfferingFuture{Future: future}
 }
 
 func (a *stub) PurchaseScheduledInstances(ctx workflow.Context, input *ec2.PurchaseScheduledInstancesInput) (*ec2.PurchaseScheduledInstancesOutput, error) {
@@ -8766,9 +8766,9 @@ func (a *stub) PurchaseScheduledInstances(ctx workflow.Context, input *ec2.Purch
 	return &output, err
 }
 
-func (a *stub) PurchaseScheduledInstancesAsync(ctx workflow.Context, input *ec2.PurchaseScheduledInstancesInput) *EC2PurchaseScheduledInstancesFuture {
+func (a *stub) PurchaseScheduledInstancesAsync(ctx workflow.Context, input *ec2.PurchaseScheduledInstancesInput) *PurchaseScheduledInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-PurchaseScheduledInstances", input)
-	return &EC2PurchaseScheduledInstancesFuture{Future: future}
+	return &PurchaseScheduledInstancesFuture{Future: future}
 }
 
 func (a *stub) RebootInstances(ctx workflow.Context, input *ec2.RebootInstancesInput) (*ec2.RebootInstancesOutput, error) {
@@ -8777,9 +8777,9 @@ func (a *stub) RebootInstances(ctx workflow.Context, input *ec2.RebootInstancesI
 	return &output, err
 }
 
-func (a *stub) RebootInstancesAsync(ctx workflow.Context, input *ec2.RebootInstancesInput) *EC2RebootInstancesFuture {
+func (a *stub) RebootInstancesAsync(ctx workflow.Context, input *ec2.RebootInstancesInput) *RebootInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RebootInstances", input)
-	return &EC2RebootInstancesFuture{Future: future}
+	return &RebootInstancesFuture{Future: future}
 }
 
 func (a *stub) RegisterImage(ctx workflow.Context, input *ec2.RegisterImageInput) (*ec2.RegisterImageOutput, error) {
@@ -8788,9 +8788,9 @@ func (a *stub) RegisterImage(ctx workflow.Context, input *ec2.RegisterImageInput
 	return &output, err
 }
 
-func (a *stub) RegisterImageAsync(ctx workflow.Context, input *ec2.RegisterImageInput) *EC2RegisterImageFuture {
+func (a *stub) RegisterImageAsync(ctx workflow.Context, input *ec2.RegisterImageInput) *RegisterImageFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RegisterImage", input)
-	return &EC2RegisterImageFuture{Future: future}
+	return &RegisterImageFuture{Future: future}
 }
 
 func (a *stub) RegisterInstanceEventNotificationAttributes(ctx workflow.Context, input *ec2.RegisterInstanceEventNotificationAttributesInput) (*ec2.RegisterInstanceEventNotificationAttributesOutput, error) {
@@ -8799,9 +8799,9 @@ func (a *stub) RegisterInstanceEventNotificationAttributes(ctx workflow.Context,
 	return &output, err
 }
 
-func (a *stub) RegisterInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.RegisterInstanceEventNotificationAttributesInput) *EC2RegisterInstanceEventNotificationAttributesFuture {
+func (a *stub) RegisterInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.RegisterInstanceEventNotificationAttributesInput) *RegisterInstanceEventNotificationAttributesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RegisterInstanceEventNotificationAttributes", input)
-	return &EC2RegisterInstanceEventNotificationAttributesFuture{Future: future}
+	return &RegisterInstanceEventNotificationAttributesFuture{Future: future}
 }
 
 func (a *stub) RegisterTransitGatewayMulticastGroupMembers(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupMembersInput) (*ec2.RegisterTransitGatewayMulticastGroupMembersOutput, error) {
@@ -8810,9 +8810,9 @@ func (a *stub) RegisterTransitGatewayMulticastGroupMembers(ctx workflow.Context,
 	return &output, err
 }
 
-func (a *stub) RegisterTransitGatewayMulticastGroupMembersAsync(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupMembersInput) *EC2RegisterTransitGatewayMulticastGroupMembersFuture {
+func (a *stub) RegisterTransitGatewayMulticastGroupMembersAsync(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupMembersInput) *RegisterTransitGatewayMulticastGroupMembersFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RegisterTransitGatewayMulticastGroupMembers", input)
-	return &EC2RegisterTransitGatewayMulticastGroupMembersFuture{Future: future}
+	return &RegisterTransitGatewayMulticastGroupMembersFuture{Future: future}
 }
 
 func (a *stub) RegisterTransitGatewayMulticastGroupSources(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) (*ec2.RegisterTransitGatewayMulticastGroupSourcesOutput, error) {
@@ -8821,9 +8821,9 @@ func (a *stub) RegisterTransitGatewayMulticastGroupSources(ctx workflow.Context,
 	return &output, err
 }
 
-func (a *stub) RegisterTransitGatewayMulticastGroupSourcesAsync(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) *EC2RegisterTransitGatewayMulticastGroupSourcesFuture {
+func (a *stub) RegisterTransitGatewayMulticastGroupSourcesAsync(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) *RegisterTransitGatewayMulticastGroupSourcesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RegisterTransitGatewayMulticastGroupSources", input)
-	return &EC2RegisterTransitGatewayMulticastGroupSourcesFuture{Future: future}
+	return &RegisterTransitGatewayMulticastGroupSourcesFuture{Future: future}
 }
 
 func (a *stub) RejectTransitGatewayPeeringAttachment(ctx workflow.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) (*ec2.RejectTransitGatewayPeeringAttachmentOutput, error) {
@@ -8832,9 +8832,9 @@ func (a *stub) RejectTransitGatewayPeeringAttachment(ctx workflow.Context, input
 	return &output, err
 }
 
-func (a *stub) RejectTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) *EC2RejectTransitGatewayPeeringAttachmentFuture {
+func (a *stub) RejectTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) *RejectTransitGatewayPeeringAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RejectTransitGatewayPeeringAttachment", input)
-	return &EC2RejectTransitGatewayPeeringAttachmentFuture{Future: future}
+	return &RejectTransitGatewayPeeringAttachmentFuture{Future: future}
 }
 
 func (a *stub) RejectTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.RejectTransitGatewayVpcAttachmentInput) (*ec2.RejectTransitGatewayVpcAttachmentOutput, error) {
@@ -8843,9 +8843,9 @@ func (a *stub) RejectTransitGatewayVpcAttachment(ctx workflow.Context, input *ec
 	return &output, err
 }
 
-func (a *stub) RejectTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.RejectTransitGatewayVpcAttachmentInput) *EC2RejectTransitGatewayVpcAttachmentFuture {
+func (a *stub) RejectTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.RejectTransitGatewayVpcAttachmentInput) *RejectTransitGatewayVpcAttachmentFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RejectTransitGatewayVpcAttachment", input)
-	return &EC2RejectTransitGatewayVpcAttachmentFuture{Future: future}
+	return &RejectTransitGatewayVpcAttachmentFuture{Future: future}
 }
 
 func (a *stub) RejectVpcEndpointConnections(ctx workflow.Context, input *ec2.RejectVpcEndpointConnectionsInput) (*ec2.RejectVpcEndpointConnectionsOutput, error) {
@@ -8854,9 +8854,9 @@ func (a *stub) RejectVpcEndpointConnections(ctx workflow.Context, input *ec2.Rej
 	return &output, err
 }
 
-func (a *stub) RejectVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.RejectVpcEndpointConnectionsInput) *EC2RejectVpcEndpointConnectionsFuture {
+func (a *stub) RejectVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.RejectVpcEndpointConnectionsInput) *RejectVpcEndpointConnectionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RejectVpcEndpointConnections", input)
-	return &EC2RejectVpcEndpointConnectionsFuture{Future: future}
+	return &RejectVpcEndpointConnectionsFuture{Future: future}
 }
 
 func (a *stub) RejectVpcPeeringConnection(ctx workflow.Context, input *ec2.RejectVpcPeeringConnectionInput) (*ec2.RejectVpcPeeringConnectionOutput, error) {
@@ -8865,9 +8865,9 @@ func (a *stub) RejectVpcPeeringConnection(ctx workflow.Context, input *ec2.Rejec
 	return &output, err
 }
 
-func (a *stub) RejectVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.RejectVpcPeeringConnectionInput) *EC2RejectVpcPeeringConnectionFuture {
+func (a *stub) RejectVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.RejectVpcPeeringConnectionInput) *RejectVpcPeeringConnectionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RejectVpcPeeringConnection", input)
-	return &EC2RejectVpcPeeringConnectionFuture{Future: future}
+	return &RejectVpcPeeringConnectionFuture{Future: future}
 }
 
 func (a *stub) ReleaseAddress(ctx workflow.Context, input *ec2.ReleaseAddressInput) (*ec2.ReleaseAddressOutput, error) {
@@ -8876,9 +8876,9 @@ func (a *stub) ReleaseAddress(ctx workflow.Context, input *ec2.ReleaseAddressInp
 	return &output, err
 }
 
-func (a *stub) ReleaseAddressAsync(ctx workflow.Context, input *ec2.ReleaseAddressInput) *EC2ReleaseAddressFuture {
+func (a *stub) ReleaseAddressAsync(ctx workflow.Context, input *ec2.ReleaseAddressInput) *ReleaseAddressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReleaseAddress", input)
-	return &EC2ReleaseAddressFuture{Future: future}
+	return &ReleaseAddressFuture{Future: future}
 }
 
 func (a *stub) ReleaseHosts(ctx workflow.Context, input *ec2.ReleaseHostsInput) (*ec2.ReleaseHostsOutput, error) {
@@ -8887,9 +8887,9 @@ func (a *stub) ReleaseHosts(ctx workflow.Context, input *ec2.ReleaseHostsInput) 
 	return &output, err
 }
 
-func (a *stub) ReleaseHostsAsync(ctx workflow.Context, input *ec2.ReleaseHostsInput) *EC2ReleaseHostsFuture {
+func (a *stub) ReleaseHostsAsync(ctx workflow.Context, input *ec2.ReleaseHostsInput) *ReleaseHostsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReleaseHosts", input)
-	return &EC2ReleaseHostsFuture{Future: future}
+	return &ReleaseHostsFuture{Future: future}
 }
 
 func (a *stub) ReplaceIamInstanceProfileAssociation(ctx workflow.Context, input *ec2.ReplaceIamInstanceProfileAssociationInput) (*ec2.ReplaceIamInstanceProfileAssociationOutput, error) {
@@ -8898,9 +8898,9 @@ func (a *stub) ReplaceIamInstanceProfileAssociation(ctx workflow.Context, input 
 	return &output, err
 }
 
-func (a *stub) ReplaceIamInstanceProfileAssociationAsync(ctx workflow.Context, input *ec2.ReplaceIamInstanceProfileAssociationInput) *EC2ReplaceIamInstanceProfileAssociationFuture {
+func (a *stub) ReplaceIamInstanceProfileAssociationAsync(ctx workflow.Context, input *ec2.ReplaceIamInstanceProfileAssociationInput) *ReplaceIamInstanceProfileAssociationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReplaceIamInstanceProfileAssociation", input)
-	return &EC2ReplaceIamInstanceProfileAssociationFuture{Future: future}
+	return &ReplaceIamInstanceProfileAssociationFuture{Future: future}
 }
 
 func (a *stub) ReplaceNetworkAclAssociation(ctx workflow.Context, input *ec2.ReplaceNetworkAclAssociationInput) (*ec2.ReplaceNetworkAclAssociationOutput, error) {
@@ -8909,9 +8909,9 @@ func (a *stub) ReplaceNetworkAclAssociation(ctx workflow.Context, input *ec2.Rep
 	return &output, err
 }
 
-func (a *stub) ReplaceNetworkAclAssociationAsync(ctx workflow.Context, input *ec2.ReplaceNetworkAclAssociationInput) *EC2ReplaceNetworkAclAssociationFuture {
+func (a *stub) ReplaceNetworkAclAssociationAsync(ctx workflow.Context, input *ec2.ReplaceNetworkAclAssociationInput) *ReplaceNetworkAclAssociationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReplaceNetworkAclAssociation", input)
-	return &EC2ReplaceNetworkAclAssociationFuture{Future: future}
+	return &ReplaceNetworkAclAssociationFuture{Future: future}
 }
 
 func (a *stub) ReplaceNetworkAclEntry(ctx workflow.Context, input *ec2.ReplaceNetworkAclEntryInput) (*ec2.ReplaceNetworkAclEntryOutput, error) {
@@ -8920,9 +8920,9 @@ func (a *stub) ReplaceNetworkAclEntry(ctx workflow.Context, input *ec2.ReplaceNe
 	return &output, err
 }
 
-func (a *stub) ReplaceNetworkAclEntryAsync(ctx workflow.Context, input *ec2.ReplaceNetworkAclEntryInput) *EC2ReplaceNetworkAclEntryFuture {
+func (a *stub) ReplaceNetworkAclEntryAsync(ctx workflow.Context, input *ec2.ReplaceNetworkAclEntryInput) *ReplaceNetworkAclEntryFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReplaceNetworkAclEntry", input)
-	return &EC2ReplaceNetworkAclEntryFuture{Future: future}
+	return &ReplaceNetworkAclEntryFuture{Future: future}
 }
 
 func (a *stub) ReplaceRoute(ctx workflow.Context, input *ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error) {
@@ -8931,9 +8931,9 @@ func (a *stub) ReplaceRoute(ctx workflow.Context, input *ec2.ReplaceRouteInput) 
 	return &output, err
 }
 
-func (a *stub) ReplaceRouteAsync(ctx workflow.Context, input *ec2.ReplaceRouteInput) *EC2ReplaceRouteFuture {
+func (a *stub) ReplaceRouteAsync(ctx workflow.Context, input *ec2.ReplaceRouteInput) *ReplaceRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReplaceRoute", input)
-	return &EC2ReplaceRouteFuture{Future: future}
+	return &ReplaceRouteFuture{Future: future}
 }
 
 func (a *stub) ReplaceRouteTableAssociation(ctx workflow.Context, input *ec2.ReplaceRouteTableAssociationInput) (*ec2.ReplaceRouteTableAssociationOutput, error) {
@@ -8942,9 +8942,9 @@ func (a *stub) ReplaceRouteTableAssociation(ctx workflow.Context, input *ec2.Rep
 	return &output, err
 }
 
-func (a *stub) ReplaceRouteTableAssociationAsync(ctx workflow.Context, input *ec2.ReplaceRouteTableAssociationInput) *EC2ReplaceRouteTableAssociationFuture {
+func (a *stub) ReplaceRouteTableAssociationAsync(ctx workflow.Context, input *ec2.ReplaceRouteTableAssociationInput) *ReplaceRouteTableAssociationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReplaceRouteTableAssociation", input)
-	return &EC2ReplaceRouteTableAssociationFuture{Future: future}
+	return &ReplaceRouteTableAssociationFuture{Future: future}
 }
 
 func (a *stub) ReplaceTransitGatewayRoute(ctx workflow.Context, input *ec2.ReplaceTransitGatewayRouteInput) (*ec2.ReplaceTransitGatewayRouteOutput, error) {
@@ -8953,9 +8953,9 @@ func (a *stub) ReplaceTransitGatewayRoute(ctx workflow.Context, input *ec2.Repla
 	return &output, err
 }
 
-func (a *stub) ReplaceTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.ReplaceTransitGatewayRouteInput) *EC2ReplaceTransitGatewayRouteFuture {
+func (a *stub) ReplaceTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.ReplaceTransitGatewayRouteInput) *ReplaceTransitGatewayRouteFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReplaceTransitGatewayRoute", input)
-	return &EC2ReplaceTransitGatewayRouteFuture{Future: future}
+	return &ReplaceTransitGatewayRouteFuture{Future: future}
 }
 
 func (a *stub) ReportInstanceStatus(ctx workflow.Context, input *ec2.ReportInstanceStatusInput) (*ec2.ReportInstanceStatusOutput, error) {
@@ -8964,9 +8964,9 @@ func (a *stub) ReportInstanceStatus(ctx workflow.Context, input *ec2.ReportInsta
 	return &output, err
 }
 
-func (a *stub) ReportInstanceStatusAsync(ctx workflow.Context, input *ec2.ReportInstanceStatusInput) *EC2ReportInstanceStatusFuture {
+func (a *stub) ReportInstanceStatusAsync(ctx workflow.Context, input *ec2.ReportInstanceStatusInput) *ReportInstanceStatusFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ReportInstanceStatus", input)
-	return &EC2ReportInstanceStatusFuture{Future: future}
+	return &ReportInstanceStatusFuture{Future: future}
 }
 
 func (a *stub) RequestSpotFleet(ctx workflow.Context, input *ec2.RequestSpotFleetInput) (*ec2.RequestSpotFleetOutput, error) {
@@ -8975,9 +8975,9 @@ func (a *stub) RequestSpotFleet(ctx workflow.Context, input *ec2.RequestSpotFlee
 	return &output, err
 }
 
-func (a *stub) RequestSpotFleetAsync(ctx workflow.Context, input *ec2.RequestSpotFleetInput) *EC2RequestSpotFleetFuture {
+func (a *stub) RequestSpotFleetAsync(ctx workflow.Context, input *ec2.RequestSpotFleetInput) *RequestSpotFleetFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RequestSpotFleet", input)
-	return &EC2RequestSpotFleetFuture{Future: future}
+	return &RequestSpotFleetFuture{Future: future}
 }
 
 func (a *stub) RequestSpotInstances(ctx workflow.Context, input *ec2.RequestSpotInstancesInput) (*ec2.RequestSpotInstancesOutput, error) {
@@ -8986,9 +8986,9 @@ func (a *stub) RequestSpotInstances(ctx workflow.Context, input *ec2.RequestSpot
 	return &output, err
 }
 
-func (a *stub) RequestSpotInstancesAsync(ctx workflow.Context, input *ec2.RequestSpotInstancesInput) *EC2RequestSpotInstancesFuture {
+func (a *stub) RequestSpotInstancesAsync(ctx workflow.Context, input *ec2.RequestSpotInstancesInput) *RequestSpotInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RequestSpotInstances", input)
-	return &EC2RequestSpotInstancesFuture{Future: future}
+	return &RequestSpotInstancesFuture{Future: future}
 }
 
 func (a *stub) ResetEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.ResetEbsDefaultKmsKeyIdInput) (*ec2.ResetEbsDefaultKmsKeyIdOutput, error) {
@@ -8997,9 +8997,9 @@ func (a *stub) ResetEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.ResetEbs
 	return &output, err
 }
 
-func (a *stub) ResetEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.ResetEbsDefaultKmsKeyIdInput) *EC2ResetEbsDefaultKmsKeyIdFuture {
+func (a *stub) ResetEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.ResetEbsDefaultKmsKeyIdInput) *ResetEbsDefaultKmsKeyIdFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ResetEbsDefaultKmsKeyId", input)
-	return &EC2ResetEbsDefaultKmsKeyIdFuture{Future: future}
+	return &ResetEbsDefaultKmsKeyIdFuture{Future: future}
 }
 
 func (a *stub) ResetFpgaImageAttribute(ctx workflow.Context, input *ec2.ResetFpgaImageAttributeInput) (*ec2.ResetFpgaImageAttributeOutput, error) {
@@ -9008,9 +9008,9 @@ func (a *stub) ResetFpgaImageAttribute(ctx workflow.Context, input *ec2.ResetFpg
 	return &output, err
 }
 
-func (a *stub) ResetFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.ResetFpgaImageAttributeInput) *EC2ResetFpgaImageAttributeFuture {
+func (a *stub) ResetFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.ResetFpgaImageAttributeInput) *ResetFpgaImageAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ResetFpgaImageAttribute", input)
-	return &EC2ResetFpgaImageAttributeFuture{Future: future}
+	return &ResetFpgaImageAttributeFuture{Future: future}
 }
 
 func (a *stub) ResetImageAttribute(ctx workflow.Context, input *ec2.ResetImageAttributeInput) (*ec2.ResetImageAttributeOutput, error) {
@@ -9019,9 +9019,9 @@ func (a *stub) ResetImageAttribute(ctx workflow.Context, input *ec2.ResetImageAt
 	return &output, err
 }
 
-func (a *stub) ResetImageAttributeAsync(ctx workflow.Context, input *ec2.ResetImageAttributeInput) *EC2ResetImageAttributeFuture {
+func (a *stub) ResetImageAttributeAsync(ctx workflow.Context, input *ec2.ResetImageAttributeInput) *ResetImageAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ResetImageAttribute", input)
-	return &EC2ResetImageAttributeFuture{Future: future}
+	return &ResetImageAttributeFuture{Future: future}
 }
 
 func (a *stub) ResetInstanceAttribute(ctx workflow.Context, input *ec2.ResetInstanceAttributeInput) (*ec2.ResetInstanceAttributeOutput, error) {
@@ -9030,9 +9030,9 @@ func (a *stub) ResetInstanceAttribute(ctx workflow.Context, input *ec2.ResetInst
 	return &output, err
 }
 
-func (a *stub) ResetInstanceAttributeAsync(ctx workflow.Context, input *ec2.ResetInstanceAttributeInput) *EC2ResetInstanceAttributeFuture {
+func (a *stub) ResetInstanceAttributeAsync(ctx workflow.Context, input *ec2.ResetInstanceAttributeInput) *ResetInstanceAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ResetInstanceAttribute", input)
-	return &EC2ResetInstanceAttributeFuture{Future: future}
+	return &ResetInstanceAttributeFuture{Future: future}
 }
 
 func (a *stub) ResetNetworkInterfaceAttribute(ctx workflow.Context, input *ec2.ResetNetworkInterfaceAttributeInput) (*ec2.ResetNetworkInterfaceAttributeOutput, error) {
@@ -9041,9 +9041,9 @@ func (a *stub) ResetNetworkInterfaceAttribute(ctx workflow.Context, input *ec2.R
 	return &output, err
 }
 
-func (a *stub) ResetNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.ResetNetworkInterfaceAttributeInput) *EC2ResetNetworkInterfaceAttributeFuture {
+func (a *stub) ResetNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.ResetNetworkInterfaceAttributeInput) *ResetNetworkInterfaceAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ResetNetworkInterfaceAttribute", input)
-	return &EC2ResetNetworkInterfaceAttributeFuture{Future: future}
+	return &ResetNetworkInterfaceAttributeFuture{Future: future}
 }
 
 func (a *stub) ResetSnapshotAttribute(ctx workflow.Context, input *ec2.ResetSnapshotAttributeInput) (*ec2.ResetSnapshotAttributeOutput, error) {
@@ -9052,9 +9052,9 @@ func (a *stub) ResetSnapshotAttribute(ctx workflow.Context, input *ec2.ResetSnap
 	return &output, err
 }
 
-func (a *stub) ResetSnapshotAttributeAsync(ctx workflow.Context, input *ec2.ResetSnapshotAttributeInput) *EC2ResetSnapshotAttributeFuture {
+func (a *stub) ResetSnapshotAttributeAsync(ctx workflow.Context, input *ec2.ResetSnapshotAttributeInput) *ResetSnapshotAttributeFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-ResetSnapshotAttribute", input)
-	return &EC2ResetSnapshotAttributeFuture{Future: future}
+	return &ResetSnapshotAttributeFuture{Future: future}
 }
 
 func (a *stub) RestoreAddressToClassic(ctx workflow.Context, input *ec2.RestoreAddressToClassicInput) (*ec2.RestoreAddressToClassicOutput, error) {
@@ -9063,9 +9063,9 @@ func (a *stub) RestoreAddressToClassic(ctx workflow.Context, input *ec2.RestoreA
 	return &output, err
 }
 
-func (a *stub) RestoreAddressToClassicAsync(ctx workflow.Context, input *ec2.RestoreAddressToClassicInput) *EC2RestoreAddressToClassicFuture {
+func (a *stub) RestoreAddressToClassicAsync(ctx workflow.Context, input *ec2.RestoreAddressToClassicInput) *RestoreAddressToClassicFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RestoreAddressToClassic", input)
-	return &EC2RestoreAddressToClassicFuture{Future: future}
+	return &RestoreAddressToClassicFuture{Future: future}
 }
 
 func (a *stub) RestoreManagedPrefixListVersion(ctx workflow.Context, input *ec2.RestoreManagedPrefixListVersionInput) (*ec2.RestoreManagedPrefixListVersionOutput, error) {
@@ -9074,9 +9074,9 @@ func (a *stub) RestoreManagedPrefixListVersion(ctx workflow.Context, input *ec2.
 	return &output, err
 }
 
-func (a *stub) RestoreManagedPrefixListVersionAsync(ctx workflow.Context, input *ec2.RestoreManagedPrefixListVersionInput) *EC2RestoreManagedPrefixListVersionFuture {
+func (a *stub) RestoreManagedPrefixListVersionAsync(ctx workflow.Context, input *ec2.RestoreManagedPrefixListVersionInput) *RestoreManagedPrefixListVersionFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RestoreManagedPrefixListVersion", input)
-	return &EC2RestoreManagedPrefixListVersionFuture{Future: future}
+	return &RestoreManagedPrefixListVersionFuture{Future: future}
 }
 
 func (a *stub) RevokeClientVpnIngress(ctx workflow.Context, input *ec2.RevokeClientVpnIngressInput) (*ec2.RevokeClientVpnIngressOutput, error) {
@@ -9085,9 +9085,9 @@ func (a *stub) RevokeClientVpnIngress(ctx workflow.Context, input *ec2.RevokeCli
 	return &output, err
 }
 
-func (a *stub) RevokeClientVpnIngressAsync(ctx workflow.Context, input *ec2.RevokeClientVpnIngressInput) *EC2RevokeClientVpnIngressFuture {
+func (a *stub) RevokeClientVpnIngressAsync(ctx workflow.Context, input *ec2.RevokeClientVpnIngressInput) *RevokeClientVpnIngressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RevokeClientVpnIngress", input)
-	return &EC2RevokeClientVpnIngressFuture{Future: future}
+	return &RevokeClientVpnIngressFuture{Future: future}
 }
 
 func (a *stub) RevokeSecurityGroupEgress(ctx workflow.Context, input *ec2.RevokeSecurityGroupEgressInput) (*ec2.RevokeSecurityGroupEgressOutput, error) {
@@ -9096,9 +9096,9 @@ func (a *stub) RevokeSecurityGroupEgress(ctx workflow.Context, input *ec2.Revoke
 	return &output, err
 }
 
-func (a *stub) RevokeSecurityGroupEgressAsync(ctx workflow.Context, input *ec2.RevokeSecurityGroupEgressInput) *EC2RevokeSecurityGroupEgressFuture {
+func (a *stub) RevokeSecurityGroupEgressAsync(ctx workflow.Context, input *ec2.RevokeSecurityGroupEgressInput) *RevokeSecurityGroupEgressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RevokeSecurityGroupEgress", input)
-	return &EC2RevokeSecurityGroupEgressFuture{Future: future}
+	return &RevokeSecurityGroupEgressFuture{Future: future}
 }
 
 func (a *stub) RevokeSecurityGroupIngress(ctx workflow.Context, input *ec2.RevokeSecurityGroupIngressInput) (*ec2.RevokeSecurityGroupIngressOutput, error) {
@@ -9107,9 +9107,9 @@ func (a *stub) RevokeSecurityGroupIngress(ctx workflow.Context, input *ec2.Revok
 	return &output, err
 }
 
-func (a *stub) RevokeSecurityGroupIngressAsync(ctx workflow.Context, input *ec2.RevokeSecurityGroupIngressInput) *EC2RevokeSecurityGroupIngressFuture {
+func (a *stub) RevokeSecurityGroupIngressAsync(ctx workflow.Context, input *ec2.RevokeSecurityGroupIngressInput) *RevokeSecurityGroupIngressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RevokeSecurityGroupIngress", input)
-	return &EC2RevokeSecurityGroupIngressFuture{Future: future}
+	return &RevokeSecurityGroupIngressFuture{Future: future}
 }
 
 func (a *stub) RunInstances(ctx workflow.Context, input *ec2.RunInstancesInput) (*ec2.Reservation, error) {
@@ -9118,9 +9118,9 @@ func (a *stub) RunInstances(ctx workflow.Context, input *ec2.RunInstancesInput) 
 	return &output, err
 }
 
-func (a *stub) RunInstancesAsync(ctx workflow.Context, input *ec2.RunInstancesInput) *EC2RunInstancesFuture {
+func (a *stub) RunInstancesAsync(ctx workflow.Context, input *ec2.RunInstancesInput) *RunInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RunInstances", input)
-	return &EC2RunInstancesFuture{Future: future}
+	return &RunInstancesFuture{Future: future}
 }
 
 func (a *stub) RunScheduledInstances(ctx workflow.Context, input *ec2.RunScheduledInstancesInput) (*ec2.RunScheduledInstancesOutput, error) {
@@ -9129,9 +9129,9 @@ func (a *stub) RunScheduledInstances(ctx workflow.Context, input *ec2.RunSchedul
 	return &output, err
 }
 
-func (a *stub) RunScheduledInstancesAsync(ctx workflow.Context, input *ec2.RunScheduledInstancesInput) *EC2RunScheduledInstancesFuture {
+func (a *stub) RunScheduledInstancesAsync(ctx workflow.Context, input *ec2.RunScheduledInstancesInput) *RunScheduledInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-RunScheduledInstances", input)
-	return &EC2RunScheduledInstancesFuture{Future: future}
+	return &RunScheduledInstancesFuture{Future: future}
 }
 
 func (a *stub) SearchLocalGatewayRoutes(ctx workflow.Context, input *ec2.SearchLocalGatewayRoutesInput) (*ec2.SearchLocalGatewayRoutesOutput, error) {
@@ -9140,9 +9140,9 @@ func (a *stub) SearchLocalGatewayRoutes(ctx workflow.Context, input *ec2.SearchL
 	return &output, err
 }
 
-func (a *stub) SearchLocalGatewayRoutesAsync(ctx workflow.Context, input *ec2.SearchLocalGatewayRoutesInput) *EC2SearchLocalGatewayRoutesFuture {
+func (a *stub) SearchLocalGatewayRoutesAsync(ctx workflow.Context, input *ec2.SearchLocalGatewayRoutesInput) *SearchLocalGatewayRoutesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-SearchLocalGatewayRoutes", input)
-	return &EC2SearchLocalGatewayRoutesFuture{Future: future}
+	return &SearchLocalGatewayRoutesFuture{Future: future}
 }
 
 func (a *stub) SearchTransitGatewayMulticastGroups(ctx workflow.Context, input *ec2.SearchTransitGatewayMulticastGroupsInput) (*ec2.SearchTransitGatewayMulticastGroupsOutput, error) {
@@ -9151,9 +9151,9 @@ func (a *stub) SearchTransitGatewayMulticastGroups(ctx workflow.Context, input *
 	return &output, err
 }
 
-func (a *stub) SearchTransitGatewayMulticastGroupsAsync(ctx workflow.Context, input *ec2.SearchTransitGatewayMulticastGroupsInput) *EC2SearchTransitGatewayMulticastGroupsFuture {
+func (a *stub) SearchTransitGatewayMulticastGroupsAsync(ctx workflow.Context, input *ec2.SearchTransitGatewayMulticastGroupsInput) *SearchTransitGatewayMulticastGroupsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-SearchTransitGatewayMulticastGroups", input)
-	return &EC2SearchTransitGatewayMulticastGroupsFuture{Future: future}
+	return &SearchTransitGatewayMulticastGroupsFuture{Future: future}
 }
 
 func (a *stub) SearchTransitGatewayRoutes(ctx workflow.Context, input *ec2.SearchTransitGatewayRoutesInput) (*ec2.SearchTransitGatewayRoutesOutput, error) {
@@ -9162,9 +9162,9 @@ func (a *stub) SearchTransitGatewayRoutes(ctx workflow.Context, input *ec2.Searc
 	return &output, err
 }
 
-func (a *stub) SearchTransitGatewayRoutesAsync(ctx workflow.Context, input *ec2.SearchTransitGatewayRoutesInput) *EC2SearchTransitGatewayRoutesFuture {
+func (a *stub) SearchTransitGatewayRoutesAsync(ctx workflow.Context, input *ec2.SearchTransitGatewayRoutesInput) *SearchTransitGatewayRoutesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-SearchTransitGatewayRoutes", input)
-	return &EC2SearchTransitGatewayRoutesFuture{Future: future}
+	return &SearchTransitGatewayRoutesFuture{Future: future}
 }
 
 func (a *stub) SendDiagnosticInterrupt(ctx workflow.Context, input *ec2.SendDiagnosticInterruptInput) (*ec2.SendDiagnosticInterruptOutput, error) {
@@ -9173,9 +9173,9 @@ func (a *stub) SendDiagnosticInterrupt(ctx workflow.Context, input *ec2.SendDiag
 	return &output, err
 }
 
-func (a *stub) SendDiagnosticInterruptAsync(ctx workflow.Context, input *ec2.SendDiagnosticInterruptInput) *EC2SendDiagnosticInterruptFuture {
+func (a *stub) SendDiagnosticInterruptAsync(ctx workflow.Context, input *ec2.SendDiagnosticInterruptInput) *SendDiagnosticInterruptFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-SendDiagnosticInterrupt", input)
-	return &EC2SendDiagnosticInterruptFuture{Future: future}
+	return &SendDiagnosticInterruptFuture{Future: future}
 }
 
 func (a *stub) StartInstances(ctx workflow.Context, input *ec2.StartInstancesInput) (*ec2.StartInstancesOutput, error) {
@@ -9184,9 +9184,9 @@ func (a *stub) StartInstances(ctx workflow.Context, input *ec2.StartInstancesInp
 	return &output, err
 }
 
-func (a *stub) StartInstancesAsync(ctx workflow.Context, input *ec2.StartInstancesInput) *EC2StartInstancesFuture {
+func (a *stub) StartInstancesAsync(ctx workflow.Context, input *ec2.StartInstancesInput) *StartInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-StartInstances", input)
-	return &EC2StartInstancesFuture{Future: future}
+	return &StartInstancesFuture{Future: future}
 }
 
 func (a *stub) StartVpcEndpointServicePrivateDnsVerification(ctx workflow.Context, input *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) (*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput, error) {
@@ -9195,9 +9195,9 @@ func (a *stub) StartVpcEndpointServicePrivateDnsVerification(ctx workflow.Contex
 	return &output, err
 }
 
-func (a *stub) StartVpcEndpointServicePrivateDnsVerificationAsync(ctx workflow.Context, input *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *EC2StartVpcEndpointServicePrivateDnsVerificationFuture {
+func (a *stub) StartVpcEndpointServicePrivateDnsVerificationAsync(ctx workflow.Context, input *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *StartVpcEndpointServicePrivateDnsVerificationFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-StartVpcEndpointServicePrivateDnsVerification", input)
-	return &EC2StartVpcEndpointServicePrivateDnsVerificationFuture{Future: future}
+	return &StartVpcEndpointServicePrivateDnsVerificationFuture{Future: future}
 }
 
 func (a *stub) StopInstances(ctx workflow.Context, input *ec2.StopInstancesInput) (*ec2.StopInstancesOutput, error) {
@@ -9206,9 +9206,9 @@ func (a *stub) StopInstances(ctx workflow.Context, input *ec2.StopInstancesInput
 	return &output, err
 }
 
-func (a *stub) StopInstancesAsync(ctx workflow.Context, input *ec2.StopInstancesInput) *EC2StopInstancesFuture {
+func (a *stub) StopInstancesAsync(ctx workflow.Context, input *ec2.StopInstancesInput) *StopInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-StopInstances", input)
-	return &EC2StopInstancesFuture{Future: future}
+	return &StopInstancesFuture{Future: future}
 }
 
 func (a *stub) TerminateClientVpnConnections(ctx workflow.Context, input *ec2.TerminateClientVpnConnectionsInput) (*ec2.TerminateClientVpnConnectionsOutput, error) {
@@ -9217,9 +9217,9 @@ func (a *stub) TerminateClientVpnConnections(ctx workflow.Context, input *ec2.Te
 	return &output, err
 }
 
-func (a *stub) TerminateClientVpnConnectionsAsync(ctx workflow.Context, input *ec2.TerminateClientVpnConnectionsInput) *EC2TerminateClientVpnConnectionsFuture {
+func (a *stub) TerminateClientVpnConnectionsAsync(ctx workflow.Context, input *ec2.TerminateClientVpnConnectionsInput) *TerminateClientVpnConnectionsFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-TerminateClientVpnConnections", input)
-	return &EC2TerminateClientVpnConnectionsFuture{Future: future}
+	return &TerminateClientVpnConnectionsFuture{Future: future}
 }
 
 func (a *stub) TerminateInstances(ctx workflow.Context, input *ec2.TerminateInstancesInput) (*ec2.TerminateInstancesOutput, error) {
@@ -9228,9 +9228,9 @@ func (a *stub) TerminateInstances(ctx workflow.Context, input *ec2.TerminateInst
 	return &output, err
 }
 
-func (a *stub) TerminateInstancesAsync(ctx workflow.Context, input *ec2.TerminateInstancesInput) *EC2TerminateInstancesFuture {
+func (a *stub) TerminateInstancesAsync(ctx workflow.Context, input *ec2.TerminateInstancesInput) *TerminateInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-TerminateInstances", input)
-	return &EC2TerminateInstancesFuture{Future: future}
+	return &TerminateInstancesFuture{Future: future}
 }
 
 func (a *stub) UnassignIpv6Addresses(ctx workflow.Context, input *ec2.UnassignIpv6AddressesInput) (*ec2.UnassignIpv6AddressesOutput, error) {
@@ -9239,9 +9239,9 @@ func (a *stub) UnassignIpv6Addresses(ctx workflow.Context, input *ec2.UnassignIp
 	return &output, err
 }
 
-func (a *stub) UnassignIpv6AddressesAsync(ctx workflow.Context, input *ec2.UnassignIpv6AddressesInput) *EC2UnassignIpv6AddressesFuture {
+func (a *stub) UnassignIpv6AddressesAsync(ctx workflow.Context, input *ec2.UnassignIpv6AddressesInput) *UnassignIpv6AddressesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-UnassignIpv6Addresses", input)
-	return &EC2UnassignIpv6AddressesFuture{Future: future}
+	return &UnassignIpv6AddressesFuture{Future: future}
 }
 
 func (a *stub) UnassignPrivateIpAddresses(ctx workflow.Context, input *ec2.UnassignPrivateIpAddressesInput) (*ec2.UnassignPrivateIpAddressesOutput, error) {
@@ -9250,9 +9250,9 @@ func (a *stub) UnassignPrivateIpAddresses(ctx workflow.Context, input *ec2.Unass
 	return &output, err
 }
 
-func (a *stub) UnassignPrivateIpAddressesAsync(ctx workflow.Context, input *ec2.UnassignPrivateIpAddressesInput) *EC2UnassignPrivateIpAddressesFuture {
+func (a *stub) UnassignPrivateIpAddressesAsync(ctx workflow.Context, input *ec2.UnassignPrivateIpAddressesInput) *UnassignPrivateIpAddressesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-UnassignPrivateIpAddresses", input)
-	return &EC2UnassignPrivateIpAddressesFuture{Future: future}
+	return &UnassignPrivateIpAddressesFuture{Future: future}
 }
 
 func (a *stub) UnmonitorInstances(ctx workflow.Context, input *ec2.UnmonitorInstancesInput) (*ec2.UnmonitorInstancesOutput, error) {
@@ -9261,9 +9261,9 @@ func (a *stub) UnmonitorInstances(ctx workflow.Context, input *ec2.UnmonitorInst
 	return &output, err
 }
 
-func (a *stub) UnmonitorInstancesAsync(ctx workflow.Context, input *ec2.UnmonitorInstancesInput) *EC2UnmonitorInstancesFuture {
+func (a *stub) UnmonitorInstancesAsync(ctx workflow.Context, input *ec2.UnmonitorInstancesInput) *UnmonitorInstancesFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-UnmonitorInstances", input)
-	return &EC2UnmonitorInstancesFuture{Future: future}
+	return &UnmonitorInstancesFuture{Future: future}
 }
 
 func (a *stub) UpdateSecurityGroupRuleDescriptionsEgress(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) (*ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput, error) {
@@ -9272,9 +9272,9 @@ func (a *stub) UpdateSecurityGroupRuleDescriptionsEgress(ctx workflow.Context, i
 	return &output, err
 }
 
-func (a *stub) UpdateSecurityGroupRuleDescriptionsEgressAsync(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) *EC2UpdateSecurityGroupRuleDescriptionsEgressFuture {
+func (a *stub) UpdateSecurityGroupRuleDescriptionsEgressAsync(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) *UpdateSecurityGroupRuleDescriptionsEgressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-UpdateSecurityGroupRuleDescriptionsEgress", input)
-	return &EC2UpdateSecurityGroupRuleDescriptionsEgressFuture{Future: future}
+	return &UpdateSecurityGroupRuleDescriptionsEgressFuture{Future: future}
 }
 
 func (a *stub) UpdateSecurityGroupRuleDescriptionsIngress(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) (*ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput, error) {
@@ -9283,9 +9283,9 @@ func (a *stub) UpdateSecurityGroupRuleDescriptionsIngress(ctx workflow.Context, 
 	return &output, err
 }
 
-func (a *stub) UpdateSecurityGroupRuleDescriptionsIngressAsync(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) *EC2UpdateSecurityGroupRuleDescriptionsIngressFuture {
+func (a *stub) UpdateSecurityGroupRuleDescriptionsIngressAsync(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) *UpdateSecurityGroupRuleDescriptionsIngressFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-UpdateSecurityGroupRuleDescriptionsIngress", input)
-	return &EC2UpdateSecurityGroupRuleDescriptionsIngressFuture{Future: future}
+	return &UpdateSecurityGroupRuleDescriptionsIngressFuture{Future: future}
 }
 
 func (a *stub) WithdrawByoipCidr(ctx workflow.Context, input *ec2.WithdrawByoipCidrInput) (*ec2.WithdrawByoipCidrOutput, error) {
@@ -9294,9 +9294,9 @@ func (a *stub) WithdrawByoipCidr(ctx workflow.Context, input *ec2.WithdrawByoipC
 	return &output, err
 }
 
-func (a *stub) WithdrawByoipCidrAsync(ctx workflow.Context, input *ec2.WithdrawByoipCidrInput) *EC2WithdrawByoipCidrFuture {
+func (a *stub) WithdrawByoipCidrAsync(ctx workflow.Context, input *ec2.WithdrawByoipCidrInput) *WithdrawByoipCidrFuture {
 	future := workflow.ExecuteActivity(ctx, "aws-ec2-WithdrawByoipCidr", input)
-	return &EC2WithdrawByoipCidrFuture{Future: future}
+	return &WithdrawByoipCidrFuture{Future: future}
 }
 
 func (a *stub) WaitUntilBundleTaskComplete(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) error {
