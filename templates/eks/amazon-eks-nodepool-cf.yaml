@@ -21,7 +21,7 @@ Metadata:
           - NodeAutoScalingGroupMaxSize
           - NodeAutoScalingInitSize
           - NodeInstanceType
-          - NodeImageIdSSMParam
+          # - NodeImageIdSSMParam
           - NodeImageId
           - NodeSpotPrice
           - NodeVolumeSize
@@ -87,6 +87,11 @@ Parameters:
   NodeImageId:
     Type: String
     Description: (Optional) Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
+
+  # NodeImageIdSSMParam:
+  #   Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+  #   Default: /aws/service/eks/optimized-ami/1.17/amazon-linux-2/recommended/image_id
+  #   Description: AWS Systems Manager Parameter Store parameter of the AMI ID for the worker node instances. Change this value to match the version of Kubernetes you are using.
 
   NodeInstanceRoleId:
     Type: String
@@ -388,6 +393,12 @@ Parameters:
 Conditions:
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
   HasKeyName: !Not [ !Equals [ !Ref KeyName, "" ] ]
+
+  HasNodeImageId: !Not
+    - "Fn::Equals":
+        - !Ref NodeImageId
+        - ""
+
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   NoCustomNodeSecurityGroups: !Equals [ !Ref CustomNodeSecurityGroups, "" ]
   NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
@@ -462,7 +473,7 @@ Resources:
               VolumeType: gp2
         IamInstanceProfile:
           Arn: !GetAtt NodeInstanceProfile.Arn
-        ImageId: !Ref NodeImageId
+        ImageId: !Ref NodeImageId # Note: deliberately not allowing fallback to NodeImageIdSSMParam.
         InstanceMarketOptions:
           !If
             - IsSpotInstance
