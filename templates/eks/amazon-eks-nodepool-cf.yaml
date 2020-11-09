@@ -18,8 +18,9 @@ Metadata:
         Parameters:
           - NodeGroupName
           - NodeAutoScalingGroupMinSize
+          # - NodeAutoScalingGroupDesiredCapacity
           - NodeAutoScalingGroupMaxSize
-          - NodeAutoScalingInitSize
+          - NodeAutoScalingInitSize # Note: in place of NodeAutoScalingGroupDesiredCapacity for backward compatibility.
           - NodeInstanceType
           # - NodeImageIdSSMParam
           - NodeImageId
@@ -60,6 +61,11 @@ Parameters:
     Type: String
     Description: The EC2 Key Pair to allow SSH access to the instances
 
+  # NodeAutoScalingGroupDesiredCapacity:
+  #   Type: Number
+  #   Default: 1
+  #   Description: Desired capacity of Node Group ASG.
+
   NodeAutoScalingGroupMaxBatchSize:
     Type: Number
     Default: 2
@@ -78,7 +84,7 @@ Parameters:
   NodeAutoScalingInitSize:
     Type: Number
     Default: 1
-    Description: The initial size of Node Group ASG.
+    Description: (In place of NodeAutoScalingGroupDesiredCapacity) The initial size of Node Group ASG.
 
   NodeGroupName:
     Type: String
