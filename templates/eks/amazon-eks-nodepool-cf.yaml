@@ -63,7 +63,7 @@ Parameters:
   NodeAutoScalingGroupMaxBatchSize:
     Type: Number
     Default: 2
-    Description: Minimum size of Node Group ASG.
+    Description: Maximum number of nodes to be updated at once during a rolling update.
 
   NodeAutoScalingGroupMaxSize:
     Type: Number
