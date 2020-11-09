@@ -555,7 +555,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 		"storagetier",
 	})
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::chart", "banzaicloud-stable/nodepool-labels-operator")
-	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.4")
+	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.5")
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::vault::enabled", true)
