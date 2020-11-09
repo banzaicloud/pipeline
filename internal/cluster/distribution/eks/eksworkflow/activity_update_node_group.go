@@ -63,7 +63,8 @@ type UpdateNodeGroupActivityInput struct {
 	NodeImage       string
 	DesiredCapacity int64
 
-	MaxBatchSize int
+	MaxBatchSize          int
+	MinInstancesInService int
 
 	ClusterTags map[string]string
 }
@@ -137,6 +138,10 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			input.MaxBatchSize > 0,
 			fmt.Sprintf("%d", input.MaxBatchSize),
 		),
+		{
+			ParameterKey:   aws.String("NodeAutoScalingGroupMinInstancesInService"),
+			ParameterValue: aws.String(fmt.Sprintf("%d", input.MinInstancesInService)),
+		},
 		sdkCloudFormation.NewOptionalStackParameter(
 			"NodeAutoScalingInitSize",
 			input.DesiredCapacity > 0,
