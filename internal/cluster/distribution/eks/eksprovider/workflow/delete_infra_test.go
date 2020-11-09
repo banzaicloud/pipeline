@@ -149,7 +149,7 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 
 	s.ec2client.On("DeleteKeyPairAsync", mock.Anything, &ec2.DeleteKeyPairInput{
 		KeyName: aws.String(GenerateSSHKeyNameForCluster(eksActivityInput.ClusterName)),
-	}).Return(&ec2stub.EC2DeleteKeyPairFuture{
+	}).Return(&ec2stub.DeleteKeyPairFuture{
 		Future: future{},
 	})
 

@@ -41,15 +41,15 @@ func (_m *Mockec2clientstub) AcceptReservedInstancesExchangeQuote(ctx internal.C
 }
 
 // AcceptReservedInstancesExchangeQuoteAsync provides a mock function.
-func (_m *Mockec2clientstub) AcceptReservedInstancesExchangeQuoteAsync(ctx internal.Context, input *ec2.AcceptReservedInstancesExchangeQuoteInput) (_result_0 *ec2stub.EC2AcceptReservedInstancesExchangeQuoteFuture) {
+func (_m *Mockec2clientstub) AcceptReservedInstancesExchangeQuoteAsync(ctx internal.Context, input *ec2.AcceptReservedInstancesExchangeQuoteInput) (_result_0 *ec2stub.AcceptReservedInstancesExchangeQuoteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AcceptReservedInstancesExchangeQuoteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptReservedInstancesExchangeQuoteInput) *ec2stub.EC2AcceptReservedInstancesExchangeQuoteFuture); ok {
+	var r0 *ec2stub.AcceptReservedInstancesExchangeQuoteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptReservedInstancesExchangeQuoteInput) *ec2stub.AcceptReservedInstancesExchangeQuoteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AcceptReservedInstancesExchangeQuoteFuture)
+			r0 = ret.Get(0).(*ec2stub.AcceptReservedInstancesExchangeQuoteFuture)
 		}
 	}
 
@@ -80,15 +80,15 @@ func (_m *Mockec2clientstub) AcceptTransitGatewayPeeringAttachment(ctx internal.
 }
 
 // AcceptTransitGatewayPeeringAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) AcceptTransitGatewayPeeringAttachmentAsync(ctx internal.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) (_result_0 *ec2stub.EC2AcceptTransitGatewayPeeringAttachmentFuture) {
+func (_m *Mockec2clientstub) AcceptTransitGatewayPeeringAttachmentAsync(ctx internal.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) (_result_0 *ec2stub.AcceptTransitGatewayPeeringAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AcceptTransitGatewayPeeringAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptTransitGatewayPeeringAttachmentInput) *ec2stub.EC2AcceptTransitGatewayPeeringAttachmentFuture); ok {
+	var r0 *ec2stub.AcceptTransitGatewayPeeringAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptTransitGatewayPeeringAttachmentInput) *ec2stub.AcceptTransitGatewayPeeringAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AcceptTransitGatewayPeeringAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.AcceptTransitGatewayPeeringAttachmentFuture)
 		}
 	}
 
@@ -119,15 +119,15 @@ func (_m *Mockec2clientstub) AcceptTransitGatewayVpcAttachment(ctx internal.Cont
 }
 
 // AcceptTransitGatewayVpcAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) AcceptTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.AcceptTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.EC2AcceptTransitGatewayVpcAttachmentFuture) {
+func (_m *Mockec2clientstub) AcceptTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.AcceptTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.AcceptTransitGatewayVpcAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AcceptTransitGatewayVpcAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptTransitGatewayVpcAttachmentInput) *ec2stub.EC2AcceptTransitGatewayVpcAttachmentFuture); ok {
+	var r0 *ec2stub.AcceptTransitGatewayVpcAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptTransitGatewayVpcAttachmentInput) *ec2stub.AcceptTransitGatewayVpcAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AcceptTransitGatewayVpcAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.AcceptTransitGatewayVpcAttachmentFuture)
 		}
 	}
 
@@ -158,15 +158,15 @@ func (_m *Mockec2clientstub) AcceptVpcEndpointConnections(ctx internal.Context, 
 }
 
 // AcceptVpcEndpointConnectionsAsync provides a mock function.
-func (_m *Mockec2clientstub) AcceptVpcEndpointConnectionsAsync(ctx internal.Context, input *ec2.AcceptVpcEndpointConnectionsInput) (_result_0 *ec2stub.EC2AcceptVpcEndpointConnectionsFuture) {
+func (_m *Mockec2clientstub) AcceptVpcEndpointConnectionsAsync(ctx internal.Context, input *ec2.AcceptVpcEndpointConnectionsInput) (_result_0 *ec2stub.AcceptVpcEndpointConnectionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AcceptVpcEndpointConnectionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptVpcEndpointConnectionsInput) *ec2stub.EC2AcceptVpcEndpointConnectionsFuture); ok {
+	var r0 *ec2stub.AcceptVpcEndpointConnectionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptVpcEndpointConnectionsInput) *ec2stub.AcceptVpcEndpointConnectionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AcceptVpcEndpointConnectionsFuture)
+			r0 = ret.Get(0).(*ec2stub.AcceptVpcEndpointConnectionsFuture)
 		}
 	}
 
@@ -197,15 +197,15 @@ func (_m *Mockec2clientstub) AcceptVpcPeeringConnection(ctx internal.Context, in
 }
 
 // AcceptVpcPeeringConnectionAsync provides a mock function.
-func (_m *Mockec2clientstub) AcceptVpcPeeringConnectionAsync(ctx internal.Context, input *ec2.AcceptVpcPeeringConnectionInput) (_result_0 *ec2stub.EC2AcceptVpcPeeringConnectionFuture) {
+func (_m *Mockec2clientstub) AcceptVpcPeeringConnectionAsync(ctx internal.Context, input *ec2.AcceptVpcPeeringConnectionInput) (_result_0 *ec2stub.AcceptVpcPeeringConnectionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AcceptVpcPeeringConnectionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptVpcPeeringConnectionInput) *ec2stub.EC2AcceptVpcPeeringConnectionFuture); ok {
+	var r0 *ec2stub.AcceptVpcPeeringConnectionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptVpcPeeringConnectionInput) *ec2stub.AcceptVpcPeeringConnectionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AcceptVpcPeeringConnectionFuture)
+			r0 = ret.Get(0).(*ec2stub.AcceptVpcPeeringConnectionFuture)
 		}
 	}
 
@@ -236,15 +236,15 @@ func (_m *Mockec2clientstub) AdvertiseByoipCidr(ctx internal.Context, input *ec2
 }
 
 // AdvertiseByoipCidrAsync provides a mock function.
-func (_m *Mockec2clientstub) AdvertiseByoipCidrAsync(ctx internal.Context, input *ec2.AdvertiseByoipCidrInput) (_result_0 *ec2stub.EC2AdvertiseByoipCidrFuture) {
+func (_m *Mockec2clientstub) AdvertiseByoipCidrAsync(ctx internal.Context, input *ec2.AdvertiseByoipCidrInput) (_result_0 *ec2stub.AdvertiseByoipCidrFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AdvertiseByoipCidrFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AdvertiseByoipCidrInput) *ec2stub.EC2AdvertiseByoipCidrFuture); ok {
+	var r0 *ec2stub.AdvertiseByoipCidrFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AdvertiseByoipCidrInput) *ec2stub.AdvertiseByoipCidrFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AdvertiseByoipCidrFuture)
+			r0 = ret.Get(0).(*ec2stub.AdvertiseByoipCidrFuture)
 		}
 	}
 
@@ -275,15 +275,15 @@ func (_m *Mockec2clientstub) AllocateAddress(ctx internal.Context, input *ec2.Al
 }
 
 // AllocateAddressAsync provides a mock function.
-func (_m *Mockec2clientstub) AllocateAddressAsync(ctx internal.Context, input *ec2.AllocateAddressInput) (_result_0 *ec2stub.EC2AllocateAddressFuture) {
+func (_m *Mockec2clientstub) AllocateAddressAsync(ctx internal.Context, input *ec2.AllocateAddressInput) (_result_0 *ec2stub.AllocateAddressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AllocateAddressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AllocateAddressInput) *ec2stub.EC2AllocateAddressFuture); ok {
+	var r0 *ec2stub.AllocateAddressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AllocateAddressInput) *ec2stub.AllocateAddressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AllocateAddressFuture)
+			r0 = ret.Get(0).(*ec2stub.AllocateAddressFuture)
 		}
 	}
 
@@ -314,15 +314,15 @@ func (_m *Mockec2clientstub) AllocateHosts(ctx internal.Context, input *ec2.Allo
 }
 
 // AllocateHostsAsync provides a mock function.
-func (_m *Mockec2clientstub) AllocateHostsAsync(ctx internal.Context, input *ec2.AllocateHostsInput) (_result_0 *ec2stub.EC2AllocateHostsFuture) {
+func (_m *Mockec2clientstub) AllocateHostsAsync(ctx internal.Context, input *ec2.AllocateHostsInput) (_result_0 *ec2stub.AllocateHostsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AllocateHostsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AllocateHostsInput) *ec2stub.EC2AllocateHostsFuture); ok {
+	var r0 *ec2stub.AllocateHostsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AllocateHostsInput) *ec2stub.AllocateHostsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AllocateHostsFuture)
+			r0 = ret.Get(0).(*ec2stub.AllocateHostsFuture)
 		}
 	}
 
@@ -353,15 +353,15 @@ func (_m *Mockec2clientstub) ApplySecurityGroupsToClientVpnTargetNetwork(ctx int
 }
 
 // ApplySecurityGroupsToClientVpnTargetNetworkAsync provides a mock function.
-func (_m *Mockec2clientstub) ApplySecurityGroupsToClientVpnTargetNetworkAsync(ctx internal.Context, input *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) (_result_0 *ec2stub.EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture) {
+func (_m *Mockec2clientstub) ApplySecurityGroupsToClientVpnTargetNetworkAsync(ctx internal.Context, input *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) (_result_0 *ec2stub.ApplySecurityGroupsToClientVpnTargetNetworkFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *ec2stub.EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture); ok {
+	var r0 *ec2stub.ApplySecurityGroupsToClientVpnTargetNetworkFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *ec2stub.ApplySecurityGroupsToClientVpnTargetNetworkFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture)
+			r0 = ret.Get(0).(*ec2stub.ApplySecurityGroupsToClientVpnTargetNetworkFuture)
 		}
 	}
 
@@ -392,15 +392,15 @@ func (_m *Mockec2clientstub) AssignIpv6Addresses(ctx internal.Context, input *ec
 }
 
 // AssignIpv6AddressesAsync provides a mock function.
-func (_m *Mockec2clientstub) AssignIpv6AddressesAsync(ctx internal.Context, input *ec2.AssignIpv6AddressesInput) (_result_0 *ec2stub.EC2AssignIpv6AddressesFuture) {
+func (_m *Mockec2clientstub) AssignIpv6AddressesAsync(ctx internal.Context, input *ec2.AssignIpv6AddressesInput) (_result_0 *ec2stub.AssignIpv6AddressesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssignIpv6AddressesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssignIpv6AddressesInput) *ec2stub.EC2AssignIpv6AddressesFuture); ok {
+	var r0 *ec2stub.AssignIpv6AddressesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssignIpv6AddressesInput) *ec2stub.AssignIpv6AddressesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssignIpv6AddressesFuture)
+			r0 = ret.Get(0).(*ec2stub.AssignIpv6AddressesFuture)
 		}
 	}
 
@@ -431,15 +431,15 @@ func (_m *Mockec2clientstub) AssignPrivateIpAddresses(ctx internal.Context, inpu
 }
 
 // AssignPrivateIpAddressesAsync provides a mock function.
-func (_m *Mockec2clientstub) AssignPrivateIpAddressesAsync(ctx internal.Context, input *ec2.AssignPrivateIpAddressesInput) (_result_0 *ec2stub.EC2AssignPrivateIpAddressesFuture) {
+func (_m *Mockec2clientstub) AssignPrivateIpAddressesAsync(ctx internal.Context, input *ec2.AssignPrivateIpAddressesInput) (_result_0 *ec2stub.AssignPrivateIpAddressesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssignPrivateIpAddressesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssignPrivateIpAddressesInput) *ec2stub.EC2AssignPrivateIpAddressesFuture); ok {
+	var r0 *ec2stub.AssignPrivateIpAddressesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssignPrivateIpAddressesInput) *ec2stub.AssignPrivateIpAddressesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssignPrivateIpAddressesFuture)
+			r0 = ret.Get(0).(*ec2stub.AssignPrivateIpAddressesFuture)
 		}
 	}
 
@@ -470,15 +470,15 @@ func (_m *Mockec2clientstub) AssociateAddress(ctx internal.Context, input *ec2.A
 }
 
 // AssociateAddressAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateAddressAsync(ctx internal.Context, input *ec2.AssociateAddressInput) (_result_0 *ec2stub.EC2AssociateAddressFuture) {
+func (_m *Mockec2clientstub) AssociateAddressAsync(ctx internal.Context, input *ec2.AssociateAddressInput) (_result_0 *ec2stub.AssociateAddressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateAddressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateAddressInput) *ec2stub.EC2AssociateAddressFuture); ok {
+	var r0 *ec2stub.AssociateAddressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateAddressInput) *ec2stub.AssociateAddressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateAddressFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateAddressFuture)
 		}
 	}
 
@@ -509,15 +509,15 @@ func (_m *Mockec2clientstub) AssociateClientVpnTargetNetwork(ctx internal.Contex
 }
 
 // AssociateClientVpnTargetNetworkAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateClientVpnTargetNetworkAsync(ctx internal.Context, input *ec2.AssociateClientVpnTargetNetworkInput) (_result_0 *ec2stub.EC2AssociateClientVpnTargetNetworkFuture) {
+func (_m *Mockec2clientstub) AssociateClientVpnTargetNetworkAsync(ctx internal.Context, input *ec2.AssociateClientVpnTargetNetworkInput) (_result_0 *ec2stub.AssociateClientVpnTargetNetworkFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateClientVpnTargetNetworkFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateClientVpnTargetNetworkInput) *ec2stub.EC2AssociateClientVpnTargetNetworkFuture); ok {
+	var r0 *ec2stub.AssociateClientVpnTargetNetworkFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateClientVpnTargetNetworkInput) *ec2stub.AssociateClientVpnTargetNetworkFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateClientVpnTargetNetworkFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateClientVpnTargetNetworkFuture)
 		}
 	}
 
@@ -548,15 +548,15 @@ func (_m *Mockec2clientstub) AssociateDhcpOptions(ctx internal.Context, input *e
 }
 
 // AssociateDhcpOptionsAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateDhcpOptionsAsync(ctx internal.Context, input *ec2.AssociateDhcpOptionsInput) (_result_0 *ec2stub.EC2AssociateDhcpOptionsFuture) {
+func (_m *Mockec2clientstub) AssociateDhcpOptionsAsync(ctx internal.Context, input *ec2.AssociateDhcpOptionsInput) (_result_0 *ec2stub.AssociateDhcpOptionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateDhcpOptionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateDhcpOptionsInput) *ec2stub.EC2AssociateDhcpOptionsFuture); ok {
+	var r0 *ec2stub.AssociateDhcpOptionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateDhcpOptionsInput) *ec2stub.AssociateDhcpOptionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateDhcpOptionsFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateDhcpOptionsFuture)
 		}
 	}
 
@@ -587,15 +587,15 @@ func (_m *Mockec2clientstub) AssociateEnclaveCertificateIamRole(ctx internal.Con
 }
 
 // AssociateEnclaveCertificateIamRoleAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateEnclaveCertificateIamRoleAsync(ctx internal.Context, input *ec2.AssociateEnclaveCertificateIamRoleInput) (_result_0 *ec2stub.EC2AssociateEnclaveCertificateIamRoleFuture) {
+func (_m *Mockec2clientstub) AssociateEnclaveCertificateIamRoleAsync(ctx internal.Context, input *ec2.AssociateEnclaveCertificateIamRoleInput) (_result_0 *ec2stub.AssociateEnclaveCertificateIamRoleFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateEnclaveCertificateIamRoleFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateEnclaveCertificateIamRoleInput) *ec2stub.EC2AssociateEnclaveCertificateIamRoleFuture); ok {
+	var r0 *ec2stub.AssociateEnclaveCertificateIamRoleFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateEnclaveCertificateIamRoleInput) *ec2stub.AssociateEnclaveCertificateIamRoleFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateEnclaveCertificateIamRoleFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateEnclaveCertificateIamRoleFuture)
 		}
 	}
 
@@ -626,15 +626,15 @@ func (_m *Mockec2clientstub) AssociateIamInstanceProfile(ctx internal.Context, i
 }
 
 // AssociateIamInstanceProfileAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateIamInstanceProfileAsync(ctx internal.Context, input *ec2.AssociateIamInstanceProfileInput) (_result_0 *ec2stub.EC2AssociateIamInstanceProfileFuture) {
+func (_m *Mockec2clientstub) AssociateIamInstanceProfileAsync(ctx internal.Context, input *ec2.AssociateIamInstanceProfileInput) (_result_0 *ec2stub.AssociateIamInstanceProfileFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateIamInstanceProfileFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateIamInstanceProfileInput) *ec2stub.EC2AssociateIamInstanceProfileFuture); ok {
+	var r0 *ec2stub.AssociateIamInstanceProfileFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateIamInstanceProfileInput) *ec2stub.AssociateIamInstanceProfileFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateIamInstanceProfileFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateIamInstanceProfileFuture)
 		}
 	}
 
@@ -665,15 +665,15 @@ func (_m *Mockec2clientstub) AssociateRouteTable(ctx internal.Context, input *ec
 }
 
 // AssociateRouteTableAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateRouteTableAsync(ctx internal.Context, input *ec2.AssociateRouteTableInput) (_result_0 *ec2stub.EC2AssociateRouteTableFuture) {
+func (_m *Mockec2clientstub) AssociateRouteTableAsync(ctx internal.Context, input *ec2.AssociateRouteTableInput) (_result_0 *ec2stub.AssociateRouteTableFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateRouteTableFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateRouteTableInput) *ec2stub.EC2AssociateRouteTableFuture); ok {
+	var r0 *ec2stub.AssociateRouteTableFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateRouteTableInput) *ec2stub.AssociateRouteTableFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateRouteTableFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateRouteTableFuture)
 		}
 	}
 
@@ -704,15 +704,15 @@ func (_m *Mockec2clientstub) AssociateSubnetCidrBlock(ctx internal.Context, inpu
 }
 
 // AssociateSubnetCidrBlockAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateSubnetCidrBlockAsync(ctx internal.Context, input *ec2.AssociateSubnetCidrBlockInput) (_result_0 *ec2stub.EC2AssociateSubnetCidrBlockFuture) {
+func (_m *Mockec2clientstub) AssociateSubnetCidrBlockAsync(ctx internal.Context, input *ec2.AssociateSubnetCidrBlockInput) (_result_0 *ec2stub.AssociateSubnetCidrBlockFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateSubnetCidrBlockFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateSubnetCidrBlockInput) *ec2stub.EC2AssociateSubnetCidrBlockFuture); ok {
+	var r0 *ec2stub.AssociateSubnetCidrBlockFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateSubnetCidrBlockInput) *ec2stub.AssociateSubnetCidrBlockFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateSubnetCidrBlockFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateSubnetCidrBlockFuture)
 		}
 	}
 
@@ -743,15 +743,15 @@ func (_m *Mockec2clientstub) AssociateTransitGatewayMulticastDomain(ctx internal
 }
 
 // AssociateTransitGatewayMulticastDomainAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateTransitGatewayMulticastDomainAsync(ctx internal.Context, input *ec2.AssociateTransitGatewayMulticastDomainInput) (_result_0 *ec2stub.EC2AssociateTransitGatewayMulticastDomainFuture) {
+func (_m *Mockec2clientstub) AssociateTransitGatewayMulticastDomainAsync(ctx internal.Context, input *ec2.AssociateTransitGatewayMulticastDomainInput) (_result_0 *ec2stub.AssociateTransitGatewayMulticastDomainFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateTransitGatewayMulticastDomainFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateTransitGatewayMulticastDomainInput) *ec2stub.EC2AssociateTransitGatewayMulticastDomainFuture); ok {
+	var r0 *ec2stub.AssociateTransitGatewayMulticastDomainFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateTransitGatewayMulticastDomainInput) *ec2stub.AssociateTransitGatewayMulticastDomainFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateTransitGatewayMulticastDomainFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateTransitGatewayMulticastDomainFuture)
 		}
 	}
 
@@ -782,15 +782,15 @@ func (_m *Mockec2clientstub) AssociateTransitGatewayRouteTable(ctx internal.Cont
 }
 
 // AssociateTransitGatewayRouteTableAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateTransitGatewayRouteTableAsync(ctx internal.Context, input *ec2.AssociateTransitGatewayRouteTableInput) (_result_0 *ec2stub.EC2AssociateTransitGatewayRouteTableFuture) {
+func (_m *Mockec2clientstub) AssociateTransitGatewayRouteTableAsync(ctx internal.Context, input *ec2.AssociateTransitGatewayRouteTableInput) (_result_0 *ec2stub.AssociateTransitGatewayRouteTableFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateTransitGatewayRouteTableFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateTransitGatewayRouteTableInput) *ec2stub.EC2AssociateTransitGatewayRouteTableFuture); ok {
+	var r0 *ec2stub.AssociateTransitGatewayRouteTableFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateTransitGatewayRouteTableInput) *ec2stub.AssociateTransitGatewayRouteTableFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateTransitGatewayRouteTableFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateTransitGatewayRouteTableFuture)
 		}
 	}
 
@@ -821,15 +821,15 @@ func (_m *Mockec2clientstub) AssociateVpcCidrBlock(ctx internal.Context, input *
 }
 
 // AssociateVpcCidrBlockAsync provides a mock function.
-func (_m *Mockec2clientstub) AssociateVpcCidrBlockAsync(ctx internal.Context, input *ec2.AssociateVpcCidrBlockInput) (_result_0 *ec2stub.EC2AssociateVpcCidrBlockFuture) {
+func (_m *Mockec2clientstub) AssociateVpcCidrBlockAsync(ctx internal.Context, input *ec2.AssociateVpcCidrBlockInput) (_result_0 *ec2stub.AssociateVpcCidrBlockFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AssociateVpcCidrBlockFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateVpcCidrBlockInput) *ec2stub.EC2AssociateVpcCidrBlockFuture); ok {
+	var r0 *ec2stub.AssociateVpcCidrBlockFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AssociateVpcCidrBlockInput) *ec2stub.AssociateVpcCidrBlockFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AssociateVpcCidrBlockFuture)
+			r0 = ret.Get(0).(*ec2stub.AssociateVpcCidrBlockFuture)
 		}
 	}
 
@@ -860,15 +860,15 @@ func (_m *Mockec2clientstub) AttachClassicLinkVpc(ctx internal.Context, input *e
 }
 
 // AttachClassicLinkVpcAsync provides a mock function.
-func (_m *Mockec2clientstub) AttachClassicLinkVpcAsync(ctx internal.Context, input *ec2.AttachClassicLinkVpcInput) (_result_0 *ec2stub.EC2AttachClassicLinkVpcFuture) {
+func (_m *Mockec2clientstub) AttachClassicLinkVpcAsync(ctx internal.Context, input *ec2.AttachClassicLinkVpcInput) (_result_0 *ec2stub.AttachClassicLinkVpcFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AttachClassicLinkVpcFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachClassicLinkVpcInput) *ec2stub.EC2AttachClassicLinkVpcFuture); ok {
+	var r0 *ec2stub.AttachClassicLinkVpcFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachClassicLinkVpcInput) *ec2stub.AttachClassicLinkVpcFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AttachClassicLinkVpcFuture)
+			r0 = ret.Get(0).(*ec2stub.AttachClassicLinkVpcFuture)
 		}
 	}
 
@@ -899,15 +899,15 @@ func (_m *Mockec2clientstub) AttachInternetGateway(ctx internal.Context, input *
 }
 
 // AttachInternetGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) AttachInternetGatewayAsync(ctx internal.Context, input *ec2.AttachInternetGatewayInput) (_result_0 *ec2stub.EC2AttachInternetGatewayFuture) {
+func (_m *Mockec2clientstub) AttachInternetGatewayAsync(ctx internal.Context, input *ec2.AttachInternetGatewayInput) (_result_0 *ec2stub.AttachInternetGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AttachInternetGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachInternetGatewayInput) *ec2stub.EC2AttachInternetGatewayFuture); ok {
+	var r0 *ec2stub.AttachInternetGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachInternetGatewayInput) *ec2stub.AttachInternetGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AttachInternetGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.AttachInternetGatewayFuture)
 		}
 	}
 
@@ -938,15 +938,15 @@ func (_m *Mockec2clientstub) AttachNetworkInterface(ctx internal.Context, input 
 }
 
 // AttachNetworkInterfaceAsync provides a mock function.
-func (_m *Mockec2clientstub) AttachNetworkInterfaceAsync(ctx internal.Context, input *ec2.AttachNetworkInterfaceInput) (_result_0 *ec2stub.EC2AttachNetworkInterfaceFuture) {
+func (_m *Mockec2clientstub) AttachNetworkInterfaceAsync(ctx internal.Context, input *ec2.AttachNetworkInterfaceInput) (_result_0 *ec2stub.AttachNetworkInterfaceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AttachNetworkInterfaceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachNetworkInterfaceInput) *ec2stub.EC2AttachNetworkInterfaceFuture); ok {
+	var r0 *ec2stub.AttachNetworkInterfaceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachNetworkInterfaceInput) *ec2stub.AttachNetworkInterfaceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AttachNetworkInterfaceFuture)
+			r0 = ret.Get(0).(*ec2stub.AttachNetworkInterfaceFuture)
 		}
 	}
 
@@ -977,15 +977,15 @@ func (_m *Mockec2clientstub) AttachVolume(ctx internal.Context, input *ec2.Attac
 }
 
 // AttachVolumeAsync provides a mock function.
-func (_m *Mockec2clientstub) AttachVolumeAsync(ctx internal.Context, input *ec2.AttachVolumeInput) (_result_0 *ec2stub.EC2AttachVolumeFuture) {
+func (_m *Mockec2clientstub) AttachVolumeAsync(ctx internal.Context, input *ec2.AttachVolumeInput) (_result_0 *ec2stub.AttachVolumeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AttachVolumeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachVolumeInput) *ec2stub.EC2AttachVolumeFuture); ok {
+	var r0 *ec2stub.AttachVolumeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachVolumeInput) *ec2stub.AttachVolumeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AttachVolumeFuture)
+			r0 = ret.Get(0).(*ec2stub.AttachVolumeFuture)
 		}
 	}
 
@@ -1016,15 +1016,15 @@ func (_m *Mockec2clientstub) AttachVpnGateway(ctx internal.Context, input *ec2.A
 }
 
 // AttachVpnGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) AttachVpnGatewayAsync(ctx internal.Context, input *ec2.AttachVpnGatewayInput) (_result_0 *ec2stub.EC2AttachVpnGatewayFuture) {
+func (_m *Mockec2clientstub) AttachVpnGatewayAsync(ctx internal.Context, input *ec2.AttachVpnGatewayInput) (_result_0 *ec2stub.AttachVpnGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AttachVpnGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachVpnGatewayInput) *ec2stub.EC2AttachVpnGatewayFuture); ok {
+	var r0 *ec2stub.AttachVpnGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AttachVpnGatewayInput) *ec2stub.AttachVpnGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AttachVpnGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.AttachVpnGatewayFuture)
 		}
 	}
 
@@ -1055,15 +1055,15 @@ func (_m *Mockec2clientstub) AuthorizeClientVpnIngress(ctx internal.Context, inp
 }
 
 // AuthorizeClientVpnIngressAsync provides a mock function.
-func (_m *Mockec2clientstub) AuthorizeClientVpnIngressAsync(ctx internal.Context, input *ec2.AuthorizeClientVpnIngressInput) (_result_0 *ec2stub.EC2AuthorizeClientVpnIngressFuture) {
+func (_m *Mockec2clientstub) AuthorizeClientVpnIngressAsync(ctx internal.Context, input *ec2.AuthorizeClientVpnIngressInput) (_result_0 *ec2stub.AuthorizeClientVpnIngressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AuthorizeClientVpnIngressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AuthorizeClientVpnIngressInput) *ec2stub.EC2AuthorizeClientVpnIngressFuture); ok {
+	var r0 *ec2stub.AuthorizeClientVpnIngressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AuthorizeClientVpnIngressInput) *ec2stub.AuthorizeClientVpnIngressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AuthorizeClientVpnIngressFuture)
+			r0 = ret.Get(0).(*ec2stub.AuthorizeClientVpnIngressFuture)
 		}
 	}
 
@@ -1094,15 +1094,15 @@ func (_m *Mockec2clientstub) AuthorizeSecurityGroupEgress(ctx internal.Context, 
 }
 
 // AuthorizeSecurityGroupEgressAsync provides a mock function.
-func (_m *Mockec2clientstub) AuthorizeSecurityGroupEgressAsync(ctx internal.Context, input *ec2.AuthorizeSecurityGroupEgressInput) (_result_0 *ec2stub.EC2AuthorizeSecurityGroupEgressFuture) {
+func (_m *Mockec2clientstub) AuthorizeSecurityGroupEgressAsync(ctx internal.Context, input *ec2.AuthorizeSecurityGroupEgressInput) (_result_0 *ec2stub.AuthorizeSecurityGroupEgressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AuthorizeSecurityGroupEgressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AuthorizeSecurityGroupEgressInput) *ec2stub.EC2AuthorizeSecurityGroupEgressFuture); ok {
+	var r0 *ec2stub.AuthorizeSecurityGroupEgressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AuthorizeSecurityGroupEgressInput) *ec2stub.AuthorizeSecurityGroupEgressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AuthorizeSecurityGroupEgressFuture)
+			r0 = ret.Get(0).(*ec2stub.AuthorizeSecurityGroupEgressFuture)
 		}
 	}
 
@@ -1133,15 +1133,15 @@ func (_m *Mockec2clientstub) AuthorizeSecurityGroupIngress(ctx internal.Context,
 }
 
 // AuthorizeSecurityGroupIngressAsync provides a mock function.
-func (_m *Mockec2clientstub) AuthorizeSecurityGroupIngressAsync(ctx internal.Context, input *ec2.AuthorizeSecurityGroupIngressInput) (_result_0 *ec2stub.EC2AuthorizeSecurityGroupIngressFuture) {
+func (_m *Mockec2clientstub) AuthorizeSecurityGroupIngressAsync(ctx internal.Context, input *ec2.AuthorizeSecurityGroupIngressInput) (_result_0 *ec2stub.AuthorizeSecurityGroupIngressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2AuthorizeSecurityGroupIngressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AuthorizeSecurityGroupIngressInput) *ec2stub.EC2AuthorizeSecurityGroupIngressFuture); ok {
+	var r0 *ec2stub.AuthorizeSecurityGroupIngressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AuthorizeSecurityGroupIngressInput) *ec2stub.AuthorizeSecurityGroupIngressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2AuthorizeSecurityGroupIngressFuture)
+			r0 = ret.Get(0).(*ec2stub.AuthorizeSecurityGroupIngressFuture)
 		}
 	}
 
@@ -1172,15 +1172,15 @@ func (_m *Mockec2clientstub) BundleInstance(ctx internal.Context, input *ec2.Bun
 }
 
 // BundleInstanceAsync provides a mock function.
-func (_m *Mockec2clientstub) BundleInstanceAsync(ctx internal.Context, input *ec2.BundleInstanceInput) (_result_0 *ec2stub.EC2BundleInstanceFuture) {
+func (_m *Mockec2clientstub) BundleInstanceAsync(ctx internal.Context, input *ec2.BundleInstanceInput) (_result_0 *ec2stub.BundleInstanceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2BundleInstanceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.BundleInstanceInput) *ec2stub.EC2BundleInstanceFuture); ok {
+	var r0 *ec2stub.BundleInstanceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.BundleInstanceInput) *ec2stub.BundleInstanceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2BundleInstanceFuture)
+			r0 = ret.Get(0).(*ec2stub.BundleInstanceFuture)
 		}
 	}
 
@@ -1211,15 +1211,15 @@ func (_m *Mockec2clientstub) CancelBundleTask(ctx internal.Context, input *ec2.C
 }
 
 // CancelBundleTaskAsync provides a mock function.
-func (_m *Mockec2clientstub) CancelBundleTaskAsync(ctx internal.Context, input *ec2.CancelBundleTaskInput) (_result_0 *ec2stub.EC2CancelBundleTaskFuture) {
+func (_m *Mockec2clientstub) CancelBundleTaskAsync(ctx internal.Context, input *ec2.CancelBundleTaskInput) (_result_0 *ec2stub.CancelBundleTaskFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CancelBundleTaskFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelBundleTaskInput) *ec2stub.EC2CancelBundleTaskFuture); ok {
+	var r0 *ec2stub.CancelBundleTaskFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelBundleTaskInput) *ec2stub.CancelBundleTaskFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CancelBundleTaskFuture)
+			r0 = ret.Get(0).(*ec2stub.CancelBundleTaskFuture)
 		}
 	}
 
@@ -1250,15 +1250,15 @@ func (_m *Mockec2clientstub) CancelCapacityReservation(ctx internal.Context, inp
 }
 
 // CancelCapacityReservationAsync provides a mock function.
-func (_m *Mockec2clientstub) CancelCapacityReservationAsync(ctx internal.Context, input *ec2.CancelCapacityReservationInput) (_result_0 *ec2stub.EC2CancelCapacityReservationFuture) {
+func (_m *Mockec2clientstub) CancelCapacityReservationAsync(ctx internal.Context, input *ec2.CancelCapacityReservationInput) (_result_0 *ec2stub.CancelCapacityReservationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CancelCapacityReservationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelCapacityReservationInput) *ec2stub.EC2CancelCapacityReservationFuture); ok {
+	var r0 *ec2stub.CancelCapacityReservationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelCapacityReservationInput) *ec2stub.CancelCapacityReservationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CancelCapacityReservationFuture)
+			r0 = ret.Get(0).(*ec2stub.CancelCapacityReservationFuture)
 		}
 	}
 
@@ -1289,15 +1289,15 @@ func (_m *Mockec2clientstub) CancelConversionTask(ctx internal.Context, input *e
 }
 
 // CancelConversionTaskAsync provides a mock function.
-func (_m *Mockec2clientstub) CancelConversionTaskAsync(ctx internal.Context, input *ec2.CancelConversionTaskInput) (_result_0 *ec2stub.EC2CancelConversionTaskFuture) {
+func (_m *Mockec2clientstub) CancelConversionTaskAsync(ctx internal.Context, input *ec2.CancelConversionTaskInput) (_result_0 *ec2stub.CancelConversionTaskFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CancelConversionTaskFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelConversionTaskInput) *ec2stub.EC2CancelConversionTaskFuture); ok {
+	var r0 *ec2stub.CancelConversionTaskFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelConversionTaskInput) *ec2stub.CancelConversionTaskFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CancelConversionTaskFuture)
+			r0 = ret.Get(0).(*ec2stub.CancelConversionTaskFuture)
 		}
 	}
 
@@ -1328,15 +1328,15 @@ func (_m *Mockec2clientstub) CancelExportTask(ctx internal.Context, input *ec2.C
 }
 
 // CancelExportTaskAsync provides a mock function.
-func (_m *Mockec2clientstub) CancelExportTaskAsync(ctx internal.Context, input *ec2.CancelExportTaskInput) (_result_0 *ec2stub.EC2CancelExportTaskFuture) {
+func (_m *Mockec2clientstub) CancelExportTaskAsync(ctx internal.Context, input *ec2.CancelExportTaskInput) (_result_0 *ec2stub.CancelExportTaskFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CancelExportTaskFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelExportTaskInput) *ec2stub.EC2CancelExportTaskFuture); ok {
+	var r0 *ec2stub.CancelExportTaskFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelExportTaskInput) *ec2stub.CancelExportTaskFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CancelExportTaskFuture)
+			r0 = ret.Get(0).(*ec2stub.CancelExportTaskFuture)
 		}
 	}
 
@@ -1367,15 +1367,15 @@ func (_m *Mockec2clientstub) CancelImportTask(ctx internal.Context, input *ec2.C
 }
 
 // CancelImportTaskAsync provides a mock function.
-func (_m *Mockec2clientstub) CancelImportTaskAsync(ctx internal.Context, input *ec2.CancelImportTaskInput) (_result_0 *ec2stub.EC2CancelImportTaskFuture) {
+func (_m *Mockec2clientstub) CancelImportTaskAsync(ctx internal.Context, input *ec2.CancelImportTaskInput) (_result_0 *ec2stub.CancelImportTaskFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CancelImportTaskFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelImportTaskInput) *ec2stub.EC2CancelImportTaskFuture); ok {
+	var r0 *ec2stub.CancelImportTaskFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelImportTaskInput) *ec2stub.CancelImportTaskFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CancelImportTaskFuture)
+			r0 = ret.Get(0).(*ec2stub.CancelImportTaskFuture)
 		}
 	}
 
@@ -1406,15 +1406,15 @@ func (_m *Mockec2clientstub) CancelReservedInstancesListing(ctx internal.Context
 }
 
 // CancelReservedInstancesListingAsync provides a mock function.
-func (_m *Mockec2clientstub) CancelReservedInstancesListingAsync(ctx internal.Context, input *ec2.CancelReservedInstancesListingInput) (_result_0 *ec2stub.EC2CancelReservedInstancesListingFuture) {
+func (_m *Mockec2clientstub) CancelReservedInstancesListingAsync(ctx internal.Context, input *ec2.CancelReservedInstancesListingInput) (_result_0 *ec2stub.CancelReservedInstancesListingFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CancelReservedInstancesListingFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelReservedInstancesListingInput) *ec2stub.EC2CancelReservedInstancesListingFuture); ok {
+	var r0 *ec2stub.CancelReservedInstancesListingFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelReservedInstancesListingInput) *ec2stub.CancelReservedInstancesListingFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CancelReservedInstancesListingFuture)
+			r0 = ret.Get(0).(*ec2stub.CancelReservedInstancesListingFuture)
 		}
 	}
 
@@ -1445,15 +1445,15 @@ func (_m *Mockec2clientstub) CancelSpotFleetRequests(ctx internal.Context, input
 }
 
 // CancelSpotFleetRequestsAsync provides a mock function.
-func (_m *Mockec2clientstub) CancelSpotFleetRequestsAsync(ctx internal.Context, input *ec2.CancelSpotFleetRequestsInput) (_result_0 *ec2stub.EC2CancelSpotFleetRequestsFuture) {
+func (_m *Mockec2clientstub) CancelSpotFleetRequestsAsync(ctx internal.Context, input *ec2.CancelSpotFleetRequestsInput) (_result_0 *ec2stub.CancelSpotFleetRequestsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CancelSpotFleetRequestsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelSpotFleetRequestsInput) *ec2stub.EC2CancelSpotFleetRequestsFuture); ok {
+	var r0 *ec2stub.CancelSpotFleetRequestsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelSpotFleetRequestsInput) *ec2stub.CancelSpotFleetRequestsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CancelSpotFleetRequestsFuture)
+			r0 = ret.Get(0).(*ec2stub.CancelSpotFleetRequestsFuture)
 		}
 	}
 
@@ -1484,15 +1484,15 @@ func (_m *Mockec2clientstub) CancelSpotInstanceRequests(ctx internal.Context, in
 }
 
 // CancelSpotInstanceRequestsAsync provides a mock function.
-func (_m *Mockec2clientstub) CancelSpotInstanceRequestsAsync(ctx internal.Context, input *ec2.CancelSpotInstanceRequestsInput) (_result_0 *ec2stub.EC2CancelSpotInstanceRequestsFuture) {
+func (_m *Mockec2clientstub) CancelSpotInstanceRequestsAsync(ctx internal.Context, input *ec2.CancelSpotInstanceRequestsInput) (_result_0 *ec2stub.CancelSpotInstanceRequestsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CancelSpotInstanceRequestsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelSpotInstanceRequestsInput) *ec2stub.EC2CancelSpotInstanceRequestsFuture); ok {
+	var r0 *ec2stub.CancelSpotInstanceRequestsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CancelSpotInstanceRequestsInput) *ec2stub.CancelSpotInstanceRequestsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CancelSpotInstanceRequestsFuture)
+			r0 = ret.Get(0).(*ec2stub.CancelSpotInstanceRequestsFuture)
 		}
 	}
 
@@ -1523,15 +1523,15 @@ func (_m *Mockec2clientstub) ConfirmProductInstance(ctx internal.Context, input 
 }
 
 // ConfirmProductInstanceAsync provides a mock function.
-func (_m *Mockec2clientstub) ConfirmProductInstanceAsync(ctx internal.Context, input *ec2.ConfirmProductInstanceInput) (_result_0 *ec2stub.EC2ConfirmProductInstanceFuture) {
+func (_m *Mockec2clientstub) ConfirmProductInstanceAsync(ctx internal.Context, input *ec2.ConfirmProductInstanceInput) (_result_0 *ec2stub.ConfirmProductInstanceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ConfirmProductInstanceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ConfirmProductInstanceInput) *ec2stub.EC2ConfirmProductInstanceFuture); ok {
+	var r0 *ec2stub.ConfirmProductInstanceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ConfirmProductInstanceInput) *ec2stub.ConfirmProductInstanceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ConfirmProductInstanceFuture)
+			r0 = ret.Get(0).(*ec2stub.ConfirmProductInstanceFuture)
 		}
 	}
 
@@ -1562,15 +1562,15 @@ func (_m *Mockec2clientstub) CopyFpgaImage(ctx internal.Context, input *ec2.Copy
 }
 
 // CopyFpgaImageAsync provides a mock function.
-func (_m *Mockec2clientstub) CopyFpgaImageAsync(ctx internal.Context, input *ec2.CopyFpgaImageInput) (_result_0 *ec2stub.EC2CopyFpgaImageFuture) {
+func (_m *Mockec2clientstub) CopyFpgaImageAsync(ctx internal.Context, input *ec2.CopyFpgaImageInput) (_result_0 *ec2stub.CopyFpgaImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CopyFpgaImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CopyFpgaImageInput) *ec2stub.EC2CopyFpgaImageFuture); ok {
+	var r0 *ec2stub.CopyFpgaImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CopyFpgaImageInput) *ec2stub.CopyFpgaImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CopyFpgaImageFuture)
+			r0 = ret.Get(0).(*ec2stub.CopyFpgaImageFuture)
 		}
 	}
 
@@ -1601,15 +1601,15 @@ func (_m *Mockec2clientstub) CopyImage(ctx internal.Context, input *ec2.CopyImag
 }
 
 // CopyImageAsync provides a mock function.
-func (_m *Mockec2clientstub) CopyImageAsync(ctx internal.Context, input *ec2.CopyImageInput) (_result_0 *ec2stub.EC2CopyImageFuture) {
+func (_m *Mockec2clientstub) CopyImageAsync(ctx internal.Context, input *ec2.CopyImageInput) (_result_0 *ec2stub.CopyImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CopyImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CopyImageInput) *ec2stub.EC2CopyImageFuture); ok {
+	var r0 *ec2stub.CopyImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CopyImageInput) *ec2stub.CopyImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CopyImageFuture)
+			r0 = ret.Get(0).(*ec2stub.CopyImageFuture)
 		}
 	}
 
@@ -1640,15 +1640,15 @@ func (_m *Mockec2clientstub) CopySnapshot(ctx internal.Context, input *ec2.CopyS
 }
 
 // CopySnapshotAsync provides a mock function.
-func (_m *Mockec2clientstub) CopySnapshotAsync(ctx internal.Context, input *ec2.CopySnapshotInput) (_result_0 *ec2stub.EC2CopySnapshotFuture) {
+func (_m *Mockec2clientstub) CopySnapshotAsync(ctx internal.Context, input *ec2.CopySnapshotInput) (_result_0 *ec2stub.CopySnapshotFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CopySnapshotFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CopySnapshotInput) *ec2stub.EC2CopySnapshotFuture); ok {
+	var r0 *ec2stub.CopySnapshotFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CopySnapshotInput) *ec2stub.CopySnapshotFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CopySnapshotFuture)
+			r0 = ret.Get(0).(*ec2stub.CopySnapshotFuture)
 		}
 	}
 
@@ -1679,15 +1679,15 @@ func (_m *Mockec2clientstub) CreateCapacityReservation(ctx internal.Context, inp
 }
 
 // CreateCapacityReservationAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateCapacityReservationAsync(ctx internal.Context, input *ec2.CreateCapacityReservationInput) (_result_0 *ec2stub.EC2CreateCapacityReservationFuture) {
+func (_m *Mockec2clientstub) CreateCapacityReservationAsync(ctx internal.Context, input *ec2.CreateCapacityReservationInput) (_result_0 *ec2stub.CreateCapacityReservationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateCapacityReservationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateCapacityReservationInput) *ec2stub.EC2CreateCapacityReservationFuture); ok {
+	var r0 *ec2stub.CreateCapacityReservationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateCapacityReservationInput) *ec2stub.CreateCapacityReservationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateCapacityReservationFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateCapacityReservationFuture)
 		}
 	}
 
@@ -1718,15 +1718,15 @@ func (_m *Mockec2clientstub) CreateCarrierGateway(ctx internal.Context, input *e
 }
 
 // CreateCarrierGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateCarrierGatewayAsync(ctx internal.Context, input *ec2.CreateCarrierGatewayInput) (_result_0 *ec2stub.EC2CreateCarrierGatewayFuture) {
+func (_m *Mockec2clientstub) CreateCarrierGatewayAsync(ctx internal.Context, input *ec2.CreateCarrierGatewayInput) (_result_0 *ec2stub.CreateCarrierGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateCarrierGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateCarrierGatewayInput) *ec2stub.EC2CreateCarrierGatewayFuture); ok {
+	var r0 *ec2stub.CreateCarrierGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateCarrierGatewayInput) *ec2stub.CreateCarrierGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateCarrierGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateCarrierGatewayFuture)
 		}
 	}
 
@@ -1757,15 +1757,15 @@ func (_m *Mockec2clientstub) CreateClientVpnEndpoint(ctx internal.Context, input
 }
 
 // CreateClientVpnEndpointAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateClientVpnEndpointAsync(ctx internal.Context, input *ec2.CreateClientVpnEndpointInput) (_result_0 *ec2stub.EC2CreateClientVpnEndpointFuture) {
+func (_m *Mockec2clientstub) CreateClientVpnEndpointAsync(ctx internal.Context, input *ec2.CreateClientVpnEndpointInput) (_result_0 *ec2stub.CreateClientVpnEndpointFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateClientVpnEndpointFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateClientVpnEndpointInput) *ec2stub.EC2CreateClientVpnEndpointFuture); ok {
+	var r0 *ec2stub.CreateClientVpnEndpointFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateClientVpnEndpointInput) *ec2stub.CreateClientVpnEndpointFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateClientVpnEndpointFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateClientVpnEndpointFuture)
 		}
 	}
 
@@ -1796,15 +1796,15 @@ func (_m *Mockec2clientstub) CreateClientVpnRoute(ctx internal.Context, input *e
 }
 
 // CreateClientVpnRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateClientVpnRouteAsync(ctx internal.Context, input *ec2.CreateClientVpnRouteInput) (_result_0 *ec2stub.EC2CreateClientVpnRouteFuture) {
+func (_m *Mockec2clientstub) CreateClientVpnRouteAsync(ctx internal.Context, input *ec2.CreateClientVpnRouteInput) (_result_0 *ec2stub.CreateClientVpnRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateClientVpnRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateClientVpnRouteInput) *ec2stub.EC2CreateClientVpnRouteFuture); ok {
+	var r0 *ec2stub.CreateClientVpnRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateClientVpnRouteInput) *ec2stub.CreateClientVpnRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateClientVpnRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateClientVpnRouteFuture)
 		}
 	}
 
@@ -1835,15 +1835,15 @@ func (_m *Mockec2clientstub) CreateCustomerGateway(ctx internal.Context, input *
 }
 
 // CreateCustomerGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateCustomerGatewayAsync(ctx internal.Context, input *ec2.CreateCustomerGatewayInput) (_result_0 *ec2stub.EC2CreateCustomerGatewayFuture) {
+func (_m *Mockec2clientstub) CreateCustomerGatewayAsync(ctx internal.Context, input *ec2.CreateCustomerGatewayInput) (_result_0 *ec2stub.CreateCustomerGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateCustomerGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateCustomerGatewayInput) *ec2stub.EC2CreateCustomerGatewayFuture); ok {
+	var r0 *ec2stub.CreateCustomerGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateCustomerGatewayInput) *ec2stub.CreateCustomerGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateCustomerGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateCustomerGatewayFuture)
 		}
 	}
 
@@ -1874,15 +1874,15 @@ func (_m *Mockec2clientstub) CreateDefaultSubnet(ctx internal.Context, input *ec
 }
 
 // CreateDefaultSubnetAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateDefaultSubnetAsync(ctx internal.Context, input *ec2.CreateDefaultSubnetInput) (_result_0 *ec2stub.EC2CreateDefaultSubnetFuture) {
+func (_m *Mockec2clientstub) CreateDefaultSubnetAsync(ctx internal.Context, input *ec2.CreateDefaultSubnetInput) (_result_0 *ec2stub.CreateDefaultSubnetFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateDefaultSubnetFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateDefaultSubnetInput) *ec2stub.EC2CreateDefaultSubnetFuture); ok {
+	var r0 *ec2stub.CreateDefaultSubnetFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateDefaultSubnetInput) *ec2stub.CreateDefaultSubnetFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateDefaultSubnetFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateDefaultSubnetFuture)
 		}
 	}
 
@@ -1913,15 +1913,15 @@ func (_m *Mockec2clientstub) CreateDefaultVpc(ctx internal.Context, input *ec2.C
 }
 
 // CreateDefaultVpcAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateDefaultVpcAsync(ctx internal.Context, input *ec2.CreateDefaultVpcInput) (_result_0 *ec2stub.EC2CreateDefaultVpcFuture) {
+func (_m *Mockec2clientstub) CreateDefaultVpcAsync(ctx internal.Context, input *ec2.CreateDefaultVpcInput) (_result_0 *ec2stub.CreateDefaultVpcFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateDefaultVpcFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateDefaultVpcInput) *ec2stub.EC2CreateDefaultVpcFuture); ok {
+	var r0 *ec2stub.CreateDefaultVpcFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateDefaultVpcInput) *ec2stub.CreateDefaultVpcFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateDefaultVpcFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateDefaultVpcFuture)
 		}
 	}
 
@@ -1952,15 +1952,15 @@ func (_m *Mockec2clientstub) CreateDhcpOptions(ctx internal.Context, input *ec2.
 }
 
 // CreateDhcpOptionsAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateDhcpOptionsAsync(ctx internal.Context, input *ec2.CreateDhcpOptionsInput) (_result_0 *ec2stub.EC2CreateDhcpOptionsFuture) {
+func (_m *Mockec2clientstub) CreateDhcpOptionsAsync(ctx internal.Context, input *ec2.CreateDhcpOptionsInput) (_result_0 *ec2stub.CreateDhcpOptionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateDhcpOptionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateDhcpOptionsInput) *ec2stub.EC2CreateDhcpOptionsFuture); ok {
+	var r0 *ec2stub.CreateDhcpOptionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateDhcpOptionsInput) *ec2stub.CreateDhcpOptionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateDhcpOptionsFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateDhcpOptionsFuture)
 		}
 	}
 
@@ -1991,15 +1991,15 @@ func (_m *Mockec2clientstub) CreateEgressOnlyInternetGateway(ctx internal.Contex
 }
 
 // CreateEgressOnlyInternetGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateEgressOnlyInternetGatewayAsync(ctx internal.Context, input *ec2.CreateEgressOnlyInternetGatewayInput) (_result_0 *ec2stub.EC2CreateEgressOnlyInternetGatewayFuture) {
+func (_m *Mockec2clientstub) CreateEgressOnlyInternetGatewayAsync(ctx internal.Context, input *ec2.CreateEgressOnlyInternetGatewayInput) (_result_0 *ec2stub.CreateEgressOnlyInternetGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateEgressOnlyInternetGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateEgressOnlyInternetGatewayInput) *ec2stub.EC2CreateEgressOnlyInternetGatewayFuture); ok {
+	var r0 *ec2stub.CreateEgressOnlyInternetGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateEgressOnlyInternetGatewayInput) *ec2stub.CreateEgressOnlyInternetGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateEgressOnlyInternetGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateEgressOnlyInternetGatewayFuture)
 		}
 	}
 
@@ -2030,15 +2030,15 @@ func (_m *Mockec2clientstub) CreateFleet(ctx internal.Context, input *ec2.Create
 }
 
 // CreateFleetAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateFleetAsync(ctx internal.Context, input *ec2.CreateFleetInput) (_result_0 *ec2stub.EC2CreateFleetFuture) {
+func (_m *Mockec2clientstub) CreateFleetAsync(ctx internal.Context, input *ec2.CreateFleetInput) (_result_0 *ec2stub.CreateFleetFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateFleetFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateFleetInput) *ec2stub.EC2CreateFleetFuture); ok {
+	var r0 *ec2stub.CreateFleetFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateFleetInput) *ec2stub.CreateFleetFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateFleetFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateFleetFuture)
 		}
 	}
 
@@ -2069,15 +2069,15 @@ func (_m *Mockec2clientstub) CreateFlowLogs(ctx internal.Context, input *ec2.Cre
 }
 
 // CreateFlowLogsAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateFlowLogsAsync(ctx internal.Context, input *ec2.CreateFlowLogsInput) (_result_0 *ec2stub.EC2CreateFlowLogsFuture) {
+func (_m *Mockec2clientstub) CreateFlowLogsAsync(ctx internal.Context, input *ec2.CreateFlowLogsInput) (_result_0 *ec2stub.CreateFlowLogsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateFlowLogsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateFlowLogsInput) *ec2stub.EC2CreateFlowLogsFuture); ok {
+	var r0 *ec2stub.CreateFlowLogsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateFlowLogsInput) *ec2stub.CreateFlowLogsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateFlowLogsFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateFlowLogsFuture)
 		}
 	}
 
@@ -2108,15 +2108,15 @@ func (_m *Mockec2clientstub) CreateFpgaImage(ctx internal.Context, input *ec2.Cr
 }
 
 // CreateFpgaImageAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateFpgaImageAsync(ctx internal.Context, input *ec2.CreateFpgaImageInput) (_result_0 *ec2stub.EC2CreateFpgaImageFuture) {
+func (_m *Mockec2clientstub) CreateFpgaImageAsync(ctx internal.Context, input *ec2.CreateFpgaImageInput) (_result_0 *ec2stub.CreateFpgaImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateFpgaImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateFpgaImageInput) *ec2stub.EC2CreateFpgaImageFuture); ok {
+	var r0 *ec2stub.CreateFpgaImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateFpgaImageInput) *ec2stub.CreateFpgaImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateFpgaImageFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateFpgaImageFuture)
 		}
 	}
 
@@ -2147,15 +2147,15 @@ func (_m *Mockec2clientstub) CreateImage(ctx internal.Context, input *ec2.Create
 }
 
 // CreateImageAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateImageAsync(ctx internal.Context, input *ec2.CreateImageInput) (_result_0 *ec2stub.EC2CreateImageFuture) {
+func (_m *Mockec2clientstub) CreateImageAsync(ctx internal.Context, input *ec2.CreateImageInput) (_result_0 *ec2stub.CreateImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateImageInput) *ec2stub.EC2CreateImageFuture); ok {
+	var r0 *ec2stub.CreateImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateImageInput) *ec2stub.CreateImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateImageFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateImageFuture)
 		}
 	}
 
@@ -2186,15 +2186,15 @@ func (_m *Mockec2clientstub) CreateInstanceExportTask(ctx internal.Context, inpu
 }
 
 // CreateInstanceExportTaskAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateInstanceExportTaskAsync(ctx internal.Context, input *ec2.CreateInstanceExportTaskInput) (_result_0 *ec2stub.EC2CreateInstanceExportTaskFuture) {
+func (_m *Mockec2clientstub) CreateInstanceExportTaskAsync(ctx internal.Context, input *ec2.CreateInstanceExportTaskInput) (_result_0 *ec2stub.CreateInstanceExportTaskFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateInstanceExportTaskFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateInstanceExportTaskInput) *ec2stub.EC2CreateInstanceExportTaskFuture); ok {
+	var r0 *ec2stub.CreateInstanceExportTaskFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateInstanceExportTaskInput) *ec2stub.CreateInstanceExportTaskFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateInstanceExportTaskFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateInstanceExportTaskFuture)
 		}
 	}
 
@@ -2225,15 +2225,15 @@ func (_m *Mockec2clientstub) CreateInternetGateway(ctx internal.Context, input *
 }
 
 // CreateInternetGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateInternetGatewayAsync(ctx internal.Context, input *ec2.CreateInternetGatewayInput) (_result_0 *ec2stub.EC2CreateInternetGatewayFuture) {
+func (_m *Mockec2clientstub) CreateInternetGatewayAsync(ctx internal.Context, input *ec2.CreateInternetGatewayInput) (_result_0 *ec2stub.CreateInternetGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateInternetGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateInternetGatewayInput) *ec2stub.EC2CreateInternetGatewayFuture); ok {
+	var r0 *ec2stub.CreateInternetGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateInternetGatewayInput) *ec2stub.CreateInternetGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateInternetGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateInternetGatewayFuture)
 		}
 	}
 
@@ -2264,15 +2264,15 @@ func (_m *Mockec2clientstub) CreateKeyPair(ctx internal.Context, input *ec2.Crea
 }
 
 // CreateKeyPairAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateKeyPairAsync(ctx internal.Context, input *ec2.CreateKeyPairInput) (_result_0 *ec2stub.EC2CreateKeyPairFuture) {
+func (_m *Mockec2clientstub) CreateKeyPairAsync(ctx internal.Context, input *ec2.CreateKeyPairInput) (_result_0 *ec2stub.CreateKeyPairFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateKeyPairFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateKeyPairInput) *ec2stub.EC2CreateKeyPairFuture); ok {
+	var r0 *ec2stub.CreateKeyPairFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateKeyPairInput) *ec2stub.CreateKeyPairFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateKeyPairFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateKeyPairFuture)
 		}
 	}
 
@@ -2303,15 +2303,15 @@ func (_m *Mockec2clientstub) CreateLaunchTemplate(ctx internal.Context, input *e
 }
 
 // CreateLaunchTemplateAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateLaunchTemplateAsync(ctx internal.Context, input *ec2.CreateLaunchTemplateInput) (_result_0 *ec2stub.EC2CreateLaunchTemplateFuture) {
+func (_m *Mockec2clientstub) CreateLaunchTemplateAsync(ctx internal.Context, input *ec2.CreateLaunchTemplateInput) (_result_0 *ec2stub.CreateLaunchTemplateFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateLaunchTemplateFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateLaunchTemplateInput) *ec2stub.EC2CreateLaunchTemplateFuture); ok {
+	var r0 *ec2stub.CreateLaunchTemplateFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateLaunchTemplateInput) *ec2stub.CreateLaunchTemplateFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateLaunchTemplateFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateLaunchTemplateFuture)
 		}
 	}
 
@@ -2342,15 +2342,15 @@ func (_m *Mockec2clientstub) CreateLaunchTemplateVersion(ctx internal.Context, i
 }
 
 // CreateLaunchTemplateVersionAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateLaunchTemplateVersionAsync(ctx internal.Context, input *ec2.CreateLaunchTemplateVersionInput) (_result_0 *ec2stub.EC2CreateLaunchTemplateVersionFuture) {
+func (_m *Mockec2clientstub) CreateLaunchTemplateVersionAsync(ctx internal.Context, input *ec2.CreateLaunchTemplateVersionInput) (_result_0 *ec2stub.CreateLaunchTemplateVersionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateLaunchTemplateVersionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateLaunchTemplateVersionInput) *ec2stub.EC2CreateLaunchTemplateVersionFuture); ok {
+	var r0 *ec2stub.CreateLaunchTemplateVersionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateLaunchTemplateVersionInput) *ec2stub.CreateLaunchTemplateVersionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateLaunchTemplateVersionFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateLaunchTemplateVersionFuture)
 		}
 	}
 
@@ -2381,15 +2381,15 @@ func (_m *Mockec2clientstub) CreateLocalGatewayRoute(ctx internal.Context, input
 }
 
 // CreateLocalGatewayRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateLocalGatewayRouteAsync(ctx internal.Context, input *ec2.CreateLocalGatewayRouteInput) (_result_0 *ec2stub.EC2CreateLocalGatewayRouteFuture) {
+func (_m *Mockec2clientstub) CreateLocalGatewayRouteAsync(ctx internal.Context, input *ec2.CreateLocalGatewayRouteInput) (_result_0 *ec2stub.CreateLocalGatewayRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateLocalGatewayRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateLocalGatewayRouteInput) *ec2stub.EC2CreateLocalGatewayRouteFuture); ok {
+	var r0 *ec2stub.CreateLocalGatewayRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateLocalGatewayRouteInput) *ec2stub.CreateLocalGatewayRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateLocalGatewayRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateLocalGatewayRouteFuture)
 		}
 	}
 
@@ -2420,15 +2420,15 @@ func (_m *Mockec2clientstub) CreateLocalGatewayRouteTableVpcAssociation(ctx inte
 }
 
 // CreateLocalGatewayRouteTableVpcAssociationAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateLocalGatewayRouteTableVpcAssociationAsync(ctx internal.Context, input *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) (_result_0 *ec2stub.EC2CreateLocalGatewayRouteTableVpcAssociationFuture) {
+func (_m *Mockec2clientstub) CreateLocalGatewayRouteTableVpcAssociationAsync(ctx internal.Context, input *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) (_result_0 *ec2stub.CreateLocalGatewayRouteTableVpcAssociationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateLocalGatewayRouteTableVpcAssociationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) *ec2stub.EC2CreateLocalGatewayRouteTableVpcAssociationFuture); ok {
+	var r0 *ec2stub.CreateLocalGatewayRouteTableVpcAssociationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) *ec2stub.CreateLocalGatewayRouteTableVpcAssociationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateLocalGatewayRouteTableVpcAssociationFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateLocalGatewayRouteTableVpcAssociationFuture)
 		}
 	}
 
@@ -2459,15 +2459,15 @@ func (_m *Mockec2clientstub) CreateManagedPrefixList(ctx internal.Context, input
 }
 
 // CreateManagedPrefixListAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateManagedPrefixListAsync(ctx internal.Context, input *ec2.CreateManagedPrefixListInput) (_result_0 *ec2stub.EC2CreateManagedPrefixListFuture) {
+func (_m *Mockec2clientstub) CreateManagedPrefixListAsync(ctx internal.Context, input *ec2.CreateManagedPrefixListInput) (_result_0 *ec2stub.CreateManagedPrefixListFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateManagedPrefixListFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateManagedPrefixListInput) *ec2stub.EC2CreateManagedPrefixListFuture); ok {
+	var r0 *ec2stub.CreateManagedPrefixListFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateManagedPrefixListInput) *ec2stub.CreateManagedPrefixListFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateManagedPrefixListFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateManagedPrefixListFuture)
 		}
 	}
 
@@ -2498,15 +2498,15 @@ func (_m *Mockec2clientstub) CreateNatGateway(ctx internal.Context, input *ec2.C
 }
 
 // CreateNatGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateNatGatewayAsync(ctx internal.Context, input *ec2.CreateNatGatewayInput) (_result_0 *ec2stub.EC2CreateNatGatewayFuture) {
+func (_m *Mockec2clientstub) CreateNatGatewayAsync(ctx internal.Context, input *ec2.CreateNatGatewayInput) (_result_0 *ec2stub.CreateNatGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateNatGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNatGatewayInput) *ec2stub.EC2CreateNatGatewayFuture); ok {
+	var r0 *ec2stub.CreateNatGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNatGatewayInput) *ec2stub.CreateNatGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateNatGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateNatGatewayFuture)
 		}
 	}
 
@@ -2537,15 +2537,15 @@ func (_m *Mockec2clientstub) CreateNetworkAcl(ctx internal.Context, input *ec2.C
 }
 
 // CreateNetworkAclAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateNetworkAclAsync(ctx internal.Context, input *ec2.CreateNetworkAclInput) (_result_0 *ec2stub.EC2CreateNetworkAclFuture) {
+func (_m *Mockec2clientstub) CreateNetworkAclAsync(ctx internal.Context, input *ec2.CreateNetworkAclInput) (_result_0 *ec2stub.CreateNetworkAclFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateNetworkAclFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkAclInput) *ec2stub.EC2CreateNetworkAclFuture); ok {
+	var r0 *ec2stub.CreateNetworkAclFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkAclInput) *ec2stub.CreateNetworkAclFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateNetworkAclFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateNetworkAclFuture)
 		}
 	}
 
@@ -2576,15 +2576,15 @@ func (_m *Mockec2clientstub) CreateNetworkAclEntry(ctx internal.Context, input *
 }
 
 // CreateNetworkAclEntryAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateNetworkAclEntryAsync(ctx internal.Context, input *ec2.CreateNetworkAclEntryInput) (_result_0 *ec2stub.EC2CreateNetworkAclEntryFuture) {
+func (_m *Mockec2clientstub) CreateNetworkAclEntryAsync(ctx internal.Context, input *ec2.CreateNetworkAclEntryInput) (_result_0 *ec2stub.CreateNetworkAclEntryFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateNetworkAclEntryFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkAclEntryInput) *ec2stub.EC2CreateNetworkAclEntryFuture); ok {
+	var r0 *ec2stub.CreateNetworkAclEntryFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkAclEntryInput) *ec2stub.CreateNetworkAclEntryFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateNetworkAclEntryFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateNetworkAclEntryFuture)
 		}
 	}
 
@@ -2615,15 +2615,15 @@ func (_m *Mockec2clientstub) CreateNetworkInterface(ctx internal.Context, input 
 }
 
 // CreateNetworkInterfaceAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateNetworkInterfaceAsync(ctx internal.Context, input *ec2.CreateNetworkInterfaceInput) (_result_0 *ec2stub.EC2CreateNetworkInterfaceFuture) {
+func (_m *Mockec2clientstub) CreateNetworkInterfaceAsync(ctx internal.Context, input *ec2.CreateNetworkInterfaceInput) (_result_0 *ec2stub.CreateNetworkInterfaceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateNetworkInterfaceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkInterfaceInput) *ec2stub.EC2CreateNetworkInterfaceFuture); ok {
+	var r0 *ec2stub.CreateNetworkInterfaceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkInterfaceInput) *ec2stub.CreateNetworkInterfaceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateNetworkInterfaceFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateNetworkInterfaceFuture)
 		}
 	}
 
@@ -2654,15 +2654,15 @@ func (_m *Mockec2clientstub) CreateNetworkInterfacePermission(ctx internal.Conte
 }
 
 // CreateNetworkInterfacePermissionAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateNetworkInterfacePermissionAsync(ctx internal.Context, input *ec2.CreateNetworkInterfacePermissionInput) (_result_0 *ec2stub.EC2CreateNetworkInterfacePermissionFuture) {
+func (_m *Mockec2clientstub) CreateNetworkInterfacePermissionAsync(ctx internal.Context, input *ec2.CreateNetworkInterfacePermissionInput) (_result_0 *ec2stub.CreateNetworkInterfacePermissionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateNetworkInterfacePermissionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkInterfacePermissionInput) *ec2stub.EC2CreateNetworkInterfacePermissionFuture); ok {
+	var r0 *ec2stub.CreateNetworkInterfacePermissionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkInterfacePermissionInput) *ec2stub.CreateNetworkInterfacePermissionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateNetworkInterfacePermissionFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateNetworkInterfacePermissionFuture)
 		}
 	}
 
@@ -2693,15 +2693,15 @@ func (_m *Mockec2clientstub) CreatePlacementGroup(ctx internal.Context, input *e
 }
 
 // CreatePlacementGroupAsync provides a mock function.
-func (_m *Mockec2clientstub) CreatePlacementGroupAsync(ctx internal.Context, input *ec2.CreatePlacementGroupInput) (_result_0 *ec2stub.EC2CreatePlacementGroupFuture) {
+func (_m *Mockec2clientstub) CreatePlacementGroupAsync(ctx internal.Context, input *ec2.CreatePlacementGroupInput) (_result_0 *ec2stub.CreatePlacementGroupFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreatePlacementGroupFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreatePlacementGroupInput) *ec2stub.EC2CreatePlacementGroupFuture); ok {
+	var r0 *ec2stub.CreatePlacementGroupFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreatePlacementGroupInput) *ec2stub.CreatePlacementGroupFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreatePlacementGroupFuture)
+			r0 = ret.Get(0).(*ec2stub.CreatePlacementGroupFuture)
 		}
 	}
 
@@ -2732,15 +2732,15 @@ func (_m *Mockec2clientstub) CreateReservedInstancesListing(ctx internal.Context
 }
 
 // CreateReservedInstancesListingAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateReservedInstancesListingAsync(ctx internal.Context, input *ec2.CreateReservedInstancesListingInput) (_result_0 *ec2stub.EC2CreateReservedInstancesListingFuture) {
+func (_m *Mockec2clientstub) CreateReservedInstancesListingAsync(ctx internal.Context, input *ec2.CreateReservedInstancesListingInput) (_result_0 *ec2stub.CreateReservedInstancesListingFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateReservedInstancesListingFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateReservedInstancesListingInput) *ec2stub.EC2CreateReservedInstancesListingFuture); ok {
+	var r0 *ec2stub.CreateReservedInstancesListingFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateReservedInstancesListingInput) *ec2stub.CreateReservedInstancesListingFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateReservedInstancesListingFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateReservedInstancesListingFuture)
 		}
 	}
 
@@ -2771,15 +2771,15 @@ func (_m *Mockec2clientstub) CreateRoute(ctx internal.Context, input *ec2.Create
 }
 
 // CreateRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateRouteAsync(ctx internal.Context, input *ec2.CreateRouteInput) (_result_0 *ec2stub.EC2CreateRouteFuture) {
+func (_m *Mockec2clientstub) CreateRouteAsync(ctx internal.Context, input *ec2.CreateRouteInput) (_result_0 *ec2stub.CreateRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateRouteInput) *ec2stub.EC2CreateRouteFuture); ok {
+	var r0 *ec2stub.CreateRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateRouteInput) *ec2stub.CreateRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateRouteFuture)
 		}
 	}
 
@@ -2810,15 +2810,15 @@ func (_m *Mockec2clientstub) CreateRouteTable(ctx internal.Context, input *ec2.C
 }
 
 // CreateRouteTableAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateRouteTableAsync(ctx internal.Context, input *ec2.CreateRouteTableInput) (_result_0 *ec2stub.EC2CreateRouteTableFuture) {
+func (_m *Mockec2clientstub) CreateRouteTableAsync(ctx internal.Context, input *ec2.CreateRouteTableInput) (_result_0 *ec2stub.CreateRouteTableFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateRouteTableFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateRouteTableInput) *ec2stub.EC2CreateRouteTableFuture); ok {
+	var r0 *ec2stub.CreateRouteTableFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateRouteTableInput) *ec2stub.CreateRouteTableFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateRouteTableFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateRouteTableFuture)
 		}
 	}
 
@@ -2849,15 +2849,15 @@ func (_m *Mockec2clientstub) CreateSecurityGroup(ctx internal.Context, input *ec
 }
 
 // CreateSecurityGroupAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateSecurityGroupAsync(ctx internal.Context, input *ec2.CreateSecurityGroupInput) (_result_0 *ec2stub.EC2CreateSecurityGroupFuture) {
+func (_m *Mockec2clientstub) CreateSecurityGroupAsync(ctx internal.Context, input *ec2.CreateSecurityGroupInput) (_result_0 *ec2stub.CreateSecurityGroupFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateSecurityGroupFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSecurityGroupInput) *ec2stub.EC2CreateSecurityGroupFuture); ok {
+	var r0 *ec2stub.CreateSecurityGroupFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSecurityGroupInput) *ec2stub.CreateSecurityGroupFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateSecurityGroupFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateSecurityGroupFuture)
 		}
 	}
 
@@ -2888,15 +2888,15 @@ func (_m *Mockec2clientstub) CreateSnapshot(ctx internal.Context, input *ec2.Cre
 }
 
 // CreateSnapshotAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateSnapshotAsync(ctx internal.Context, input *ec2.CreateSnapshotInput) (_result_0 *ec2stub.EC2CreateSnapshotFuture) {
+func (_m *Mockec2clientstub) CreateSnapshotAsync(ctx internal.Context, input *ec2.CreateSnapshotInput) (_result_0 *ec2stub.CreateSnapshotFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateSnapshotFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSnapshotInput) *ec2stub.EC2CreateSnapshotFuture); ok {
+	var r0 *ec2stub.CreateSnapshotFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSnapshotInput) *ec2stub.CreateSnapshotFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateSnapshotFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateSnapshotFuture)
 		}
 	}
 
@@ -2927,15 +2927,15 @@ func (_m *Mockec2clientstub) CreateSnapshots(ctx internal.Context, input *ec2.Cr
 }
 
 // CreateSnapshotsAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateSnapshotsAsync(ctx internal.Context, input *ec2.CreateSnapshotsInput) (_result_0 *ec2stub.EC2CreateSnapshotsFuture) {
+func (_m *Mockec2clientstub) CreateSnapshotsAsync(ctx internal.Context, input *ec2.CreateSnapshotsInput) (_result_0 *ec2stub.CreateSnapshotsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateSnapshotsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSnapshotsInput) *ec2stub.EC2CreateSnapshotsFuture); ok {
+	var r0 *ec2stub.CreateSnapshotsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSnapshotsInput) *ec2stub.CreateSnapshotsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateSnapshotsFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateSnapshotsFuture)
 		}
 	}
 
@@ -2966,15 +2966,15 @@ func (_m *Mockec2clientstub) CreateSpotDatafeedSubscription(ctx internal.Context
 }
 
 // CreateSpotDatafeedSubscriptionAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateSpotDatafeedSubscriptionAsync(ctx internal.Context, input *ec2.CreateSpotDatafeedSubscriptionInput) (_result_0 *ec2stub.EC2CreateSpotDatafeedSubscriptionFuture) {
+func (_m *Mockec2clientstub) CreateSpotDatafeedSubscriptionAsync(ctx internal.Context, input *ec2.CreateSpotDatafeedSubscriptionInput) (_result_0 *ec2stub.CreateSpotDatafeedSubscriptionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateSpotDatafeedSubscriptionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSpotDatafeedSubscriptionInput) *ec2stub.EC2CreateSpotDatafeedSubscriptionFuture); ok {
+	var r0 *ec2stub.CreateSpotDatafeedSubscriptionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSpotDatafeedSubscriptionInput) *ec2stub.CreateSpotDatafeedSubscriptionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateSpotDatafeedSubscriptionFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateSpotDatafeedSubscriptionFuture)
 		}
 	}
 
@@ -3005,15 +3005,15 @@ func (_m *Mockec2clientstub) CreateSubnet(ctx internal.Context, input *ec2.Creat
 }
 
 // CreateSubnetAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateSubnetAsync(ctx internal.Context, input *ec2.CreateSubnetInput) (_result_0 *ec2stub.EC2CreateSubnetFuture) {
+func (_m *Mockec2clientstub) CreateSubnetAsync(ctx internal.Context, input *ec2.CreateSubnetInput) (_result_0 *ec2stub.CreateSubnetFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateSubnetFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSubnetInput) *ec2stub.EC2CreateSubnetFuture); ok {
+	var r0 *ec2stub.CreateSubnetFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateSubnetInput) *ec2stub.CreateSubnetFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateSubnetFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateSubnetFuture)
 		}
 	}
 
@@ -3044,15 +3044,15 @@ func (_m *Mockec2clientstub) CreateTags(ctx internal.Context, input *ec2.CreateT
 }
 
 // CreateTagsAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTagsAsync(ctx internal.Context, input *ec2.CreateTagsInput) (_result_0 *ec2stub.EC2CreateTagsFuture) {
+func (_m *Mockec2clientstub) CreateTagsAsync(ctx internal.Context, input *ec2.CreateTagsInput) (_result_0 *ec2stub.CreateTagsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTagsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTagsInput) *ec2stub.EC2CreateTagsFuture); ok {
+	var r0 *ec2stub.CreateTagsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTagsInput) *ec2stub.CreateTagsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTagsFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTagsFuture)
 		}
 	}
 
@@ -3083,15 +3083,15 @@ func (_m *Mockec2clientstub) CreateTrafficMirrorFilter(ctx internal.Context, inp
 }
 
 // CreateTrafficMirrorFilterAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTrafficMirrorFilterAsync(ctx internal.Context, input *ec2.CreateTrafficMirrorFilterInput) (_result_0 *ec2stub.EC2CreateTrafficMirrorFilterFuture) {
+func (_m *Mockec2clientstub) CreateTrafficMirrorFilterAsync(ctx internal.Context, input *ec2.CreateTrafficMirrorFilterInput) (_result_0 *ec2stub.CreateTrafficMirrorFilterFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTrafficMirrorFilterFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTrafficMirrorFilterInput) *ec2stub.EC2CreateTrafficMirrorFilterFuture); ok {
+	var r0 *ec2stub.CreateTrafficMirrorFilterFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTrafficMirrorFilterInput) *ec2stub.CreateTrafficMirrorFilterFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTrafficMirrorFilterFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTrafficMirrorFilterFuture)
 		}
 	}
 
@@ -3122,15 +3122,15 @@ func (_m *Mockec2clientstub) CreateTrafficMirrorFilterRule(ctx internal.Context,
 }
 
 // CreateTrafficMirrorFilterRuleAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTrafficMirrorFilterRuleAsync(ctx internal.Context, input *ec2.CreateTrafficMirrorFilterRuleInput) (_result_0 *ec2stub.EC2CreateTrafficMirrorFilterRuleFuture) {
+func (_m *Mockec2clientstub) CreateTrafficMirrorFilterRuleAsync(ctx internal.Context, input *ec2.CreateTrafficMirrorFilterRuleInput) (_result_0 *ec2stub.CreateTrafficMirrorFilterRuleFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTrafficMirrorFilterRuleFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTrafficMirrorFilterRuleInput) *ec2stub.EC2CreateTrafficMirrorFilterRuleFuture); ok {
+	var r0 *ec2stub.CreateTrafficMirrorFilterRuleFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTrafficMirrorFilterRuleInput) *ec2stub.CreateTrafficMirrorFilterRuleFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTrafficMirrorFilterRuleFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTrafficMirrorFilterRuleFuture)
 		}
 	}
 
@@ -3161,15 +3161,15 @@ func (_m *Mockec2clientstub) CreateTrafficMirrorSession(ctx internal.Context, in
 }
 
 // CreateTrafficMirrorSessionAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTrafficMirrorSessionAsync(ctx internal.Context, input *ec2.CreateTrafficMirrorSessionInput) (_result_0 *ec2stub.EC2CreateTrafficMirrorSessionFuture) {
+func (_m *Mockec2clientstub) CreateTrafficMirrorSessionAsync(ctx internal.Context, input *ec2.CreateTrafficMirrorSessionInput) (_result_0 *ec2stub.CreateTrafficMirrorSessionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTrafficMirrorSessionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTrafficMirrorSessionInput) *ec2stub.EC2CreateTrafficMirrorSessionFuture); ok {
+	var r0 *ec2stub.CreateTrafficMirrorSessionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTrafficMirrorSessionInput) *ec2stub.CreateTrafficMirrorSessionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTrafficMirrorSessionFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTrafficMirrorSessionFuture)
 		}
 	}
 
@@ -3200,15 +3200,15 @@ func (_m *Mockec2clientstub) CreateTrafficMirrorTarget(ctx internal.Context, inp
 }
 
 // CreateTrafficMirrorTargetAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTrafficMirrorTargetAsync(ctx internal.Context, input *ec2.CreateTrafficMirrorTargetInput) (_result_0 *ec2stub.EC2CreateTrafficMirrorTargetFuture) {
+func (_m *Mockec2clientstub) CreateTrafficMirrorTargetAsync(ctx internal.Context, input *ec2.CreateTrafficMirrorTargetInput) (_result_0 *ec2stub.CreateTrafficMirrorTargetFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTrafficMirrorTargetFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTrafficMirrorTargetInput) *ec2stub.EC2CreateTrafficMirrorTargetFuture); ok {
+	var r0 *ec2stub.CreateTrafficMirrorTargetFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTrafficMirrorTargetInput) *ec2stub.CreateTrafficMirrorTargetFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTrafficMirrorTargetFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTrafficMirrorTargetFuture)
 		}
 	}
 
@@ -3239,15 +3239,15 @@ func (_m *Mockec2clientstub) CreateTransitGateway(ctx internal.Context, input *e
 }
 
 // CreateTransitGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTransitGatewayAsync(ctx internal.Context, input *ec2.CreateTransitGatewayInput) (_result_0 *ec2stub.EC2CreateTransitGatewayFuture) {
+func (_m *Mockec2clientstub) CreateTransitGatewayAsync(ctx internal.Context, input *ec2.CreateTransitGatewayInput) (_result_0 *ec2stub.CreateTransitGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTransitGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayInput) *ec2stub.EC2CreateTransitGatewayFuture); ok {
+	var r0 *ec2stub.CreateTransitGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayInput) *ec2stub.CreateTransitGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTransitGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayFuture)
 		}
 	}
 
@@ -3278,15 +3278,15 @@ func (_m *Mockec2clientstub) CreateTransitGatewayMulticastDomain(ctx internal.Co
 }
 
 // CreateTransitGatewayMulticastDomainAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTransitGatewayMulticastDomainAsync(ctx internal.Context, input *ec2.CreateTransitGatewayMulticastDomainInput) (_result_0 *ec2stub.EC2CreateTransitGatewayMulticastDomainFuture) {
+func (_m *Mockec2clientstub) CreateTransitGatewayMulticastDomainAsync(ctx internal.Context, input *ec2.CreateTransitGatewayMulticastDomainInput) (_result_0 *ec2stub.CreateTransitGatewayMulticastDomainFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTransitGatewayMulticastDomainFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayMulticastDomainInput) *ec2stub.EC2CreateTransitGatewayMulticastDomainFuture); ok {
+	var r0 *ec2stub.CreateTransitGatewayMulticastDomainFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayMulticastDomainInput) *ec2stub.CreateTransitGatewayMulticastDomainFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTransitGatewayMulticastDomainFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayMulticastDomainFuture)
 		}
 	}
 
@@ -3317,15 +3317,15 @@ func (_m *Mockec2clientstub) CreateTransitGatewayPeeringAttachment(ctx internal.
 }
 
 // CreateTransitGatewayPeeringAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTransitGatewayPeeringAttachmentAsync(ctx internal.Context, input *ec2.CreateTransitGatewayPeeringAttachmentInput) (_result_0 *ec2stub.EC2CreateTransitGatewayPeeringAttachmentFuture) {
+func (_m *Mockec2clientstub) CreateTransitGatewayPeeringAttachmentAsync(ctx internal.Context, input *ec2.CreateTransitGatewayPeeringAttachmentInput) (_result_0 *ec2stub.CreateTransitGatewayPeeringAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTransitGatewayPeeringAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayPeeringAttachmentInput) *ec2stub.EC2CreateTransitGatewayPeeringAttachmentFuture); ok {
+	var r0 *ec2stub.CreateTransitGatewayPeeringAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayPeeringAttachmentInput) *ec2stub.CreateTransitGatewayPeeringAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTransitGatewayPeeringAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayPeeringAttachmentFuture)
 		}
 	}
 
@@ -3356,15 +3356,15 @@ func (_m *Mockec2clientstub) CreateTransitGatewayPrefixListReference(ctx interna
 }
 
 // CreateTransitGatewayPrefixListReferenceAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTransitGatewayPrefixListReferenceAsync(ctx internal.Context, input *ec2.CreateTransitGatewayPrefixListReferenceInput) (_result_0 *ec2stub.EC2CreateTransitGatewayPrefixListReferenceFuture) {
+func (_m *Mockec2clientstub) CreateTransitGatewayPrefixListReferenceAsync(ctx internal.Context, input *ec2.CreateTransitGatewayPrefixListReferenceInput) (_result_0 *ec2stub.CreateTransitGatewayPrefixListReferenceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTransitGatewayPrefixListReferenceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayPrefixListReferenceInput) *ec2stub.EC2CreateTransitGatewayPrefixListReferenceFuture); ok {
+	var r0 *ec2stub.CreateTransitGatewayPrefixListReferenceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayPrefixListReferenceInput) *ec2stub.CreateTransitGatewayPrefixListReferenceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTransitGatewayPrefixListReferenceFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayPrefixListReferenceFuture)
 		}
 	}
 
@@ -3395,15 +3395,15 @@ func (_m *Mockec2clientstub) CreateTransitGatewayRoute(ctx internal.Context, inp
 }
 
 // CreateTransitGatewayRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTransitGatewayRouteAsync(ctx internal.Context, input *ec2.CreateTransitGatewayRouteInput) (_result_0 *ec2stub.EC2CreateTransitGatewayRouteFuture) {
+func (_m *Mockec2clientstub) CreateTransitGatewayRouteAsync(ctx internal.Context, input *ec2.CreateTransitGatewayRouteInput) (_result_0 *ec2stub.CreateTransitGatewayRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTransitGatewayRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayRouteInput) *ec2stub.EC2CreateTransitGatewayRouteFuture); ok {
+	var r0 *ec2stub.CreateTransitGatewayRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayRouteInput) *ec2stub.CreateTransitGatewayRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTransitGatewayRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayRouteFuture)
 		}
 	}
 
@@ -3434,15 +3434,15 @@ func (_m *Mockec2clientstub) CreateTransitGatewayRouteTable(ctx internal.Context
 }
 
 // CreateTransitGatewayRouteTableAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTransitGatewayRouteTableAsync(ctx internal.Context, input *ec2.CreateTransitGatewayRouteTableInput) (_result_0 *ec2stub.EC2CreateTransitGatewayRouteTableFuture) {
+func (_m *Mockec2clientstub) CreateTransitGatewayRouteTableAsync(ctx internal.Context, input *ec2.CreateTransitGatewayRouteTableInput) (_result_0 *ec2stub.CreateTransitGatewayRouteTableFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTransitGatewayRouteTableFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayRouteTableInput) *ec2stub.EC2CreateTransitGatewayRouteTableFuture); ok {
+	var r0 *ec2stub.CreateTransitGatewayRouteTableFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayRouteTableInput) *ec2stub.CreateTransitGatewayRouteTableFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTransitGatewayRouteTableFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayRouteTableFuture)
 		}
 	}
 
@@ -3473,15 +3473,15 @@ func (_m *Mockec2clientstub) CreateTransitGatewayVpcAttachment(ctx internal.Cont
 }
 
 // CreateTransitGatewayVpcAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.CreateTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.EC2CreateTransitGatewayVpcAttachmentFuture) {
+func (_m *Mockec2clientstub) CreateTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.CreateTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.CreateTransitGatewayVpcAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateTransitGatewayVpcAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayVpcAttachmentInput) *ec2stub.EC2CreateTransitGatewayVpcAttachmentFuture); ok {
+	var r0 *ec2stub.CreateTransitGatewayVpcAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayVpcAttachmentInput) *ec2stub.CreateTransitGatewayVpcAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateTransitGatewayVpcAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayVpcAttachmentFuture)
 		}
 	}
 
@@ -3512,15 +3512,15 @@ func (_m *Mockec2clientstub) CreateVolume(ctx internal.Context, input *ec2.Creat
 }
 
 // CreateVolumeAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVolumeAsync(ctx internal.Context, input *ec2.CreateVolumeInput) (_result_0 *ec2stub.EC2CreateVolumeFuture) {
+func (_m *Mockec2clientstub) CreateVolumeAsync(ctx internal.Context, input *ec2.CreateVolumeInput) (_result_0 *ec2stub.CreateVolumeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVolumeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVolumeInput) *ec2stub.EC2CreateVolumeFuture); ok {
+	var r0 *ec2stub.CreateVolumeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVolumeInput) *ec2stub.CreateVolumeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVolumeFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVolumeFuture)
 		}
 	}
 
@@ -3551,15 +3551,15 @@ func (_m *Mockec2clientstub) CreateVpc(ctx internal.Context, input *ec2.CreateVp
 }
 
 // CreateVpcAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVpcAsync(ctx internal.Context, input *ec2.CreateVpcInput) (_result_0 *ec2stub.EC2CreateVpcFuture) {
+func (_m *Mockec2clientstub) CreateVpcAsync(ctx internal.Context, input *ec2.CreateVpcInput) (_result_0 *ec2stub.CreateVpcFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVpcFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcInput) *ec2stub.EC2CreateVpcFuture); ok {
+	var r0 *ec2stub.CreateVpcFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcInput) *ec2stub.CreateVpcFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVpcFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVpcFuture)
 		}
 	}
 
@@ -3590,15 +3590,15 @@ func (_m *Mockec2clientstub) CreateVpcEndpoint(ctx internal.Context, input *ec2.
 }
 
 // CreateVpcEndpointAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVpcEndpointAsync(ctx internal.Context, input *ec2.CreateVpcEndpointInput) (_result_0 *ec2stub.EC2CreateVpcEndpointFuture) {
+func (_m *Mockec2clientstub) CreateVpcEndpointAsync(ctx internal.Context, input *ec2.CreateVpcEndpointInput) (_result_0 *ec2stub.CreateVpcEndpointFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVpcEndpointFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcEndpointInput) *ec2stub.EC2CreateVpcEndpointFuture); ok {
+	var r0 *ec2stub.CreateVpcEndpointFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcEndpointInput) *ec2stub.CreateVpcEndpointFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVpcEndpointFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVpcEndpointFuture)
 		}
 	}
 
@@ -3629,15 +3629,15 @@ func (_m *Mockec2clientstub) CreateVpcEndpointConnectionNotification(ctx interna
 }
 
 // CreateVpcEndpointConnectionNotificationAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVpcEndpointConnectionNotificationAsync(ctx internal.Context, input *ec2.CreateVpcEndpointConnectionNotificationInput) (_result_0 *ec2stub.EC2CreateVpcEndpointConnectionNotificationFuture) {
+func (_m *Mockec2clientstub) CreateVpcEndpointConnectionNotificationAsync(ctx internal.Context, input *ec2.CreateVpcEndpointConnectionNotificationInput) (_result_0 *ec2stub.CreateVpcEndpointConnectionNotificationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVpcEndpointConnectionNotificationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcEndpointConnectionNotificationInput) *ec2stub.EC2CreateVpcEndpointConnectionNotificationFuture); ok {
+	var r0 *ec2stub.CreateVpcEndpointConnectionNotificationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcEndpointConnectionNotificationInput) *ec2stub.CreateVpcEndpointConnectionNotificationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVpcEndpointConnectionNotificationFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVpcEndpointConnectionNotificationFuture)
 		}
 	}
 
@@ -3668,15 +3668,15 @@ func (_m *Mockec2clientstub) CreateVpcEndpointServiceConfiguration(ctx internal.
 }
 
 // CreateVpcEndpointServiceConfigurationAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVpcEndpointServiceConfigurationAsync(ctx internal.Context, input *ec2.CreateVpcEndpointServiceConfigurationInput) (_result_0 *ec2stub.EC2CreateVpcEndpointServiceConfigurationFuture) {
+func (_m *Mockec2clientstub) CreateVpcEndpointServiceConfigurationAsync(ctx internal.Context, input *ec2.CreateVpcEndpointServiceConfigurationInput) (_result_0 *ec2stub.CreateVpcEndpointServiceConfigurationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVpcEndpointServiceConfigurationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcEndpointServiceConfigurationInput) *ec2stub.EC2CreateVpcEndpointServiceConfigurationFuture); ok {
+	var r0 *ec2stub.CreateVpcEndpointServiceConfigurationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcEndpointServiceConfigurationInput) *ec2stub.CreateVpcEndpointServiceConfigurationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVpcEndpointServiceConfigurationFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVpcEndpointServiceConfigurationFuture)
 		}
 	}
 
@@ -3707,15 +3707,15 @@ func (_m *Mockec2clientstub) CreateVpcPeeringConnection(ctx internal.Context, in
 }
 
 // CreateVpcPeeringConnectionAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVpcPeeringConnectionAsync(ctx internal.Context, input *ec2.CreateVpcPeeringConnectionInput) (_result_0 *ec2stub.EC2CreateVpcPeeringConnectionFuture) {
+func (_m *Mockec2clientstub) CreateVpcPeeringConnectionAsync(ctx internal.Context, input *ec2.CreateVpcPeeringConnectionInput) (_result_0 *ec2stub.CreateVpcPeeringConnectionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVpcPeeringConnectionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcPeeringConnectionInput) *ec2stub.EC2CreateVpcPeeringConnectionFuture); ok {
+	var r0 *ec2stub.CreateVpcPeeringConnectionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpcPeeringConnectionInput) *ec2stub.CreateVpcPeeringConnectionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVpcPeeringConnectionFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVpcPeeringConnectionFuture)
 		}
 	}
 
@@ -3746,15 +3746,15 @@ func (_m *Mockec2clientstub) CreateVpnConnection(ctx internal.Context, input *ec
 }
 
 // CreateVpnConnectionAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVpnConnectionAsync(ctx internal.Context, input *ec2.CreateVpnConnectionInput) (_result_0 *ec2stub.EC2CreateVpnConnectionFuture) {
+func (_m *Mockec2clientstub) CreateVpnConnectionAsync(ctx internal.Context, input *ec2.CreateVpnConnectionInput) (_result_0 *ec2stub.CreateVpnConnectionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVpnConnectionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpnConnectionInput) *ec2stub.EC2CreateVpnConnectionFuture); ok {
+	var r0 *ec2stub.CreateVpnConnectionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpnConnectionInput) *ec2stub.CreateVpnConnectionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVpnConnectionFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVpnConnectionFuture)
 		}
 	}
 
@@ -3785,15 +3785,15 @@ func (_m *Mockec2clientstub) CreateVpnConnectionRoute(ctx internal.Context, inpu
 }
 
 // CreateVpnConnectionRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVpnConnectionRouteAsync(ctx internal.Context, input *ec2.CreateVpnConnectionRouteInput) (_result_0 *ec2stub.EC2CreateVpnConnectionRouteFuture) {
+func (_m *Mockec2clientstub) CreateVpnConnectionRouteAsync(ctx internal.Context, input *ec2.CreateVpnConnectionRouteInput) (_result_0 *ec2stub.CreateVpnConnectionRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVpnConnectionRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpnConnectionRouteInput) *ec2stub.EC2CreateVpnConnectionRouteFuture); ok {
+	var r0 *ec2stub.CreateVpnConnectionRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpnConnectionRouteInput) *ec2stub.CreateVpnConnectionRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVpnConnectionRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVpnConnectionRouteFuture)
 		}
 	}
 
@@ -3824,15 +3824,15 @@ func (_m *Mockec2clientstub) CreateVpnGateway(ctx internal.Context, input *ec2.C
 }
 
 // CreateVpnGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) CreateVpnGatewayAsync(ctx internal.Context, input *ec2.CreateVpnGatewayInput) (_result_0 *ec2stub.EC2CreateVpnGatewayFuture) {
+func (_m *Mockec2clientstub) CreateVpnGatewayAsync(ctx internal.Context, input *ec2.CreateVpnGatewayInput) (_result_0 *ec2stub.CreateVpnGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2CreateVpnGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpnGatewayInput) *ec2stub.EC2CreateVpnGatewayFuture); ok {
+	var r0 *ec2stub.CreateVpnGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateVpnGatewayInput) *ec2stub.CreateVpnGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2CreateVpnGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.CreateVpnGatewayFuture)
 		}
 	}
 
@@ -3863,15 +3863,15 @@ func (_m *Mockec2clientstub) DeleteCarrierGateway(ctx internal.Context, input *e
 }
 
 // DeleteCarrierGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteCarrierGatewayAsync(ctx internal.Context, input *ec2.DeleteCarrierGatewayInput) (_result_0 *ec2stub.EC2DeleteCarrierGatewayFuture) {
+func (_m *Mockec2clientstub) DeleteCarrierGatewayAsync(ctx internal.Context, input *ec2.DeleteCarrierGatewayInput) (_result_0 *ec2stub.DeleteCarrierGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteCarrierGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteCarrierGatewayInput) *ec2stub.EC2DeleteCarrierGatewayFuture); ok {
+	var r0 *ec2stub.DeleteCarrierGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteCarrierGatewayInput) *ec2stub.DeleteCarrierGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteCarrierGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteCarrierGatewayFuture)
 		}
 	}
 
@@ -3902,15 +3902,15 @@ func (_m *Mockec2clientstub) DeleteClientVpnEndpoint(ctx internal.Context, input
 }
 
 // DeleteClientVpnEndpointAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteClientVpnEndpointAsync(ctx internal.Context, input *ec2.DeleteClientVpnEndpointInput) (_result_0 *ec2stub.EC2DeleteClientVpnEndpointFuture) {
+func (_m *Mockec2clientstub) DeleteClientVpnEndpointAsync(ctx internal.Context, input *ec2.DeleteClientVpnEndpointInput) (_result_0 *ec2stub.DeleteClientVpnEndpointFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteClientVpnEndpointFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteClientVpnEndpointInput) *ec2stub.EC2DeleteClientVpnEndpointFuture); ok {
+	var r0 *ec2stub.DeleteClientVpnEndpointFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteClientVpnEndpointInput) *ec2stub.DeleteClientVpnEndpointFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteClientVpnEndpointFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteClientVpnEndpointFuture)
 		}
 	}
 
@@ -3941,15 +3941,15 @@ func (_m *Mockec2clientstub) DeleteClientVpnRoute(ctx internal.Context, input *e
 }
 
 // DeleteClientVpnRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteClientVpnRouteAsync(ctx internal.Context, input *ec2.DeleteClientVpnRouteInput) (_result_0 *ec2stub.EC2DeleteClientVpnRouteFuture) {
+func (_m *Mockec2clientstub) DeleteClientVpnRouteAsync(ctx internal.Context, input *ec2.DeleteClientVpnRouteInput) (_result_0 *ec2stub.DeleteClientVpnRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteClientVpnRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteClientVpnRouteInput) *ec2stub.EC2DeleteClientVpnRouteFuture); ok {
+	var r0 *ec2stub.DeleteClientVpnRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteClientVpnRouteInput) *ec2stub.DeleteClientVpnRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteClientVpnRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteClientVpnRouteFuture)
 		}
 	}
 
@@ -3980,15 +3980,15 @@ func (_m *Mockec2clientstub) DeleteCustomerGateway(ctx internal.Context, input *
 }
 
 // DeleteCustomerGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteCustomerGatewayAsync(ctx internal.Context, input *ec2.DeleteCustomerGatewayInput) (_result_0 *ec2stub.EC2DeleteCustomerGatewayFuture) {
+func (_m *Mockec2clientstub) DeleteCustomerGatewayAsync(ctx internal.Context, input *ec2.DeleteCustomerGatewayInput) (_result_0 *ec2stub.DeleteCustomerGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteCustomerGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteCustomerGatewayInput) *ec2stub.EC2DeleteCustomerGatewayFuture); ok {
+	var r0 *ec2stub.DeleteCustomerGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteCustomerGatewayInput) *ec2stub.DeleteCustomerGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteCustomerGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteCustomerGatewayFuture)
 		}
 	}
 
@@ -4019,15 +4019,15 @@ func (_m *Mockec2clientstub) DeleteDhcpOptions(ctx internal.Context, input *ec2.
 }
 
 // DeleteDhcpOptionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteDhcpOptionsAsync(ctx internal.Context, input *ec2.DeleteDhcpOptionsInput) (_result_0 *ec2stub.EC2DeleteDhcpOptionsFuture) {
+func (_m *Mockec2clientstub) DeleteDhcpOptionsAsync(ctx internal.Context, input *ec2.DeleteDhcpOptionsInput) (_result_0 *ec2stub.DeleteDhcpOptionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteDhcpOptionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteDhcpOptionsInput) *ec2stub.EC2DeleteDhcpOptionsFuture); ok {
+	var r0 *ec2stub.DeleteDhcpOptionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteDhcpOptionsInput) *ec2stub.DeleteDhcpOptionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteDhcpOptionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteDhcpOptionsFuture)
 		}
 	}
 
@@ -4058,15 +4058,15 @@ func (_m *Mockec2clientstub) DeleteEgressOnlyInternetGateway(ctx internal.Contex
 }
 
 // DeleteEgressOnlyInternetGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteEgressOnlyInternetGatewayAsync(ctx internal.Context, input *ec2.DeleteEgressOnlyInternetGatewayInput) (_result_0 *ec2stub.EC2DeleteEgressOnlyInternetGatewayFuture) {
+func (_m *Mockec2clientstub) DeleteEgressOnlyInternetGatewayAsync(ctx internal.Context, input *ec2.DeleteEgressOnlyInternetGatewayInput) (_result_0 *ec2stub.DeleteEgressOnlyInternetGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteEgressOnlyInternetGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteEgressOnlyInternetGatewayInput) *ec2stub.EC2DeleteEgressOnlyInternetGatewayFuture); ok {
+	var r0 *ec2stub.DeleteEgressOnlyInternetGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteEgressOnlyInternetGatewayInput) *ec2stub.DeleteEgressOnlyInternetGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteEgressOnlyInternetGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteEgressOnlyInternetGatewayFuture)
 		}
 	}
 
@@ -4097,15 +4097,15 @@ func (_m *Mockec2clientstub) DeleteFleets(ctx internal.Context, input *ec2.Delet
 }
 
 // DeleteFleetsAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteFleetsAsync(ctx internal.Context, input *ec2.DeleteFleetsInput) (_result_0 *ec2stub.EC2DeleteFleetsFuture) {
+func (_m *Mockec2clientstub) DeleteFleetsAsync(ctx internal.Context, input *ec2.DeleteFleetsInput) (_result_0 *ec2stub.DeleteFleetsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteFleetsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteFleetsInput) *ec2stub.EC2DeleteFleetsFuture); ok {
+	var r0 *ec2stub.DeleteFleetsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteFleetsInput) *ec2stub.DeleteFleetsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteFleetsFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteFleetsFuture)
 		}
 	}
 
@@ -4136,15 +4136,15 @@ func (_m *Mockec2clientstub) DeleteFlowLogs(ctx internal.Context, input *ec2.Del
 }
 
 // DeleteFlowLogsAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteFlowLogsAsync(ctx internal.Context, input *ec2.DeleteFlowLogsInput) (_result_0 *ec2stub.EC2DeleteFlowLogsFuture) {
+func (_m *Mockec2clientstub) DeleteFlowLogsAsync(ctx internal.Context, input *ec2.DeleteFlowLogsInput) (_result_0 *ec2stub.DeleteFlowLogsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteFlowLogsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteFlowLogsInput) *ec2stub.EC2DeleteFlowLogsFuture); ok {
+	var r0 *ec2stub.DeleteFlowLogsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteFlowLogsInput) *ec2stub.DeleteFlowLogsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteFlowLogsFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteFlowLogsFuture)
 		}
 	}
 
@@ -4175,15 +4175,15 @@ func (_m *Mockec2clientstub) DeleteFpgaImage(ctx internal.Context, input *ec2.De
 }
 
 // DeleteFpgaImageAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteFpgaImageAsync(ctx internal.Context, input *ec2.DeleteFpgaImageInput) (_result_0 *ec2stub.EC2DeleteFpgaImageFuture) {
+func (_m *Mockec2clientstub) DeleteFpgaImageAsync(ctx internal.Context, input *ec2.DeleteFpgaImageInput) (_result_0 *ec2stub.DeleteFpgaImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteFpgaImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteFpgaImageInput) *ec2stub.EC2DeleteFpgaImageFuture); ok {
+	var r0 *ec2stub.DeleteFpgaImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteFpgaImageInput) *ec2stub.DeleteFpgaImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteFpgaImageFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteFpgaImageFuture)
 		}
 	}
 
@@ -4214,15 +4214,15 @@ func (_m *Mockec2clientstub) DeleteInternetGateway(ctx internal.Context, input *
 }
 
 // DeleteInternetGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteInternetGatewayAsync(ctx internal.Context, input *ec2.DeleteInternetGatewayInput) (_result_0 *ec2stub.EC2DeleteInternetGatewayFuture) {
+func (_m *Mockec2clientstub) DeleteInternetGatewayAsync(ctx internal.Context, input *ec2.DeleteInternetGatewayInput) (_result_0 *ec2stub.DeleteInternetGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteInternetGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteInternetGatewayInput) *ec2stub.EC2DeleteInternetGatewayFuture); ok {
+	var r0 *ec2stub.DeleteInternetGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteInternetGatewayInput) *ec2stub.DeleteInternetGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteInternetGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteInternetGatewayFuture)
 		}
 	}
 
@@ -4253,15 +4253,15 @@ func (_m *Mockec2clientstub) DeleteKeyPair(ctx internal.Context, input *ec2.Dele
 }
 
 // DeleteKeyPairAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteKeyPairAsync(ctx internal.Context, input *ec2.DeleteKeyPairInput) (_result_0 *ec2stub.EC2DeleteKeyPairFuture) {
+func (_m *Mockec2clientstub) DeleteKeyPairAsync(ctx internal.Context, input *ec2.DeleteKeyPairInput) (_result_0 *ec2stub.DeleteKeyPairFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteKeyPairFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteKeyPairInput) *ec2stub.EC2DeleteKeyPairFuture); ok {
+	var r0 *ec2stub.DeleteKeyPairFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteKeyPairInput) *ec2stub.DeleteKeyPairFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteKeyPairFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteKeyPairFuture)
 		}
 	}
 
@@ -4292,15 +4292,15 @@ func (_m *Mockec2clientstub) DeleteLaunchTemplate(ctx internal.Context, input *e
 }
 
 // DeleteLaunchTemplateAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteLaunchTemplateAsync(ctx internal.Context, input *ec2.DeleteLaunchTemplateInput) (_result_0 *ec2stub.EC2DeleteLaunchTemplateFuture) {
+func (_m *Mockec2clientstub) DeleteLaunchTemplateAsync(ctx internal.Context, input *ec2.DeleteLaunchTemplateInput) (_result_0 *ec2stub.DeleteLaunchTemplateFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteLaunchTemplateFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteLaunchTemplateInput) *ec2stub.EC2DeleteLaunchTemplateFuture); ok {
+	var r0 *ec2stub.DeleteLaunchTemplateFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteLaunchTemplateInput) *ec2stub.DeleteLaunchTemplateFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteLaunchTemplateFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteLaunchTemplateFuture)
 		}
 	}
 
@@ -4331,15 +4331,15 @@ func (_m *Mockec2clientstub) DeleteLaunchTemplateVersions(ctx internal.Context, 
 }
 
 // DeleteLaunchTemplateVersionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteLaunchTemplateVersionsAsync(ctx internal.Context, input *ec2.DeleteLaunchTemplateVersionsInput) (_result_0 *ec2stub.EC2DeleteLaunchTemplateVersionsFuture) {
+func (_m *Mockec2clientstub) DeleteLaunchTemplateVersionsAsync(ctx internal.Context, input *ec2.DeleteLaunchTemplateVersionsInput) (_result_0 *ec2stub.DeleteLaunchTemplateVersionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteLaunchTemplateVersionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteLaunchTemplateVersionsInput) *ec2stub.EC2DeleteLaunchTemplateVersionsFuture); ok {
+	var r0 *ec2stub.DeleteLaunchTemplateVersionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteLaunchTemplateVersionsInput) *ec2stub.DeleteLaunchTemplateVersionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteLaunchTemplateVersionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteLaunchTemplateVersionsFuture)
 		}
 	}
 
@@ -4370,15 +4370,15 @@ func (_m *Mockec2clientstub) DeleteLocalGatewayRoute(ctx internal.Context, input
 }
 
 // DeleteLocalGatewayRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteLocalGatewayRouteAsync(ctx internal.Context, input *ec2.DeleteLocalGatewayRouteInput) (_result_0 *ec2stub.EC2DeleteLocalGatewayRouteFuture) {
+func (_m *Mockec2clientstub) DeleteLocalGatewayRouteAsync(ctx internal.Context, input *ec2.DeleteLocalGatewayRouteInput) (_result_0 *ec2stub.DeleteLocalGatewayRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteLocalGatewayRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteLocalGatewayRouteInput) *ec2stub.EC2DeleteLocalGatewayRouteFuture); ok {
+	var r0 *ec2stub.DeleteLocalGatewayRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteLocalGatewayRouteInput) *ec2stub.DeleteLocalGatewayRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteLocalGatewayRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteLocalGatewayRouteFuture)
 		}
 	}
 
@@ -4409,15 +4409,15 @@ func (_m *Mockec2clientstub) DeleteLocalGatewayRouteTableVpcAssociation(ctx inte
 }
 
 // DeleteLocalGatewayRouteTableVpcAssociationAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteLocalGatewayRouteTableVpcAssociationAsync(ctx internal.Context, input *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) (_result_0 *ec2stub.EC2DeleteLocalGatewayRouteTableVpcAssociationFuture) {
+func (_m *Mockec2clientstub) DeleteLocalGatewayRouteTableVpcAssociationAsync(ctx internal.Context, input *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) (_result_0 *ec2stub.DeleteLocalGatewayRouteTableVpcAssociationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteLocalGatewayRouteTableVpcAssociationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) *ec2stub.EC2DeleteLocalGatewayRouteTableVpcAssociationFuture); ok {
+	var r0 *ec2stub.DeleteLocalGatewayRouteTableVpcAssociationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) *ec2stub.DeleteLocalGatewayRouteTableVpcAssociationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteLocalGatewayRouteTableVpcAssociationFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteLocalGatewayRouteTableVpcAssociationFuture)
 		}
 	}
 
@@ -4448,15 +4448,15 @@ func (_m *Mockec2clientstub) DeleteManagedPrefixList(ctx internal.Context, input
 }
 
 // DeleteManagedPrefixListAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteManagedPrefixListAsync(ctx internal.Context, input *ec2.DeleteManagedPrefixListInput) (_result_0 *ec2stub.EC2DeleteManagedPrefixListFuture) {
+func (_m *Mockec2clientstub) DeleteManagedPrefixListAsync(ctx internal.Context, input *ec2.DeleteManagedPrefixListInput) (_result_0 *ec2stub.DeleteManagedPrefixListFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteManagedPrefixListFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteManagedPrefixListInput) *ec2stub.EC2DeleteManagedPrefixListFuture); ok {
+	var r0 *ec2stub.DeleteManagedPrefixListFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteManagedPrefixListInput) *ec2stub.DeleteManagedPrefixListFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteManagedPrefixListFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteManagedPrefixListFuture)
 		}
 	}
 
@@ -4487,15 +4487,15 @@ func (_m *Mockec2clientstub) DeleteNatGateway(ctx internal.Context, input *ec2.D
 }
 
 // DeleteNatGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteNatGatewayAsync(ctx internal.Context, input *ec2.DeleteNatGatewayInput) (_result_0 *ec2stub.EC2DeleteNatGatewayFuture) {
+func (_m *Mockec2clientstub) DeleteNatGatewayAsync(ctx internal.Context, input *ec2.DeleteNatGatewayInput) (_result_0 *ec2stub.DeleteNatGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteNatGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNatGatewayInput) *ec2stub.EC2DeleteNatGatewayFuture); ok {
+	var r0 *ec2stub.DeleteNatGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNatGatewayInput) *ec2stub.DeleteNatGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteNatGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteNatGatewayFuture)
 		}
 	}
 
@@ -4526,15 +4526,15 @@ func (_m *Mockec2clientstub) DeleteNetworkAcl(ctx internal.Context, input *ec2.D
 }
 
 // DeleteNetworkAclAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteNetworkAclAsync(ctx internal.Context, input *ec2.DeleteNetworkAclInput) (_result_0 *ec2stub.EC2DeleteNetworkAclFuture) {
+func (_m *Mockec2clientstub) DeleteNetworkAclAsync(ctx internal.Context, input *ec2.DeleteNetworkAclInput) (_result_0 *ec2stub.DeleteNetworkAclFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteNetworkAclFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkAclInput) *ec2stub.EC2DeleteNetworkAclFuture); ok {
+	var r0 *ec2stub.DeleteNetworkAclFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkAclInput) *ec2stub.DeleteNetworkAclFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteNetworkAclFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteNetworkAclFuture)
 		}
 	}
 
@@ -4565,15 +4565,15 @@ func (_m *Mockec2clientstub) DeleteNetworkAclEntry(ctx internal.Context, input *
 }
 
 // DeleteNetworkAclEntryAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteNetworkAclEntryAsync(ctx internal.Context, input *ec2.DeleteNetworkAclEntryInput) (_result_0 *ec2stub.EC2DeleteNetworkAclEntryFuture) {
+func (_m *Mockec2clientstub) DeleteNetworkAclEntryAsync(ctx internal.Context, input *ec2.DeleteNetworkAclEntryInput) (_result_0 *ec2stub.DeleteNetworkAclEntryFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteNetworkAclEntryFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkAclEntryInput) *ec2stub.EC2DeleteNetworkAclEntryFuture); ok {
+	var r0 *ec2stub.DeleteNetworkAclEntryFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkAclEntryInput) *ec2stub.DeleteNetworkAclEntryFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteNetworkAclEntryFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteNetworkAclEntryFuture)
 		}
 	}
 
@@ -4604,15 +4604,15 @@ func (_m *Mockec2clientstub) DeleteNetworkInterface(ctx internal.Context, input 
 }
 
 // DeleteNetworkInterfaceAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteNetworkInterfaceAsync(ctx internal.Context, input *ec2.DeleteNetworkInterfaceInput) (_result_0 *ec2stub.EC2DeleteNetworkInterfaceFuture) {
+func (_m *Mockec2clientstub) DeleteNetworkInterfaceAsync(ctx internal.Context, input *ec2.DeleteNetworkInterfaceInput) (_result_0 *ec2stub.DeleteNetworkInterfaceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteNetworkInterfaceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkInterfaceInput) *ec2stub.EC2DeleteNetworkInterfaceFuture); ok {
+	var r0 *ec2stub.DeleteNetworkInterfaceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkInterfaceInput) *ec2stub.DeleteNetworkInterfaceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteNetworkInterfaceFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteNetworkInterfaceFuture)
 		}
 	}
 
@@ -4643,15 +4643,15 @@ func (_m *Mockec2clientstub) DeleteNetworkInterfacePermission(ctx internal.Conte
 }
 
 // DeleteNetworkInterfacePermissionAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteNetworkInterfacePermissionAsync(ctx internal.Context, input *ec2.DeleteNetworkInterfacePermissionInput) (_result_0 *ec2stub.EC2DeleteNetworkInterfacePermissionFuture) {
+func (_m *Mockec2clientstub) DeleteNetworkInterfacePermissionAsync(ctx internal.Context, input *ec2.DeleteNetworkInterfacePermissionInput) (_result_0 *ec2stub.DeleteNetworkInterfacePermissionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteNetworkInterfacePermissionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkInterfacePermissionInput) *ec2stub.EC2DeleteNetworkInterfacePermissionFuture); ok {
+	var r0 *ec2stub.DeleteNetworkInterfacePermissionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkInterfacePermissionInput) *ec2stub.DeleteNetworkInterfacePermissionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteNetworkInterfacePermissionFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteNetworkInterfacePermissionFuture)
 		}
 	}
 
@@ -4682,15 +4682,15 @@ func (_m *Mockec2clientstub) DeletePlacementGroup(ctx internal.Context, input *e
 }
 
 // DeletePlacementGroupAsync provides a mock function.
-func (_m *Mockec2clientstub) DeletePlacementGroupAsync(ctx internal.Context, input *ec2.DeletePlacementGroupInput) (_result_0 *ec2stub.EC2DeletePlacementGroupFuture) {
+func (_m *Mockec2clientstub) DeletePlacementGroupAsync(ctx internal.Context, input *ec2.DeletePlacementGroupInput) (_result_0 *ec2stub.DeletePlacementGroupFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeletePlacementGroupFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeletePlacementGroupInput) *ec2stub.EC2DeletePlacementGroupFuture); ok {
+	var r0 *ec2stub.DeletePlacementGroupFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeletePlacementGroupInput) *ec2stub.DeletePlacementGroupFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeletePlacementGroupFuture)
+			r0 = ret.Get(0).(*ec2stub.DeletePlacementGroupFuture)
 		}
 	}
 
@@ -4721,15 +4721,15 @@ func (_m *Mockec2clientstub) DeleteQueuedReservedInstances(ctx internal.Context,
 }
 
 // DeleteQueuedReservedInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteQueuedReservedInstancesAsync(ctx internal.Context, input *ec2.DeleteQueuedReservedInstancesInput) (_result_0 *ec2stub.EC2DeleteQueuedReservedInstancesFuture) {
+func (_m *Mockec2clientstub) DeleteQueuedReservedInstancesAsync(ctx internal.Context, input *ec2.DeleteQueuedReservedInstancesInput) (_result_0 *ec2stub.DeleteQueuedReservedInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteQueuedReservedInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteQueuedReservedInstancesInput) *ec2stub.EC2DeleteQueuedReservedInstancesFuture); ok {
+	var r0 *ec2stub.DeleteQueuedReservedInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteQueuedReservedInstancesInput) *ec2stub.DeleteQueuedReservedInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteQueuedReservedInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteQueuedReservedInstancesFuture)
 		}
 	}
 
@@ -4760,15 +4760,15 @@ func (_m *Mockec2clientstub) DeleteRoute(ctx internal.Context, input *ec2.Delete
 }
 
 // DeleteRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteRouteAsync(ctx internal.Context, input *ec2.DeleteRouteInput) (_result_0 *ec2stub.EC2DeleteRouteFuture) {
+func (_m *Mockec2clientstub) DeleteRouteAsync(ctx internal.Context, input *ec2.DeleteRouteInput) (_result_0 *ec2stub.DeleteRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteRouteInput) *ec2stub.EC2DeleteRouteFuture); ok {
+	var r0 *ec2stub.DeleteRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteRouteInput) *ec2stub.DeleteRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteRouteFuture)
 		}
 	}
 
@@ -4799,15 +4799,15 @@ func (_m *Mockec2clientstub) DeleteRouteTable(ctx internal.Context, input *ec2.D
 }
 
 // DeleteRouteTableAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteRouteTableAsync(ctx internal.Context, input *ec2.DeleteRouteTableInput) (_result_0 *ec2stub.EC2DeleteRouteTableFuture) {
+func (_m *Mockec2clientstub) DeleteRouteTableAsync(ctx internal.Context, input *ec2.DeleteRouteTableInput) (_result_0 *ec2stub.DeleteRouteTableFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteRouteTableFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteRouteTableInput) *ec2stub.EC2DeleteRouteTableFuture); ok {
+	var r0 *ec2stub.DeleteRouteTableFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteRouteTableInput) *ec2stub.DeleteRouteTableFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteRouteTableFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteRouteTableFuture)
 		}
 	}
 
@@ -4838,15 +4838,15 @@ func (_m *Mockec2clientstub) DeleteSecurityGroup(ctx internal.Context, input *ec
 }
 
 // DeleteSecurityGroupAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteSecurityGroupAsync(ctx internal.Context, input *ec2.DeleteSecurityGroupInput) (_result_0 *ec2stub.EC2DeleteSecurityGroupFuture) {
+func (_m *Mockec2clientstub) DeleteSecurityGroupAsync(ctx internal.Context, input *ec2.DeleteSecurityGroupInput) (_result_0 *ec2stub.DeleteSecurityGroupFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteSecurityGroupFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteSecurityGroupInput) *ec2stub.EC2DeleteSecurityGroupFuture); ok {
+	var r0 *ec2stub.DeleteSecurityGroupFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteSecurityGroupInput) *ec2stub.DeleteSecurityGroupFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteSecurityGroupFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteSecurityGroupFuture)
 		}
 	}
 
@@ -4877,15 +4877,15 @@ func (_m *Mockec2clientstub) DeleteSnapshot(ctx internal.Context, input *ec2.Del
 }
 
 // DeleteSnapshotAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteSnapshotAsync(ctx internal.Context, input *ec2.DeleteSnapshotInput) (_result_0 *ec2stub.EC2DeleteSnapshotFuture) {
+func (_m *Mockec2clientstub) DeleteSnapshotAsync(ctx internal.Context, input *ec2.DeleteSnapshotInput) (_result_0 *ec2stub.DeleteSnapshotFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteSnapshotFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteSnapshotInput) *ec2stub.EC2DeleteSnapshotFuture); ok {
+	var r0 *ec2stub.DeleteSnapshotFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteSnapshotInput) *ec2stub.DeleteSnapshotFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteSnapshotFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteSnapshotFuture)
 		}
 	}
 
@@ -4916,15 +4916,15 @@ func (_m *Mockec2clientstub) DeleteSpotDatafeedSubscription(ctx internal.Context
 }
 
 // DeleteSpotDatafeedSubscriptionAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteSpotDatafeedSubscriptionAsync(ctx internal.Context, input *ec2.DeleteSpotDatafeedSubscriptionInput) (_result_0 *ec2stub.EC2DeleteSpotDatafeedSubscriptionFuture) {
+func (_m *Mockec2clientstub) DeleteSpotDatafeedSubscriptionAsync(ctx internal.Context, input *ec2.DeleteSpotDatafeedSubscriptionInput) (_result_0 *ec2stub.DeleteSpotDatafeedSubscriptionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteSpotDatafeedSubscriptionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteSpotDatafeedSubscriptionInput) *ec2stub.EC2DeleteSpotDatafeedSubscriptionFuture); ok {
+	var r0 *ec2stub.DeleteSpotDatafeedSubscriptionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteSpotDatafeedSubscriptionInput) *ec2stub.DeleteSpotDatafeedSubscriptionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteSpotDatafeedSubscriptionFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteSpotDatafeedSubscriptionFuture)
 		}
 	}
 
@@ -4955,15 +4955,15 @@ func (_m *Mockec2clientstub) DeleteSubnet(ctx internal.Context, input *ec2.Delet
 }
 
 // DeleteSubnetAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteSubnetAsync(ctx internal.Context, input *ec2.DeleteSubnetInput) (_result_0 *ec2stub.EC2DeleteSubnetFuture) {
+func (_m *Mockec2clientstub) DeleteSubnetAsync(ctx internal.Context, input *ec2.DeleteSubnetInput) (_result_0 *ec2stub.DeleteSubnetFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteSubnetFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteSubnetInput) *ec2stub.EC2DeleteSubnetFuture); ok {
+	var r0 *ec2stub.DeleteSubnetFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteSubnetInput) *ec2stub.DeleteSubnetFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteSubnetFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteSubnetFuture)
 		}
 	}
 
@@ -4994,15 +4994,15 @@ func (_m *Mockec2clientstub) DeleteTags(ctx internal.Context, input *ec2.DeleteT
 }
 
 // DeleteTagsAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTagsAsync(ctx internal.Context, input *ec2.DeleteTagsInput) (_result_0 *ec2stub.EC2DeleteTagsFuture) {
+func (_m *Mockec2clientstub) DeleteTagsAsync(ctx internal.Context, input *ec2.DeleteTagsInput) (_result_0 *ec2stub.DeleteTagsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTagsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTagsInput) *ec2stub.EC2DeleteTagsFuture); ok {
+	var r0 *ec2stub.DeleteTagsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTagsInput) *ec2stub.DeleteTagsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTagsFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTagsFuture)
 		}
 	}
 
@@ -5033,15 +5033,15 @@ func (_m *Mockec2clientstub) DeleteTrafficMirrorFilter(ctx internal.Context, inp
 }
 
 // DeleteTrafficMirrorFilterAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTrafficMirrorFilterAsync(ctx internal.Context, input *ec2.DeleteTrafficMirrorFilterInput) (_result_0 *ec2stub.EC2DeleteTrafficMirrorFilterFuture) {
+func (_m *Mockec2clientstub) DeleteTrafficMirrorFilterAsync(ctx internal.Context, input *ec2.DeleteTrafficMirrorFilterInput) (_result_0 *ec2stub.DeleteTrafficMirrorFilterFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTrafficMirrorFilterFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTrafficMirrorFilterInput) *ec2stub.EC2DeleteTrafficMirrorFilterFuture); ok {
+	var r0 *ec2stub.DeleteTrafficMirrorFilterFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTrafficMirrorFilterInput) *ec2stub.DeleteTrafficMirrorFilterFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTrafficMirrorFilterFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTrafficMirrorFilterFuture)
 		}
 	}
 
@@ -5072,15 +5072,15 @@ func (_m *Mockec2clientstub) DeleteTrafficMirrorFilterRule(ctx internal.Context,
 }
 
 // DeleteTrafficMirrorFilterRuleAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTrafficMirrorFilterRuleAsync(ctx internal.Context, input *ec2.DeleteTrafficMirrorFilterRuleInput) (_result_0 *ec2stub.EC2DeleteTrafficMirrorFilterRuleFuture) {
+func (_m *Mockec2clientstub) DeleteTrafficMirrorFilterRuleAsync(ctx internal.Context, input *ec2.DeleteTrafficMirrorFilterRuleInput) (_result_0 *ec2stub.DeleteTrafficMirrorFilterRuleFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTrafficMirrorFilterRuleFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTrafficMirrorFilterRuleInput) *ec2stub.EC2DeleteTrafficMirrorFilterRuleFuture); ok {
+	var r0 *ec2stub.DeleteTrafficMirrorFilterRuleFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTrafficMirrorFilterRuleInput) *ec2stub.DeleteTrafficMirrorFilterRuleFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTrafficMirrorFilterRuleFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTrafficMirrorFilterRuleFuture)
 		}
 	}
 
@@ -5111,15 +5111,15 @@ func (_m *Mockec2clientstub) DeleteTrafficMirrorSession(ctx internal.Context, in
 }
 
 // DeleteTrafficMirrorSessionAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTrafficMirrorSessionAsync(ctx internal.Context, input *ec2.DeleteTrafficMirrorSessionInput) (_result_0 *ec2stub.EC2DeleteTrafficMirrorSessionFuture) {
+func (_m *Mockec2clientstub) DeleteTrafficMirrorSessionAsync(ctx internal.Context, input *ec2.DeleteTrafficMirrorSessionInput) (_result_0 *ec2stub.DeleteTrafficMirrorSessionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTrafficMirrorSessionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTrafficMirrorSessionInput) *ec2stub.EC2DeleteTrafficMirrorSessionFuture); ok {
+	var r0 *ec2stub.DeleteTrafficMirrorSessionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTrafficMirrorSessionInput) *ec2stub.DeleteTrafficMirrorSessionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTrafficMirrorSessionFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTrafficMirrorSessionFuture)
 		}
 	}
 
@@ -5150,15 +5150,15 @@ func (_m *Mockec2clientstub) DeleteTrafficMirrorTarget(ctx internal.Context, inp
 }
 
 // DeleteTrafficMirrorTargetAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTrafficMirrorTargetAsync(ctx internal.Context, input *ec2.DeleteTrafficMirrorTargetInput) (_result_0 *ec2stub.EC2DeleteTrafficMirrorTargetFuture) {
+func (_m *Mockec2clientstub) DeleteTrafficMirrorTargetAsync(ctx internal.Context, input *ec2.DeleteTrafficMirrorTargetInput) (_result_0 *ec2stub.DeleteTrafficMirrorTargetFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTrafficMirrorTargetFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTrafficMirrorTargetInput) *ec2stub.EC2DeleteTrafficMirrorTargetFuture); ok {
+	var r0 *ec2stub.DeleteTrafficMirrorTargetFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTrafficMirrorTargetInput) *ec2stub.DeleteTrafficMirrorTargetFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTrafficMirrorTargetFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTrafficMirrorTargetFuture)
 		}
 	}
 
@@ -5189,15 +5189,15 @@ func (_m *Mockec2clientstub) DeleteTransitGateway(ctx internal.Context, input *e
 }
 
 // DeleteTransitGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTransitGatewayAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayInput) (_result_0 *ec2stub.EC2DeleteTransitGatewayFuture) {
+func (_m *Mockec2clientstub) DeleteTransitGatewayAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayInput) (_result_0 *ec2stub.DeleteTransitGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTransitGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayInput) *ec2stub.EC2DeleteTransitGatewayFuture); ok {
+	var r0 *ec2stub.DeleteTransitGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayInput) *ec2stub.DeleteTransitGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTransitGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayFuture)
 		}
 	}
 
@@ -5228,15 +5228,15 @@ func (_m *Mockec2clientstub) DeleteTransitGatewayMulticastDomain(ctx internal.Co
 }
 
 // DeleteTransitGatewayMulticastDomainAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTransitGatewayMulticastDomainAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayMulticastDomainInput) (_result_0 *ec2stub.EC2DeleteTransitGatewayMulticastDomainFuture) {
+func (_m *Mockec2clientstub) DeleteTransitGatewayMulticastDomainAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayMulticastDomainInput) (_result_0 *ec2stub.DeleteTransitGatewayMulticastDomainFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTransitGatewayMulticastDomainFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayMulticastDomainInput) *ec2stub.EC2DeleteTransitGatewayMulticastDomainFuture); ok {
+	var r0 *ec2stub.DeleteTransitGatewayMulticastDomainFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayMulticastDomainInput) *ec2stub.DeleteTransitGatewayMulticastDomainFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTransitGatewayMulticastDomainFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayMulticastDomainFuture)
 		}
 	}
 
@@ -5267,15 +5267,15 @@ func (_m *Mockec2clientstub) DeleteTransitGatewayPeeringAttachment(ctx internal.
 }
 
 // DeleteTransitGatewayPeeringAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTransitGatewayPeeringAttachmentAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayPeeringAttachmentInput) (_result_0 *ec2stub.EC2DeleteTransitGatewayPeeringAttachmentFuture) {
+func (_m *Mockec2clientstub) DeleteTransitGatewayPeeringAttachmentAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayPeeringAttachmentInput) (_result_0 *ec2stub.DeleteTransitGatewayPeeringAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTransitGatewayPeeringAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayPeeringAttachmentInput) *ec2stub.EC2DeleteTransitGatewayPeeringAttachmentFuture); ok {
+	var r0 *ec2stub.DeleteTransitGatewayPeeringAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayPeeringAttachmentInput) *ec2stub.DeleteTransitGatewayPeeringAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTransitGatewayPeeringAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayPeeringAttachmentFuture)
 		}
 	}
 
@@ -5306,15 +5306,15 @@ func (_m *Mockec2clientstub) DeleteTransitGatewayPrefixListReference(ctx interna
 }
 
 // DeleteTransitGatewayPrefixListReferenceAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTransitGatewayPrefixListReferenceAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayPrefixListReferenceInput) (_result_0 *ec2stub.EC2DeleteTransitGatewayPrefixListReferenceFuture) {
+func (_m *Mockec2clientstub) DeleteTransitGatewayPrefixListReferenceAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayPrefixListReferenceInput) (_result_0 *ec2stub.DeleteTransitGatewayPrefixListReferenceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTransitGatewayPrefixListReferenceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayPrefixListReferenceInput) *ec2stub.EC2DeleteTransitGatewayPrefixListReferenceFuture); ok {
+	var r0 *ec2stub.DeleteTransitGatewayPrefixListReferenceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayPrefixListReferenceInput) *ec2stub.DeleteTransitGatewayPrefixListReferenceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTransitGatewayPrefixListReferenceFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayPrefixListReferenceFuture)
 		}
 	}
 
@@ -5345,15 +5345,15 @@ func (_m *Mockec2clientstub) DeleteTransitGatewayRoute(ctx internal.Context, inp
 }
 
 // DeleteTransitGatewayRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTransitGatewayRouteAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayRouteInput) (_result_0 *ec2stub.EC2DeleteTransitGatewayRouteFuture) {
+func (_m *Mockec2clientstub) DeleteTransitGatewayRouteAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayRouteInput) (_result_0 *ec2stub.DeleteTransitGatewayRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTransitGatewayRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayRouteInput) *ec2stub.EC2DeleteTransitGatewayRouteFuture); ok {
+	var r0 *ec2stub.DeleteTransitGatewayRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayRouteInput) *ec2stub.DeleteTransitGatewayRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTransitGatewayRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayRouteFuture)
 		}
 	}
 
@@ -5384,15 +5384,15 @@ func (_m *Mockec2clientstub) DeleteTransitGatewayRouteTable(ctx internal.Context
 }
 
 // DeleteTransitGatewayRouteTableAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTransitGatewayRouteTableAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayRouteTableInput) (_result_0 *ec2stub.EC2DeleteTransitGatewayRouteTableFuture) {
+func (_m *Mockec2clientstub) DeleteTransitGatewayRouteTableAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayRouteTableInput) (_result_0 *ec2stub.DeleteTransitGatewayRouteTableFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTransitGatewayRouteTableFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayRouteTableInput) *ec2stub.EC2DeleteTransitGatewayRouteTableFuture); ok {
+	var r0 *ec2stub.DeleteTransitGatewayRouteTableFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayRouteTableInput) *ec2stub.DeleteTransitGatewayRouteTableFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTransitGatewayRouteTableFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayRouteTableFuture)
 		}
 	}
 
@@ -5423,15 +5423,15 @@ func (_m *Mockec2clientstub) DeleteTransitGatewayVpcAttachment(ctx internal.Cont
 }
 
 // DeleteTransitGatewayVpcAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.EC2DeleteTransitGatewayVpcAttachmentFuture) {
+func (_m *Mockec2clientstub) DeleteTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.DeleteTransitGatewayVpcAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteTransitGatewayVpcAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayVpcAttachmentInput) *ec2stub.EC2DeleteTransitGatewayVpcAttachmentFuture); ok {
+	var r0 *ec2stub.DeleteTransitGatewayVpcAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayVpcAttachmentInput) *ec2stub.DeleteTransitGatewayVpcAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteTransitGatewayVpcAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayVpcAttachmentFuture)
 		}
 	}
 
@@ -5462,15 +5462,15 @@ func (_m *Mockec2clientstub) DeleteVolume(ctx internal.Context, input *ec2.Delet
 }
 
 // DeleteVolumeAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVolumeAsync(ctx internal.Context, input *ec2.DeleteVolumeInput) (_result_0 *ec2stub.EC2DeleteVolumeFuture) {
+func (_m *Mockec2clientstub) DeleteVolumeAsync(ctx internal.Context, input *ec2.DeleteVolumeInput) (_result_0 *ec2stub.DeleteVolumeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVolumeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVolumeInput) *ec2stub.EC2DeleteVolumeFuture); ok {
+	var r0 *ec2stub.DeleteVolumeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVolumeInput) *ec2stub.DeleteVolumeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVolumeFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVolumeFuture)
 		}
 	}
 
@@ -5501,15 +5501,15 @@ func (_m *Mockec2clientstub) DeleteVpc(ctx internal.Context, input *ec2.DeleteVp
 }
 
 // DeleteVpcAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVpcAsync(ctx internal.Context, input *ec2.DeleteVpcInput) (_result_0 *ec2stub.EC2DeleteVpcFuture) {
+func (_m *Mockec2clientstub) DeleteVpcAsync(ctx internal.Context, input *ec2.DeleteVpcInput) (_result_0 *ec2stub.DeleteVpcFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVpcFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcInput) *ec2stub.EC2DeleteVpcFuture); ok {
+	var r0 *ec2stub.DeleteVpcFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcInput) *ec2stub.DeleteVpcFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVpcFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVpcFuture)
 		}
 	}
 
@@ -5540,15 +5540,15 @@ func (_m *Mockec2clientstub) DeleteVpcEndpointConnectionNotifications(ctx intern
 }
 
 // DeleteVpcEndpointConnectionNotificationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVpcEndpointConnectionNotificationsAsync(ctx internal.Context, input *ec2.DeleteVpcEndpointConnectionNotificationsInput) (_result_0 *ec2stub.EC2DeleteVpcEndpointConnectionNotificationsFuture) {
+func (_m *Mockec2clientstub) DeleteVpcEndpointConnectionNotificationsAsync(ctx internal.Context, input *ec2.DeleteVpcEndpointConnectionNotificationsInput) (_result_0 *ec2stub.DeleteVpcEndpointConnectionNotificationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVpcEndpointConnectionNotificationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcEndpointConnectionNotificationsInput) *ec2stub.EC2DeleteVpcEndpointConnectionNotificationsFuture); ok {
+	var r0 *ec2stub.DeleteVpcEndpointConnectionNotificationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcEndpointConnectionNotificationsInput) *ec2stub.DeleteVpcEndpointConnectionNotificationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVpcEndpointConnectionNotificationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVpcEndpointConnectionNotificationsFuture)
 		}
 	}
 
@@ -5579,15 +5579,15 @@ func (_m *Mockec2clientstub) DeleteVpcEndpointServiceConfigurations(ctx internal
 }
 
 // DeleteVpcEndpointServiceConfigurationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVpcEndpointServiceConfigurationsAsync(ctx internal.Context, input *ec2.DeleteVpcEndpointServiceConfigurationsInput) (_result_0 *ec2stub.EC2DeleteVpcEndpointServiceConfigurationsFuture) {
+func (_m *Mockec2clientstub) DeleteVpcEndpointServiceConfigurationsAsync(ctx internal.Context, input *ec2.DeleteVpcEndpointServiceConfigurationsInput) (_result_0 *ec2stub.DeleteVpcEndpointServiceConfigurationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVpcEndpointServiceConfigurationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcEndpointServiceConfigurationsInput) *ec2stub.EC2DeleteVpcEndpointServiceConfigurationsFuture); ok {
+	var r0 *ec2stub.DeleteVpcEndpointServiceConfigurationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcEndpointServiceConfigurationsInput) *ec2stub.DeleteVpcEndpointServiceConfigurationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVpcEndpointServiceConfigurationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVpcEndpointServiceConfigurationsFuture)
 		}
 	}
 
@@ -5618,15 +5618,15 @@ func (_m *Mockec2clientstub) DeleteVpcEndpoints(ctx internal.Context, input *ec2
 }
 
 // DeleteVpcEndpointsAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVpcEndpointsAsync(ctx internal.Context, input *ec2.DeleteVpcEndpointsInput) (_result_0 *ec2stub.EC2DeleteVpcEndpointsFuture) {
+func (_m *Mockec2clientstub) DeleteVpcEndpointsAsync(ctx internal.Context, input *ec2.DeleteVpcEndpointsInput) (_result_0 *ec2stub.DeleteVpcEndpointsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVpcEndpointsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcEndpointsInput) *ec2stub.EC2DeleteVpcEndpointsFuture); ok {
+	var r0 *ec2stub.DeleteVpcEndpointsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcEndpointsInput) *ec2stub.DeleteVpcEndpointsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVpcEndpointsFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVpcEndpointsFuture)
 		}
 	}
 
@@ -5657,15 +5657,15 @@ func (_m *Mockec2clientstub) DeleteVpcPeeringConnection(ctx internal.Context, in
 }
 
 // DeleteVpcPeeringConnectionAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVpcPeeringConnectionAsync(ctx internal.Context, input *ec2.DeleteVpcPeeringConnectionInput) (_result_0 *ec2stub.EC2DeleteVpcPeeringConnectionFuture) {
+func (_m *Mockec2clientstub) DeleteVpcPeeringConnectionAsync(ctx internal.Context, input *ec2.DeleteVpcPeeringConnectionInput) (_result_0 *ec2stub.DeleteVpcPeeringConnectionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVpcPeeringConnectionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcPeeringConnectionInput) *ec2stub.EC2DeleteVpcPeeringConnectionFuture); ok {
+	var r0 *ec2stub.DeleteVpcPeeringConnectionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpcPeeringConnectionInput) *ec2stub.DeleteVpcPeeringConnectionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVpcPeeringConnectionFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVpcPeeringConnectionFuture)
 		}
 	}
 
@@ -5696,15 +5696,15 @@ func (_m *Mockec2clientstub) DeleteVpnConnection(ctx internal.Context, input *ec
 }
 
 // DeleteVpnConnectionAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVpnConnectionAsync(ctx internal.Context, input *ec2.DeleteVpnConnectionInput) (_result_0 *ec2stub.EC2DeleteVpnConnectionFuture) {
+func (_m *Mockec2clientstub) DeleteVpnConnectionAsync(ctx internal.Context, input *ec2.DeleteVpnConnectionInput) (_result_0 *ec2stub.DeleteVpnConnectionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVpnConnectionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpnConnectionInput) *ec2stub.EC2DeleteVpnConnectionFuture); ok {
+	var r0 *ec2stub.DeleteVpnConnectionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpnConnectionInput) *ec2stub.DeleteVpnConnectionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVpnConnectionFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVpnConnectionFuture)
 		}
 	}
 
@@ -5735,15 +5735,15 @@ func (_m *Mockec2clientstub) DeleteVpnConnectionRoute(ctx internal.Context, inpu
 }
 
 // DeleteVpnConnectionRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVpnConnectionRouteAsync(ctx internal.Context, input *ec2.DeleteVpnConnectionRouteInput) (_result_0 *ec2stub.EC2DeleteVpnConnectionRouteFuture) {
+func (_m *Mockec2clientstub) DeleteVpnConnectionRouteAsync(ctx internal.Context, input *ec2.DeleteVpnConnectionRouteInput) (_result_0 *ec2stub.DeleteVpnConnectionRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVpnConnectionRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpnConnectionRouteInput) *ec2stub.EC2DeleteVpnConnectionRouteFuture); ok {
+	var r0 *ec2stub.DeleteVpnConnectionRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpnConnectionRouteInput) *ec2stub.DeleteVpnConnectionRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVpnConnectionRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVpnConnectionRouteFuture)
 		}
 	}
 
@@ -5774,15 +5774,15 @@ func (_m *Mockec2clientstub) DeleteVpnGateway(ctx internal.Context, input *ec2.D
 }
 
 // DeleteVpnGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DeleteVpnGatewayAsync(ctx internal.Context, input *ec2.DeleteVpnGatewayInput) (_result_0 *ec2stub.EC2DeleteVpnGatewayFuture) {
+func (_m *Mockec2clientstub) DeleteVpnGatewayAsync(ctx internal.Context, input *ec2.DeleteVpnGatewayInput) (_result_0 *ec2stub.DeleteVpnGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeleteVpnGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpnGatewayInput) *ec2stub.EC2DeleteVpnGatewayFuture); ok {
+	var r0 *ec2stub.DeleteVpnGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteVpnGatewayInput) *ec2stub.DeleteVpnGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeleteVpnGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DeleteVpnGatewayFuture)
 		}
 	}
 
@@ -5813,15 +5813,15 @@ func (_m *Mockec2clientstub) DeprovisionByoipCidr(ctx internal.Context, input *e
 }
 
 // DeprovisionByoipCidrAsync provides a mock function.
-func (_m *Mockec2clientstub) DeprovisionByoipCidrAsync(ctx internal.Context, input *ec2.DeprovisionByoipCidrInput) (_result_0 *ec2stub.EC2DeprovisionByoipCidrFuture) {
+func (_m *Mockec2clientstub) DeprovisionByoipCidrAsync(ctx internal.Context, input *ec2.DeprovisionByoipCidrInput) (_result_0 *ec2stub.DeprovisionByoipCidrFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeprovisionByoipCidrFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeprovisionByoipCidrInput) *ec2stub.EC2DeprovisionByoipCidrFuture); ok {
+	var r0 *ec2stub.DeprovisionByoipCidrFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeprovisionByoipCidrInput) *ec2stub.DeprovisionByoipCidrFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeprovisionByoipCidrFuture)
+			r0 = ret.Get(0).(*ec2stub.DeprovisionByoipCidrFuture)
 		}
 	}
 
@@ -5852,15 +5852,15 @@ func (_m *Mockec2clientstub) DeregisterImage(ctx internal.Context, input *ec2.De
 }
 
 // DeregisterImageAsync provides a mock function.
-func (_m *Mockec2clientstub) DeregisterImageAsync(ctx internal.Context, input *ec2.DeregisterImageInput) (_result_0 *ec2stub.EC2DeregisterImageFuture) {
+func (_m *Mockec2clientstub) DeregisterImageAsync(ctx internal.Context, input *ec2.DeregisterImageInput) (_result_0 *ec2stub.DeregisterImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeregisterImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeregisterImageInput) *ec2stub.EC2DeregisterImageFuture); ok {
+	var r0 *ec2stub.DeregisterImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeregisterImageInput) *ec2stub.DeregisterImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeregisterImageFuture)
+			r0 = ret.Get(0).(*ec2stub.DeregisterImageFuture)
 		}
 	}
 
@@ -5891,15 +5891,15 @@ func (_m *Mockec2clientstub) DeregisterInstanceEventNotificationAttributes(ctx i
 }
 
 // DeregisterInstanceEventNotificationAttributesAsync provides a mock function.
-func (_m *Mockec2clientstub) DeregisterInstanceEventNotificationAttributesAsync(ctx internal.Context, input *ec2.DeregisterInstanceEventNotificationAttributesInput) (_result_0 *ec2stub.EC2DeregisterInstanceEventNotificationAttributesFuture) {
+func (_m *Mockec2clientstub) DeregisterInstanceEventNotificationAttributesAsync(ctx internal.Context, input *ec2.DeregisterInstanceEventNotificationAttributesInput) (_result_0 *ec2stub.DeregisterInstanceEventNotificationAttributesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeregisterInstanceEventNotificationAttributesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeregisterInstanceEventNotificationAttributesInput) *ec2stub.EC2DeregisterInstanceEventNotificationAttributesFuture); ok {
+	var r0 *ec2stub.DeregisterInstanceEventNotificationAttributesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeregisterInstanceEventNotificationAttributesInput) *ec2stub.DeregisterInstanceEventNotificationAttributesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeregisterInstanceEventNotificationAttributesFuture)
+			r0 = ret.Get(0).(*ec2stub.DeregisterInstanceEventNotificationAttributesFuture)
 		}
 	}
 
@@ -5930,15 +5930,15 @@ func (_m *Mockec2clientstub) DeregisterTransitGatewayMulticastGroupMembers(ctx i
 }
 
 // DeregisterTransitGatewayMulticastGroupMembersAsync provides a mock function.
-func (_m *Mockec2clientstub) DeregisterTransitGatewayMulticastGroupMembersAsync(ctx internal.Context, input *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) (_result_0 *ec2stub.EC2DeregisterTransitGatewayMulticastGroupMembersFuture) {
+func (_m *Mockec2clientstub) DeregisterTransitGatewayMulticastGroupMembersAsync(ctx internal.Context, input *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) (_result_0 *ec2stub.DeregisterTransitGatewayMulticastGroupMembersFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeregisterTransitGatewayMulticastGroupMembersFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) *ec2stub.EC2DeregisterTransitGatewayMulticastGroupMembersFuture); ok {
+	var r0 *ec2stub.DeregisterTransitGatewayMulticastGroupMembersFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) *ec2stub.DeregisterTransitGatewayMulticastGroupMembersFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeregisterTransitGatewayMulticastGroupMembersFuture)
+			r0 = ret.Get(0).(*ec2stub.DeregisterTransitGatewayMulticastGroupMembersFuture)
 		}
 	}
 
@@ -5969,15 +5969,15 @@ func (_m *Mockec2clientstub) DeregisterTransitGatewayMulticastGroupSources(ctx i
 }
 
 // DeregisterTransitGatewayMulticastGroupSourcesAsync provides a mock function.
-func (_m *Mockec2clientstub) DeregisterTransitGatewayMulticastGroupSourcesAsync(ctx internal.Context, input *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) (_result_0 *ec2stub.EC2DeregisterTransitGatewayMulticastGroupSourcesFuture) {
+func (_m *Mockec2clientstub) DeregisterTransitGatewayMulticastGroupSourcesAsync(ctx internal.Context, input *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) (_result_0 *ec2stub.DeregisterTransitGatewayMulticastGroupSourcesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DeregisterTransitGatewayMulticastGroupSourcesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) *ec2stub.EC2DeregisterTransitGatewayMulticastGroupSourcesFuture); ok {
+	var r0 *ec2stub.DeregisterTransitGatewayMulticastGroupSourcesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) *ec2stub.DeregisterTransitGatewayMulticastGroupSourcesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DeregisterTransitGatewayMulticastGroupSourcesFuture)
+			r0 = ret.Get(0).(*ec2stub.DeregisterTransitGatewayMulticastGroupSourcesFuture)
 		}
 	}
 
@@ -6008,15 +6008,15 @@ func (_m *Mockec2clientstub) DescribeAccountAttributes(ctx internal.Context, inp
 }
 
 // DescribeAccountAttributesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeAccountAttributesAsync(ctx internal.Context, input *ec2.DescribeAccountAttributesInput) (_result_0 *ec2stub.EC2DescribeAccountAttributesFuture) {
+func (_m *Mockec2clientstub) DescribeAccountAttributesAsync(ctx internal.Context, input *ec2.DescribeAccountAttributesInput) (_result_0 *ec2stub.DescribeAccountAttributesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeAccountAttributesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeAccountAttributesInput) *ec2stub.EC2DescribeAccountAttributesFuture); ok {
+	var r0 *ec2stub.DescribeAccountAttributesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeAccountAttributesInput) *ec2stub.DescribeAccountAttributesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeAccountAttributesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeAccountAttributesFuture)
 		}
 	}
 
@@ -6047,15 +6047,15 @@ func (_m *Mockec2clientstub) DescribeAddresses(ctx internal.Context, input *ec2.
 }
 
 // DescribeAddressesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeAddressesAsync(ctx internal.Context, input *ec2.DescribeAddressesInput) (_result_0 *ec2stub.EC2DescribeAddressesFuture) {
+func (_m *Mockec2clientstub) DescribeAddressesAsync(ctx internal.Context, input *ec2.DescribeAddressesInput) (_result_0 *ec2stub.DescribeAddressesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeAddressesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeAddressesInput) *ec2stub.EC2DescribeAddressesFuture); ok {
+	var r0 *ec2stub.DescribeAddressesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeAddressesInput) *ec2stub.DescribeAddressesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeAddressesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeAddressesFuture)
 		}
 	}
 
@@ -6086,15 +6086,15 @@ func (_m *Mockec2clientstub) DescribeAggregateIdFormat(ctx internal.Context, inp
 }
 
 // DescribeAggregateIdFormatAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeAggregateIdFormatAsync(ctx internal.Context, input *ec2.DescribeAggregateIdFormatInput) (_result_0 *ec2stub.EC2DescribeAggregateIdFormatFuture) {
+func (_m *Mockec2clientstub) DescribeAggregateIdFormatAsync(ctx internal.Context, input *ec2.DescribeAggregateIdFormatInput) (_result_0 *ec2stub.DescribeAggregateIdFormatFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeAggregateIdFormatFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeAggregateIdFormatInput) *ec2stub.EC2DescribeAggregateIdFormatFuture); ok {
+	var r0 *ec2stub.DescribeAggregateIdFormatFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeAggregateIdFormatInput) *ec2stub.DescribeAggregateIdFormatFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeAggregateIdFormatFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeAggregateIdFormatFuture)
 		}
 	}
 
@@ -6125,15 +6125,15 @@ func (_m *Mockec2clientstub) DescribeAvailabilityZones(ctx internal.Context, inp
 }
 
 // DescribeAvailabilityZonesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeAvailabilityZonesAsync(ctx internal.Context, input *ec2.DescribeAvailabilityZonesInput) (_result_0 *ec2stub.EC2DescribeAvailabilityZonesFuture) {
+func (_m *Mockec2clientstub) DescribeAvailabilityZonesAsync(ctx internal.Context, input *ec2.DescribeAvailabilityZonesInput) (_result_0 *ec2stub.DescribeAvailabilityZonesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeAvailabilityZonesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeAvailabilityZonesInput) *ec2stub.EC2DescribeAvailabilityZonesFuture); ok {
+	var r0 *ec2stub.DescribeAvailabilityZonesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeAvailabilityZonesInput) *ec2stub.DescribeAvailabilityZonesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeAvailabilityZonesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeAvailabilityZonesFuture)
 		}
 	}
 
@@ -6164,15 +6164,15 @@ func (_m *Mockec2clientstub) DescribeBundleTasks(ctx internal.Context, input *ec
 }
 
 // DescribeBundleTasksAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeBundleTasksAsync(ctx internal.Context, input *ec2.DescribeBundleTasksInput) (_result_0 *ec2stub.EC2DescribeBundleTasksFuture) {
+func (_m *Mockec2clientstub) DescribeBundleTasksAsync(ctx internal.Context, input *ec2.DescribeBundleTasksInput) (_result_0 *ec2stub.DescribeBundleTasksFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeBundleTasksFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeBundleTasksInput) *ec2stub.EC2DescribeBundleTasksFuture); ok {
+	var r0 *ec2stub.DescribeBundleTasksFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeBundleTasksInput) *ec2stub.DescribeBundleTasksFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeBundleTasksFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeBundleTasksFuture)
 		}
 	}
 
@@ -6203,15 +6203,15 @@ func (_m *Mockec2clientstub) DescribeByoipCidrs(ctx internal.Context, input *ec2
 }
 
 // DescribeByoipCidrsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeByoipCidrsAsync(ctx internal.Context, input *ec2.DescribeByoipCidrsInput) (_result_0 *ec2stub.EC2DescribeByoipCidrsFuture) {
+func (_m *Mockec2clientstub) DescribeByoipCidrsAsync(ctx internal.Context, input *ec2.DescribeByoipCidrsInput) (_result_0 *ec2stub.DescribeByoipCidrsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeByoipCidrsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeByoipCidrsInput) *ec2stub.EC2DescribeByoipCidrsFuture); ok {
+	var r0 *ec2stub.DescribeByoipCidrsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeByoipCidrsInput) *ec2stub.DescribeByoipCidrsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeByoipCidrsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeByoipCidrsFuture)
 		}
 	}
 
@@ -6242,15 +6242,15 @@ func (_m *Mockec2clientstub) DescribeCapacityReservations(ctx internal.Context, 
 }
 
 // DescribeCapacityReservationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeCapacityReservationsAsync(ctx internal.Context, input *ec2.DescribeCapacityReservationsInput) (_result_0 *ec2stub.EC2DescribeCapacityReservationsFuture) {
+func (_m *Mockec2clientstub) DescribeCapacityReservationsAsync(ctx internal.Context, input *ec2.DescribeCapacityReservationsInput) (_result_0 *ec2stub.DescribeCapacityReservationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeCapacityReservationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeCapacityReservationsInput) *ec2stub.EC2DescribeCapacityReservationsFuture); ok {
+	var r0 *ec2stub.DescribeCapacityReservationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeCapacityReservationsInput) *ec2stub.DescribeCapacityReservationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeCapacityReservationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeCapacityReservationsFuture)
 		}
 	}
 
@@ -6281,15 +6281,15 @@ func (_m *Mockec2clientstub) DescribeCarrierGateways(ctx internal.Context, input
 }
 
 // DescribeCarrierGatewaysAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeCarrierGatewaysAsync(ctx internal.Context, input *ec2.DescribeCarrierGatewaysInput) (_result_0 *ec2stub.EC2DescribeCarrierGatewaysFuture) {
+func (_m *Mockec2clientstub) DescribeCarrierGatewaysAsync(ctx internal.Context, input *ec2.DescribeCarrierGatewaysInput) (_result_0 *ec2stub.DescribeCarrierGatewaysFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeCarrierGatewaysFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeCarrierGatewaysInput) *ec2stub.EC2DescribeCarrierGatewaysFuture); ok {
+	var r0 *ec2stub.DescribeCarrierGatewaysFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeCarrierGatewaysInput) *ec2stub.DescribeCarrierGatewaysFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeCarrierGatewaysFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeCarrierGatewaysFuture)
 		}
 	}
 
@@ -6320,15 +6320,15 @@ func (_m *Mockec2clientstub) DescribeClassicLinkInstances(ctx internal.Context, 
 }
 
 // DescribeClassicLinkInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeClassicLinkInstancesAsync(ctx internal.Context, input *ec2.DescribeClassicLinkInstancesInput) (_result_0 *ec2stub.EC2DescribeClassicLinkInstancesFuture) {
+func (_m *Mockec2clientstub) DescribeClassicLinkInstancesAsync(ctx internal.Context, input *ec2.DescribeClassicLinkInstancesInput) (_result_0 *ec2stub.DescribeClassicLinkInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeClassicLinkInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClassicLinkInstancesInput) *ec2stub.EC2DescribeClassicLinkInstancesFuture); ok {
+	var r0 *ec2stub.DescribeClassicLinkInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClassicLinkInstancesInput) *ec2stub.DescribeClassicLinkInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeClassicLinkInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeClassicLinkInstancesFuture)
 		}
 	}
 
@@ -6359,15 +6359,15 @@ func (_m *Mockec2clientstub) DescribeClientVpnAuthorizationRules(ctx internal.Co
 }
 
 // DescribeClientVpnAuthorizationRulesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeClientVpnAuthorizationRulesAsync(ctx internal.Context, input *ec2.DescribeClientVpnAuthorizationRulesInput) (_result_0 *ec2stub.EC2DescribeClientVpnAuthorizationRulesFuture) {
+func (_m *Mockec2clientstub) DescribeClientVpnAuthorizationRulesAsync(ctx internal.Context, input *ec2.DescribeClientVpnAuthorizationRulesInput) (_result_0 *ec2stub.DescribeClientVpnAuthorizationRulesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeClientVpnAuthorizationRulesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnAuthorizationRulesInput) *ec2stub.EC2DescribeClientVpnAuthorizationRulesFuture); ok {
+	var r0 *ec2stub.DescribeClientVpnAuthorizationRulesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnAuthorizationRulesInput) *ec2stub.DescribeClientVpnAuthorizationRulesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeClientVpnAuthorizationRulesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeClientVpnAuthorizationRulesFuture)
 		}
 	}
 
@@ -6398,15 +6398,15 @@ func (_m *Mockec2clientstub) DescribeClientVpnConnections(ctx internal.Context, 
 }
 
 // DescribeClientVpnConnectionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeClientVpnConnectionsAsync(ctx internal.Context, input *ec2.DescribeClientVpnConnectionsInput) (_result_0 *ec2stub.EC2DescribeClientVpnConnectionsFuture) {
+func (_m *Mockec2clientstub) DescribeClientVpnConnectionsAsync(ctx internal.Context, input *ec2.DescribeClientVpnConnectionsInput) (_result_0 *ec2stub.DescribeClientVpnConnectionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeClientVpnConnectionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnConnectionsInput) *ec2stub.EC2DescribeClientVpnConnectionsFuture); ok {
+	var r0 *ec2stub.DescribeClientVpnConnectionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnConnectionsInput) *ec2stub.DescribeClientVpnConnectionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeClientVpnConnectionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeClientVpnConnectionsFuture)
 		}
 	}
 
@@ -6437,15 +6437,15 @@ func (_m *Mockec2clientstub) DescribeClientVpnEndpoints(ctx internal.Context, in
 }
 
 // DescribeClientVpnEndpointsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeClientVpnEndpointsAsync(ctx internal.Context, input *ec2.DescribeClientVpnEndpointsInput) (_result_0 *ec2stub.EC2DescribeClientVpnEndpointsFuture) {
+func (_m *Mockec2clientstub) DescribeClientVpnEndpointsAsync(ctx internal.Context, input *ec2.DescribeClientVpnEndpointsInput) (_result_0 *ec2stub.DescribeClientVpnEndpointsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeClientVpnEndpointsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnEndpointsInput) *ec2stub.EC2DescribeClientVpnEndpointsFuture); ok {
+	var r0 *ec2stub.DescribeClientVpnEndpointsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnEndpointsInput) *ec2stub.DescribeClientVpnEndpointsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeClientVpnEndpointsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeClientVpnEndpointsFuture)
 		}
 	}
 
@@ -6476,15 +6476,15 @@ func (_m *Mockec2clientstub) DescribeClientVpnRoutes(ctx internal.Context, input
 }
 
 // DescribeClientVpnRoutesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeClientVpnRoutesAsync(ctx internal.Context, input *ec2.DescribeClientVpnRoutesInput) (_result_0 *ec2stub.EC2DescribeClientVpnRoutesFuture) {
+func (_m *Mockec2clientstub) DescribeClientVpnRoutesAsync(ctx internal.Context, input *ec2.DescribeClientVpnRoutesInput) (_result_0 *ec2stub.DescribeClientVpnRoutesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeClientVpnRoutesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnRoutesInput) *ec2stub.EC2DescribeClientVpnRoutesFuture); ok {
+	var r0 *ec2stub.DescribeClientVpnRoutesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnRoutesInput) *ec2stub.DescribeClientVpnRoutesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeClientVpnRoutesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeClientVpnRoutesFuture)
 		}
 	}
 
@@ -6515,15 +6515,15 @@ func (_m *Mockec2clientstub) DescribeClientVpnTargetNetworks(ctx internal.Contex
 }
 
 // DescribeClientVpnTargetNetworksAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeClientVpnTargetNetworksAsync(ctx internal.Context, input *ec2.DescribeClientVpnTargetNetworksInput) (_result_0 *ec2stub.EC2DescribeClientVpnTargetNetworksFuture) {
+func (_m *Mockec2clientstub) DescribeClientVpnTargetNetworksAsync(ctx internal.Context, input *ec2.DescribeClientVpnTargetNetworksInput) (_result_0 *ec2stub.DescribeClientVpnTargetNetworksFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeClientVpnTargetNetworksFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnTargetNetworksInput) *ec2stub.EC2DescribeClientVpnTargetNetworksFuture); ok {
+	var r0 *ec2stub.DescribeClientVpnTargetNetworksFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeClientVpnTargetNetworksInput) *ec2stub.DescribeClientVpnTargetNetworksFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeClientVpnTargetNetworksFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeClientVpnTargetNetworksFuture)
 		}
 	}
 
@@ -6554,15 +6554,15 @@ func (_m *Mockec2clientstub) DescribeCoipPools(ctx internal.Context, input *ec2.
 }
 
 // DescribeCoipPoolsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeCoipPoolsAsync(ctx internal.Context, input *ec2.DescribeCoipPoolsInput) (_result_0 *ec2stub.EC2DescribeCoipPoolsFuture) {
+func (_m *Mockec2clientstub) DescribeCoipPoolsAsync(ctx internal.Context, input *ec2.DescribeCoipPoolsInput) (_result_0 *ec2stub.DescribeCoipPoolsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeCoipPoolsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeCoipPoolsInput) *ec2stub.EC2DescribeCoipPoolsFuture); ok {
+	var r0 *ec2stub.DescribeCoipPoolsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeCoipPoolsInput) *ec2stub.DescribeCoipPoolsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeCoipPoolsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeCoipPoolsFuture)
 		}
 	}
 
@@ -6593,15 +6593,15 @@ func (_m *Mockec2clientstub) DescribeConversionTasks(ctx internal.Context, input
 }
 
 // DescribeConversionTasksAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeConversionTasksAsync(ctx internal.Context, input *ec2.DescribeConversionTasksInput) (_result_0 *ec2stub.EC2DescribeConversionTasksFuture) {
+func (_m *Mockec2clientstub) DescribeConversionTasksAsync(ctx internal.Context, input *ec2.DescribeConversionTasksInput) (_result_0 *ec2stub.DescribeConversionTasksFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeConversionTasksFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeConversionTasksInput) *ec2stub.EC2DescribeConversionTasksFuture); ok {
+	var r0 *ec2stub.DescribeConversionTasksFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeConversionTasksInput) *ec2stub.DescribeConversionTasksFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeConversionTasksFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeConversionTasksFuture)
 		}
 	}
 
@@ -6632,15 +6632,15 @@ func (_m *Mockec2clientstub) DescribeCustomerGateways(ctx internal.Context, inpu
 }
 
 // DescribeCustomerGatewaysAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeCustomerGatewaysAsync(ctx internal.Context, input *ec2.DescribeCustomerGatewaysInput) (_result_0 *ec2stub.EC2DescribeCustomerGatewaysFuture) {
+func (_m *Mockec2clientstub) DescribeCustomerGatewaysAsync(ctx internal.Context, input *ec2.DescribeCustomerGatewaysInput) (_result_0 *ec2stub.DescribeCustomerGatewaysFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeCustomerGatewaysFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeCustomerGatewaysInput) *ec2stub.EC2DescribeCustomerGatewaysFuture); ok {
+	var r0 *ec2stub.DescribeCustomerGatewaysFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeCustomerGatewaysInput) *ec2stub.DescribeCustomerGatewaysFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeCustomerGatewaysFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeCustomerGatewaysFuture)
 		}
 	}
 
@@ -6671,15 +6671,15 @@ func (_m *Mockec2clientstub) DescribeDhcpOptions(ctx internal.Context, input *ec
 }
 
 // DescribeDhcpOptionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeDhcpOptionsAsync(ctx internal.Context, input *ec2.DescribeDhcpOptionsInput) (_result_0 *ec2stub.EC2DescribeDhcpOptionsFuture) {
+func (_m *Mockec2clientstub) DescribeDhcpOptionsAsync(ctx internal.Context, input *ec2.DescribeDhcpOptionsInput) (_result_0 *ec2stub.DescribeDhcpOptionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeDhcpOptionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeDhcpOptionsInput) *ec2stub.EC2DescribeDhcpOptionsFuture); ok {
+	var r0 *ec2stub.DescribeDhcpOptionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeDhcpOptionsInput) *ec2stub.DescribeDhcpOptionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeDhcpOptionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeDhcpOptionsFuture)
 		}
 	}
 
@@ -6710,15 +6710,15 @@ func (_m *Mockec2clientstub) DescribeEgressOnlyInternetGateways(ctx internal.Con
 }
 
 // DescribeEgressOnlyInternetGatewaysAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeEgressOnlyInternetGatewaysAsync(ctx internal.Context, input *ec2.DescribeEgressOnlyInternetGatewaysInput) (_result_0 *ec2stub.EC2DescribeEgressOnlyInternetGatewaysFuture) {
+func (_m *Mockec2clientstub) DescribeEgressOnlyInternetGatewaysAsync(ctx internal.Context, input *ec2.DescribeEgressOnlyInternetGatewaysInput) (_result_0 *ec2stub.DescribeEgressOnlyInternetGatewaysFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeEgressOnlyInternetGatewaysFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeEgressOnlyInternetGatewaysInput) *ec2stub.EC2DescribeEgressOnlyInternetGatewaysFuture); ok {
+	var r0 *ec2stub.DescribeEgressOnlyInternetGatewaysFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeEgressOnlyInternetGatewaysInput) *ec2stub.DescribeEgressOnlyInternetGatewaysFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeEgressOnlyInternetGatewaysFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeEgressOnlyInternetGatewaysFuture)
 		}
 	}
 
@@ -6749,15 +6749,15 @@ func (_m *Mockec2clientstub) DescribeElasticGpus(ctx internal.Context, input *ec
 }
 
 // DescribeElasticGpusAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeElasticGpusAsync(ctx internal.Context, input *ec2.DescribeElasticGpusInput) (_result_0 *ec2stub.EC2DescribeElasticGpusFuture) {
+func (_m *Mockec2clientstub) DescribeElasticGpusAsync(ctx internal.Context, input *ec2.DescribeElasticGpusInput) (_result_0 *ec2stub.DescribeElasticGpusFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeElasticGpusFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeElasticGpusInput) *ec2stub.EC2DescribeElasticGpusFuture); ok {
+	var r0 *ec2stub.DescribeElasticGpusFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeElasticGpusInput) *ec2stub.DescribeElasticGpusFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeElasticGpusFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeElasticGpusFuture)
 		}
 	}
 
@@ -6788,15 +6788,15 @@ func (_m *Mockec2clientstub) DescribeExportImageTasks(ctx internal.Context, inpu
 }
 
 // DescribeExportImageTasksAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeExportImageTasksAsync(ctx internal.Context, input *ec2.DescribeExportImageTasksInput) (_result_0 *ec2stub.EC2DescribeExportImageTasksFuture) {
+func (_m *Mockec2clientstub) DescribeExportImageTasksAsync(ctx internal.Context, input *ec2.DescribeExportImageTasksInput) (_result_0 *ec2stub.DescribeExportImageTasksFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeExportImageTasksFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeExportImageTasksInput) *ec2stub.EC2DescribeExportImageTasksFuture); ok {
+	var r0 *ec2stub.DescribeExportImageTasksFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeExportImageTasksInput) *ec2stub.DescribeExportImageTasksFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeExportImageTasksFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeExportImageTasksFuture)
 		}
 	}
 
@@ -6827,15 +6827,15 @@ func (_m *Mockec2clientstub) DescribeExportTasks(ctx internal.Context, input *ec
 }
 
 // DescribeExportTasksAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeExportTasksAsync(ctx internal.Context, input *ec2.DescribeExportTasksInput) (_result_0 *ec2stub.EC2DescribeExportTasksFuture) {
+func (_m *Mockec2clientstub) DescribeExportTasksAsync(ctx internal.Context, input *ec2.DescribeExportTasksInput) (_result_0 *ec2stub.DescribeExportTasksFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeExportTasksFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeExportTasksInput) *ec2stub.EC2DescribeExportTasksFuture); ok {
+	var r0 *ec2stub.DescribeExportTasksFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeExportTasksInput) *ec2stub.DescribeExportTasksFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeExportTasksFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeExportTasksFuture)
 		}
 	}
 
@@ -6866,15 +6866,15 @@ func (_m *Mockec2clientstub) DescribeFastSnapshotRestores(ctx internal.Context, 
 }
 
 // DescribeFastSnapshotRestoresAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeFastSnapshotRestoresAsync(ctx internal.Context, input *ec2.DescribeFastSnapshotRestoresInput) (_result_0 *ec2stub.EC2DescribeFastSnapshotRestoresFuture) {
+func (_m *Mockec2clientstub) DescribeFastSnapshotRestoresAsync(ctx internal.Context, input *ec2.DescribeFastSnapshotRestoresInput) (_result_0 *ec2stub.DescribeFastSnapshotRestoresFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeFastSnapshotRestoresFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFastSnapshotRestoresInput) *ec2stub.EC2DescribeFastSnapshotRestoresFuture); ok {
+	var r0 *ec2stub.DescribeFastSnapshotRestoresFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFastSnapshotRestoresInput) *ec2stub.DescribeFastSnapshotRestoresFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeFastSnapshotRestoresFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeFastSnapshotRestoresFuture)
 		}
 	}
 
@@ -6905,15 +6905,15 @@ func (_m *Mockec2clientstub) DescribeFleetHistory(ctx internal.Context, input *e
 }
 
 // DescribeFleetHistoryAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeFleetHistoryAsync(ctx internal.Context, input *ec2.DescribeFleetHistoryInput) (_result_0 *ec2stub.EC2DescribeFleetHistoryFuture) {
+func (_m *Mockec2clientstub) DescribeFleetHistoryAsync(ctx internal.Context, input *ec2.DescribeFleetHistoryInput) (_result_0 *ec2stub.DescribeFleetHistoryFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeFleetHistoryFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFleetHistoryInput) *ec2stub.EC2DescribeFleetHistoryFuture); ok {
+	var r0 *ec2stub.DescribeFleetHistoryFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFleetHistoryInput) *ec2stub.DescribeFleetHistoryFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeFleetHistoryFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeFleetHistoryFuture)
 		}
 	}
 
@@ -6944,15 +6944,15 @@ func (_m *Mockec2clientstub) DescribeFleetInstances(ctx internal.Context, input 
 }
 
 // DescribeFleetInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeFleetInstancesAsync(ctx internal.Context, input *ec2.DescribeFleetInstancesInput) (_result_0 *ec2stub.EC2DescribeFleetInstancesFuture) {
+func (_m *Mockec2clientstub) DescribeFleetInstancesAsync(ctx internal.Context, input *ec2.DescribeFleetInstancesInput) (_result_0 *ec2stub.DescribeFleetInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeFleetInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFleetInstancesInput) *ec2stub.EC2DescribeFleetInstancesFuture); ok {
+	var r0 *ec2stub.DescribeFleetInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFleetInstancesInput) *ec2stub.DescribeFleetInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeFleetInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeFleetInstancesFuture)
 		}
 	}
 
@@ -6983,15 +6983,15 @@ func (_m *Mockec2clientstub) DescribeFleets(ctx internal.Context, input *ec2.Des
 }
 
 // DescribeFleetsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeFleetsAsync(ctx internal.Context, input *ec2.DescribeFleetsInput) (_result_0 *ec2stub.EC2DescribeFleetsFuture) {
+func (_m *Mockec2clientstub) DescribeFleetsAsync(ctx internal.Context, input *ec2.DescribeFleetsInput) (_result_0 *ec2stub.DescribeFleetsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeFleetsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFleetsInput) *ec2stub.EC2DescribeFleetsFuture); ok {
+	var r0 *ec2stub.DescribeFleetsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFleetsInput) *ec2stub.DescribeFleetsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeFleetsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeFleetsFuture)
 		}
 	}
 
@@ -7022,15 +7022,15 @@ func (_m *Mockec2clientstub) DescribeFlowLogs(ctx internal.Context, input *ec2.D
 }
 
 // DescribeFlowLogsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeFlowLogsAsync(ctx internal.Context, input *ec2.DescribeFlowLogsInput) (_result_0 *ec2stub.EC2DescribeFlowLogsFuture) {
+func (_m *Mockec2clientstub) DescribeFlowLogsAsync(ctx internal.Context, input *ec2.DescribeFlowLogsInput) (_result_0 *ec2stub.DescribeFlowLogsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeFlowLogsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFlowLogsInput) *ec2stub.EC2DescribeFlowLogsFuture); ok {
+	var r0 *ec2stub.DescribeFlowLogsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFlowLogsInput) *ec2stub.DescribeFlowLogsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeFlowLogsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeFlowLogsFuture)
 		}
 	}
 
@@ -7061,15 +7061,15 @@ func (_m *Mockec2clientstub) DescribeFpgaImageAttribute(ctx internal.Context, in
 }
 
 // DescribeFpgaImageAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeFpgaImageAttributeAsync(ctx internal.Context, input *ec2.DescribeFpgaImageAttributeInput) (_result_0 *ec2stub.EC2DescribeFpgaImageAttributeFuture) {
+func (_m *Mockec2clientstub) DescribeFpgaImageAttributeAsync(ctx internal.Context, input *ec2.DescribeFpgaImageAttributeInput) (_result_0 *ec2stub.DescribeFpgaImageAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeFpgaImageAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFpgaImageAttributeInput) *ec2stub.EC2DescribeFpgaImageAttributeFuture); ok {
+	var r0 *ec2stub.DescribeFpgaImageAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFpgaImageAttributeInput) *ec2stub.DescribeFpgaImageAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeFpgaImageAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeFpgaImageAttributeFuture)
 		}
 	}
 
@@ -7100,15 +7100,15 @@ func (_m *Mockec2clientstub) DescribeFpgaImages(ctx internal.Context, input *ec2
 }
 
 // DescribeFpgaImagesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeFpgaImagesAsync(ctx internal.Context, input *ec2.DescribeFpgaImagesInput) (_result_0 *ec2stub.EC2DescribeFpgaImagesFuture) {
+func (_m *Mockec2clientstub) DescribeFpgaImagesAsync(ctx internal.Context, input *ec2.DescribeFpgaImagesInput) (_result_0 *ec2stub.DescribeFpgaImagesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeFpgaImagesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFpgaImagesInput) *ec2stub.EC2DescribeFpgaImagesFuture); ok {
+	var r0 *ec2stub.DescribeFpgaImagesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeFpgaImagesInput) *ec2stub.DescribeFpgaImagesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeFpgaImagesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeFpgaImagesFuture)
 		}
 	}
 
@@ -7139,15 +7139,15 @@ func (_m *Mockec2clientstub) DescribeHostReservationOfferings(ctx internal.Conte
 }
 
 // DescribeHostReservationOfferingsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeHostReservationOfferingsAsync(ctx internal.Context, input *ec2.DescribeHostReservationOfferingsInput) (_result_0 *ec2stub.EC2DescribeHostReservationOfferingsFuture) {
+func (_m *Mockec2clientstub) DescribeHostReservationOfferingsAsync(ctx internal.Context, input *ec2.DescribeHostReservationOfferingsInput) (_result_0 *ec2stub.DescribeHostReservationOfferingsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeHostReservationOfferingsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeHostReservationOfferingsInput) *ec2stub.EC2DescribeHostReservationOfferingsFuture); ok {
+	var r0 *ec2stub.DescribeHostReservationOfferingsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeHostReservationOfferingsInput) *ec2stub.DescribeHostReservationOfferingsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeHostReservationOfferingsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeHostReservationOfferingsFuture)
 		}
 	}
 
@@ -7178,15 +7178,15 @@ func (_m *Mockec2clientstub) DescribeHostReservations(ctx internal.Context, inpu
 }
 
 // DescribeHostReservationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeHostReservationsAsync(ctx internal.Context, input *ec2.DescribeHostReservationsInput) (_result_0 *ec2stub.EC2DescribeHostReservationsFuture) {
+func (_m *Mockec2clientstub) DescribeHostReservationsAsync(ctx internal.Context, input *ec2.DescribeHostReservationsInput) (_result_0 *ec2stub.DescribeHostReservationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeHostReservationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeHostReservationsInput) *ec2stub.EC2DescribeHostReservationsFuture); ok {
+	var r0 *ec2stub.DescribeHostReservationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeHostReservationsInput) *ec2stub.DescribeHostReservationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeHostReservationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeHostReservationsFuture)
 		}
 	}
 
@@ -7217,15 +7217,15 @@ func (_m *Mockec2clientstub) DescribeHosts(ctx internal.Context, input *ec2.Desc
 }
 
 // DescribeHostsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeHostsAsync(ctx internal.Context, input *ec2.DescribeHostsInput) (_result_0 *ec2stub.EC2DescribeHostsFuture) {
+func (_m *Mockec2clientstub) DescribeHostsAsync(ctx internal.Context, input *ec2.DescribeHostsInput) (_result_0 *ec2stub.DescribeHostsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeHostsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeHostsInput) *ec2stub.EC2DescribeHostsFuture); ok {
+	var r0 *ec2stub.DescribeHostsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeHostsInput) *ec2stub.DescribeHostsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeHostsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeHostsFuture)
 		}
 	}
 
@@ -7256,15 +7256,15 @@ func (_m *Mockec2clientstub) DescribeIamInstanceProfileAssociations(ctx internal
 }
 
 // DescribeIamInstanceProfileAssociationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeIamInstanceProfileAssociationsAsync(ctx internal.Context, input *ec2.DescribeIamInstanceProfileAssociationsInput) (_result_0 *ec2stub.EC2DescribeIamInstanceProfileAssociationsFuture) {
+func (_m *Mockec2clientstub) DescribeIamInstanceProfileAssociationsAsync(ctx internal.Context, input *ec2.DescribeIamInstanceProfileAssociationsInput) (_result_0 *ec2stub.DescribeIamInstanceProfileAssociationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeIamInstanceProfileAssociationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeIamInstanceProfileAssociationsInput) *ec2stub.EC2DescribeIamInstanceProfileAssociationsFuture); ok {
+	var r0 *ec2stub.DescribeIamInstanceProfileAssociationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeIamInstanceProfileAssociationsInput) *ec2stub.DescribeIamInstanceProfileAssociationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeIamInstanceProfileAssociationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeIamInstanceProfileAssociationsFuture)
 		}
 	}
 
@@ -7295,15 +7295,15 @@ func (_m *Mockec2clientstub) DescribeIdFormat(ctx internal.Context, input *ec2.D
 }
 
 // DescribeIdFormatAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeIdFormatAsync(ctx internal.Context, input *ec2.DescribeIdFormatInput) (_result_0 *ec2stub.EC2DescribeIdFormatFuture) {
+func (_m *Mockec2clientstub) DescribeIdFormatAsync(ctx internal.Context, input *ec2.DescribeIdFormatInput) (_result_0 *ec2stub.DescribeIdFormatFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeIdFormatFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeIdFormatInput) *ec2stub.EC2DescribeIdFormatFuture); ok {
+	var r0 *ec2stub.DescribeIdFormatFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeIdFormatInput) *ec2stub.DescribeIdFormatFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeIdFormatFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeIdFormatFuture)
 		}
 	}
 
@@ -7334,15 +7334,15 @@ func (_m *Mockec2clientstub) DescribeIdentityIdFormat(ctx internal.Context, inpu
 }
 
 // DescribeIdentityIdFormatAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeIdentityIdFormatAsync(ctx internal.Context, input *ec2.DescribeIdentityIdFormatInput) (_result_0 *ec2stub.EC2DescribeIdentityIdFormatFuture) {
+func (_m *Mockec2clientstub) DescribeIdentityIdFormatAsync(ctx internal.Context, input *ec2.DescribeIdentityIdFormatInput) (_result_0 *ec2stub.DescribeIdentityIdFormatFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeIdentityIdFormatFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeIdentityIdFormatInput) *ec2stub.EC2DescribeIdentityIdFormatFuture); ok {
+	var r0 *ec2stub.DescribeIdentityIdFormatFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeIdentityIdFormatInput) *ec2stub.DescribeIdentityIdFormatFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeIdentityIdFormatFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeIdentityIdFormatFuture)
 		}
 	}
 
@@ -7373,15 +7373,15 @@ func (_m *Mockec2clientstub) DescribeImageAttribute(ctx internal.Context, input 
 }
 
 // DescribeImageAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeImageAttributeAsync(ctx internal.Context, input *ec2.DescribeImageAttributeInput) (_result_0 *ec2stub.EC2DescribeImageAttributeFuture) {
+func (_m *Mockec2clientstub) DescribeImageAttributeAsync(ctx internal.Context, input *ec2.DescribeImageAttributeInput) (_result_0 *ec2stub.DescribeImageAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeImageAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeImageAttributeInput) *ec2stub.EC2DescribeImageAttributeFuture); ok {
+	var r0 *ec2stub.DescribeImageAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeImageAttributeInput) *ec2stub.DescribeImageAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeImageAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeImageAttributeFuture)
 		}
 	}
 
@@ -7412,15 +7412,15 @@ func (_m *Mockec2clientstub) DescribeImages(ctx internal.Context, input *ec2.Des
 }
 
 // DescribeImagesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeImagesAsync(ctx internal.Context, input *ec2.DescribeImagesInput) (_result_0 *ec2stub.EC2DescribeImagesFuture) {
+func (_m *Mockec2clientstub) DescribeImagesAsync(ctx internal.Context, input *ec2.DescribeImagesInput) (_result_0 *ec2stub.DescribeImagesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeImagesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeImagesInput) *ec2stub.EC2DescribeImagesFuture); ok {
+	var r0 *ec2stub.DescribeImagesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeImagesInput) *ec2stub.DescribeImagesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeImagesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeImagesFuture)
 		}
 	}
 
@@ -7451,15 +7451,15 @@ func (_m *Mockec2clientstub) DescribeImportImageTasks(ctx internal.Context, inpu
 }
 
 // DescribeImportImageTasksAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeImportImageTasksAsync(ctx internal.Context, input *ec2.DescribeImportImageTasksInput) (_result_0 *ec2stub.EC2DescribeImportImageTasksFuture) {
+func (_m *Mockec2clientstub) DescribeImportImageTasksAsync(ctx internal.Context, input *ec2.DescribeImportImageTasksInput) (_result_0 *ec2stub.DescribeImportImageTasksFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeImportImageTasksFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeImportImageTasksInput) *ec2stub.EC2DescribeImportImageTasksFuture); ok {
+	var r0 *ec2stub.DescribeImportImageTasksFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeImportImageTasksInput) *ec2stub.DescribeImportImageTasksFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeImportImageTasksFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeImportImageTasksFuture)
 		}
 	}
 
@@ -7490,15 +7490,15 @@ func (_m *Mockec2clientstub) DescribeImportSnapshotTasks(ctx internal.Context, i
 }
 
 // DescribeImportSnapshotTasksAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeImportSnapshotTasksAsync(ctx internal.Context, input *ec2.DescribeImportSnapshotTasksInput) (_result_0 *ec2stub.EC2DescribeImportSnapshotTasksFuture) {
+func (_m *Mockec2clientstub) DescribeImportSnapshotTasksAsync(ctx internal.Context, input *ec2.DescribeImportSnapshotTasksInput) (_result_0 *ec2stub.DescribeImportSnapshotTasksFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeImportSnapshotTasksFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeImportSnapshotTasksInput) *ec2stub.EC2DescribeImportSnapshotTasksFuture); ok {
+	var r0 *ec2stub.DescribeImportSnapshotTasksFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeImportSnapshotTasksInput) *ec2stub.DescribeImportSnapshotTasksFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeImportSnapshotTasksFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeImportSnapshotTasksFuture)
 		}
 	}
 
@@ -7529,15 +7529,15 @@ func (_m *Mockec2clientstub) DescribeInstanceAttribute(ctx internal.Context, inp
 }
 
 // DescribeInstanceAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeInstanceAttributeAsync(ctx internal.Context, input *ec2.DescribeInstanceAttributeInput) (_result_0 *ec2stub.EC2DescribeInstanceAttributeFuture) {
+func (_m *Mockec2clientstub) DescribeInstanceAttributeAsync(ctx internal.Context, input *ec2.DescribeInstanceAttributeInput) (_result_0 *ec2stub.DescribeInstanceAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeInstanceAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceAttributeInput) *ec2stub.EC2DescribeInstanceAttributeFuture); ok {
+	var r0 *ec2stub.DescribeInstanceAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceAttributeInput) *ec2stub.DescribeInstanceAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeInstanceAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeInstanceAttributeFuture)
 		}
 	}
 
@@ -7568,15 +7568,15 @@ func (_m *Mockec2clientstub) DescribeInstanceCreditSpecifications(ctx internal.C
 }
 
 // DescribeInstanceCreditSpecificationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeInstanceCreditSpecificationsAsync(ctx internal.Context, input *ec2.DescribeInstanceCreditSpecificationsInput) (_result_0 *ec2stub.EC2DescribeInstanceCreditSpecificationsFuture) {
+func (_m *Mockec2clientstub) DescribeInstanceCreditSpecificationsAsync(ctx internal.Context, input *ec2.DescribeInstanceCreditSpecificationsInput) (_result_0 *ec2stub.DescribeInstanceCreditSpecificationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeInstanceCreditSpecificationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceCreditSpecificationsInput) *ec2stub.EC2DescribeInstanceCreditSpecificationsFuture); ok {
+	var r0 *ec2stub.DescribeInstanceCreditSpecificationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceCreditSpecificationsInput) *ec2stub.DescribeInstanceCreditSpecificationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeInstanceCreditSpecificationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeInstanceCreditSpecificationsFuture)
 		}
 	}
 
@@ -7607,15 +7607,15 @@ func (_m *Mockec2clientstub) DescribeInstanceEventNotificationAttributes(ctx int
 }
 
 // DescribeInstanceEventNotificationAttributesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeInstanceEventNotificationAttributesAsync(ctx internal.Context, input *ec2.DescribeInstanceEventNotificationAttributesInput) (_result_0 *ec2stub.EC2DescribeInstanceEventNotificationAttributesFuture) {
+func (_m *Mockec2clientstub) DescribeInstanceEventNotificationAttributesAsync(ctx internal.Context, input *ec2.DescribeInstanceEventNotificationAttributesInput) (_result_0 *ec2stub.DescribeInstanceEventNotificationAttributesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeInstanceEventNotificationAttributesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceEventNotificationAttributesInput) *ec2stub.EC2DescribeInstanceEventNotificationAttributesFuture); ok {
+	var r0 *ec2stub.DescribeInstanceEventNotificationAttributesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceEventNotificationAttributesInput) *ec2stub.DescribeInstanceEventNotificationAttributesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeInstanceEventNotificationAttributesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeInstanceEventNotificationAttributesFuture)
 		}
 	}
 
@@ -7646,15 +7646,15 @@ func (_m *Mockec2clientstub) DescribeInstanceStatus(ctx internal.Context, input 
 }
 
 // DescribeInstanceStatusAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeInstanceStatusAsync(ctx internal.Context, input *ec2.DescribeInstanceStatusInput) (_result_0 *ec2stub.EC2DescribeInstanceStatusFuture) {
+func (_m *Mockec2clientstub) DescribeInstanceStatusAsync(ctx internal.Context, input *ec2.DescribeInstanceStatusInput) (_result_0 *ec2stub.DescribeInstanceStatusFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeInstanceStatusFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceStatusInput) *ec2stub.EC2DescribeInstanceStatusFuture); ok {
+	var r0 *ec2stub.DescribeInstanceStatusFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceStatusInput) *ec2stub.DescribeInstanceStatusFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeInstanceStatusFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeInstanceStatusFuture)
 		}
 	}
 
@@ -7685,15 +7685,15 @@ func (_m *Mockec2clientstub) DescribeInstanceTypeOfferings(ctx internal.Context,
 }
 
 // DescribeInstanceTypeOfferingsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeInstanceTypeOfferingsAsync(ctx internal.Context, input *ec2.DescribeInstanceTypeOfferingsInput) (_result_0 *ec2stub.EC2DescribeInstanceTypeOfferingsFuture) {
+func (_m *Mockec2clientstub) DescribeInstanceTypeOfferingsAsync(ctx internal.Context, input *ec2.DescribeInstanceTypeOfferingsInput) (_result_0 *ec2stub.DescribeInstanceTypeOfferingsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeInstanceTypeOfferingsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceTypeOfferingsInput) *ec2stub.EC2DescribeInstanceTypeOfferingsFuture); ok {
+	var r0 *ec2stub.DescribeInstanceTypeOfferingsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceTypeOfferingsInput) *ec2stub.DescribeInstanceTypeOfferingsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeInstanceTypeOfferingsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeInstanceTypeOfferingsFuture)
 		}
 	}
 
@@ -7724,15 +7724,15 @@ func (_m *Mockec2clientstub) DescribeInstanceTypes(ctx internal.Context, input *
 }
 
 // DescribeInstanceTypesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeInstanceTypesAsync(ctx internal.Context, input *ec2.DescribeInstanceTypesInput) (_result_0 *ec2stub.EC2DescribeInstanceTypesFuture) {
+func (_m *Mockec2clientstub) DescribeInstanceTypesAsync(ctx internal.Context, input *ec2.DescribeInstanceTypesInput) (_result_0 *ec2stub.DescribeInstanceTypesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeInstanceTypesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceTypesInput) *ec2stub.EC2DescribeInstanceTypesFuture); ok {
+	var r0 *ec2stub.DescribeInstanceTypesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstanceTypesInput) *ec2stub.DescribeInstanceTypesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeInstanceTypesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeInstanceTypesFuture)
 		}
 	}
 
@@ -7763,15 +7763,15 @@ func (_m *Mockec2clientstub) DescribeInstances(ctx internal.Context, input *ec2.
 }
 
 // DescribeInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeInstancesAsync(ctx internal.Context, input *ec2.DescribeInstancesInput) (_result_0 *ec2stub.EC2DescribeInstancesFuture) {
+func (_m *Mockec2clientstub) DescribeInstancesAsync(ctx internal.Context, input *ec2.DescribeInstancesInput) (_result_0 *ec2stub.DescribeInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstancesInput) *ec2stub.EC2DescribeInstancesFuture); ok {
+	var r0 *ec2stub.DescribeInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInstancesInput) *ec2stub.DescribeInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeInstancesFuture)
 		}
 	}
 
@@ -7802,15 +7802,15 @@ func (_m *Mockec2clientstub) DescribeInternetGateways(ctx internal.Context, inpu
 }
 
 // DescribeInternetGatewaysAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeInternetGatewaysAsync(ctx internal.Context, input *ec2.DescribeInternetGatewaysInput) (_result_0 *ec2stub.EC2DescribeInternetGatewaysFuture) {
+func (_m *Mockec2clientstub) DescribeInternetGatewaysAsync(ctx internal.Context, input *ec2.DescribeInternetGatewaysInput) (_result_0 *ec2stub.DescribeInternetGatewaysFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeInternetGatewaysFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInternetGatewaysInput) *ec2stub.EC2DescribeInternetGatewaysFuture); ok {
+	var r0 *ec2stub.DescribeInternetGatewaysFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeInternetGatewaysInput) *ec2stub.DescribeInternetGatewaysFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeInternetGatewaysFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeInternetGatewaysFuture)
 		}
 	}
 
@@ -7841,15 +7841,15 @@ func (_m *Mockec2clientstub) DescribeIpv6Pools(ctx internal.Context, input *ec2.
 }
 
 // DescribeIpv6PoolsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeIpv6PoolsAsync(ctx internal.Context, input *ec2.DescribeIpv6PoolsInput) (_result_0 *ec2stub.EC2DescribeIpv6PoolsFuture) {
+func (_m *Mockec2clientstub) DescribeIpv6PoolsAsync(ctx internal.Context, input *ec2.DescribeIpv6PoolsInput) (_result_0 *ec2stub.DescribeIpv6PoolsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeIpv6PoolsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeIpv6PoolsInput) *ec2stub.EC2DescribeIpv6PoolsFuture); ok {
+	var r0 *ec2stub.DescribeIpv6PoolsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeIpv6PoolsInput) *ec2stub.DescribeIpv6PoolsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeIpv6PoolsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeIpv6PoolsFuture)
 		}
 	}
 
@@ -7880,15 +7880,15 @@ func (_m *Mockec2clientstub) DescribeKeyPairs(ctx internal.Context, input *ec2.D
 }
 
 // DescribeKeyPairsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeKeyPairsAsync(ctx internal.Context, input *ec2.DescribeKeyPairsInput) (_result_0 *ec2stub.EC2DescribeKeyPairsFuture) {
+func (_m *Mockec2clientstub) DescribeKeyPairsAsync(ctx internal.Context, input *ec2.DescribeKeyPairsInput) (_result_0 *ec2stub.DescribeKeyPairsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeKeyPairsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeKeyPairsInput) *ec2stub.EC2DescribeKeyPairsFuture); ok {
+	var r0 *ec2stub.DescribeKeyPairsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeKeyPairsInput) *ec2stub.DescribeKeyPairsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeKeyPairsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeKeyPairsFuture)
 		}
 	}
 
@@ -7919,15 +7919,15 @@ func (_m *Mockec2clientstub) DescribeLaunchTemplateVersions(ctx internal.Context
 }
 
 // DescribeLaunchTemplateVersionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeLaunchTemplateVersionsAsync(ctx internal.Context, input *ec2.DescribeLaunchTemplateVersionsInput) (_result_0 *ec2stub.EC2DescribeLaunchTemplateVersionsFuture) {
+func (_m *Mockec2clientstub) DescribeLaunchTemplateVersionsAsync(ctx internal.Context, input *ec2.DescribeLaunchTemplateVersionsInput) (_result_0 *ec2stub.DescribeLaunchTemplateVersionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeLaunchTemplateVersionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLaunchTemplateVersionsInput) *ec2stub.EC2DescribeLaunchTemplateVersionsFuture); ok {
+	var r0 *ec2stub.DescribeLaunchTemplateVersionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLaunchTemplateVersionsInput) *ec2stub.DescribeLaunchTemplateVersionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeLaunchTemplateVersionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeLaunchTemplateVersionsFuture)
 		}
 	}
 
@@ -7958,15 +7958,15 @@ func (_m *Mockec2clientstub) DescribeLaunchTemplates(ctx internal.Context, input
 }
 
 // DescribeLaunchTemplatesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeLaunchTemplatesAsync(ctx internal.Context, input *ec2.DescribeLaunchTemplatesInput) (_result_0 *ec2stub.EC2DescribeLaunchTemplatesFuture) {
+func (_m *Mockec2clientstub) DescribeLaunchTemplatesAsync(ctx internal.Context, input *ec2.DescribeLaunchTemplatesInput) (_result_0 *ec2stub.DescribeLaunchTemplatesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeLaunchTemplatesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLaunchTemplatesInput) *ec2stub.EC2DescribeLaunchTemplatesFuture); ok {
+	var r0 *ec2stub.DescribeLaunchTemplatesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLaunchTemplatesInput) *ec2stub.DescribeLaunchTemplatesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeLaunchTemplatesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeLaunchTemplatesFuture)
 		}
 	}
 
@@ -7997,15 +7997,15 @@ func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTableVirtualInterfaceGroup
 }
 
 // DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) (_result_0 *ec2stub.EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture) {
+func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) (_result_0 *ec2stub.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) *ec2stub.EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture); ok {
+	var r0 *ec2stub.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) *ec2stub.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture)
 		}
 	}
 
@@ -8036,15 +8036,15 @@ func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTableVpcAssociations(ctx i
 }
 
 // DescribeLocalGatewayRouteTableVpcAssociationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTableVpcAssociationsAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) (_result_0 *ec2stub.EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture) {
+func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTableVpcAssociationsAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) (_result_0 *ec2stub.DescribeLocalGatewayRouteTableVpcAssociationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) *ec2stub.EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture); ok {
+	var r0 *ec2stub.DescribeLocalGatewayRouteTableVpcAssociationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) *ec2stub.DescribeLocalGatewayRouteTableVpcAssociationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeLocalGatewayRouteTableVpcAssociationsFuture)
 		}
 	}
 
@@ -8075,15 +8075,15 @@ func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTables(ctx internal.Contex
 }
 
 // DescribeLocalGatewayRouteTablesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTablesAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayRouteTablesInput) (_result_0 *ec2stub.EC2DescribeLocalGatewayRouteTablesFuture) {
+func (_m *Mockec2clientstub) DescribeLocalGatewayRouteTablesAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayRouteTablesInput) (_result_0 *ec2stub.DescribeLocalGatewayRouteTablesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeLocalGatewayRouteTablesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayRouteTablesInput) *ec2stub.EC2DescribeLocalGatewayRouteTablesFuture); ok {
+	var r0 *ec2stub.DescribeLocalGatewayRouteTablesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayRouteTablesInput) *ec2stub.DescribeLocalGatewayRouteTablesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeLocalGatewayRouteTablesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeLocalGatewayRouteTablesFuture)
 		}
 	}
 
@@ -8114,15 +8114,15 @@ func (_m *Mockec2clientstub) DescribeLocalGatewayVirtualInterfaceGroups(ctx inte
 }
 
 // DescribeLocalGatewayVirtualInterfaceGroupsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeLocalGatewayVirtualInterfaceGroupsAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) (_result_0 *ec2stub.EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture) {
+func (_m *Mockec2clientstub) DescribeLocalGatewayVirtualInterfaceGroupsAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) (_result_0 *ec2stub.DescribeLocalGatewayVirtualInterfaceGroupsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) *ec2stub.EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture); ok {
+	var r0 *ec2stub.DescribeLocalGatewayVirtualInterfaceGroupsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) *ec2stub.DescribeLocalGatewayVirtualInterfaceGroupsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeLocalGatewayVirtualInterfaceGroupsFuture)
 		}
 	}
 
@@ -8153,15 +8153,15 @@ func (_m *Mockec2clientstub) DescribeLocalGatewayVirtualInterfaces(ctx internal.
 }
 
 // DescribeLocalGatewayVirtualInterfacesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeLocalGatewayVirtualInterfacesAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayVirtualInterfacesInput) (_result_0 *ec2stub.EC2DescribeLocalGatewayVirtualInterfacesFuture) {
+func (_m *Mockec2clientstub) DescribeLocalGatewayVirtualInterfacesAsync(ctx internal.Context, input *ec2.DescribeLocalGatewayVirtualInterfacesInput) (_result_0 *ec2stub.DescribeLocalGatewayVirtualInterfacesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeLocalGatewayVirtualInterfacesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayVirtualInterfacesInput) *ec2stub.EC2DescribeLocalGatewayVirtualInterfacesFuture); ok {
+	var r0 *ec2stub.DescribeLocalGatewayVirtualInterfacesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewayVirtualInterfacesInput) *ec2stub.DescribeLocalGatewayVirtualInterfacesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeLocalGatewayVirtualInterfacesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeLocalGatewayVirtualInterfacesFuture)
 		}
 	}
 
@@ -8192,15 +8192,15 @@ func (_m *Mockec2clientstub) DescribeLocalGateways(ctx internal.Context, input *
 }
 
 // DescribeLocalGatewaysAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeLocalGatewaysAsync(ctx internal.Context, input *ec2.DescribeLocalGatewaysInput) (_result_0 *ec2stub.EC2DescribeLocalGatewaysFuture) {
+func (_m *Mockec2clientstub) DescribeLocalGatewaysAsync(ctx internal.Context, input *ec2.DescribeLocalGatewaysInput) (_result_0 *ec2stub.DescribeLocalGatewaysFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeLocalGatewaysFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewaysInput) *ec2stub.EC2DescribeLocalGatewaysFuture); ok {
+	var r0 *ec2stub.DescribeLocalGatewaysFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeLocalGatewaysInput) *ec2stub.DescribeLocalGatewaysFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeLocalGatewaysFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeLocalGatewaysFuture)
 		}
 	}
 
@@ -8231,15 +8231,15 @@ func (_m *Mockec2clientstub) DescribeManagedPrefixLists(ctx internal.Context, in
 }
 
 // DescribeManagedPrefixListsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeManagedPrefixListsAsync(ctx internal.Context, input *ec2.DescribeManagedPrefixListsInput) (_result_0 *ec2stub.EC2DescribeManagedPrefixListsFuture) {
+func (_m *Mockec2clientstub) DescribeManagedPrefixListsAsync(ctx internal.Context, input *ec2.DescribeManagedPrefixListsInput) (_result_0 *ec2stub.DescribeManagedPrefixListsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeManagedPrefixListsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeManagedPrefixListsInput) *ec2stub.EC2DescribeManagedPrefixListsFuture); ok {
+	var r0 *ec2stub.DescribeManagedPrefixListsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeManagedPrefixListsInput) *ec2stub.DescribeManagedPrefixListsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeManagedPrefixListsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeManagedPrefixListsFuture)
 		}
 	}
 
@@ -8270,15 +8270,15 @@ func (_m *Mockec2clientstub) DescribeMovingAddresses(ctx internal.Context, input
 }
 
 // DescribeMovingAddressesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeMovingAddressesAsync(ctx internal.Context, input *ec2.DescribeMovingAddressesInput) (_result_0 *ec2stub.EC2DescribeMovingAddressesFuture) {
+func (_m *Mockec2clientstub) DescribeMovingAddressesAsync(ctx internal.Context, input *ec2.DescribeMovingAddressesInput) (_result_0 *ec2stub.DescribeMovingAddressesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeMovingAddressesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeMovingAddressesInput) *ec2stub.EC2DescribeMovingAddressesFuture); ok {
+	var r0 *ec2stub.DescribeMovingAddressesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeMovingAddressesInput) *ec2stub.DescribeMovingAddressesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeMovingAddressesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeMovingAddressesFuture)
 		}
 	}
 
@@ -8309,15 +8309,15 @@ func (_m *Mockec2clientstub) DescribeNatGateways(ctx internal.Context, input *ec
 }
 
 // DescribeNatGatewaysAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeNatGatewaysAsync(ctx internal.Context, input *ec2.DescribeNatGatewaysInput) (_result_0 *ec2stub.EC2DescribeNatGatewaysFuture) {
+func (_m *Mockec2clientstub) DescribeNatGatewaysAsync(ctx internal.Context, input *ec2.DescribeNatGatewaysInput) (_result_0 *ec2stub.DescribeNatGatewaysFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeNatGatewaysFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNatGatewaysInput) *ec2stub.EC2DescribeNatGatewaysFuture); ok {
+	var r0 *ec2stub.DescribeNatGatewaysFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNatGatewaysInput) *ec2stub.DescribeNatGatewaysFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeNatGatewaysFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeNatGatewaysFuture)
 		}
 	}
 
@@ -8348,15 +8348,15 @@ func (_m *Mockec2clientstub) DescribeNetworkAcls(ctx internal.Context, input *ec
 }
 
 // DescribeNetworkAclsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeNetworkAclsAsync(ctx internal.Context, input *ec2.DescribeNetworkAclsInput) (_result_0 *ec2stub.EC2DescribeNetworkAclsFuture) {
+func (_m *Mockec2clientstub) DescribeNetworkAclsAsync(ctx internal.Context, input *ec2.DescribeNetworkAclsInput) (_result_0 *ec2stub.DescribeNetworkAclsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeNetworkAclsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkAclsInput) *ec2stub.EC2DescribeNetworkAclsFuture); ok {
+	var r0 *ec2stub.DescribeNetworkAclsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkAclsInput) *ec2stub.DescribeNetworkAclsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeNetworkAclsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeNetworkAclsFuture)
 		}
 	}
 
@@ -8387,15 +8387,15 @@ func (_m *Mockec2clientstub) DescribeNetworkInterfaceAttribute(ctx internal.Cont
 }
 
 // DescribeNetworkInterfaceAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeNetworkInterfaceAttributeAsync(ctx internal.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) (_result_0 *ec2stub.EC2DescribeNetworkInterfaceAttributeFuture) {
+func (_m *Mockec2clientstub) DescribeNetworkInterfaceAttributeAsync(ctx internal.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) (_result_0 *ec2stub.DescribeNetworkInterfaceAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeNetworkInterfaceAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInterfaceAttributeInput) *ec2stub.EC2DescribeNetworkInterfaceAttributeFuture); ok {
+	var r0 *ec2stub.DescribeNetworkInterfaceAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInterfaceAttributeInput) *ec2stub.DescribeNetworkInterfaceAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeNetworkInterfaceAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeNetworkInterfaceAttributeFuture)
 		}
 	}
 
@@ -8426,15 +8426,15 @@ func (_m *Mockec2clientstub) DescribeNetworkInterfacePermissions(ctx internal.Co
 }
 
 // DescribeNetworkInterfacePermissionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeNetworkInterfacePermissionsAsync(ctx internal.Context, input *ec2.DescribeNetworkInterfacePermissionsInput) (_result_0 *ec2stub.EC2DescribeNetworkInterfacePermissionsFuture) {
+func (_m *Mockec2clientstub) DescribeNetworkInterfacePermissionsAsync(ctx internal.Context, input *ec2.DescribeNetworkInterfacePermissionsInput) (_result_0 *ec2stub.DescribeNetworkInterfacePermissionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeNetworkInterfacePermissionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInterfacePermissionsInput) *ec2stub.EC2DescribeNetworkInterfacePermissionsFuture); ok {
+	var r0 *ec2stub.DescribeNetworkInterfacePermissionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInterfacePermissionsInput) *ec2stub.DescribeNetworkInterfacePermissionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeNetworkInterfacePermissionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeNetworkInterfacePermissionsFuture)
 		}
 	}
 
@@ -8465,15 +8465,15 @@ func (_m *Mockec2clientstub) DescribeNetworkInterfaces(ctx internal.Context, inp
 }
 
 // DescribeNetworkInterfacesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeNetworkInterfacesAsync(ctx internal.Context, input *ec2.DescribeNetworkInterfacesInput) (_result_0 *ec2stub.EC2DescribeNetworkInterfacesFuture) {
+func (_m *Mockec2clientstub) DescribeNetworkInterfacesAsync(ctx internal.Context, input *ec2.DescribeNetworkInterfacesInput) (_result_0 *ec2stub.DescribeNetworkInterfacesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeNetworkInterfacesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInterfacesInput) *ec2stub.EC2DescribeNetworkInterfacesFuture); ok {
+	var r0 *ec2stub.DescribeNetworkInterfacesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInterfacesInput) *ec2stub.DescribeNetworkInterfacesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeNetworkInterfacesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeNetworkInterfacesFuture)
 		}
 	}
 
@@ -8504,15 +8504,15 @@ func (_m *Mockec2clientstub) DescribePlacementGroups(ctx internal.Context, input
 }
 
 // DescribePlacementGroupsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribePlacementGroupsAsync(ctx internal.Context, input *ec2.DescribePlacementGroupsInput) (_result_0 *ec2stub.EC2DescribePlacementGroupsFuture) {
+func (_m *Mockec2clientstub) DescribePlacementGroupsAsync(ctx internal.Context, input *ec2.DescribePlacementGroupsInput) (_result_0 *ec2stub.DescribePlacementGroupsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribePlacementGroupsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribePlacementGroupsInput) *ec2stub.EC2DescribePlacementGroupsFuture); ok {
+	var r0 *ec2stub.DescribePlacementGroupsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribePlacementGroupsInput) *ec2stub.DescribePlacementGroupsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribePlacementGroupsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribePlacementGroupsFuture)
 		}
 	}
 
@@ -8543,15 +8543,15 @@ func (_m *Mockec2clientstub) DescribePrefixLists(ctx internal.Context, input *ec
 }
 
 // DescribePrefixListsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribePrefixListsAsync(ctx internal.Context, input *ec2.DescribePrefixListsInput) (_result_0 *ec2stub.EC2DescribePrefixListsFuture) {
+func (_m *Mockec2clientstub) DescribePrefixListsAsync(ctx internal.Context, input *ec2.DescribePrefixListsInput) (_result_0 *ec2stub.DescribePrefixListsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribePrefixListsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribePrefixListsInput) *ec2stub.EC2DescribePrefixListsFuture); ok {
+	var r0 *ec2stub.DescribePrefixListsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribePrefixListsInput) *ec2stub.DescribePrefixListsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribePrefixListsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribePrefixListsFuture)
 		}
 	}
 
@@ -8582,15 +8582,15 @@ func (_m *Mockec2clientstub) DescribePrincipalIdFormat(ctx internal.Context, inp
 }
 
 // DescribePrincipalIdFormatAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribePrincipalIdFormatAsync(ctx internal.Context, input *ec2.DescribePrincipalIdFormatInput) (_result_0 *ec2stub.EC2DescribePrincipalIdFormatFuture) {
+func (_m *Mockec2clientstub) DescribePrincipalIdFormatAsync(ctx internal.Context, input *ec2.DescribePrincipalIdFormatInput) (_result_0 *ec2stub.DescribePrincipalIdFormatFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribePrincipalIdFormatFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribePrincipalIdFormatInput) *ec2stub.EC2DescribePrincipalIdFormatFuture); ok {
+	var r0 *ec2stub.DescribePrincipalIdFormatFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribePrincipalIdFormatInput) *ec2stub.DescribePrincipalIdFormatFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribePrincipalIdFormatFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribePrincipalIdFormatFuture)
 		}
 	}
 
@@ -8621,15 +8621,15 @@ func (_m *Mockec2clientstub) DescribePublicIpv4Pools(ctx internal.Context, input
 }
 
 // DescribePublicIpv4PoolsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribePublicIpv4PoolsAsync(ctx internal.Context, input *ec2.DescribePublicIpv4PoolsInput) (_result_0 *ec2stub.EC2DescribePublicIpv4PoolsFuture) {
+func (_m *Mockec2clientstub) DescribePublicIpv4PoolsAsync(ctx internal.Context, input *ec2.DescribePublicIpv4PoolsInput) (_result_0 *ec2stub.DescribePublicIpv4PoolsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribePublicIpv4PoolsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribePublicIpv4PoolsInput) *ec2stub.EC2DescribePublicIpv4PoolsFuture); ok {
+	var r0 *ec2stub.DescribePublicIpv4PoolsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribePublicIpv4PoolsInput) *ec2stub.DescribePublicIpv4PoolsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribePublicIpv4PoolsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribePublicIpv4PoolsFuture)
 		}
 	}
 
@@ -8660,15 +8660,15 @@ func (_m *Mockec2clientstub) DescribeRegions(ctx internal.Context, input *ec2.De
 }
 
 // DescribeRegionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeRegionsAsync(ctx internal.Context, input *ec2.DescribeRegionsInput) (_result_0 *ec2stub.EC2DescribeRegionsFuture) {
+func (_m *Mockec2clientstub) DescribeRegionsAsync(ctx internal.Context, input *ec2.DescribeRegionsInput) (_result_0 *ec2stub.DescribeRegionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeRegionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeRegionsInput) *ec2stub.EC2DescribeRegionsFuture); ok {
+	var r0 *ec2stub.DescribeRegionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeRegionsInput) *ec2stub.DescribeRegionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeRegionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeRegionsFuture)
 		}
 	}
 
@@ -8699,15 +8699,15 @@ func (_m *Mockec2clientstub) DescribeReservedInstances(ctx internal.Context, inp
 }
 
 // DescribeReservedInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeReservedInstancesAsync(ctx internal.Context, input *ec2.DescribeReservedInstancesInput) (_result_0 *ec2stub.EC2DescribeReservedInstancesFuture) {
+func (_m *Mockec2clientstub) DescribeReservedInstancesAsync(ctx internal.Context, input *ec2.DescribeReservedInstancesInput) (_result_0 *ec2stub.DescribeReservedInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeReservedInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeReservedInstancesInput) *ec2stub.EC2DescribeReservedInstancesFuture); ok {
+	var r0 *ec2stub.DescribeReservedInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeReservedInstancesInput) *ec2stub.DescribeReservedInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeReservedInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeReservedInstancesFuture)
 		}
 	}
 
@@ -8738,15 +8738,15 @@ func (_m *Mockec2clientstub) DescribeReservedInstancesListings(ctx internal.Cont
 }
 
 // DescribeReservedInstancesListingsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeReservedInstancesListingsAsync(ctx internal.Context, input *ec2.DescribeReservedInstancesListingsInput) (_result_0 *ec2stub.EC2DescribeReservedInstancesListingsFuture) {
+func (_m *Mockec2clientstub) DescribeReservedInstancesListingsAsync(ctx internal.Context, input *ec2.DescribeReservedInstancesListingsInput) (_result_0 *ec2stub.DescribeReservedInstancesListingsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeReservedInstancesListingsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeReservedInstancesListingsInput) *ec2stub.EC2DescribeReservedInstancesListingsFuture); ok {
+	var r0 *ec2stub.DescribeReservedInstancesListingsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeReservedInstancesListingsInput) *ec2stub.DescribeReservedInstancesListingsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeReservedInstancesListingsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeReservedInstancesListingsFuture)
 		}
 	}
 
@@ -8777,15 +8777,15 @@ func (_m *Mockec2clientstub) DescribeReservedInstancesModifications(ctx internal
 }
 
 // DescribeReservedInstancesModificationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeReservedInstancesModificationsAsync(ctx internal.Context, input *ec2.DescribeReservedInstancesModificationsInput) (_result_0 *ec2stub.EC2DescribeReservedInstancesModificationsFuture) {
+func (_m *Mockec2clientstub) DescribeReservedInstancesModificationsAsync(ctx internal.Context, input *ec2.DescribeReservedInstancesModificationsInput) (_result_0 *ec2stub.DescribeReservedInstancesModificationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeReservedInstancesModificationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeReservedInstancesModificationsInput) *ec2stub.EC2DescribeReservedInstancesModificationsFuture); ok {
+	var r0 *ec2stub.DescribeReservedInstancesModificationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeReservedInstancesModificationsInput) *ec2stub.DescribeReservedInstancesModificationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeReservedInstancesModificationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeReservedInstancesModificationsFuture)
 		}
 	}
 
@@ -8816,15 +8816,15 @@ func (_m *Mockec2clientstub) DescribeReservedInstancesOfferings(ctx internal.Con
 }
 
 // DescribeReservedInstancesOfferingsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeReservedInstancesOfferingsAsync(ctx internal.Context, input *ec2.DescribeReservedInstancesOfferingsInput) (_result_0 *ec2stub.EC2DescribeReservedInstancesOfferingsFuture) {
+func (_m *Mockec2clientstub) DescribeReservedInstancesOfferingsAsync(ctx internal.Context, input *ec2.DescribeReservedInstancesOfferingsInput) (_result_0 *ec2stub.DescribeReservedInstancesOfferingsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeReservedInstancesOfferingsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeReservedInstancesOfferingsInput) *ec2stub.EC2DescribeReservedInstancesOfferingsFuture); ok {
+	var r0 *ec2stub.DescribeReservedInstancesOfferingsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeReservedInstancesOfferingsInput) *ec2stub.DescribeReservedInstancesOfferingsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeReservedInstancesOfferingsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeReservedInstancesOfferingsFuture)
 		}
 	}
 
@@ -8855,15 +8855,15 @@ func (_m *Mockec2clientstub) DescribeRouteTables(ctx internal.Context, input *ec
 }
 
 // DescribeRouteTablesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeRouteTablesAsync(ctx internal.Context, input *ec2.DescribeRouteTablesInput) (_result_0 *ec2stub.EC2DescribeRouteTablesFuture) {
+func (_m *Mockec2clientstub) DescribeRouteTablesAsync(ctx internal.Context, input *ec2.DescribeRouteTablesInput) (_result_0 *ec2stub.DescribeRouteTablesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeRouteTablesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeRouteTablesInput) *ec2stub.EC2DescribeRouteTablesFuture); ok {
+	var r0 *ec2stub.DescribeRouteTablesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeRouteTablesInput) *ec2stub.DescribeRouteTablesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeRouteTablesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeRouteTablesFuture)
 		}
 	}
 
@@ -8894,15 +8894,15 @@ func (_m *Mockec2clientstub) DescribeScheduledInstanceAvailability(ctx internal.
 }
 
 // DescribeScheduledInstanceAvailabilityAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeScheduledInstanceAvailabilityAsync(ctx internal.Context, input *ec2.DescribeScheduledInstanceAvailabilityInput) (_result_0 *ec2stub.EC2DescribeScheduledInstanceAvailabilityFuture) {
+func (_m *Mockec2clientstub) DescribeScheduledInstanceAvailabilityAsync(ctx internal.Context, input *ec2.DescribeScheduledInstanceAvailabilityInput) (_result_0 *ec2stub.DescribeScheduledInstanceAvailabilityFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeScheduledInstanceAvailabilityFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeScheduledInstanceAvailabilityInput) *ec2stub.EC2DescribeScheduledInstanceAvailabilityFuture); ok {
+	var r0 *ec2stub.DescribeScheduledInstanceAvailabilityFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeScheduledInstanceAvailabilityInput) *ec2stub.DescribeScheduledInstanceAvailabilityFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeScheduledInstanceAvailabilityFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeScheduledInstanceAvailabilityFuture)
 		}
 	}
 
@@ -8933,15 +8933,15 @@ func (_m *Mockec2clientstub) DescribeScheduledInstances(ctx internal.Context, in
 }
 
 // DescribeScheduledInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeScheduledInstancesAsync(ctx internal.Context, input *ec2.DescribeScheduledInstancesInput) (_result_0 *ec2stub.EC2DescribeScheduledInstancesFuture) {
+func (_m *Mockec2clientstub) DescribeScheduledInstancesAsync(ctx internal.Context, input *ec2.DescribeScheduledInstancesInput) (_result_0 *ec2stub.DescribeScheduledInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeScheduledInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeScheduledInstancesInput) *ec2stub.EC2DescribeScheduledInstancesFuture); ok {
+	var r0 *ec2stub.DescribeScheduledInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeScheduledInstancesInput) *ec2stub.DescribeScheduledInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeScheduledInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeScheduledInstancesFuture)
 		}
 	}
 
@@ -8972,15 +8972,15 @@ func (_m *Mockec2clientstub) DescribeSecurityGroupReferences(ctx internal.Contex
 }
 
 // DescribeSecurityGroupReferencesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSecurityGroupReferencesAsync(ctx internal.Context, input *ec2.DescribeSecurityGroupReferencesInput) (_result_0 *ec2stub.EC2DescribeSecurityGroupReferencesFuture) {
+func (_m *Mockec2clientstub) DescribeSecurityGroupReferencesAsync(ctx internal.Context, input *ec2.DescribeSecurityGroupReferencesInput) (_result_0 *ec2stub.DescribeSecurityGroupReferencesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSecurityGroupReferencesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSecurityGroupReferencesInput) *ec2stub.EC2DescribeSecurityGroupReferencesFuture); ok {
+	var r0 *ec2stub.DescribeSecurityGroupReferencesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSecurityGroupReferencesInput) *ec2stub.DescribeSecurityGroupReferencesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSecurityGroupReferencesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSecurityGroupReferencesFuture)
 		}
 	}
 
@@ -9011,15 +9011,15 @@ func (_m *Mockec2clientstub) DescribeSecurityGroups(ctx internal.Context, input 
 }
 
 // DescribeSecurityGroupsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSecurityGroupsAsync(ctx internal.Context, input *ec2.DescribeSecurityGroupsInput) (_result_0 *ec2stub.EC2DescribeSecurityGroupsFuture) {
+func (_m *Mockec2clientstub) DescribeSecurityGroupsAsync(ctx internal.Context, input *ec2.DescribeSecurityGroupsInput) (_result_0 *ec2stub.DescribeSecurityGroupsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSecurityGroupsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSecurityGroupsInput) *ec2stub.EC2DescribeSecurityGroupsFuture); ok {
+	var r0 *ec2stub.DescribeSecurityGroupsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSecurityGroupsInput) *ec2stub.DescribeSecurityGroupsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSecurityGroupsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSecurityGroupsFuture)
 		}
 	}
 
@@ -9050,15 +9050,15 @@ func (_m *Mockec2clientstub) DescribeSnapshotAttribute(ctx internal.Context, inp
 }
 
 // DescribeSnapshotAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSnapshotAttributeAsync(ctx internal.Context, input *ec2.DescribeSnapshotAttributeInput) (_result_0 *ec2stub.EC2DescribeSnapshotAttributeFuture) {
+func (_m *Mockec2clientstub) DescribeSnapshotAttributeAsync(ctx internal.Context, input *ec2.DescribeSnapshotAttributeInput) (_result_0 *ec2stub.DescribeSnapshotAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSnapshotAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSnapshotAttributeInput) *ec2stub.EC2DescribeSnapshotAttributeFuture); ok {
+	var r0 *ec2stub.DescribeSnapshotAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSnapshotAttributeInput) *ec2stub.DescribeSnapshotAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSnapshotAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSnapshotAttributeFuture)
 		}
 	}
 
@@ -9089,15 +9089,15 @@ func (_m *Mockec2clientstub) DescribeSnapshots(ctx internal.Context, input *ec2.
 }
 
 // DescribeSnapshotsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSnapshotsAsync(ctx internal.Context, input *ec2.DescribeSnapshotsInput) (_result_0 *ec2stub.EC2DescribeSnapshotsFuture) {
+func (_m *Mockec2clientstub) DescribeSnapshotsAsync(ctx internal.Context, input *ec2.DescribeSnapshotsInput) (_result_0 *ec2stub.DescribeSnapshotsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSnapshotsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSnapshotsInput) *ec2stub.EC2DescribeSnapshotsFuture); ok {
+	var r0 *ec2stub.DescribeSnapshotsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSnapshotsInput) *ec2stub.DescribeSnapshotsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSnapshotsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSnapshotsFuture)
 		}
 	}
 
@@ -9128,15 +9128,15 @@ func (_m *Mockec2clientstub) DescribeSpotDatafeedSubscription(ctx internal.Conte
 }
 
 // DescribeSpotDatafeedSubscriptionAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSpotDatafeedSubscriptionAsync(ctx internal.Context, input *ec2.DescribeSpotDatafeedSubscriptionInput) (_result_0 *ec2stub.EC2DescribeSpotDatafeedSubscriptionFuture) {
+func (_m *Mockec2clientstub) DescribeSpotDatafeedSubscriptionAsync(ctx internal.Context, input *ec2.DescribeSpotDatafeedSubscriptionInput) (_result_0 *ec2stub.DescribeSpotDatafeedSubscriptionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSpotDatafeedSubscriptionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotDatafeedSubscriptionInput) *ec2stub.EC2DescribeSpotDatafeedSubscriptionFuture); ok {
+	var r0 *ec2stub.DescribeSpotDatafeedSubscriptionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotDatafeedSubscriptionInput) *ec2stub.DescribeSpotDatafeedSubscriptionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSpotDatafeedSubscriptionFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSpotDatafeedSubscriptionFuture)
 		}
 	}
 
@@ -9167,15 +9167,15 @@ func (_m *Mockec2clientstub) DescribeSpotFleetInstances(ctx internal.Context, in
 }
 
 // DescribeSpotFleetInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSpotFleetInstancesAsync(ctx internal.Context, input *ec2.DescribeSpotFleetInstancesInput) (_result_0 *ec2stub.EC2DescribeSpotFleetInstancesFuture) {
+func (_m *Mockec2clientstub) DescribeSpotFleetInstancesAsync(ctx internal.Context, input *ec2.DescribeSpotFleetInstancesInput) (_result_0 *ec2stub.DescribeSpotFleetInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSpotFleetInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotFleetInstancesInput) *ec2stub.EC2DescribeSpotFleetInstancesFuture); ok {
+	var r0 *ec2stub.DescribeSpotFleetInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotFleetInstancesInput) *ec2stub.DescribeSpotFleetInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSpotFleetInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSpotFleetInstancesFuture)
 		}
 	}
 
@@ -9206,15 +9206,15 @@ func (_m *Mockec2clientstub) DescribeSpotFleetRequestHistory(ctx internal.Contex
 }
 
 // DescribeSpotFleetRequestHistoryAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSpotFleetRequestHistoryAsync(ctx internal.Context, input *ec2.DescribeSpotFleetRequestHistoryInput) (_result_0 *ec2stub.EC2DescribeSpotFleetRequestHistoryFuture) {
+func (_m *Mockec2clientstub) DescribeSpotFleetRequestHistoryAsync(ctx internal.Context, input *ec2.DescribeSpotFleetRequestHistoryInput) (_result_0 *ec2stub.DescribeSpotFleetRequestHistoryFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSpotFleetRequestHistoryFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotFleetRequestHistoryInput) *ec2stub.EC2DescribeSpotFleetRequestHistoryFuture); ok {
+	var r0 *ec2stub.DescribeSpotFleetRequestHistoryFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotFleetRequestHistoryInput) *ec2stub.DescribeSpotFleetRequestHistoryFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSpotFleetRequestHistoryFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSpotFleetRequestHistoryFuture)
 		}
 	}
 
@@ -9245,15 +9245,15 @@ func (_m *Mockec2clientstub) DescribeSpotFleetRequests(ctx internal.Context, inp
 }
 
 // DescribeSpotFleetRequestsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSpotFleetRequestsAsync(ctx internal.Context, input *ec2.DescribeSpotFleetRequestsInput) (_result_0 *ec2stub.EC2DescribeSpotFleetRequestsFuture) {
+func (_m *Mockec2clientstub) DescribeSpotFleetRequestsAsync(ctx internal.Context, input *ec2.DescribeSpotFleetRequestsInput) (_result_0 *ec2stub.DescribeSpotFleetRequestsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSpotFleetRequestsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotFleetRequestsInput) *ec2stub.EC2DescribeSpotFleetRequestsFuture); ok {
+	var r0 *ec2stub.DescribeSpotFleetRequestsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotFleetRequestsInput) *ec2stub.DescribeSpotFleetRequestsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSpotFleetRequestsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSpotFleetRequestsFuture)
 		}
 	}
 
@@ -9284,15 +9284,15 @@ func (_m *Mockec2clientstub) DescribeSpotInstanceRequests(ctx internal.Context, 
 }
 
 // DescribeSpotInstanceRequestsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSpotInstanceRequestsAsync(ctx internal.Context, input *ec2.DescribeSpotInstanceRequestsInput) (_result_0 *ec2stub.EC2DescribeSpotInstanceRequestsFuture) {
+func (_m *Mockec2clientstub) DescribeSpotInstanceRequestsAsync(ctx internal.Context, input *ec2.DescribeSpotInstanceRequestsInput) (_result_0 *ec2stub.DescribeSpotInstanceRequestsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSpotInstanceRequestsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotInstanceRequestsInput) *ec2stub.EC2DescribeSpotInstanceRequestsFuture); ok {
+	var r0 *ec2stub.DescribeSpotInstanceRequestsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotInstanceRequestsInput) *ec2stub.DescribeSpotInstanceRequestsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSpotInstanceRequestsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSpotInstanceRequestsFuture)
 		}
 	}
 
@@ -9323,15 +9323,15 @@ func (_m *Mockec2clientstub) DescribeSpotPriceHistory(ctx internal.Context, inpu
 }
 
 // DescribeSpotPriceHistoryAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSpotPriceHistoryAsync(ctx internal.Context, input *ec2.DescribeSpotPriceHistoryInput) (_result_0 *ec2stub.EC2DescribeSpotPriceHistoryFuture) {
+func (_m *Mockec2clientstub) DescribeSpotPriceHistoryAsync(ctx internal.Context, input *ec2.DescribeSpotPriceHistoryInput) (_result_0 *ec2stub.DescribeSpotPriceHistoryFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSpotPriceHistoryFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotPriceHistoryInput) *ec2stub.EC2DescribeSpotPriceHistoryFuture); ok {
+	var r0 *ec2stub.DescribeSpotPriceHistoryFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSpotPriceHistoryInput) *ec2stub.DescribeSpotPriceHistoryFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSpotPriceHistoryFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSpotPriceHistoryFuture)
 		}
 	}
 
@@ -9362,15 +9362,15 @@ func (_m *Mockec2clientstub) DescribeStaleSecurityGroups(ctx internal.Context, i
 }
 
 // DescribeStaleSecurityGroupsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeStaleSecurityGroupsAsync(ctx internal.Context, input *ec2.DescribeStaleSecurityGroupsInput) (_result_0 *ec2stub.EC2DescribeStaleSecurityGroupsFuture) {
+func (_m *Mockec2clientstub) DescribeStaleSecurityGroupsAsync(ctx internal.Context, input *ec2.DescribeStaleSecurityGroupsInput) (_result_0 *ec2stub.DescribeStaleSecurityGroupsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeStaleSecurityGroupsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeStaleSecurityGroupsInput) *ec2stub.EC2DescribeStaleSecurityGroupsFuture); ok {
+	var r0 *ec2stub.DescribeStaleSecurityGroupsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeStaleSecurityGroupsInput) *ec2stub.DescribeStaleSecurityGroupsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeStaleSecurityGroupsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeStaleSecurityGroupsFuture)
 		}
 	}
 
@@ -9401,15 +9401,15 @@ func (_m *Mockec2clientstub) DescribeSubnets(ctx internal.Context, input *ec2.De
 }
 
 // DescribeSubnetsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeSubnetsAsync(ctx internal.Context, input *ec2.DescribeSubnetsInput) (_result_0 *ec2stub.EC2DescribeSubnetsFuture) {
+func (_m *Mockec2clientstub) DescribeSubnetsAsync(ctx internal.Context, input *ec2.DescribeSubnetsInput) (_result_0 *ec2stub.DescribeSubnetsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeSubnetsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSubnetsInput) *ec2stub.EC2DescribeSubnetsFuture); ok {
+	var r0 *ec2stub.DescribeSubnetsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeSubnetsInput) *ec2stub.DescribeSubnetsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeSubnetsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeSubnetsFuture)
 		}
 	}
 
@@ -9440,15 +9440,15 @@ func (_m *Mockec2clientstub) DescribeTags(ctx internal.Context, input *ec2.Descr
 }
 
 // DescribeTagsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTagsAsync(ctx internal.Context, input *ec2.DescribeTagsInput) (_result_0 *ec2stub.EC2DescribeTagsFuture) {
+func (_m *Mockec2clientstub) DescribeTagsAsync(ctx internal.Context, input *ec2.DescribeTagsInput) (_result_0 *ec2stub.DescribeTagsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTagsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTagsInput) *ec2stub.EC2DescribeTagsFuture); ok {
+	var r0 *ec2stub.DescribeTagsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTagsInput) *ec2stub.DescribeTagsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTagsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTagsFuture)
 		}
 	}
 
@@ -9479,15 +9479,15 @@ func (_m *Mockec2clientstub) DescribeTrafficMirrorFilters(ctx internal.Context, 
 }
 
 // DescribeTrafficMirrorFiltersAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTrafficMirrorFiltersAsync(ctx internal.Context, input *ec2.DescribeTrafficMirrorFiltersInput) (_result_0 *ec2stub.EC2DescribeTrafficMirrorFiltersFuture) {
+func (_m *Mockec2clientstub) DescribeTrafficMirrorFiltersAsync(ctx internal.Context, input *ec2.DescribeTrafficMirrorFiltersInput) (_result_0 *ec2stub.DescribeTrafficMirrorFiltersFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTrafficMirrorFiltersFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTrafficMirrorFiltersInput) *ec2stub.EC2DescribeTrafficMirrorFiltersFuture); ok {
+	var r0 *ec2stub.DescribeTrafficMirrorFiltersFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTrafficMirrorFiltersInput) *ec2stub.DescribeTrafficMirrorFiltersFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTrafficMirrorFiltersFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTrafficMirrorFiltersFuture)
 		}
 	}
 
@@ -9518,15 +9518,15 @@ func (_m *Mockec2clientstub) DescribeTrafficMirrorSessions(ctx internal.Context,
 }
 
 // DescribeTrafficMirrorSessionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTrafficMirrorSessionsAsync(ctx internal.Context, input *ec2.DescribeTrafficMirrorSessionsInput) (_result_0 *ec2stub.EC2DescribeTrafficMirrorSessionsFuture) {
+func (_m *Mockec2clientstub) DescribeTrafficMirrorSessionsAsync(ctx internal.Context, input *ec2.DescribeTrafficMirrorSessionsInput) (_result_0 *ec2stub.DescribeTrafficMirrorSessionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTrafficMirrorSessionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTrafficMirrorSessionsInput) *ec2stub.EC2DescribeTrafficMirrorSessionsFuture); ok {
+	var r0 *ec2stub.DescribeTrafficMirrorSessionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTrafficMirrorSessionsInput) *ec2stub.DescribeTrafficMirrorSessionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTrafficMirrorSessionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTrafficMirrorSessionsFuture)
 		}
 	}
 
@@ -9557,15 +9557,15 @@ func (_m *Mockec2clientstub) DescribeTrafficMirrorTargets(ctx internal.Context, 
 }
 
 // DescribeTrafficMirrorTargetsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTrafficMirrorTargetsAsync(ctx internal.Context, input *ec2.DescribeTrafficMirrorTargetsInput) (_result_0 *ec2stub.EC2DescribeTrafficMirrorTargetsFuture) {
+func (_m *Mockec2clientstub) DescribeTrafficMirrorTargetsAsync(ctx internal.Context, input *ec2.DescribeTrafficMirrorTargetsInput) (_result_0 *ec2stub.DescribeTrafficMirrorTargetsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTrafficMirrorTargetsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTrafficMirrorTargetsInput) *ec2stub.EC2DescribeTrafficMirrorTargetsFuture); ok {
+	var r0 *ec2stub.DescribeTrafficMirrorTargetsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTrafficMirrorTargetsInput) *ec2stub.DescribeTrafficMirrorTargetsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTrafficMirrorTargetsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTrafficMirrorTargetsFuture)
 		}
 	}
 
@@ -9596,15 +9596,15 @@ func (_m *Mockec2clientstub) DescribeTransitGatewayAttachments(ctx internal.Cont
 }
 
 // DescribeTransitGatewayAttachmentsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTransitGatewayAttachmentsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayAttachmentsInput) (_result_0 *ec2stub.EC2DescribeTransitGatewayAttachmentsFuture) {
+func (_m *Mockec2clientstub) DescribeTransitGatewayAttachmentsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayAttachmentsInput) (_result_0 *ec2stub.DescribeTransitGatewayAttachmentsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTransitGatewayAttachmentsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayAttachmentsInput) *ec2stub.EC2DescribeTransitGatewayAttachmentsFuture); ok {
+	var r0 *ec2stub.DescribeTransitGatewayAttachmentsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayAttachmentsInput) *ec2stub.DescribeTransitGatewayAttachmentsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTransitGatewayAttachmentsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewayAttachmentsFuture)
 		}
 	}
 
@@ -9635,15 +9635,15 @@ func (_m *Mockec2clientstub) DescribeTransitGatewayMulticastDomains(ctx internal
 }
 
 // DescribeTransitGatewayMulticastDomainsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTransitGatewayMulticastDomainsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayMulticastDomainsInput) (_result_0 *ec2stub.EC2DescribeTransitGatewayMulticastDomainsFuture) {
+func (_m *Mockec2clientstub) DescribeTransitGatewayMulticastDomainsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayMulticastDomainsInput) (_result_0 *ec2stub.DescribeTransitGatewayMulticastDomainsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTransitGatewayMulticastDomainsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayMulticastDomainsInput) *ec2stub.EC2DescribeTransitGatewayMulticastDomainsFuture); ok {
+	var r0 *ec2stub.DescribeTransitGatewayMulticastDomainsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayMulticastDomainsInput) *ec2stub.DescribeTransitGatewayMulticastDomainsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTransitGatewayMulticastDomainsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewayMulticastDomainsFuture)
 		}
 	}
 
@@ -9674,15 +9674,15 @@ func (_m *Mockec2clientstub) DescribeTransitGatewayPeeringAttachments(ctx intern
 }
 
 // DescribeTransitGatewayPeeringAttachmentsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTransitGatewayPeeringAttachmentsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayPeeringAttachmentsInput) (_result_0 *ec2stub.EC2DescribeTransitGatewayPeeringAttachmentsFuture) {
+func (_m *Mockec2clientstub) DescribeTransitGatewayPeeringAttachmentsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayPeeringAttachmentsInput) (_result_0 *ec2stub.DescribeTransitGatewayPeeringAttachmentsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTransitGatewayPeeringAttachmentsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayPeeringAttachmentsInput) *ec2stub.EC2DescribeTransitGatewayPeeringAttachmentsFuture); ok {
+	var r0 *ec2stub.DescribeTransitGatewayPeeringAttachmentsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayPeeringAttachmentsInput) *ec2stub.DescribeTransitGatewayPeeringAttachmentsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTransitGatewayPeeringAttachmentsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewayPeeringAttachmentsFuture)
 		}
 	}
 
@@ -9713,15 +9713,15 @@ func (_m *Mockec2clientstub) DescribeTransitGatewayRouteTables(ctx internal.Cont
 }
 
 // DescribeTransitGatewayRouteTablesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTransitGatewayRouteTablesAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayRouteTablesInput) (_result_0 *ec2stub.EC2DescribeTransitGatewayRouteTablesFuture) {
+func (_m *Mockec2clientstub) DescribeTransitGatewayRouteTablesAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayRouteTablesInput) (_result_0 *ec2stub.DescribeTransitGatewayRouteTablesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTransitGatewayRouteTablesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayRouteTablesInput) *ec2stub.EC2DescribeTransitGatewayRouteTablesFuture); ok {
+	var r0 *ec2stub.DescribeTransitGatewayRouteTablesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayRouteTablesInput) *ec2stub.DescribeTransitGatewayRouteTablesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTransitGatewayRouteTablesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewayRouteTablesFuture)
 		}
 	}
 
@@ -9752,15 +9752,15 @@ func (_m *Mockec2clientstub) DescribeTransitGatewayVpcAttachments(ctx internal.C
 }
 
 // DescribeTransitGatewayVpcAttachmentsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTransitGatewayVpcAttachmentsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayVpcAttachmentsInput) (_result_0 *ec2stub.EC2DescribeTransitGatewayVpcAttachmentsFuture) {
+func (_m *Mockec2clientstub) DescribeTransitGatewayVpcAttachmentsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayVpcAttachmentsInput) (_result_0 *ec2stub.DescribeTransitGatewayVpcAttachmentsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTransitGatewayVpcAttachmentsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayVpcAttachmentsInput) *ec2stub.EC2DescribeTransitGatewayVpcAttachmentsFuture); ok {
+	var r0 *ec2stub.DescribeTransitGatewayVpcAttachmentsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayVpcAttachmentsInput) *ec2stub.DescribeTransitGatewayVpcAttachmentsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTransitGatewayVpcAttachmentsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewayVpcAttachmentsFuture)
 		}
 	}
 
@@ -9791,15 +9791,15 @@ func (_m *Mockec2clientstub) DescribeTransitGateways(ctx internal.Context, input
 }
 
 // DescribeTransitGatewaysAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeTransitGatewaysAsync(ctx internal.Context, input *ec2.DescribeTransitGatewaysInput) (_result_0 *ec2stub.EC2DescribeTransitGatewaysFuture) {
+func (_m *Mockec2clientstub) DescribeTransitGatewaysAsync(ctx internal.Context, input *ec2.DescribeTransitGatewaysInput) (_result_0 *ec2stub.DescribeTransitGatewaysFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeTransitGatewaysFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewaysInput) *ec2stub.EC2DescribeTransitGatewaysFuture); ok {
+	var r0 *ec2stub.DescribeTransitGatewaysFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewaysInput) *ec2stub.DescribeTransitGatewaysFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeTransitGatewaysFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewaysFuture)
 		}
 	}
 
@@ -9830,15 +9830,15 @@ func (_m *Mockec2clientstub) DescribeVolumeAttribute(ctx internal.Context, input
 }
 
 // DescribeVolumeAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVolumeAttributeAsync(ctx internal.Context, input *ec2.DescribeVolumeAttributeInput) (_result_0 *ec2stub.EC2DescribeVolumeAttributeFuture) {
+func (_m *Mockec2clientstub) DescribeVolumeAttributeAsync(ctx internal.Context, input *ec2.DescribeVolumeAttributeInput) (_result_0 *ec2stub.DescribeVolumeAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVolumeAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVolumeAttributeInput) *ec2stub.EC2DescribeVolumeAttributeFuture); ok {
+	var r0 *ec2stub.DescribeVolumeAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVolumeAttributeInput) *ec2stub.DescribeVolumeAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVolumeAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVolumeAttributeFuture)
 		}
 	}
 
@@ -9869,15 +9869,15 @@ func (_m *Mockec2clientstub) DescribeVolumeStatus(ctx internal.Context, input *e
 }
 
 // DescribeVolumeStatusAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVolumeStatusAsync(ctx internal.Context, input *ec2.DescribeVolumeStatusInput) (_result_0 *ec2stub.EC2DescribeVolumeStatusFuture) {
+func (_m *Mockec2clientstub) DescribeVolumeStatusAsync(ctx internal.Context, input *ec2.DescribeVolumeStatusInput) (_result_0 *ec2stub.DescribeVolumeStatusFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVolumeStatusFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVolumeStatusInput) *ec2stub.EC2DescribeVolumeStatusFuture); ok {
+	var r0 *ec2stub.DescribeVolumeStatusFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVolumeStatusInput) *ec2stub.DescribeVolumeStatusFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVolumeStatusFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVolumeStatusFuture)
 		}
 	}
 
@@ -9908,15 +9908,15 @@ func (_m *Mockec2clientstub) DescribeVolumes(ctx internal.Context, input *ec2.De
 }
 
 // DescribeVolumesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVolumesAsync(ctx internal.Context, input *ec2.DescribeVolumesInput) (_result_0 *ec2stub.EC2DescribeVolumesFuture) {
+func (_m *Mockec2clientstub) DescribeVolumesAsync(ctx internal.Context, input *ec2.DescribeVolumesInput) (_result_0 *ec2stub.DescribeVolumesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVolumesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVolumesInput) *ec2stub.EC2DescribeVolumesFuture); ok {
+	var r0 *ec2stub.DescribeVolumesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVolumesInput) *ec2stub.DescribeVolumesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVolumesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVolumesFuture)
 		}
 	}
 
@@ -9947,15 +9947,15 @@ func (_m *Mockec2clientstub) DescribeVolumesModifications(ctx internal.Context, 
 }
 
 // DescribeVolumesModificationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVolumesModificationsAsync(ctx internal.Context, input *ec2.DescribeVolumesModificationsInput) (_result_0 *ec2stub.EC2DescribeVolumesModificationsFuture) {
+func (_m *Mockec2clientstub) DescribeVolumesModificationsAsync(ctx internal.Context, input *ec2.DescribeVolumesModificationsInput) (_result_0 *ec2stub.DescribeVolumesModificationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVolumesModificationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVolumesModificationsInput) *ec2stub.EC2DescribeVolumesModificationsFuture); ok {
+	var r0 *ec2stub.DescribeVolumesModificationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVolumesModificationsInput) *ec2stub.DescribeVolumesModificationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVolumesModificationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVolumesModificationsFuture)
 		}
 	}
 
@@ -9986,15 +9986,15 @@ func (_m *Mockec2clientstub) DescribeVpcAttribute(ctx internal.Context, input *e
 }
 
 // DescribeVpcAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcAttributeAsync(ctx internal.Context, input *ec2.DescribeVpcAttributeInput) (_result_0 *ec2stub.EC2DescribeVpcAttributeFuture) {
+func (_m *Mockec2clientstub) DescribeVpcAttributeAsync(ctx internal.Context, input *ec2.DescribeVpcAttributeInput) (_result_0 *ec2stub.DescribeVpcAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcAttributeInput) *ec2stub.EC2DescribeVpcAttributeFuture); ok {
+	var r0 *ec2stub.DescribeVpcAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcAttributeInput) *ec2stub.DescribeVpcAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcAttributeFuture)
 		}
 	}
 
@@ -10025,15 +10025,15 @@ func (_m *Mockec2clientstub) DescribeVpcClassicLink(ctx internal.Context, input 
 }
 
 // DescribeVpcClassicLinkAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcClassicLinkAsync(ctx internal.Context, input *ec2.DescribeVpcClassicLinkInput) (_result_0 *ec2stub.EC2DescribeVpcClassicLinkFuture) {
+func (_m *Mockec2clientstub) DescribeVpcClassicLinkAsync(ctx internal.Context, input *ec2.DescribeVpcClassicLinkInput) (_result_0 *ec2stub.DescribeVpcClassicLinkFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcClassicLinkFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcClassicLinkInput) *ec2stub.EC2DescribeVpcClassicLinkFuture); ok {
+	var r0 *ec2stub.DescribeVpcClassicLinkFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcClassicLinkInput) *ec2stub.DescribeVpcClassicLinkFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcClassicLinkFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcClassicLinkFuture)
 		}
 	}
 
@@ -10064,15 +10064,15 @@ func (_m *Mockec2clientstub) DescribeVpcClassicLinkDnsSupport(ctx internal.Conte
 }
 
 // DescribeVpcClassicLinkDnsSupportAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcClassicLinkDnsSupportAsync(ctx internal.Context, input *ec2.DescribeVpcClassicLinkDnsSupportInput) (_result_0 *ec2stub.EC2DescribeVpcClassicLinkDnsSupportFuture) {
+func (_m *Mockec2clientstub) DescribeVpcClassicLinkDnsSupportAsync(ctx internal.Context, input *ec2.DescribeVpcClassicLinkDnsSupportInput) (_result_0 *ec2stub.DescribeVpcClassicLinkDnsSupportFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcClassicLinkDnsSupportFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcClassicLinkDnsSupportInput) *ec2stub.EC2DescribeVpcClassicLinkDnsSupportFuture); ok {
+	var r0 *ec2stub.DescribeVpcClassicLinkDnsSupportFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcClassicLinkDnsSupportInput) *ec2stub.DescribeVpcClassicLinkDnsSupportFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcClassicLinkDnsSupportFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcClassicLinkDnsSupportFuture)
 		}
 	}
 
@@ -10103,15 +10103,15 @@ func (_m *Mockec2clientstub) DescribeVpcEndpointConnectionNotifications(ctx inte
 }
 
 // DescribeVpcEndpointConnectionNotificationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcEndpointConnectionNotificationsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointConnectionNotificationsInput) (_result_0 *ec2stub.EC2DescribeVpcEndpointConnectionNotificationsFuture) {
+func (_m *Mockec2clientstub) DescribeVpcEndpointConnectionNotificationsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointConnectionNotificationsInput) (_result_0 *ec2stub.DescribeVpcEndpointConnectionNotificationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcEndpointConnectionNotificationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointConnectionNotificationsInput) *ec2stub.EC2DescribeVpcEndpointConnectionNotificationsFuture); ok {
+	var r0 *ec2stub.DescribeVpcEndpointConnectionNotificationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointConnectionNotificationsInput) *ec2stub.DescribeVpcEndpointConnectionNotificationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcEndpointConnectionNotificationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcEndpointConnectionNotificationsFuture)
 		}
 	}
 
@@ -10142,15 +10142,15 @@ func (_m *Mockec2clientstub) DescribeVpcEndpointConnections(ctx internal.Context
 }
 
 // DescribeVpcEndpointConnectionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcEndpointConnectionsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointConnectionsInput) (_result_0 *ec2stub.EC2DescribeVpcEndpointConnectionsFuture) {
+func (_m *Mockec2clientstub) DescribeVpcEndpointConnectionsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointConnectionsInput) (_result_0 *ec2stub.DescribeVpcEndpointConnectionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcEndpointConnectionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointConnectionsInput) *ec2stub.EC2DescribeVpcEndpointConnectionsFuture); ok {
+	var r0 *ec2stub.DescribeVpcEndpointConnectionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointConnectionsInput) *ec2stub.DescribeVpcEndpointConnectionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcEndpointConnectionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcEndpointConnectionsFuture)
 		}
 	}
 
@@ -10181,15 +10181,15 @@ func (_m *Mockec2clientstub) DescribeVpcEndpointServiceConfigurations(ctx intern
 }
 
 // DescribeVpcEndpointServiceConfigurationsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcEndpointServiceConfigurationsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointServiceConfigurationsInput) (_result_0 *ec2stub.EC2DescribeVpcEndpointServiceConfigurationsFuture) {
+func (_m *Mockec2clientstub) DescribeVpcEndpointServiceConfigurationsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointServiceConfigurationsInput) (_result_0 *ec2stub.DescribeVpcEndpointServiceConfigurationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcEndpointServiceConfigurationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointServiceConfigurationsInput) *ec2stub.EC2DescribeVpcEndpointServiceConfigurationsFuture); ok {
+	var r0 *ec2stub.DescribeVpcEndpointServiceConfigurationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointServiceConfigurationsInput) *ec2stub.DescribeVpcEndpointServiceConfigurationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcEndpointServiceConfigurationsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcEndpointServiceConfigurationsFuture)
 		}
 	}
 
@@ -10220,15 +10220,15 @@ func (_m *Mockec2clientstub) DescribeVpcEndpointServicePermissions(ctx internal.
 }
 
 // DescribeVpcEndpointServicePermissionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcEndpointServicePermissionsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointServicePermissionsInput) (_result_0 *ec2stub.EC2DescribeVpcEndpointServicePermissionsFuture) {
+func (_m *Mockec2clientstub) DescribeVpcEndpointServicePermissionsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointServicePermissionsInput) (_result_0 *ec2stub.DescribeVpcEndpointServicePermissionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcEndpointServicePermissionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointServicePermissionsInput) *ec2stub.EC2DescribeVpcEndpointServicePermissionsFuture); ok {
+	var r0 *ec2stub.DescribeVpcEndpointServicePermissionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointServicePermissionsInput) *ec2stub.DescribeVpcEndpointServicePermissionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcEndpointServicePermissionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcEndpointServicePermissionsFuture)
 		}
 	}
 
@@ -10259,15 +10259,15 @@ func (_m *Mockec2clientstub) DescribeVpcEndpointServices(ctx internal.Context, i
 }
 
 // DescribeVpcEndpointServicesAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcEndpointServicesAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointServicesInput) (_result_0 *ec2stub.EC2DescribeVpcEndpointServicesFuture) {
+func (_m *Mockec2clientstub) DescribeVpcEndpointServicesAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointServicesInput) (_result_0 *ec2stub.DescribeVpcEndpointServicesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcEndpointServicesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointServicesInput) *ec2stub.EC2DescribeVpcEndpointServicesFuture); ok {
+	var r0 *ec2stub.DescribeVpcEndpointServicesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointServicesInput) *ec2stub.DescribeVpcEndpointServicesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcEndpointServicesFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcEndpointServicesFuture)
 		}
 	}
 
@@ -10298,15 +10298,15 @@ func (_m *Mockec2clientstub) DescribeVpcEndpoints(ctx internal.Context, input *e
 }
 
 // DescribeVpcEndpointsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcEndpointsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointsInput) (_result_0 *ec2stub.EC2DescribeVpcEndpointsFuture) {
+func (_m *Mockec2clientstub) DescribeVpcEndpointsAsync(ctx internal.Context, input *ec2.DescribeVpcEndpointsInput) (_result_0 *ec2stub.DescribeVpcEndpointsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcEndpointsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointsInput) *ec2stub.EC2DescribeVpcEndpointsFuture); ok {
+	var r0 *ec2stub.DescribeVpcEndpointsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcEndpointsInput) *ec2stub.DescribeVpcEndpointsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcEndpointsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcEndpointsFuture)
 		}
 	}
 
@@ -10337,15 +10337,15 @@ func (_m *Mockec2clientstub) DescribeVpcPeeringConnections(ctx internal.Context,
 }
 
 // DescribeVpcPeeringConnectionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcPeeringConnectionsAsync(ctx internal.Context, input *ec2.DescribeVpcPeeringConnectionsInput) (_result_0 *ec2stub.EC2DescribeVpcPeeringConnectionsFuture) {
+func (_m *Mockec2clientstub) DescribeVpcPeeringConnectionsAsync(ctx internal.Context, input *ec2.DescribeVpcPeeringConnectionsInput) (_result_0 *ec2stub.DescribeVpcPeeringConnectionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcPeeringConnectionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcPeeringConnectionsInput) *ec2stub.EC2DescribeVpcPeeringConnectionsFuture); ok {
+	var r0 *ec2stub.DescribeVpcPeeringConnectionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcPeeringConnectionsInput) *ec2stub.DescribeVpcPeeringConnectionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcPeeringConnectionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcPeeringConnectionsFuture)
 		}
 	}
 
@@ -10376,15 +10376,15 @@ func (_m *Mockec2clientstub) DescribeVpcs(ctx internal.Context, input *ec2.Descr
 }
 
 // DescribeVpcsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpcsAsync(ctx internal.Context, input *ec2.DescribeVpcsInput) (_result_0 *ec2stub.EC2DescribeVpcsFuture) {
+func (_m *Mockec2clientstub) DescribeVpcsAsync(ctx internal.Context, input *ec2.DescribeVpcsInput) (_result_0 *ec2stub.DescribeVpcsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpcsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcsInput) *ec2stub.EC2DescribeVpcsFuture); ok {
+	var r0 *ec2stub.DescribeVpcsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpcsInput) *ec2stub.DescribeVpcsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpcsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpcsFuture)
 		}
 	}
 
@@ -10415,15 +10415,15 @@ func (_m *Mockec2clientstub) DescribeVpnConnections(ctx internal.Context, input 
 }
 
 // DescribeVpnConnectionsAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpnConnectionsAsync(ctx internal.Context, input *ec2.DescribeVpnConnectionsInput) (_result_0 *ec2stub.EC2DescribeVpnConnectionsFuture) {
+func (_m *Mockec2clientstub) DescribeVpnConnectionsAsync(ctx internal.Context, input *ec2.DescribeVpnConnectionsInput) (_result_0 *ec2stub.DescribeVpnConnectionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpnConnectionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpnConnectionsInput) *ec2stub.EC2DescribeVpnConnectionsFuture); ok {
+	var r0 *ec2stub.DescribeVpnConnectionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpnConnectionsInput) *ec2stub.DescribeVpnConnectionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpnConnectionsFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpnConnectionsFuture)
 		}
 	}
 
@@ -10454,15 +10454,15 @@ func (_m *Mockec2clientstub) DescribeVpnGateways(ctx internal.Context, input *ec
 }
 
 // DescribeVpnGatewaysAsync provides a mock function.
-func (_m *Mockec2clientstub) DescribeVpnGatewaysAsync(ctx internal.Context, input *ec2.DescribeVpnGatewaysInput) (_result_0 *ec2stub.EC2DescribeVpnGatewaysFuture) {
+func (_m *Mockec2clientstub) DescribeVpnGatewaysAsync(ctx internal.Context, input *ec2.DescribeVpnGatewaysInput) (_result_0 *ec2stub.DescribeVpnGatewaysFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DescribeVpnGatewaysFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpnGatewaysInput) *ec2stub.EC2DescribeVpnGatewaysFuture); ok {
+	var r0 *ec2stub.DescribeVpnGatewaysFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeVpnGatewaysInput) *ec2stub.DescribeVpnGatewaysFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DescribeVpnGatewaysFuture)
+			r0 = ret.Get(0).(*ec2stub.DescribeVpnGatewaysFuture)
 		}
 	}
 
@@ -10493,15 +10493,15 @@ func (_m *Mockec2clientstub) DetachClassicLinkVpc(ctx internal.Context, input *e
 }
 
 // DetachClassicLinkVpcAsync provides a mock function.
-func (_m *Mockec2clientstub) DetachClassicLinkVpcAsync(ctx internal.Context, input *ec2.DetachClassicLinkVpcInput) (_result_0 *ec2stub.EC2DetachClassicLinkVpcFuture) {
+func (_m *Mockec2clientstub) DetachClassicLinkVpcAsync(ctx internal.Context, input *ec2.DetachClassicLinkVpcInput) (_result_0 *ec2stub.DetachClassicLinkVpcFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DetachClassicLinkVpcFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachClassicLinkVpcInput) *ec2stub.EC2DetachClassicLinkVpcFuture); ok {
+	var r0 *ec2stub.DetachClassicLinkVpcFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachClassicLinkVpcInput) *ec2stub.DetachClassicLinkVpcFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DetachClassicLinkVpcFuture)
+			r0 = ret.Get(0).(*ec2stub.DetachClassicLinkVpcFuture)
 		}
 	}
 
@@ -10532,15 +10532,15 @@ func (_m *Mockec2clientstub) DetachInternetGateway(ctx internal.Context, input *
 }
 
 // DetachInternetGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DetachInternetGatewayAsync(ctx internal.Context, input *ec2.DetachInternetGatewayInput) (_result_0 *ec2stub.EC2DetachInternetGatewayFuture) {
+func (_m *Mockec2clientstub) DetachInternetGatewayAsync(ctx internal.Context, input *ec2.DetachInternetGatewayInput) (_result_0 *ec2stub.DetachInternetGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DetachInternetGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachInternetGatewayInput) *ec2stub.EC2DetachInternetGatewayFuture); ok {
+	var r0 *ec2stub.DetachInternetGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachInternetGatewayInput) *ec2stub.DetachInternetGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DetachInternetGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DetachInternetGatewayFuture)
 		}
 	}
 
@@ -10571,15 +10571,15 @@ func (_m *Mockec2clientstub) DetachNetworkInterface(ctx internal.Context, input 
 }
 
 // DetachNetworkInterfaceAsync provides a mock function.
-func (_m *Mockec2clientstub) DetachNetworkInterfaceAsync(ctx internal.Context, input *ec2.DetachNetworkInterfaceInput) (_result_0 *ec2stub.EC2DetachNetworkInterfaceFuture) {
+func (_m *Mockec2clientstub) DetachNetworkInterfaceAsync(ctx internal.Context, input *ec2.DetachNetworkInterfaceInput) (_result_0 *ec2stub.DetachNetworkInterfaceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DetachNetworkInterfaceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachNetworkInterfaceInput) *ec2stub.EC2DetachNetworkInterfaceFuture); ok {
+	var r0 *ec2stub.DetachNetworkInterfaceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachNetworkInterfaceInput) *ec2stub.DetachNetworkInterfaceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DetachNetworkInterfaceFuture)
+			r0 = ret.Get(0).(*ec2stub.DetachNetworkInterfaceFuture)
 		}
 	}
 
@@ -10610,15 +10610,15 @@ func (_m *Mockec2clientstub) DetachVolume(ctx internal.Context, input *ec2.Detac
 }
 
 // DetachVolumeAsync provides a mock function.
-func (_m *Mockec2clientstub) DetachVolumeAsync(ctx internal.Context, input *ec2.DetachVolumeInput) (_result_0 *ec2stub.EC2DetachVolumeFuture) {
+func (_m *Mockec2clientstub) DetachVolumeAsync(ctx internal.Context, input *ec2.DetachVolumeInput) (_result_0 *ec2stub.DetachVolumeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DetachVolumeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachVolumeInput) *ec2stub.EC2DetachVolumeFuture); ok {
+	var r0 *ec2stub.DetachVolumeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachVolumeInput) *ec2stub.DetachVolumeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DetachVolumeFuture)
+			r0 = ret.Get(0).(*ec2stub.DetachVolumeFuture)
 		}
 	}
 
@@ -10649,15 +10649,15 @@ func (_m *Mockec2clientstub) DetachVpnGateway(ctx internal.Context, input *ec2.D
 }
 
 // DetachVpnGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) DetachVpnGatewayAsync(ctx internal.Context, input *ec2.DetachVpnGatewayInput) (_result_0 *ec2stub.EC2DetachVpnGatewayFuture) {
+func (_m *Mockec2clientstub) DetachVpnGatewayAsync(ctx internal.Context, input *ec2.DetachVpnGatewayInput) (_result_0 *ec2stub.DetachVpnGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DetachVpnGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachVpnGatewayInput) *ec2stub.EC2DetachVpnGatewayFuture); ok {
+	var r0 *ec2stub.DetachVpnGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DetachVpnGatewayInput) *ec2stub.DetachVpnGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DetachVpnGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.DetachVpnGatewayFuture)
 		}
 	}
 
@@ -10688,15 +10688,15 @@ func (_m *Mockec2clientstub) DisableEbsEncryptionByDefault(ctx internal.Context,
 }
 
 // DisableEbsEncryptionByDefaultAsync provides a mock function.
-func (_m *Mockec2clientstub) DisableEbsEncryptionByDefaultAsync(ctx internal.Context, input *ec2.DisableEbsEncryptionByDefaultInput) (_result_0 *ec2stub.EC2DisableEbsEncryptionByDefaultFuture) {
+func (_m *Mockec2clientstub) DisableEbsEncryptionByDefaultAsync(ctx internal.Context, input *ec2.DisableEbsEncryptionByDefaultInput) (_result_0 *ec2stub.DisableEbsEncryptionByDefaultFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisableEbsEncryptionByDefaultFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableEbsEncryptionByDefaultInput) *ec2stub.EC2DisableEbsEncryptionByDefaultFuture); ok {
+	var r0 *ec2stub.DisableEbsEncryptionByDefaultFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableEbsEncryptionByDefaultInput) *ec2stub.DisableEbsEncryptionByDefaultFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisableEbsEncryptionByDefaultFuture)
+			r0 = ret.Get(0).(*ec2stub.DisableEbsEncryptionByDefaultFuture)
 		}
 	}
 
@@ -10727,15 +10727,15 @@ func (_m *Mockec2clientstub) DisableFastSnapshotRestores(ctx internal.Context, i
 }
 
 // DisableFastSnapshotRestoresAsync provides a mock function.
-func (_m *Mockec2clientstub) DisableFastSnapshotRestoresAsync(ctx internal.Context, input *ec2.DisableFastSnapshotRestoresInput) (_result_0 *ec2stub.EC2DisableFastSnapshotRestoresFuture) {
+func (_m *Mockec2clientstub) DisableFastSnapshotRestoresAsync(ctx internal.Context, input *ec2.DisableFastSnapshotRestoresInput) (_result_0 *ec2stub.DisableFastSnapshotRestoresFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisableFastSnapshotRestoresFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableFastSnapshotRestoresInput) *ec2stub.EC2DisableFastSnapshotRestoresFuture); ok {
+	var r0 *ec2stub.DisableFastSnapshotRestoresFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableFastSnapshotRestoresInput) *ec2stub.DisableFastSnapshotRestoresFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisableFastSnapshotRestoresFuture)
+			r0 = ret.Get(0).(*ec2stub.DisableFastSnapshotRestoresFuture)
 		}
 	}
 
@@ -10766,15 +10766,15 @@ func (_m *Mockec2clientstub) DisableTransitGatewayRouteTablePropagation(ctx inte
 }
 
 // DisableTransitGatewayRouteTablePropagationAsync provides a mock function.
-func (_m *Mockec2clientstub) DisableTransitGatewayRouteTablePropagationAsync(ctx internal.Context, input *ec2.DisableTransitGatewayRouteTablePropagationInput) (_result_0 *ec2stub.EC2DisableTransitGatewayRouteTablePropagationFuture) {
+func (_m *Mockec2clientstub) DisableTransitGatewayRouteTablePropagationAsync(ctx internal.Context, input *ec2.DisableTransitGatewayRouteTablePropagationInput) (_result_0 *ec2stub.DisableTransitGatewayRouteTablePropagationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisableTransitGatewayRouteTablePropagationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableTransitGatewayRouteTablePropagationInput) *ec2stub.EC2DisableTransitGatewayRouteTablePropagationFuture); ok {
+	var r0 *ec2stub.DisableTransitGatewayRouteTablePropagationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableTransitGatewayRouteTablePropagationInput) *ec2stub.DisableTransitGatewayRouteTablePropagationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisableTransitGatewayRouteTablePropagationFuture)
+			r0 = ret.Get(0).(*ec2stub.DisableTransitGatewayRouteTablePropagationFuture)
 		}
 	}
 
@@ -10805,15 +10805,15 @@ func (_m *Mockec2clientstub) DisableVgwRoutePropagation(ctx internal.Context, in
 }
 
 // DisableVgwRoutePropagationAsync provides a mock function.
-func (_m *Mockec2clientstub) DisableVgwRoutePropagationAsync(ctx internal.Context, input *ec2.DisableVgwRoutePropagationInput) (_result_0 *ec2stub.EC2DisableVgwRoutePropagationFuture) {
+func (_m *Mockec2clientstub) DisableVgwRoutePropagationAsync(ctx internal.Context, input *ec2.DisableVgwRoutePropagationInput) (_result_0 *ec2stub.DisableVgwRoutePropagationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisableVgwRoutePropagationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableVgwRoutePropagationInput) *ec2stub.EC2DisableVgwRoutePropagationFuture); ok {
+	var r0 *ec2stub.DisableVgwRoutePropagationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableVgwRoutePropagationInput) *ec2stub.DisableVgwRoutePropagationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisableVgwRoutePropagationFuture)
+			r0 = ret.Get(0).(*ec2stub.DisableVgwRoutePropagationFuture)
 		}
 	}
 
@@ -10844,15 +10844,15 @@ func (_m *Mockec2clientstub) DisableVpcClassicLink(ctx internal.Context, input *
 }
 
 // DisableVpcClassicLinkAsync provides a mock function.
-func (_m *Mockec2clientstub) DisableVpcClassicLinkAsync(ctx internal.Context, input *ec2.DisableVpcClassicLinkInput) (_result_0 *ec2stub.EC2DisableVpcClassicLinkFuture) {
+func (_m *Mockec2clientstub) DisableVpcClassicLinkAsync(ctx internal.Context, input *ec2.DisableVpcClassicLinkInput) (_result_0 *ec2stub.DisableVpcClassicLinkFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisableVpcClassicLinkFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableVpcClassicLinkInput) *ec2stub.EC2DisableVpcClassicLinkFuture); ok {
+	var r0 *ec2stub.DisableVpcClassicLinkFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableVpcClassicLinkInput) *ec2stub.DisableVpcClassicLinkFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisableVpcClassicLinkFuture)
+			r0 = ret.Get(0).(*ec2stub.DisableVpcClassicLinkFuture)
 		}
 	}
 
@@ -10883,15 +10883,15 @@ func (_m *Mockec2clientstub) DisableVpcClassicLinkDnsSupport(ctx internal.Contex
 }
 
 // DisableVpcClassicLinkDnsSupportAsync provides a mock function.
-func (_m *Mockec2clientstub) DisableVpcClassicLinkDnsSupportAsync(ctx internal.Context, input *ec2.DisableVpcClassicLinkDnsSupportInput) (_result_0 *ec2stub.EC2DisableVpcClassicLinkDnsSupportFuture) {
+func (_m *Mockec2clientstub) DisableVpcClassicLinkDnsSupportAsync(ctx internal.Context, input *ec2.DisableVpcClassicLinkDnsSupportInput) (_result_0 *ec2stub.DisableVpcClassicLinkDnsSupportFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisableVpcClassicLinkDnsSupportFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableVpcClassicLinkDnsSupportInput) *ec2stub.EC2DisableVpcClassicLinkDnsSupportFuture); ok {
+	var r0 *ec2stub.DisableVpcClassicLinkDnsSupportFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisableVpcClassicLinkDnsSupportInput) *ec2stub.DisableVpcClassicLinkDnsSupportFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisableVpcClassicLinkDnsSupportFuture)
+			r0 = ret.Get(0).(*ec2stub.DisableVpcClassicLinkDnsSupportFuture)
 		}
 	}
 
@@ -10922,15 +10922,15 @@ func (_m *Mockec2clientstub) DisassociateAddress(ctx internal.Context, input *ec
 }
 
 // DisassociateAddressAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateAddressAsync(ctx internal.Context, input *ec2.DisassociateAddressInput) (_result_0 *ec2stub.EC2DisassociateAddressFuture) {
+func (_m *Mockec2clientstub) DisassociateAddressAsync(ctx internal.Context, input *ec2.DisassociateAddressInput) (_result_0 *ec2stub.DisassociateAddressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateAddressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateAddressInput) *ec2stub.EC2DisassociateAddressFuture); ok {
+	var r0 *ec2stub.DisassociateAddressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateAddressInput) *ec2stub.DisassociateAddressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateAddressFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateAddressFuture)
 		}
 	}
 
@@ -10961,15 +10961,15 @@ func (_m *Mockec2clientstub) DisassociateClientVpnTargetNetwork(ctx internal.Con
 }
 
 // DisassociateClientVpnTargetNetworkAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateClientVpnTargetNetworkAsync(ctx internal.Context, input *ec2.DisassociateClientVpnTargetNetworkInput) (_result_0 *ec2stub.EC2DisassociateClientVpnTargetNetworkFuture) {
+func (_m *Mockec2clientstub) DisassociateClientVpnTargetNetworkAsync(ctx internal.Context, input *ec2.DisassociateClientVpnTargetNetworkInput) (_result_0 *ec2stub.DisassociateClientVpnTargetNetworkFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateClientVpnTargetNetworkFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateClientVpnTargetNetworkInput) *ec2stub.EC2DisassociateClientVpnTargetNetworkFuture); ok {
+	var r0 *ec2stub.DisassociateClientVpnTargetNetworkFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateClientVpnTargetNetworkInput) *ec2stub.DisassociateClientVpnTargetNetworkFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateClientVpnTargetNetworkFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateClientVpnTargetNetworkFuture)
 		}
 	}
 
@@ -11000,15 +11000,15 @@ func (_m *Mockec2clientstub) DisassociateEnclaveCertificateIamRole(ctx internal.
 }
 
 // DisassociateEnclaveCertificateIamRoleAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateEnclaveCertificateIamRoleAsync(ctx internal.Context, input *ec2.DisassociateEnclaveCertificateIamRoleInput) (_result_0 *ec2stub.EC2DisassociateEnclaveCertificateIamRoleFuture) {
+func (_m *Mockec2clientstub) DisassociateEnclaveCertificateIamRoleAsync(ctx internal.Context, input *ec2.DisassociateEnclaveCertificateIamRoleInput) (_result_0 *ec2stub.DisassociateEnclaveCertificateIamRoleFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateEnclaveCertificateIamRoleFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateEnclaveCertificateIamRoleInput) *ec2stub.EC2DisassociateEnclaveCertificateIamRoleFuture); ok {
+	var r0 *ec2stub.DisassociateEnclaveCertificateIamRoleFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateEnclaveCertificateIamRoleInput) *ec2stub.DisassociateEnclaveCertificateIamRoleFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateEnclaveCertificateIamRoleFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateEnclaveCertificateIamRoleFuture)
 		}
 	}
 
@@ -11039,15 +11039,15 @@ func (_m *Mockec2clientstub) DisassociateIamInstanceProfile(ctx internal.Context
 }
 
 // DisassociateIamInstanceProfileAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateIamInstanceProfileAsync(ctx internal.Context, input *ec2.DisassociateIamInstanceProfileInput) (_result_0 *ec2stub.EC2DisassociateIamInstanceProfileFuture) {
+func (_m *Mockec2clientstub) DisassociateIamInstanceProfileAsync(ctx internal.Context, input *ec2.DisassociateIamInstanceProfileInput) (_result_0 *ec2stub.DisassociateIamInstanceProfileFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateIamInstanceProfileFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateIamInstanceProfileInput) *ec2stub.EC2DisassociateIamInstanceProfileFuture); ok {
+	var r0 *ec2stub.DisassociateIamInstanceProfileFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateIamInstanceProfileInput) *ec2stub.DisassociateIamInstanceProfileFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateIamInstanceProfileFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateIamInstanceProfileFuture)
 		}
 	}
 
@@ -11078,15 +11078,15 @@ func (_m *Mockec2clientstub) DisassociateRouteTable(ctx internal.Context, input 
 }
 
 // DisassociateRouteTableAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateRouteTableAsync(ctx internal.Context, input *ec2.DisassociateRouteTableInput) (_result_0 *ec2stub.EC2DisassociateRouteTableFuture) {
+func (_m *Mockec2clientstub) DisassociateRouteTableAsync(ctx internal.Context, input *ec2.DisassociateRouteTableInput) (_result_0 *ec2stub.DisassociateRouteTableFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateRouteTableFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateRouteTableInput) *ec2stub.EC2DisassociateRouteTableFuture); ok {
+	var r0 *ec2stub.DisassociateRouteTableFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateRouteTableInput) *ec2stub.DisassociateRouteTableFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateRouteTableFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateRouteTableFuture)
 		}
 	}
 
@@ -11117,15 +11117,15 @@ func (_m *Mockec2clientstub) DisassociateSubnetCidrBlock(ctx internal.Context, i
 }
 
 // DisassociateSubnetCidrBlockAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateSubnetCidrBlockAsync(ctx internal.Context, input *ec2.DisassociateSubnetCidrBlockInput) (_result_0 *ec2stub.EC2DisassociateSubnetCidrBlockFuture) {
+func (_m *Mockec2clientstub) DisassociateSubnetCidrBlockAsync(ctx internal.Context, input *ec2.DisassociateSubnetCidrBlockInput) (_result_0 *ec2stub.DisassociateSubnetCidrBlockFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateSubnetCidrBlockFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateSubnetCidrBlockInput) *ec2stub.EC2DisassociateSubnetCidrBlockFuture); ok {
+	var r0 *ec2stub.DisassociateSubnetCidrBlockFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateSubnetCidrBlockInput) *ec2stub.DisassociateSubnetCidrBlockFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateSubnetCidrBlockFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateSubnetCidrBlockFuture)
 		}
 	}
 
@@ -11156,15 +11156,15 @@ func (_m *Mockec2clientstub) DisassociateTransitGatewayMulticastDomain(ctx inter
 }
 
 // DisassociateTransitGatewayMulticastDomainAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateTransitGatewayMulticastDomainAsync(ctx internal.Context, input *ec2.DisassociateTransitGatewayMulticastDomainInput) (_result_0 *ec2stub.EC2DisassociateTransitGatewayMulticastDomainFuture) {
+func (_m *Mockec2clientstub) DisassociateTransitGatewayMulticastDomainAsync(ctx internal.Context, input *ec2.DisassociateTransitGatewayMulticastDomainInput) (_result_0 *ec2stub.DisassociateTransitGatewayMulticastDomainFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateTransitGatewayMulticastDomainFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateTransitGatewayMulticastDomainInput) *ec2stub.EC2DisassociateTransitGatewayMulticastDomainFuture); ok {
+	var r0 *ec2stub.DisassociateTransitGatewayMulticastDomainFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateTransitGatewayMulticastDomainInput) *ec2stub.DisassociateTransitGatewayMulticastDomainFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateTransitGatewayMulticastDomainFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateTransitGatewayMulticastDomainFuture)
 		}
 	}
 
@@ -11195,15 +11195,15 @@ func (_m *Mockec2clientstub) DisassociateTransitGatewayRouteTable(ctx internal.C
 }
 
 // DisassociateTransitGatewayRouteTableAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateTransitGatewayRouteTableAsync(ctx internal.Context, input *ec2.DisassociateTransitGatewayRouteTableInput) (_result_0 *ec2stub.EC2DisassociateTransitGatewayRouteTableFuture) {
+func (_m *Mockec2clientstub) DisassociateTransitGatewayRouteTableAsync(ctx internal.Context, input *ec2.DisassociateTransitGatewayRouteTableInput) (_result_0 *ec2stub.DisassociateTransitGatewayRouteTableFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateTransitGatewayRouteTableFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateTransitGatewayRouteTableInput) *ec2stub.EC2DisassociateTransitGatewayRouteTableFuture); ok {
+	var r0 *ec2stub.DisassociateTransitGatewayRouteTableFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateTransitGatewayRouteTableInput) *ec2stub.DisassociateTransitGatewayRouteTableFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateTransitGatewayRouteTableFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateTransitGatewayRouteTableFuture)
 		}
 	}
 
@@ -11234,15 +11234,15 @@ func (_m *Mockec2clientstub) DisassociateVpcCidrBlock(ctx internal.Context, inpu
 }
 
 // DisassociateVpcCidrBlockAsync provides a mock function.
-func (_m *Mockec2clientstub) DisassociateVpcCidrBlockAsync(ctx internal.Context, input *ec2.DisassociateVpcCidrBlockInput) (_result_0 *ec2stub.EC2DisassociateVpcCidrBlockFuture) {
+func (_m *Mockec2clientstub) DisassociateVpcCidrBlockAsync(ctx internal.Context, input *ec2.DisassociateVpcCidrBlockInput) (_result_0 *ec2stub.DisassociateVpcCidrBlockFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2DisassociateVpcCidrBlockFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateVpcCidrBlockInput) *ec2stub.EC2DisassociateVpcCidrBlockFuture); ok {
+	var r0 *ec2stub.DisassociateVpcCidrBlockFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DisassociateVpcCidrBlockInput) *ec2stub.DisassociateVpcCidrBlockFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2DisassociateVpcCidrBlockFuture)
+			r0 = ret.Get(0).(*ec2stub.DisassociateVpcCidrBlockFuture)
 		}
 	}
 
@@ -11273,15 +11273,15 @@ func (_m *Mockec2clientstub) EnableEbsEncryptionByDefault(ctx internal.Context, 
 }
 
 // EnableEbsEncryptionByDefaultAsync provides a mock function.
-func (_m *Mockec2clientstub) EnableEbsEncryptionByDefaultAsync(ctx internal.Context, input *ec2.EnableEbsEncryptionByDefaultInput) (_result_0 *ec2stub.EC2EnableEbsEncryptionByDefaultFuture) {
+func (_m *Mockec2clientstub) EnableEbsEncryptionByDefaultAsync(ctx internal.Context, input *ec2.EnableEbsEncryptionByDefaultInput) (_result_0 *ec2stub.EnableEbsEncryptionByDefaultFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2EnableEbsEncryptionByDefaultFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableEbsEncryptionByDefaultInput) *ec2stub.EC2EnableEbsEncryptionByDefaultFuture); ok {
+	var r0 *ec2stub.EnableEbsEncryptionByDefaultFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableEbsEncryptionByDefaultInput) *ec2stub.EnableEbsEncryptionByDefaultFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2EnableEbsEncryptionByDefaultFuture)
+			r0 = ret.Get(0).(*ec2stub.EnableEbsEncryptionByDefaultFuture)
 		}
 	}
 
@@ -11312,15 +11312,15 @@ func (_m *Mockec2clientstub) EnableFastSnapshotRestores(ctx internal.Context, in
 }
 
 // EnableFastSnapshotRestoresAsync provides a mock function.
-func (_m *Mockec2clientstub) EnableFastSnapshotRestoresAsync(ctx internal.Context, input *ec2.EnableFastSnapshotRestoresInput) (_result_0 *ec2stub.EC2EnableFastSnapshotRestoresFuture) {
+func (_m *Mockec2clientstub) EnableFastSnapshotRestoresAsync(ctx internal.Context, input *ec2.EnableFastSnapshotRestoresInput) (_result_0 *ec2stub.EnableFastSnapshotRestoresFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2EnableFastSnapshotRestoresFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableFastSnapshotRestoresInput) *ec2stub.EC2EnableFastSnapshotRestoresFuture); ok {
+	var r0 *ec2stub.EnableFastSnapshotRestoresFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableFastSnapshotRestoresInput) *ec2stub.EnableFastSnapshotRestoresFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2EnableFastSnapshotRestoresFuture)
+			r0 = ret.Get(0).(*ec2stub.EnableFastSnapshotRestoresFuture)
 		}
 	}
 
@@ -11351,15 +11351,15 @@ func (_m *Mockec2clientstub) EnableTransitGatewayRouteTablePropagation(ctx inter
 }
 
 // EnableTransitGatewayRouteTablePropagationAsync provides a mock function.
-func (_m *Mockec2clientstub) EnableTransitGatewayRouteTablePropagationAsync(ctx internal.Context, input *ec2.EnableTransitGatewayRouteTablePropagationInput) (_result_0 *ec2stub.EC2EnableTransitGatewayRouteTablePropagationFuture) {
+func (_m *Mockec2clientstub) EnableTransitGatewayRouteTablePropagationAsync(ctx internal.Context, input *ec2.EnableTransitGatewayRouteTablePropagationInput) (_result_0 *ec2stub.EnableTransitGatewayRouteTablePropagationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2EnableTransitGatewayRouteTablePropagationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableTransitGatewayRouteTablePropagationInput) *ec2stub.EC2EnableTransitGatewayRouteTablePropagationFuture); ok {
+	var r0 *ec2stub.EnableTransitGatewayRouteTablePropagationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableTransitGatewayRouteTablePropagationInput) *ec2stub.EnableTransitGatewayRouteTablePropagationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2EnableTransitGatewayRouteTablePropagationFuture)
+			r0 = ret.Get(0).(*ec2stub.EnableTransitGatewayRouteTablePropagationFuture)
 		}
 	}
 
@@ -11390,15 +11390,15 @@ func (_m *Mockec2clientstub) EnableVgwRoutePropagation(ctx internal.Context, inp
 }
 
 // EnableVgwRoutePropagationAsync provides a mock function.
-func (_m *Mockec2clientstub) EnableVgwRoutePropagationAsync(ctx internal.Context, input *ec2.EnableVgwRoutePropagationInput) (_result_0 *ec2stub.EC2EnableVgwRoutePropagationFuture) {
+func (_m *Mockec2clientstub) EnableVgwRoutePropagationAsync(ctx internal.Context, input *ec2.EnableVgwRoutePropagationInput) (_result_0 *ec2stub.EnableVgwRoutePropagationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2EnableVgwRoutePropagationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableVgwRoutePropagationInput) *ec2stub.EC2EnableVgwRoutePropagationFuture); ok {
+	var r0 *ec2stub.EnableVgwRoutePropagationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableVgwRoutePropagationInput) *ec2stub.EnableVgwRoutePropagationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2EnableVgwRoutePropagationFuture)
+			r0 = ret.Get(0).(*ec2stub.EnableVgwRoutePropagationFuture)
 		}
 	}
 
@@ -11429,15 +11429,15 @@ func (_m *Mockec2clientstub) EnableVolumeIO(ctx internal.Context, input *ec2.Ena
 }
 
 // EnableVolumeIOAsync provides a mock function.
-func (_m *Mockec2clientstub) EnableVolumeIOAsync(ctx internal.Context, input *ec2.EnableVolumeIOInput) (_result_0 *ec2stub.EC2EnableVolumeIOFuture) {
+func (_m *Mockec2clientstub) EnableVolumeIOAsync(ctx internal.Context, input *ec2.EnableVolumeIOInput) (_result_0 *ec2stub.EnableVolumeIOFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2EnableVolumeIOFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableVolumeIOInput) *ec2stub.EC2EnableVolumeIOFuture); ok {
+	var r0 *ec2stub.EnableVolumeIOFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableVolumeIOInput) *ec2stub.EnableVolumeIOFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2EnableVolumeIOFuture)
+			r0 = ret.Get(0).(*ec2stub.EnableVolumeIOFuture)
 		}
 	}
 
@@ -11468,15 +11468,15 @@ func (_m *Mockec2clientstub) EnableVpcClassicLink(ctx internal.Context, input *e
 }
 
 // EnableVpcClassicLinkAsync provides a mock function.
-func (_m *Mockec2clientstub) EnableVpcClassicLinkAsync(ctx internal.Context, input *ec2.EnableVpcClassicLinkInput) (_result_0 *ec2stub.EC2EnableVpcClassicLinkFuture) {
+func (_m *Mockec2clientstub) EnableVpcClassicLinkAsync(ctx internal.Context, input *ec2.EnableVpcClassicLinkInput) (_result_0 *ec2stub.EnableVpcClassicLinkFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2EnableVpcClassicLinkFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableVpcClassicLinkInput) *ec2stub.EC2EnableVpcClassicLinkFuture); ok {
+	var r0 *ec2stub.EnableVpcClassicLinkFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableVpcClassicLinkInput) *ec2stub.EnableVpcClassicLinkFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2EnableVpcClassicLinkFuture)
+			r0 = ret.Get(0).(*ec2stub.EnableVpcClassicLinkFuture)
 		}
 	}
 
@@ -11507,15 +11507,15 @@ func (_m *Mockec2clientstub) EnableVpcClassicLinkDnsSupport(ctx internal.Context
 }
 
 // EnableVpcClassicLinkDnsSupportAsync provides a mock function.
-func (_m *Mockec2clientstub) EnableVpcClassicLinkDnsSupportAsync(ctx internal.Context, input *ec2.EnableVpcClassicLinkDnsSupportInput) (_result_0 *ec2stub.EC2EnableVpcClassicLinkDnsSupportFuture) {
+func (_m *Mockec2clientstub) EnableVpcClassicLinkDnsSupportAsync(ctx internal.Context, input *ec2.EnableVpcClassicLinkDnsSupportInput) (_result_0 *ec2stub.EnableVpcClassicLinkDnsSupportFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2EnableVpcClassicLinkDnsSupportFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableVpcClassicLinkDnsSupportInput) *ec2stub.EC2EnableVpcClassicLinkDnsSupportFuture); ok {
+	var r0 *ec2stub.EnableVpcClassicLinkDnsSupportFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.EnableVpcClassicLinkDnsSupportInput) *ec2stub.EnableVpcClassicLinkDnsSupportFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2EnableVpcClassicLinkDnsSupportFuture)
+			r0 = ret.Get(0).(*ec2stub.EnableVpcClassicLinkDnsSupportFuture)
 		}
 	}
 
@@ -11546,15 +11546,15 @@ func (_m *Mockec2clientstub) ExportClientVpnClientCertificateRevocationList(ctx 
 }
 
 // ExportClientVpnClientCertificateRevocationListAsync provides a mock function.
-func (_m *Mockec2clientstub) ExportClientVpnClientCertificateRevocationListAsync(ctx internal.Context, input *ec2.ExportClientVpnClientCertificateRevocationListInput) (_result_0 *ec2stub.EC2ExportClientVpnClientCertificateRevocationListFuture) {
+func (_m *Mockec2clientstub) ExportClientVpnClientCertificateRevocationListAsync(ctx internal.Context, input *ec2.ExportClientVpnClientCertificateRevocationListInput) (_result_0 *ec2stub.ExportClientVpnClientCertificateRevocationListFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ExportClientVpnClientCertificateRevocationListFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ExportClientVpnClientCertificateRevocationListInput) *ec2stub.EC2ExportClientVpnClientCertificateRevocationListFuture); ok {
+	var r0 *ec2stub.ExportClientVpnClientCertificateRevocationListFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ExportClientVpnClientCertificateRevocationListInput) *ec2stub.ExportClientVpnClientCertificateRevocationListFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ExportClientVpnClientCertificateRevocationListFuture)
+			r0 = ret.Get(0).(*ec2stub.ExportClientVpnClientCertificateRevocationListFuture)
 		}
 	}
 
@@ -11585,15 +11585,15 @@ func (_m *Mockec2clientstub) ExportClientVpnClientConfiguration(ctx internal.Con
 }
 
 // ExportClientVpnClientConfigurationAsync provides a mock function.
-func (_m *Mockec2clientstub) ExportClientVpnClientConfigurationAsync(ctx internal.Context, input *ec2.ExportClientVpnClientConfigurationInput) (_result_0 *ec2stub.EC2ExportClientVpnClientConfigurationFuture) {
+func (_m *Mockec2clientstub) ExportClientVpnClientConfigurationAsync(ctx internal.Context, input *ec2.ExportClientVpnClientConfigurationInput) (_result_0 *ec2stub.ExportClientVpnClientConfigurationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ExportClientVpnClientConfigurationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ExportClientVpnClientConfigurationInput) *ec2stub.EC2ExportClientVpnClientConfigurationFuture); ok {
+	var r0 *ec2stub.ExportClientVpnClientConfigurationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ExportClientVpnClientConfigurationInput) *ec2stub.ExportClientVpnClientConfigurationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ExportClientVpnClientConfigurationFuture)
+			r0 = ret.Get(0).(*ec2stub.ExportClientVpnClientConfigurationFuture)
 		}
 	}
 
@@ -11624,15 +11624,15 @@ func (_m *Mockec2clientstub) ExportImage(ctx internal.Context, input *ec2.Export
 }
 
 // ExportImageAsync provides a mock function.
-func (_m *Mockec2clientstub) ExportImageAsync(ctx internal.Context, input *ec2.ExportImageInput) (_result_0 *ec2stub.EC2ExportImageFuture) {
+func (_m *Mockec2clientstub) ExportImageAsync(ctx internal.Context, input *ec2.ExportImageInput) (_result_0 *ec2stub.ExportImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ExportImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ExportImageInput) *ec2stub.EC2ExportImageFuture); ok {
+	var r0 *ec2stub.ExportImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ExportImageInput) *ec2stub.ExportImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ExportImageFuture)
+			r0 = ret.Get(0).(*ec2stub.ExportImageFuture)
 		}
 	}
 
@@ -11663,15 +11663,15 @@ func (_m *Mockec2clientstub) ExportTransitGatewayRoutes(ctx internal.Context, in
 }
 
 // ExportTransitGatewayRoutesAsync provides a mock function.
-func (_m *Mockec2clientstub) ExportTransitGatewayRoutesAsync(ctx internal.Context, input *ec2.ExportTransitGatewayRoutesInput) (_result_0 *ec2stub.EC2ExportTransitGatewayRoutesFuture) {
+func (_m *Mockec2clientstub) ExportTransitGatewayRoutesAsync(ctx internal.Context, input *ec2.ExportTransitGatewayRoutesInput) (_result_0 *ec2stub.ExportTransitGatewayRoutesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ExportTransitGatewayRoutesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ExportTransitGatewayRoutesInput) *ec2stub.EC2ExportTransitGatewayRoutesFuture); ok {
+	var r0 *ec2stub.ExportTransitGatewayRoutesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ExportTransitGatewayRoutesInput) *ec2stub.ExportTransitGatewayRoutesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ExportTransitGatewayRoutesFuture)
+			r0 = ret.Get(0).(*ec2stub.ExportTransitGatewayRoutesFuture)
 		}
 	}
 
@@ -11702,15 +11702,15 @@ func (_m *Mockec2clientstub) GetAssociatedEnclaveCertificateIamRoles(ctx interna
 }
 
 // GetAssociatedEnclaveCertificateIamRolesAsync provides a mock function.
-func (_m *Mockec2clientstub) GetAssociatedEnclaveCertificateIamRolesAsync(ctx internal.Context, input *ec2.GetAssociatedEnclaveCertificateIamRolesInput) (_result_0 *ec2stub.EC2GetAssociatedEnclaveCertificateIamRolesFuture) {
+func (_m *Mockec2clientstub) GetAssociatedEnclaveCertificateIamRolesAsync(ctx internal.Context, input *ec2.GetAssociatedEnclaveCertificateIamRolesInput) (_result_0 *ec2stub.GetAssociatedEnclaveCertificateIamRolesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetAssociatedEnclaveCertificateIamRolesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetAssociatedEnclaveCertificateIamRolesInput) *ec2stub.EC2GetAssociatedEnclaveCertificateIamRolesFuture); ok {
+	var r0 *ec2stub.GetAssociatedEnclaveCertificateIamRolesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetAssociatedEnclaveCertificateIamRolesInput) *ec2stub.GetAssociatedEnclaveCertificateIamRolesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetAssociatedEnclaveCertificateIamRolesFuture)
+			r0 = ret.Get(0).(*ec2stub.GetAssociatedEnclaveCertificateIamRolesFuture)
 		}
 	}
 
@@ -11741,15 +11741,15 @@ func (_m *Mockec2clientstub) GetAssociatedIpv6PoolCidrs(ctx internal.Context, in
 }
 
 // GetAssociatedIpv6PoolCidrsAsync provides a mock function.
-func (_m *Mockec2clientstub) GetAssociatedIpv6PoolCidrsAsync(ctx internal.Context, input *ec2.GetAssociatedIpv6PoolCidrsInput) (_result_0 *ec2stub.EC2GetAssociatedIpv6PoolCidrsFuture) {
+func (_m *Mockec2clientstub) GetAssociatedIpv6PoolCidrsAsync(ctx internal.Context, input *ec2.GetAssociatedIpv6PoolCidrsInput) (_result_0 *ec2stub.GetAssociatedIpv6PoolCidrsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetAssociatedIpv6PoolCidrsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetAssociatedIpv6PoolCidrsInput) *ec2stub.EC2GetAssociatedIpv6PoolCidrsFuture); ok {
+	var r0 *ec2stub.GetAssociatedIpv6PoolCidrsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetAssociatedIpv6PoolCidrsInput) *ec2stub.GetAssociatedIpv6PoolCidrsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetAssociatedIpv6PoolCidrsFuture)
+			r0 = ret.Get(0).(*ec2stub.GetAssociatedIpv6PoolCidrsFuture)
 		}
 	}
 
@@ -11780,15 +11780,15 @@ func (_m *Mockec2clientstub) GetCapacityReservationUsage(ctx internal.Context, i
 }
 
 // GetCapacityReservationUsageAsync provides a mock function.
-func (_m *Mockec2clientstub) GetCapacityReservationUsageAsync(ctx internal.Context, input *ec2.GetCapacityReservationUsageInput) (_result_0 *ec2stub.EC2GetCapacityReservationUsageFuture) {
+func (_m *Mockec2clientstub) GetCapacityReservationUsageAsync(ctx internal.Context, input *ec2.GetCapacityReservationUsageInput) (_result_0 *ec2stub.GetCapacityReservationUsageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetCapacityReservationUsageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetCapacityReservationUsageInput) *ec2stub.EC2GetCapacityReservationUsageFuture); ok {
+	var r0 *ec2stub.GetCapacityReservationUsageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetCapacityReservationUsageInput) *ec2stub.GetCapacityReservationUsageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetCapacityReservationUsageFuture)
+			r0 = ret.Get(0).(*ec2stub.GetCapacityReservationUsageFuture)
 		}
 	}
 
@@ -11819,15 +11819,15 @@ func (_m *Mockec2clientstub) GetCoipPoolUsage(ctx internal.Context, input *ec2.G
 }
 
 // GetCoipPoolUsageAsync provides a mock function.
-func (_m *Mockec2clientstub) GetCoipPoolUsageAsync(ctx internal.Context, input *ec2.GetCoipPoolUsageInput) (_result_0 *ec2stub.EC2GetCoipPoolUsageFuture) {
+func (_m *Mockec2clientstub) GetCoipPoolUsageAsync(ctx internal.Context, input *ec2.GetCoipPoolUsageInput) (_result_0 *ec2stub.GetCoipPoolUsageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetCoipPoolUsageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetCoipPoolUsageInput) *ec2stub.EC2GetCoipPoolUsageFuture); ok {
+	var r0 *ec2stub.GetCoipPoolUsageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetCoipPoolUsageInput) *ec2stub.GetCoipPoolUsageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetCoipPoolUsageFuture)
+			r0 = ret.Get(0).(*ec2stub.GetCoipPoolUsageFuture)
 		}
 	}
 
@@ -11858,15 +11858,15 @@ func (_m *Mockec2clientstub) GetConsoleOutput(ctx internal.Context, input *ec2.G
 }
 
 // GetConsoleOutputAsync provides a mock function.
-func (_m *Mockec2clientstub) GetConsoleOutputAsync(ctx internal.Context, input *ec2.GetConsoleOutputInput) (_result_0 *ec2stub.EC2GetConsoleOutputFuture) {
+func (_m *Mockec2clientstub) GetConsoleOutputAsync(ctx internal.Context, input *ec2.GetConsoleOutputInput) (_result_0 *ec2stub.GetConsoleOutputFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetConsoleOutputFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetConsoleOutputInput) *ec2stub.EC2GetConsoleOutputFuture); ok {
+	var r0 *ec2stub.GetConsoleOutputFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetConsoleOutputInput) *ec2stub.GetConsoleOutputFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetConsoleOutputFuture)
+			r0 = ret.Get(0).(*ec2stub.GetConsoleOutputFuture)
 		}
 	}
 
@@ -11897,15 +11897,15 @@ func (_m *Mockec2clientstub) GetConsoleScreenshot(ctx internal.Context, input *e
 }
 
 // GetConsoleScreenshotAsync provides a mock function.
-func (_m *Mockec2clientstub) GetConsoleScreenshotAsync(ctx internal.Context, input *ec2.GetConsoleScreenshotInput) (_result_0 *ec2stub.EC2GetConsoleScreenshotFuture) {
+func (_m *Mockec2clientstub) GetConsoleScreenshotAsync(ctx internal.Context, input *ec2.GetConsoleScreenshotInput) (_result_0 *ec2stub.GetConsoleScreenshotFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetConsoleScreenshotFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetConsoleScreenshotInput) *ec2stub.EC2GetConsoleScreenshotFuture); ok {
+	var r0 *ec2stub.GetConsoleScreenshotFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetConsoleScreenshotInput) *ec2stub.GetConsoleScreenshotFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetConsoleScreenshotFuture)
+			r0 = ret.Get(0).(*ec2stub.GetConsoleScreenshotFuture)
 		}
 	}
 
@@ -11936,15 +11936,15 @@ func (_m *Mockec2clientstub) GetDefaultCreditSpecification(ctx internal.Context,
 }
 
 // GetDefaultCreditSpecificationAsync provides a mock function.
-func (_m *Mockec2clientstub) GetDefaultCreditSpecificationAsync(ctx internal.Context, input *ec2.GetDefaultCreditSpecificationInput) (_result_0 *ec2stub.EC2GetDefaultCreditSpecificationFuture) {
+func (_m *Mockec2clientstub) GetDefaultCreditSpecificationAsync(ctx internal.Context, input *ec2.GetDefaultCreditSpecificationInput) (_result_0 *ec2stub.GetDefaultCreditSpecificationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetDefaultCreditSpecificationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetDefaultCreditSpecificationInput) *ec2stub.EC2GetDefaultCreditSpecificationFuture); ok {
+	var r0 *ec2stub.GetDefaultCreditSpecificationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetDefaultCreditSpecificationInput) *ec2stub.GetDefaultCreditSpecificationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetDefaultCreditSpecificationFuture)
+			r0 = ret.Get(0).(*ec2stub.GetDefaultCreditSpecificationFuture)
 		}
 	}
 
@@ -11975,15 +11975,15 @@ func (_m *Mockec2clientstub) GetEbsDefaultKmsKeyId(ctx internal.Context, input *
 }
 
 // GetEbsDefaultKmsKeyIdAsync provides a mock function.
-func (_m *Mockec2clientstub) GetEbsDefaultKmsKeyIdAsync(ctx internal.Context, input *ec2.GetEbsDefaultKmsKeyIdInput) (_result_0 *ec2stub.EC2GetEbsDefaultKmsKeyIdFuture) {
+func (_m *Mockec2clientstub) GetEbsDefaultKmsKeyIdAsync(ctx internal.Context, input *ec2.GetEbsDefaultKmsKeyIdInput) (_result_0 *ec2stub.GetEbsDefaultKmsKeyIdFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetEbsDefaultKmsKeyIdFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetEbsDefaultKmsKeyIdInput) *ec2stub.EC2GetEbsDefaultKmsKeyIdFuture); ok {
+	var r0 *ec2stub.GetEbsDefaultKmsKeyIdFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetEbsDefaultKmsKeyIdInput) *ec2stub.GetEbsDefaultKmsKeyIdFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetEbsDefaultKmsKeyIdFuture)
+			r0 = ret.Get(0).(*ec2stub.GetEbsDefaultKmsKeyIdFuture)
 		}
 	}
 
@@ -12014,15 +12014,15 @@ func (_m *Mockec2clientstub) GetEbsEncryptionByDefault(ctx internal.Context, inp
 }
 
 // GetEbsEncryptionByDefaultAsync provides a mock function.
-func (_m *Mockec2clientstub) GetEbsEncryptionByDefaultAsync(ctx internal.Context, input *ec2.GetEbsEncryptionByDefaultInput) (_result_0 *ec2stub.EC2GetEbsEncryptionByDefaultFuture) {
+func (_m *Mockec2clientstub) GetEbsEncryptionByDefaultAsync(ctx internal.Context, input *ec2.GetEbsEncryptionByDefaultInput) (_result_0 *ec2stub.GetEbsEncryptionByDefaultFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetEbsEncryptionByDefaultFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetEbsEncryptionByDefaultInput) *ec2stub.EC2GetEbsEncryptionByDefaultFuture); ok {
+	var r0 *ec2stub.GetEbsEncryptionByDefaultFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetEbsEncryptionByDefaultInput) *ec2stub.GetEbsEncryptionByDefaultFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetEbsEncryptionByDefaultFuture)
+			r0 = ret.Get(0).(*ec2stub.GetEbsEncryptionByDefaultFuture)
 		}
 	}
 
@@ -12053,15 +12053,15 @@ func (_m *Mockec2clientstub) GetGroupsForCapacityReservation(ctx internal.Contex
 }
 
 // GetGroupsForCapacityReservationAsync provides a mock function.
-func (_m *Mockec2clientstub) GetGroupsForCapacityReservationAsync(ctx internal.Context, input *ec2.GetGroupsForCapacityReservationInput) (_result_0 *ec2stub.EC2GetGroupsForCapacityReservationFuture) {
+func (_m *Mockec2clientstub) GetGroupsForCapacityReservationAsync(ctx internal.Context, input *ec2.GetGroupsForCapacityReservationInput) (_result_0 *ec2stub.GetGroupsForCapacityReservationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetGroupsForCapacityReservationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetGroupsForCapacityReservationInput) *ec2stub.EC2GetGroupsForCapacityReservationFuture); ok {
+	var r0 *ec2stub.GetGroupsForCapacityReservationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetGroupsForCapacityReservationInput) *ec2stub.GetGroupsForCapacityReservationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetGroupsForCapacityReservationFuture)
+			r0 = ret.Get(0).(*ec2stub.GetGroupsForCapacityReservationFuture)
 		}
 	}
 
@@ -12092,15 +12092,15 @@ func (_m *Mockec2clientstub) GetHostReservationPurchasePreview(ctx internal.Cont
 }
 
 // GetHostReservationPurchasePreviewAsync provides a mock function.
-func (_m *Mockec2clientstub) GetHostReservationPurchasePreviewAsync(ctx internal.Context, input *ec2.GetHostReservationPurchasePreviewInput) (_result_0 *ec2stub.EC2GetHostReservationPurchasePreviewFuture) {
+func (_m *Mockec2clientstub) GetHostReservationPurchasePreviewAsync(ctx internal.Context, input *ec2.GetHostReservationPurchasePreviewInput) (_result_0 *ec2stub.GetHostReservationPurchasePreviewFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetHostReservationPurchasePreviewFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetHostReservationPurchasePreviewInput) *ec2stub.EC2GetHostReservationPurchasePreviewFuture); ok {
+	var r0 *ec2stub.GetHostReservationPurchasePreviewFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetHostReservationPurchasePreviewInput) *ec2stub.GetHostReservationPurchasePreviewFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetHostReservationPurchasePreviewFuture)
+			r0 = ret.Get(0).(*ec2stub.GetHostReservationPurchasePreviewFuture)
 		}
 	}
 
@@ -12131,15 +12131,15 @@ func (_m *Mockec2clientstub) GetLaunchTemplateData(ctx internal.Context, input *
 }
 
 // GetLaunchTemplateDataAsync provides a mock function.
-func (_m *Mockec2clientstub) GetLaunchTemplateDataAsync(ctx internal.Context, input *ec2.GetLaunchTemplateDataInput) (_result_0 *ec2stub.EC2GetLaunchTemplateDataFuture) {
+func (_m *Mockec2clientstub) GetLaunchTemplateDataAsync(ctx internal.Context, input *ec2.GetLaunchTemplateDataInput) (_result_0 *ec2stub.GetLaunchTemplateDataFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetLaunchTemplateDataFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetLaunchTemplateDataInput) *ec2stub.EC2GetLaunchTemplateDataFuture); ok {
+	var r0 *ec2stub.GetLaunchTemplateDataFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetLaunchTemplateDataInput) *ec2stub.GetLaunchTemplateDataFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetLaunchTemplateDataFuture)
+			r0 = ret.Get(0).(*ec2stub.GetLaunchTemplateDataFuture)
 		}
 	}
 
@@ -12170,15 +12170,15 @@ func (_m *Mockec2clientstub) GetManagedPrefixListAssociations(ctx internal.Conte
 }
 
 // GetManagedPrefixListAssociationsAsync provides a mock function.
-func (_m *Mockec2clientstub) GetManagedPrefixListAssociationsAsync(ctx internal.Context, input *ec2.GetManagedPrefixListAssociationsInput) (_result_0 *ec2stub.EC2GetManagedPrefixListAssociationsFuture) {
+func (_m *Mockec2clientstub) GetManagedPrefixListAssociationsAsync(ctx internal.Context, input *ec2.GetManagedPrefixListAssociationsInput) (_result_0 *ec2stub.GetManagedPrefixListAssociationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetManagedPrefixListAssociationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetManagedPrefixListAssociationsInput) *ec2stub.EC2GetManagedPrefixListAssociationsFuture); ok {
+	var r0 *ec2stub.GetManagedPrefixListAssociationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetManagedPrefixListAssociationsInput) *ec2stub.GetManagedPrefixListAssociationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetManagedPrefixListAssociationsFuture)
+			r0 = ret.Get(0).(*ec2stub.GetManagedPrefixListAssociationsFuture)
 		}
 	}
 
@@ -12209,15 +12209,15 @@ func (_m *Mockec2clientstub) GetManagedPrefixListEntries(ctx internal.Context, i
 }
 
 // GetManagedPrefixListEntriesAsync provides a mock function.
-func (_m *Mockec2clientstub) GetManagedPrefixListEntriesAsync(ctx internal.Context, input *ec2.GetManagedPrefixListEntriesInput) (_result_0 *ec2stub.EC2GetManagedPrefixListEntriesFuture) {
+func (_m *Mockec2clientstub) GetManagedPrefixListEntriesAsync(ctx internal.Context, input *ec2.GetManagedPrefixListEntriesInput) (_result_0 *ec2stub.GetManagedPrefixListEntriesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetManagedPrefixListEntriesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetManagedPrefixListEntriesInput) *ec2stub.EC2GetManagedPrefixListEntriesFuture); ok {
+	var r0 *ec2stub.GetManagedPrefixListEntriesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetManagedPrefixListEntriesInput) *ec2stub.GetManagedPrefixListEntriesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetManagedPrefixListEntriesFuture)
+			r0 = ret.Get(0).(*ec2stub.GetManagedPrefixListEntriesFuture)
 		}
 	}
 
@@ -12248,15 +12248,15 @@ func (_m *Mockec2clientstub) GetPasswordData(ctx internal.Context, input *ec2.Ge
 }
 
 // GetPasswordDataAsync provides a mock function.
-func (_m *Mockec2clientstub) GetPasswordDataAsync(ctx internal.Context, input *ec2.GetPasswordDataInput) (_result_0 *ec2stub.EC2GetPasswordDataFuture) {
+func (_m *Mockec2clientstub) GetPasswordDataAsync(ctx internal.Context, input *ec2.GetPasswordDataInput) (_result_0 *ec2stub.GetPasswordDataFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetPasswordDataFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetPasswordDataInput) *ec2stub.EC2GetPasswordDataFuture); ok {
+	var r0 *ec2stub.GetPasswordDataFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetPasswordDataInput) *ec2stub.GetPasswordDataFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetPasswordDataFuture)
+			r0 = ret.Get(0).(*ec2stub.GetPasswordDataFuture)
 		}
 	}
 
@@ -12287,15 +12287,15 @@ func (_m *Mockec2clientstub) GetReservedInstancesExchangeQuote(ctx internal.Cont
 }
 
 // GetReservedInstancesExchangeQuoteAsync provides a mock function.
-func (_m *Mockec2clientstub) GetReservedInstancesExchangeQuoteAsync(ctx internal.Context, input *ec2.GetReservedInstancesExchangeQuoteInput) (_result_0 *ec2stub.EC2GetReservedInstancesExchangeQuoteFuture) {
+func (_m *Mockec2clientstub) GetReservedInstancesExchangeQuoteAsync(ctx internal.Context, input *ec2.GetReservedInstancesExchangeQuoteInput) (_result_0 *ec2stub.GetReservedInstancesExchangeQuoteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetReservedInstancesExchangeQuoteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetReservedInstancesExchangeQuoteInput) *ec2stub.EC2GetReservedInstancesExchangeQuoteFuture); ok {
+	var r0 *ec2stub.GetReservedInstancesExchangeQuoteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetReservedInstancesExchangeQuoteInput) *ec2stub.GetReservedInstancesExchangeQuoteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetReservedInstancesExchangeQuoteFuture)
+			r0 = ret.Get(0).(*ec2stub.GetReservedInstancesExchangeQuoteFuture)
 		}
 	}
 
@@ -12326,15 +12326,15 @@ func (_m *Mockec2clientstub) GetTransitGatewayAttachmentPropagations(ctx interna
 }
 
 // GetTransitGatewayAttachmentPropagationsAsync provides a mock function.
-func (_m *Mockec2clientstub) GetTransitGatewayAttachmentPropagationsAsync(ctx internal.Context, input *ec2.GetTransitGatewayAttachmentPropagationsInput) (_result_0 *ec2stub.EC2GetTransitGatewayAttachmentPropagationsFuture) {
+func (_m *Mockec2clientstub) GetTransitGatewayAttachmentPropagationsAsync(ctx internal.Context, input *ec2.GetTransitGatewayAttachmentPropagationsInput) (_result_0 *ec2stub.GetTransitGatewayAttachmentPropagationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetTransitGatewayAttachmentPropagationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayAttachmentPropagationsInput) *ec2stub.EC2GetTransitGatewayAttachmentPropagationsFuture); ok {
+	var r0 *ec2stub.GetTransitGatewayAttachmentPropagationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayAttachmentPropagationsInput) *ec2stub.GetTransitGatewayAttachmentPropagationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetTransitGatewayAttachmentPropagationsFuture)
+			r0 = ret.Get(0).(*ec2stub.GetTransitGatewayAttachmentPropagationsFuture)
 		}
 	}
 
@@ -12365,15 +12365,15 @@ func (_m *Mockec2clientstub) GetTransitGatewayMulticastDomainAssociations(ctx in
 }
 
 // GetTransitGatewayMulticastDomainAssociationsAsync provides a mock function.
-func (_m *Mockec2clientstub) GetTransitGatewayMulticastDomainAssociationsAsync(ctx internal.Context, input *ec2.GetTransitGatewayMulticastDomainAssociationsInput) (_result_0 *ec2stub.EC2GetTransitGatewayMulticastDomainAssociationsFuture) {
+func (_m *Mockec2clientstub) GetTransitGatewayMulticastDomainAssociationsAsync(ctx internal.Context, input *ec2.GetTransitGatewayMulticastDomainAssociationsInput) (_result_0 *ec2stub.GetTransitGatewayMulticastDomainAssociationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetTransitGatewayMulticastDomainAssociationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayMulticastDomainAssociationsInput) *ec2stub.EC2GetTransitGatewayMulticastDomainAssociationsFuture); ok {
+	var r0 *ec2stub.GetTransitGatewayMulticastDomainAssociationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayMulticastDomainAssociationsInput) *ec2stub.GetTransitGatewayMulticastDomainAssociationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetTransitGatewayMulticastDomainAssociationsFuture)
+			r0 = ret.Get(0).(*ec2stub.GetTransitGatewayMulticastDomainAssociationsFuture)
 		}
 	}
 
@@ -12404,15 +12404,15 @@ func (_m *Mockec2clientstub) GetTransitGatewayPrefixListReferences(ctx internal.
 }
 
 // GetTransitGatewayPrefixListReferencesAsync provides a mock function.
-func (_m *Mockec2clientstub) GetTransitGatewayPrefixListReferencesAsync(ctx internal.Context, input *ec2.GetTransitGatewayPrefixListReferencesInput) (_result_0 *ec2stub.EC2GetTransitGatewayPrefixListReferencesFuture) {
+func (_m *Mockec2clientstub) GetTransitGatewayPrefixListReferencesAsync(ctx internal.Context, input *ec2.GetTransitGatewayPrefixListReferencesInput) (_result_0 *ec2stub.GetTransitGatewayPrefixListReferencesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetTransitGatewayPrefixListReferencesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayPrefixListReferencesInput) *ec2stub.EC2GetTransitGatewayPrefixListReferencesFuture); ok {
+	var r0 *ec2stub.GetTransitGatewayPrefixListReferencesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayPrefixListReferencesInput) *ec2stub.GetTransitGatewayPrefixListReferencesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetTransitGatewayPrefixListReferencesFuture)
+			r0 = ret.Get(0).(*ec2stub.GetTransitGatewayPrefixListReferencesFuture)
 		}
 	}
 
@@ -12443,15 +12443,15 @@ func (_m *Mockec2clientstub) GetTransitGatewayRouteTableAssociations(ctx interna
 }
 
 // GetTransitGatewayRouteTableAssociationsAsync provides a mock function.
-func (_m *Mockec2clientstub) GetTransitGatewayRouteTableAssociationsAsync(ctx internal.Context, input *ec2.GetTransitGatewayRouteTableAssociationsInput) (_result_0 *ec2stub.EC2GetTransitGatewayRouteTableAssociationsFuture) {
+func (_m *Mockec2clientstub) GetTransitGatewayRouteTableAssociationsAsync(ctx internal.Context, input *ec2.GetTransitGatewayRouteTableAssociationsInput) (_result_0 *ec2stub.GetTransitGatewayRouteTableAssociationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetTransitGatewayRouteTableAssociationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayRouteTableAssociationsInput) *ec2stub.EC2GetTransitGatewayRouteTableAssociationsFuture); ok {
+	var r0 *ec2stub.GetTransitGatewayRouteTableAssociationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayRouteTableAssociationsInput) *ec2stub.GetTransitGatewayRouteTableAssociationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetTransitGatewayRouteTableAssociationsFuture)
+			r0 = ret.Get(0).(*ec2stub.GetTransitGatewayRouteTableAssociationsFuture)
 		}
 	}
 
@@ -12482,15 +12482,15 @@ func (_m *Mockec2clientstub) GetTransitGatewayRouteTablePropagations(ctx interna
 }
 
 // GetTransitGatewayRouteTablePropagationsAsync provides a mock function.
-func (_m *Mockec2clientstub) GetTransitGatewayRouteTablePropagationsAsync(ctx internal.Context, input *ec2.GetTransitGatewayRouteTablePropagationsInput) (_result_0 *ec2stub.EC2GetTransitGatewayRouteTablePropagationsFuture) {
+func (_m *Mockec2clientstub) GetTransitGatewayRouteTablePropagationsAsync(ctx internal.Context, input *ec2.GetTransitGatewayRouteTablePropagationsInput) (_result_0 *ec2stub.GetTransitGatewayRouteTablePropagationsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2GetTransitGatewayRouteTablePropagationsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayRouteTablePropagationsInput) *ec2stub.EC2GetTransitGatewayRouteTablePropagationsFuture); ok {
+	var r0 *ec2stub.GetTransitGatewayRouteTablePropagationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.GetTransitGatewayRouteTablePropagationsInput) *ec2stub.GetTransitGatewayRouteTablePropagationsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2GetTransitGatewayRouteTablePropagationsFuture)
+			r0 = ret.Get(0).(*ec2stub.GetTransitGatewayRouteTablePropagationsFuture)
 		}
 	}
 
@@ -12521,15 +12521,15 @@ func (_m *Mockec2clientstub) ImportClientVpnClientCertificateRevocationList(ctx 
 }
 
 // ImportClientVpnClientCertificateRevocationListAsync provides a mock function.
-func (_m *Mockec2clientstub) ImportClientVpnClientCertificateRevocationListAsync(ctx internal.Context, input *ec2.ImportClientVpnClientCertificateRevocationListInput) (_result_0 *ec2stub.EC2ImportClientVpnClientCertificateRevocationListFuture) {
+func (_m *Mockec2clientstub) ImportClientVpnClientCertificateRevocationListAsync(ctx internal.Context, input *ec2.ImportClientVpnClientCertificateRevocationListInput) (_result_0 *ec2stub.ImportClientVpnClientCertificateRevocationListFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ImportClientVpnClientCertificateRevocationListFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportClientVpnClientCertificateRevocationListInput) *ec2stub.EC2ImportClientVpnClientCertificateRevocationListFuture); ok {
+	var r0 *ec2stub.ImportClientVpnClientCertificateRevocationListFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportClientVpnClientCertificateRevocationListInput) *ec2stub.ImportClientVpnClientCertificateRevocationListFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ImportClientVpnClientCertificateRevocationListFuture)
+			r0 = ret.Get(0).(*ec2stub.ImportClientVpnClientCertificateRevocationListFuture)
 		}
 	}
 
@@ -12560,15 +12560,15 @@ func (_m *Mockec2clientstub) ImportImage(ctx internal.Context, input *ec2.Import
 }
 
 // ImportImageAsync provides a mock function.
-func (_m *Mockec2clientstub) ImportImageAsync(ctx internal.Context, input *ec2.ImportImageInput) (_result_0 *ec2stub.EC2ImportImageFuture) {
+func (_m *Mockec2clientstub) ImportImageAsync(ctx internal.Context, input *ec2.ImportImageInput) (_result_0 *ec2stub.ImportImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ImportImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportImageInput) *ec2stub.EC2ImportImageFuture); ok {
+	var r0 *ec2stub.ImportImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportImageInput) *ec2stub.ImportImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ImportImageFuture)
+			r0 = ret.Get(0).(*ec2stub.ImportImageFuture)
 		}
 	}
 
@@ -12599,15 +12599,15 @@ func (_m *Mockec2clientstub) ImportInstance(ctx internal.Context, input *ec2.Imp
 }
 
 // ImportInstanceAsync provides a mock function.
-func (_m *Mockec2clientstub) ImportInstanceAsync(ctx internal.Context, input *ec2.ImportInstanceInput) (_result_0 *ec2stub.EC2ImportInstanceFuture) {
+func (_m *Mockec2clientstub) ImportInstanceAsync(ctx internal.Context, input *ec2.ImportInstanceInput) (_result_0 *ec2stub.ImportInstanceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ImportInstanceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportInstanceInput) *ec2stub.EC2ImportInstanceFuture); ok {
+	var r0 *ec2stub.ImportInstanceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportInstanceInput) *ec2stub.ImportInstanceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ImportInstanceFuture)
+			r0 = ret.Get(0).(*ec2stub.ImportInstanceFuture)
 		}
 	}
 
@@ -12638,15 +12638,15 @@ func (_m *Mockec2clientstub) ImportKeyPair(ctx internal.Context, input *ec2.Impo
 }
 
 // ImportKeyPairAsync provides a mock function.
-func (_m *Mockec2clientstub) ImportKeyPairAsync(ctx internal.Context, input *ec2.ImportKeyPairInput) (_result_0 *ec2stub.EC2ImportKeyPairFuture) {
+func (_m *Mockec2clientstub) ImportKeyPairAsync(ctx internal.Context, input *ec2.ImportKeyPairInput) (_result_0 *ec2stub.ImportKeyPairFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ImportKeyPairFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportKeyPairInput) *ec2stub.EC2ImportKeyPairFuture); ok {
+	var r0 *ec2stub.ImportKeyPairFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportKeyPairInput) *ec2stub.ImportKeyPairFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ImportKeyPairFuture)
+			r0 = ret.Get(0).(*ec2stub.ImportKeyPairFuture)
 		}
 	}
 
@@ -12677,15 +12677,15 @@ func (_m *Mockec2clientstub) ImportSnapshot(ctx internal.Context, input *ec2.Imp
 }
 
 // ImportSnapshotAsync provides a mock function.
-func (_m *Mockec2clientstub) ImportSnapshotAsync(ctx internal.Context, input *ec2.ImportSnapshotInput) (_result_0 *ec2stub.EC2ImportSnapshotFuture) {
+func (_m *Mockec2clientstub) ImportSnapshotAsync(ctx internal.Context, input *ec2.ImportSnapshotInput) (_result_0 *ec2stub.ImportSnapshotFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ImportSnapshotFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportSnapshotInput) *ec2stub.EC2ImportSnapshotFuture); ok {
+	var r0 *ec2stub.ImportSnapshotFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportSnapshotInput) *ec2stub.ImportSnapshotFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ImportSnapshotFuture)
+			r0 = ret.Get(0).(*ec2stub.ImportSnapshotFuture)
 		}
 	}
 
@@ -12716,15 +12716,15 @@ func (_m *Mockec2clientstub) ImportVolume(ctx internal.Context, input *ec2.Impor
 }
 
 // ImportVolumeAsync provides a mock function.
-func (_m *Mockec2clientstub) ImportVolumeAsync(ctx internal.Context, input *ec2.ImportVolumeInput) (_result_0 *ec2stub.EC2ImportVolumeFuture) {
+func (_m *Mockec2clientstub) ImportVolumeAsync(ctx internal.Context, input *ec2.ImportVolumeInput) (_result_0 *ec2stub.ImportVolumeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ImportVolumeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportVolumeInput) *ec2stub.EC2ImportVolumeFuture); ok {
+	var r0 *ec2stub.ImportVolumeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ImportVolumeInput) *ec2stub.ImportVolumeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ImportVolumeFuture)
+			r0 = ret.Get(0).(*ec2stub.ImportVolumeFuture)
 		}
 	}
 
@@ -12755,15 +12755,15 @@ func (_m *Mockec2clientstub) ModifyAvailabilityZoneGroup(ctx internal.Context, i
 }
 
 // ModifyAvailabilityZoneGroupAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyAvailabilityZoneGroupAsync(ctx internal.Context, input *ec2.ModifyAvailabilityZoneGroupInput) (_result_0 *ec2stub.EC2ModifyAvailabilityZoneGroupFuture) {
+func (_m *Mockec2clientstub) ModifyAvailabilityZoneGroupAsync(ctx internal.Context, input *ec2.ModifyAvailabilityZoneGroupInput) (_result_0 *ec2stub.ModifyAvailabilityZoneGroupFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyAvailabilityZoneGroupFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyAvailabilityZoneGroupInput) *ec2stub.EC2ModifyAvailabilityZoneGroupFuture); ok {
+	var r0 *ec2stub.ModifyAvailabilityZoneGroupFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyAvailabilityZoneGroupInput) *ec2stub.ModifyAvailabilityZoneGroupFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyAvailabilityZoneGroupFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyAvailabilityZoneGroupFuture)
 		}
 	}
 
@@ -12794,15 +12794,15 @@ func (_m *Mockec2clientstub) ModifyCapacityReservation(ctx internal.Context, inp
 }
 
 // ModifyCapacityReservationAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyCapacityReservationAsync(ctx internal.Context, input *ec2.ModifyCapacityReservationInput) (_result_0 *ec2stub.EC2ModifyCapacityReservationFuture) {
+func (_m *Mockec2clientstub) ModifyCapacityReservationAsync(ctx internal.Context, input *ec2.ModifyCapacityReservationInput) (_result_0 *ec2stub.ModifyCapacityReservationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyCapacityReservationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyCapacityReservationInput) *ec2stub.EC2ModifyCapacityReservationFuture); ok {
+	var r0 *ec2stub.ModifyCapacityReservationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyCapacityReservationInput) *ec2stub.ModifyCapacityReservationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyCapacityReservationFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyCapacityReservationFuture)
 		}
 	}
 
@@ -12833,15 +12833,15 @@ func (_m *Mockec2clientstub) ModifyClientVpnEndpoint(ctx internal.Context, input
 }
 
 // ModifyClientVpnEndpointAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyClientVpnEndpointAsync(ctx internal.Context, input *ec2.ModifyClientVpnEndpointInput) (_result_0 *ec2stub.EC2ModifyClientVpnEndpointFuture) {
+func (_m *Mockec2clientstub) ModifyClientVpnEndpointAsync(ctx internal.Context, input *ec2.ModifyClientVpnEndpointInput) (_result_0 *ec2stub.ModifyClientVpnEndpointFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyClientVpnEndpointFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyClientVpnEndpointInput) *ec2stub.EC2ModifyClientVpnEndpointFuture); ok {
+	var r0 *ec2stub.ModifyClientVpnEndpointFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyClientVpnEndpointInput) *ec2stub.ModifyClientVpnEndpointFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyClientVpnEndpointFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyClientVpnEndpointFuture)
 		}
 	}
 
@@ -12872,15 +12872,15 @@ func (_m *Mockec2clientstub) ModifyDefaultCreditSpecification(ctx internal.Conte
 }
 
 // ModifyDefaultCreditSpecificationAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyDefaultCreditSpecificationAsync(ctx internal.Context, input *ec2.ModifyDefaultCreditSpecificationInput) (_result_0 *ec2stub.EC2ModifyDefaultCreditSpecificationFuture) {
+func (_m *Mockec2clientstub) ModifyDefaultCreditSpecificationAsync(ctx internal.Context, input *ec2.ModifyDefaultCreditSpecificationInput) (_result_0 *ec2stub.ModifyDefaultCreditSpecificationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyDefaultCreditSpecificationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyDefaultCreditSpecificationInput) *ec2stub.EC2ModifyDefaultCreditSpecificationFuture); ok {
+	var r0 *ec2stub.ModifyDefaultCreditSpecificationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyDefaultCreditSpecificationInput) *ec2stub.ModifyDefaultCreditSpecificationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyDefaultCreditSpecificationFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyDefaultCreditSpecificationFuture)
 		}
 	}
 
@@ -12911,15 +12911,15 @@ func (_m *Mockec2clientstub) ModifyEbsDefaultKmsKeyId(ctx internal.Context, inpu
 }
 
 // ModifyEbsDefaultKmsKeyIdAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyEbsDefaultKmsKeyIdAsync(ctx internal.Context, input *ec2.ModifyEbsDefaultKmsKeyIdInput) (_result_0 *ec2stub.EC2ModifyEbsDefaultKmsKeyIdFuture) {
+func (_m *Mockec2clientstub) ModifyEbsDefaultKmsKeyIdAsync(ctx internal.Context, input *ec2.ModifyEbsDefaultKmsKeyIdInput) (_result_0 *ec2stub.ModifyEbsDefaultKmsKeyIdFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyEbsDefaultKmsKeyIdFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyEbsDefaultKmsKeyIdInput) *ec2stub.EC2ModifyEbsDefaultKmsKeyIdFuture); ok {
+	var r0 *ec2stub.ModifyEbsDefaultKmsKeyIdFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyEbsDefaultKmsKeyIdInput) *ec2stub.ModifyEbsDefaultKmsKeyIdFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyEbsDefaultKmsKeyIdFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyEbsDefaultKmsKeyIdFuture)
 		}
 	}
 
@@ -12950,15 +12950,15 @@ func (_m *Mockec2clientstub) ModifyFleet(ctx internal.Context, input *ec2.Modify
 }
 
 // ModifyFleetAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyFleetAsync(ctx internal.Context, input *ec2.ModifyFleetInput) (_result_0 *ec2stub.EC2ModifyFleetFuture) {
+func (_m *Mockec2clientstub) ModifyFleetAsync(ctx internal.Context, input *ec2.ModifyFleetInput) (_result_0 *ec2stub.ModifyFleetFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyFleetFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyFleetInput) *ec2stub.EC2ModifyFleetFuture); ok {
+	var r0 *ec2stub.ModifyFleetFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyFleetInput) *ec2stub.ModifyFleetFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyFleetFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyFleetFuture)
 		}
 	}
 
@@ -12989,15 +12989,15 @@ func (_m *Mockec2clientstub) ModifyFpgaImageAttribute(ctx internal.Context, inpu
 }
 
 // ModifyFpgaImageAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyFpgaImageAttributeAsync(ctx internal.Context, input *ec2.ModifyFpgaImageAttributeInput) (_result_0 *ec2stub.EC2ModifyFpgaImageAttributeFuture) {
+func (_m *Mockec2clientstub) ModifyFpgaImageAttributeAsync(ctx internal.Context, input *ec2.ModifyFpgaImageAttributeInput) (_result_0 *ec2stub.ModifyFpgaImageAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyFpgaImageAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyFpgaImageAttributeInput) *ec2stub.EC2ModifyFpgaImageAttributeFuture); ok {
+	var r0 *ec2stub.ModifyFpgaImageAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyFpgaImageAttributeInput) *ec2stub.ModifyFpgaImageAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyFpgaImageAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyFpgaImageAttributeFuture)
 		}
 	}
 
@@ -13028,15 +13028,15 @@ func (_m *Mockec2clientstub) ModifyHosts(ctx internal.Context, input *ec2.Modify
 }
 
 // ModifyHostsAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyHostsAsync(ctx internal.Context, input *ec2.ModifyHostsInput) (_result_0 *ec2stub.EC2ModifyHostsFuture) {
+func (_m *Mockec2clientstub) ModifyHostsAsync(ctx internal.Context, input *ec2.ModifyHostsInput) (_result_0 *ec2stub.ModifyHostsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyHostsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyHostsInput) *ec2stub.EC2ModifyHostsFuture); ok {
+	var r0 *ec2stub.ModifyHostsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyHostsInput) *ec2stub.ModifyHostsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyHostsFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyHostsFuture)
 		}
 	}
 
@@ -13067,15 +13067,15 @@ func (_m *Mockec2clientstub) ModifyIdFormat(ctx internal.Context, input *ec2.Mod
 }
 
 // ModifyIdFormatAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyIdFormatAsync(ctx internal.Context, input *ec2.ModifyIdFormatInput) (_result_0 *ec2stub.EC2ModifyIdFormatFuture) {
+func (_m *Mockec2clientstub) ModifyIdFormatAsync(ctx internal.Context, input *ec2.ModifyIdFormatInput) (_result_0 *ec2stub.ModifyIdFormatFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyIdFormatFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyIdFormatInput) *ec2stub.EC2ModifyIdFormatFuture); ok {
+	var r0 *ec2stub.ModifyIdFormatFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyIdFormatInput) *ec2stub.ModifyIdFormatFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyIdFormatFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyIdFormatFuture)
 		}
 	}
 
@@ -13106,15 +13106,15 @@ func (_m *Mockec2clientstub) ModifyIdentityIdFormat(ctx internal.Context, input 
 }
 
 // ModifyIdentityIdFormatAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyIdentityIdFormatAsync(ctx internal.Context, input *ec2.ModifyIdentityIdFormatInput) (_result_0 *ec2stub.EC2ModifyIdentityIdFormatFuture) {
+func (_m *Mockec2clientstub) ModifyIdentityIdFormatAsync(ctx internal.Context, input *ec2.ModifyIdentityIdFormatInput) (_result_0 *ec2stub.ModifyIdentityIdFormatFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyIdentityIdFormatFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyIdentityIdFormatInput) *ec2stub.EC2ModifyIdentityIdFormatFuture); ok {
+	var r0 *ec2stub.ModifyIdentityIdFormatFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyIdentityIdFormatInput) *ec2stub.ModifyIdentityIdFormatFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyIdentityIdFormatFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyIdentityIdFormatFuture)
 		}
 	}
 
@@ -13145,15 +13145,15 @@ func (_m *Mockec2clientstub) ModifyImageAttribute(ctx internal.Context, input *e
 }
 
 // ModifyImageAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyImageAttributeAsync(ctx internal.Context, input *ec2.ModifyImageAttributeInput) (_result_0 *ec2stub.EC2ModifyImageAttributeFuture) {
+func (_m *Mockec2clientstub) ModifyImageAttributeAsync(ctx internal.Context, input *ec2.ModifyImageAttributeInput) (_result_0 *ec2stub.ModifyImageAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyImageAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyImageAttributeInput) *ec2stub.EC2ModifyImageAttributeFuture); ok {
+	var r0 *ec2stub.ModifyImageAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyImageAttributeInput) *ec2stub.ModifyImageAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyImageAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyImageAttributeFuture)
 		}
 	}
 
@@ -13184,15 +13184,15 @@ func (_m *Mockec2clientstub) ModifyInstanceAttribute(ctx internal.Context, input
 }
 
 // ModifyInstanceAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyInstanceAttributeAsync(ctx internal.Context, input *ec2.ModifyInstanceAttributeInput) (_result_0 *ec2stub.EC2ModifyInstanceAttributeFuture) {
+func (_m *Mockec2clientstub) ModifyInstanceAttributeAsync(ctx internal.Context, input *ec2.ModifyInstanceAttributeInput) (_result_0 *ec2stub.ModifyInstanceAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyInstanceAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceAttributeInput) *ec2stub.EC2ModifyInstanceAttributeFuture); ok {
+	var r0 *ec2stub.ModifyInstanceAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceAttributeInput) *ec2stub.ModifyInstanceAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyInstanceAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyInstanceAttributeFuture)
 		}
 	}
 
@@ -13223,15 +13223,15 @@ func (_m *Mockec2clientstub) ModifyInstanceCapacityReservationAttributes(ctx int
 }
 
 // ModifyInstanceCapacityReservationAttributesAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyInstanceCapacityReservationAttributesAsync(ctx internal.Context, input *ec2.ModifyInstanceCapacityReservationAttributesInput) (_result_0 *ec2stub.EC2ModifyInstanceCapacityReservationAttributesFuture) {
+func (_m *Mockec2clientstub) ModifyInstanceCapacityReservationAttributesAsync(ctx internal.Context, input *ec2.ModifyInstanceCapacityReservationAttributesInput) (_result_0 *ec2stub.ModifyInstanceCapacityReservationAttributesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyInstanceCapacityReservationAttributesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceCapacityReservationAttributesInput) *ec2stub.EC2ModifyInstanceCapacityReservationAttributesFuture); ok {
+	var r0 *ec2stub.ModifyInstanceCapacityReservationAttributesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceCapacityReservationAttributesInput) *ec2stub.ModifyInstanceCapacityReservationAttributesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyInstanceCapacityReservationAttributesFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyInstanceCapacityReservationAttributesFuture)
 		}
 	}
 
@@ -13262,15 +13262,15 @@ func (_m *Mockec2clientstub) ModifyInstanceCreditSpecification(ctx internal.Cont
 }
 
 // ModifyInstanceCreditSpecificationAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyInstanceCreditSpecificationAsync(ctx internal.Context, input *ec2.ModifyInstanceCreditSpecificationInput) (_result_0 *ec2stub.EC2ModifyInstanceCreditSpecificationFuture) {
+func (_m *Mockec2clientstub) ModifyInstanceCreditSpecificationAsync(ctx internal.Context, input *ec2.ModifyInstanceCreditSpecificationInput) (_result_0 *ec2stub.ModifyInstanceCreditSpecificationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyInstanceCreditSpecificationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceCreditSpecificationInput) *ec2stub.EC2ModifyInstanceCreditSpecificationFuture); ok {
+	var r0 *ec2stub.ModifyInstanceCreditSpecificationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceCreditSpecificationInput) *ec2stub.ModifyInstanceCreditSpecificationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyInstanceCreditSpecificationFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyInstanceCreditSpecificationFuture)
 		}
 	}
 
@@ -13301,15 +13301,15 @@ func (_m *Mockec2clientstub) ModifyInstanceEventStartTime(ctx internal.Context, 
 }
 
 // ModifyInstanceEventStartTimeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyInstanceEventStartTimeAsync(ctx internal.Context, input *ec2.ModifyInstanceEventStartTimeInput) (_result_0 *ec2stub.EC2ModifyInstanceEventStartTimeFuture) {
+func (_m *Mockec2clientstub) ModifyInstanceEventStartTimeAsync(ctx internal.Context, input *ec2.ModifyInstanceEventStartTimeInput) (_result_0 *ec2stub.ModifyInstanceEventStartTimeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyInstanceEventStartTimeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceEventStartTimeInput) *ec2stub.EC2ModifyInstanceEventStartTimeFuture); ok {
+	var r0 *ec2stub.ModifyInstanceEventStartTimeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceEventStartTimeInput) *ec2stub.ModifyInstanceEventStartTimeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyInstanceEventStartTimeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyInstanceEventStartTimeFuture)
 		}
 	}
 
@@ -13340,15 +13340,15 @@ func (_m *Mockec2clientstub) ModifyInstanceMetadataOptions(ctx internal.Context,
 }
 
 // ModifyInstanceMetadataOptionsAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyInstanceMetadataOptionsAsync(ctx internal.Context, input *ec2.ModifyInstanceMetadataOptionsInput) (_result_0 *ec2stub.EC2ModifyInstanceMetadataOptionsFuture) {
+func (_m *Mockec2clientstub) ModifyInstanceMetadataOptionsAsync(ctx internal.Context, input *ec2.ModifyInstanceMetadataOptionsInput) (_result_0 *ec2stub.ModifyInstanceMetadataOptionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyInstanceMetadataOptionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceMetadataOptionsInput) *ec2stub.EC2ModifyInstanceMetadataOptionsFuture); ok {
+	var r0 *ec2stub.ModifyInstanceMetadataOptionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstanceMetadataOptionsInput) *ec2stub.ModifyInstanceMetadataOptionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyInstanceMetadataOptionsFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyInstanceMetadataOptionsFuture)
 		}
 	}
 
@@ -13379,15 +13379,15 @@ func (_m *Mockec2clientstub) ModifyInstancePlacement(ctx internal.Context, input
 }
 
 // ModifyInstancePlacementAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyInstancePlacementAsync(ctx internal.Context, input *ec2.ModifyInstancePlacementInput) (_result_0 *ec2stub.EC2ModifyInstancePlacementFuture) {
+func (_m *Mockec2clientstub) ModifyInstancePlacementAsync(ctx internal.Context, input *ec2.ModifyInstancePlacementInput) (_result_0 *ec2stub.ModifyInstancePlacementFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyInstancePlacementFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstancePlacementInput) *ec2stub.EC2ModifyInstancePlacementFuture); ok {
+	var r0 *ec2stub.ModifyInstancePlacementFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyInstancePlacementInput) *ec2stub.ModifyInstancePlacementFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyInstancePlacementFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyInstancePlacementFuture)
 		}
 	}
 
@@ -13418,15 +13418,15 @@ func (_m *Mockec2clientstub) ModifyLaunchTemplate(ctx internal.Context, input *e
 }
 
 // ModifyLaunchTemplateAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyLaunchTemplateAsync(ctx internal.Context, input *ec2.ModifyLaunchTemplateInput) (_result_0 *ec2stub.EC2ModifyLaunchTemplateFuture) {
+func (_m *Mockec2clientstub) ModifyLaunchTemplateAsync(ctx internal.Context, input *ec2.ModifyLaunchTemplateInput) (_result_0 *ec2stub.ModifyLaunchTemplateFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyLaunchTemplateFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyLaunchTemplateInput) *ec2stub.EC2ModifyLaunchTemplateFuture); ok {
+	var r0 *ec2stub.ModifyLaunchTemplateFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyLaunchTemplateInput) *ec2stub.ModifyLaunchTemplateFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyLaunchTemplateFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyLaunchTemplateFuture)
 		}
 	}
 
@@ -13457,15 +13457,15 @@ func (_m *Mockec2clientstub) ModifyManagedPrefixList(ctx internal.Context, input
 }
 
 // ModifyManagedPrefixListAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyManagedPrefixListAsync(ctx internal.Context, input *ec2.ModifyManagedPrefixListInput) (_result_0 *ec2stub.EC2ModifyManagedPrefixListFuture) {
+func (_m *Mockec2clientstub) ModifyManagedPrefixListAsync(ctx internal.Context, input *ec2.ModifyManagedPrefixListInput) (_result_0 *ec2stub.ModifyManagedPrefixListFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyManagedPrefixListFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyManagedPrefixListInput) *ec2stub.EC2ModifyManagedPrefixListFuture); ok {
+	var r0 *ec2stub.ModifyManagedPrefixListFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyManagedPrefixListInput) *ec2stub.ModifyManagedPrefixListFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyManagedPrefixListFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyManagedPrefixListFuture)
 		}
 	}
 
@@ -13496,15 +13496,15 @@ func (_m *Mockec2clientstub) ModifyNetworkInterfaceAttribute(ctx internal.Contex
 }
 
 // ModifyNetworkInterfaceAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyNetworkInterfaceAttributeAsync(ctx internal.Context, input *ec2.ModifyNetworkInterfaceAttributeInput) (_result_0 *ec2stub.EC2ModifyNetworkInterfaceAttributeFuture) {
+func (_m *Mockec2clientstub) ModifyNetworkInterfaceAttributeAsync(ctx internal.Context, input *ec2.ModifyNetworkInterfaceAttributeInput) (_result_0 *ec2stub.ModifyNetworkInterfaceAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyNetworkInterfaceAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyNetworkInterfaceAttributeInput) *ec2stub.EC2ModifyNetworkInterfaceAttributeFuture); ok {
+	var r0 *ec2stub.ModifyNetworkInterfaceAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyNetworkInterfaceAttributeInput) *ec2stub.ModifyNetworkInterfaceAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyNetworkInterfaceAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyNetworkInterfaceAttributeFuture)
 		}
 	}
 
@@ -13535,15 +13535,15 @@ func (_m *Mockec2clientstub) ModifyReservedInstances(ctx internal.Context, input
 }
 
 // ModifyReservedInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyReservedInstancesAsync(ctx internal.Context, input *ec2.ModifyReservedInstancesInput) (_result_0 *ec2stub.EC2ModifyReservedInstancesFuture) {
+func (_m *Mockec2clientstub) ModifyReservedInstancesAsync(ctx internal.Context, input *ec2.ModifyReservedInstancesInput) (_result_0 *ec2stub.ModifyReservedInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyReservedInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyReservedInstancesInput) *ec2stub.EC2ModifyReservedInstancesFuture); ok {
+	var r0 *ec2stub.ModifyReservedInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyReservedInstancesInput) *ec2stub.ModifyReservedInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyReservedInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyReservedInstancesFuture)
 		}
 	}
 
@@ -13574,15 +13574,15 @@ func (_m *Mockec2clientstub) ModifySnapshotAttribute(ctx internal.Context, input
 }
 
 // ModifySnapshotAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifySnapshotAttributeAsync(ctx internal.Context, input *ec2.ModifySnapshotAttributeInput) (_result_0 *ec2stub.EC2ModifySnapshotAttributeFuture) {
+func (_m *Mockec2clientstub) ModifySnapshotAttributeAsync(ctx internal.Context, input *ec2.ModifySnapshotAttributeInput) (_result_0 *ec2stub.ModifySnapshotAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifySnapshotAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifySnapshotAttributeInput) *ec2stub.EC2ModifySnapshotAttributeFuture); ok {
+	var r0 *ec2stub.ModifySnapshotAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifySnapshotAttributeInput) *ec2stub.ModifySnapshotAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifySnapshotAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifySnapshotAttributeFuture)
 		}
 	}
 
@@ -13613,15 +13613,15 @@ func (_m *Mockec2clientstub) ModifySubnetAttribute(ctx internal.Context, input *
 }
 
 // ModifySubnetAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifySubnetAttributeAsync(ctx internal.Context, input *ec2.ModifySubnetAttributeInput) (_result_0 *ec2stub.EC2ModifySubnetAttributeFuture) {
+func (_m *Mockec2clientstub) ModifySubnetAttributeAsync(ctx internal.Context, input *ec2.ModifySubnetAttributeInput) (_result_0 *ec2stub.ModifySubnetAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifySubnetAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifySubnetAttributeInput) *ec2stub.EC2ModifySubnetAttributeFuture); ok {
+	var r0 *ec2stub.ModifySubnetAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifySubnetAttributeInput) *ec2stub.ModifySubnetAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifySubnetAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifySubnetAttributeFuture)
 		}
 	}
 
@@ -13652,15 +13652,15 @@ func (_m *Mockec2clientstub) ModifyTrafficMirrorFilterNetworkServices(ctx intern
 }
 
 // ModifyTrafficMirrorFilterNetworkServicesAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyTrafficMirrorFilterNetworkServicesAsync(ctx internal.Context, input *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) (_result_0 *ec2stub.EC2ModifyTrafficMirrorFilterNetworkServicesFuture) {
+func (_m *Mockec2clientstub) ModifyTrafficMirrorFilterNetworkServicesAsync(ctx internal.Context, input *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) (_result_0 *ec2stub.ModifyTrafficMirrorFilterNetworkServicesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyTrafficMirrorFilterNetworkServicesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) *ec2stub.EC2ModifyTrafficMirrorFilterNetworkServicesFuture); ok {
+	var r0 *ec2stub.ModifyTrafficMirrorFilterNetworkServicesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) *ec2stub.ModifyTrafficMirrorFilterNetworkServicesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyTrafficMirrorFilterNetworkServicesFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyTrafficMirrorFilterNetworkServicesFuture)
 		}
 	}
 
@@ -13691,15 +13691,15 @@ func (_m *Mockec2clientstub) ModifyTrafficMirrorFilterRule(ctx internal.Context,
 }
 
 // ModifyTrafficMirrorFilterRuleAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyTrafficMirrorFilterRuleAsync(ctx internal.Context, input *ec2.ModifyTrafficMirrorFilterRuleInput) (_result_0 *ec2stub.EC2ModifyTrafficMirrorFilterRuleFuture) {
+func (_m *Mockec2clientstub) ModifyTrafficMirrorFilterRuleAsync(ctx internal.Context, input *ec2.ModifyTrafficMirrorFilterRuleInput) (_result_0 *ec2stub.ModifyTrafficMirrorFilterRuleFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyTrafficMirrorFilterRuleFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTrafficMirrorFilterRuleInput) *ec2stub.EC2ModifyTrafficMirrorFilterRuleFuture); ok {
+	var r0 *ec2stub.ModifyTrafficMirrorFilterRuleFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTrafficMirrorFilterRuleInput) *ec2stub.ModifyTrafficMirrorFilterRuleFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyTrafficMirrorFilterRuleFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyTrafficMirrorFilterRuleFuture)
 		}
 	}
 
@@ -13730,15 +13730,15 @@ func (_m *Mockec2clientstub) ModifyTrafficMirrorSession(ctx internal.Context, in
 }
 
 // ModifyTrafficMirrorSessionAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyTrafficMirrorSessionAsync(ctx internal.Context, input *ec2.ModifyTrafficMirrorSessionInput) (_result_0 *ec2stub.EC2ModifyTrafficMirrorSessionFuture) {
+func (_m *Mockec2clientstub) ModifyTrafficMirrorSessionAsync(ctx internal.Context, input *ec2.ModifyTrafficMirrorSessionInput) (_result_0 *ec2stub.ModifyTrafficMirrorSessionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyTrafficMirrorSessionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTrafficMirrorSessionInput) *ec2stub.EC2ModifyTrafficMirrorSessionFuture); ok {
+	var r0 *ec2stub.ModifyTrafficMirrorSessionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTrafficMirrorSessionInput) *ec2stub.ModifyTrafficMirrorSessionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyTrafficMirrorSessionFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyTrafficMirrorSessionFuture)
 		}
 	}
 
@@ -13769,15 +13769,15 @@ func (_m *Mockec2clientstub) ModifyTransitGateway(ctx internal.Context, input *e
 }
 
 // ModifyTransitGatewayAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyTransitGatewayAsync(ctx internal.Context, input *ec2.ModifyTransitGatewayInput) (_result_0 *ec2stub.EC2ModifyTransitGatewayFuture) {
+func (_m *Mockec2clientstub) ModifyTransitGatewayAsync(ctx internal.Context, input *ec2.ModifyTransitGatewayInput) (_result_0 *ec2stub.ModifyTransitGatewayFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyTransitGatewayFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTransitGatewayInput) *ec2stub.EC2ModifyTransitGatewayFuture); ok {
+	var r0 *ec2stub.ModifyTransitGatewayFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTransitGatewayInput) *ec2stub.ModifyTransitGatewayFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyTransitGatewayFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyTransitGatewayFuture)
 		}
 	}
 
@@ -13808,15 +13808,15 @@ func (_m *Mockec2clientstub) ModifyTransitGatewayPrefixListReference(ctx interna
 }
 
 // ModifyTransitGatewayPrefixListReferenceAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyTransitGatewayPrefixListReferenceAsync(ctx internal.Context, input *ec2.ModifyTransitGatewayPrefixListReferenceInput) (_result_0 *ec2stub.EC2ModifyTransitGatewayPrefixListReferenceFuture) {
+func (_m *Mockec2clientstub) ModifyTransitGatewayPrefixListReferenceAsync(ctx internal.Context, input *ec2.ModifyTransitGatewayPrefixListReferenceInput) (_result_0 *ec2stub.ModifyTransitGatewayPrefixListReferenceFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyTransitGatewayPrefixListReferenceFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTransitGatewayPrefixListReferenceInput) *ec2stub.EC2ModifyTransitGatewayPrefixListReferenceFuture); ok {
+	var r0 *ec2stub.ModifyTransitGatewayPrefixListReferenceFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTransitGatewayPrefixListReferenceInput) *ec2stub.ModifyTransitGatewayPrefixListReferenceFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyTransitGatewayPrefixListReferenceFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyTransitGatewayPrefixListReferenceFuture)
 		}
 	}
 
@@ -13847,15 +13847,15 @@ func (_m *Mockec2clientstub) ModifyTransitGatewayVpcAttachment(ctx internal.Cont
 }
 
 // ModifyTransitGatewayVpcAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.ModifyTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.EC2ModifyTransitGatewayVpcAttachmentFuture) {
+func (_m *Mockec2clientstub) ModifyTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.ModifyTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.ModifyTransitGatewayVpcAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyTransitGatewayVpcAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTransitGatewayVpcAttachmentInput) *ec2stub.EC2ModifyTransitGatewayVpcAttachmentFuture); ok {
+	var r0 *ec2stub.ModifyTransitGatewayVpcAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyTransitGatewayVpcAttachmentInput) *ec2stub.ModifyTransitGatewayVpcAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyTransitGatewayVpcAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyTransitGatewayVpcAttachmentFuture)
 		}
 	}
 
@@ -13886,15 +13886,15 @@ func (_m *Mockec2clientstub) ModifyVolume(ctx internal.Context, input *ec2.Modif
 }
 
 // ModifyVolumeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVolumeAsync(ctx internal.Context, input *ec2.ModifyVolumeInput) (_result_0 *ec2stub.EC2ModifyVolumeFuture) {
+func (_m *Mockec2clientstub) ModifyVolumeAsync(ctx internal.Context, input *ec2.ModifyVolumeInput) (_result_0 *ec2stub.ModifyVolumeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVolumeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVolumeInput) *ec2stub.EC2ModifyVolumeFuture); ok {
+	var r0 *ec2stub.ModifyVolumeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVolumeInput) *ec2stub.ModifyVolumeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVolumeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVolumeFuture)
 		}
 	}
 
@@ -13925,15 +13925,15 @@ func (_m *Mockec2clientstub) ModifyVolumeAttribute(ctx internal.Context, input *
 }
 
 // ModifyVolumeAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVolumeAttributeAsync(ctx internal.Context, input *ec2.ModifyVolumeAttributeInput) (_result_0 *ec2stub.EC2ModifyVolumeAttributeFuture) {
+func (_m *Mockec2clientstub) ModifyVolumeAttributeAsync(ctx internal.Context, input *ec2.ModifyVolumeAttributeInput) (_result_0 *ec2stub.ModifyVolumeAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVolumeAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVolumeAttributeInput) *ec2stub.EC2ModifyVolumeAttributeFuture); ok {
+	var r0 *ec2stub.ModifyVolumeAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVolumeAttributeInput) *ec2stub.ModifyVolumeAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVolumeAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVolumeAttributeFuture)
 		}
 	}
 
@@ -13964,15 +13964,15 @@ func (_m *Mockec2clientstub) ModifyVpcAttribute(ctx internal.Context, input *ec2
 }
 
 // ModifyVpcAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpcAttributeAsync(ctx internal.Context, input *ec2.ModifyVpcAttributeInput) (_result_0 *ec2stub.EC2ModifyVpcAttributeFuture) {
+func (_m *Mockec2clientstub) ModifyVpcAttributeAsync(ctx internal.Context, input *ec2.ModifyVpcAttributeInput) (_result_0 *ec2stub.ModifyVpcAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpcAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcAttributeInput) *ec2stub.EC2ModifyVpcAttributeFuture); ok {
+	var r0 *ec2stub.ModifyVpcAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcAttributeInput) *ec2stub.ModifyVpcAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpcAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpcAttributeFuture)
 		}
 	}
 
@@ -14003,15 +14003,15 @@ func (_m *Mockec2clientstub) ModifyVpcEndpoint(ctx internal.Context, input *ec2.
 }
 
 // ModifyVpcEndpointAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpcEndpointAsync(ctx internal.Context, input *ec2.ModifyVpcEndpointInput) (_result_0 *ec2stub.EC2ModifyVpcEndpointFuture) {
+func (_m *Mockec2clientstub) ModifyVpcEndpointAsync(ctx internal.Context, input *ec2.ModifyVpcEndpointInput) (_result_0 *ec2stub.ModifyVpcEndpointFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpcEndpointFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcEndpointInput) *ec2stub.EC2ModifyVpcEndpointFuture); ok {
+	var r0 *ec2stub.ModifyVpcEndpointFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcEndpointInput) *ec2stub.ModifyVpcEndpointFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpcEndpointFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpcEndpointFuture)
 		}
 	}
 
@@ -14042,15 +14042,15 @@ func (_m *Mockec2clientstub) ModifyVpcEndpointConnectionNotification(ctx interna
 }
 
 // ModifyVpcEndpointConnectionNotificationAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpcEndpointConnectionNotificationAsync(ctx internal.Context, input *ec2.ModifyVpcEndpointConnectionNotificationInput) (_result_0 *ec2stub.EC2ModifyVpcEndpointConnectionNotificationFuture) {
+func (_m *Mockec2clientstub) ModifyVpcEndpointConnectionNotificationAsync(ctx internal.Context, input *ec2.ModifyVpcEndpointConnectionNotificationInput) (_result_0 *ec2stub.ModifyVpcEndpointConnectionNotificationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpcEndpointConnectionNotificationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcEndpointConnectionNotificationInput) *ec2stub.EC2ModifyVpcEndpointConnectionNotificationFuture); ok {
+	var r0 *ec2stub.ModifyVpcEndpointConnectionNotificationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcEndpointConnectionNotificationInput) *ec2stub.ModifyVpcEndpointConnectionNotificationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpcEndpointConnectionNotificationFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpcEndpointConnectionNotificationFuture)
 		}
 	}
 
@@ -14081,15 +14081,15 @@ func (_m *Mockec2clientstub) ModifyVpcEndpointServiceConfiguration(ctx internal.
 }
 
 // ModifyVpcEndpointServiceConfigurationAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpcEndpointServiceConfigurationAsync(ctx internal.Context, input *ec2.ModifyVpcEndpointServiceConfigurationInput) (_result_0 *ec2stub.EC2ModifyVpcEndpointServiceConfigurationFuture) {
+func (_m *Mockec2clientstub) ModifyVpcEndpointServiceConfigurationAsync(ctx internal.Context, input *ec2.ModifyVpcEndpointServiceConfigurationInput) (_result_0 *ec2stub.ModifyVpcEndpointServiceConfigurationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpcEndpointServiceConfigurationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcEndpointServiceConfigurationInput) *ec2stub.EC2ModifyVpcEndpointServiceConfigurationFuture); ok {
+	var r0 *ec2stub.ModifyVpcEndpointServiceConfigurationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcEndpointServiceConfigurationInput) *ec2stub.ModifyVpcEndpointServiceConfigurationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpcEndpointServiceConfigurationFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpcEndpointServiceConfigurationFuture)
 		}
 	}
 
@@ -14120,15 +14120,15 @@ func (_m *Mockec2clientstub) ModifyVpcEndpointServicePermissions(ctx internal.Co
 }
 
 // ModifyVpcEndpointServicePermissionsAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpcEndpointServicePermissionsAsync(ctx internal.Context, input *ec2.ModifyVpcEndpointServicePermissionsInput) (_result_0 *ec2stub.EC2ModifyVpcEndpointServicePermissionsFuture) {
+func (_m *Mockec2clientstub) ModifyVpcEndpointServicePermissionsAsync(ctx internal.Context, input *ec2.ModifyVpcEndpointServicePermissionsInput) (_result_0 *ec2stub.ModifyVpcEndpointServicePermissionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpcEndpointServicePermissionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcEndpointServicePermissionsInput) *ec2stub.EC2ModifyVpcEndpointServicePermissionsFuture); ok {
+	var r0 *ec2stub.ModifyVpcEndpointServicePermissionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcEndpointServicePermissionsInput) *ec2stub.ModifyVpcEndpointServicePermissionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpcEndpointServicePermissionsFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpcEndpointServicePermissionsFuture)
 		}
 	}
 
@@ -14159,15 +14159,15 @@ func (_m *Mockec2clientstub) ModifyVpcPeeringConnectionOptions(ctx internal.Cont
 }
 
 // ModifyVpcPeeringConnectionOptionsAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpcPeeringConnectionOptionsAsync(ctx internal.Context, input *ec2.ModifyVpcPeeringConnectionOptionsInput) (_result_0 *ec2stub.EC2ModifyVpcPeeringConnectionOptionsFuture) {
+func (_m *Mockec2clientstub) ModifyVpcPeeringConnectionOptionsAsync(ctx internal.Context, input *ec2.ModifyVpcPeeringConnectionOptionsInput) (_result_0 *ec2stub.ModifyVpcPeeringConnectionOptionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpcPeeringConnectionOptionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcPeeringConnectionOptionsInput) *ec2stub.EC2ModifyVpcPeeringConnectionOptionsFuture); ok {
+	var r0 *ec2stub.ModifyVpcPeeringConnectionOptionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcPeeringConnectionOptionsInput) *ec2stub.ModifyVpcPeeringConnectionOptionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpcPeeringConnectionOptionsFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpcPeeringConnectionOptionsFuture)
 		}
 	}
 
@@ -14198,15 +14198,15 @@ func (_m *Mockec2clientstub) ModifyVpcTenancy(ctx internal.Context, input *ec2.M
 }
 
 // ModifyVpcTenancyAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpcTenancyAsync(ctx internal.Context, input *ec2.ModifyVpcTenancyInput) (_result_0 *ec2stub.EC2ModifyVpcTenancyFuture) {
+func (_m *Mockec2clientstub) ModifyVpcTenancyAsync(ctx internal.Context, input *ec2.ModifyVpcTenancyInput) (_result_0 *ec2stub.ModifyVpcTenancyFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpcTenancyFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcTenancyInput) *ec2stub.EC2ModifyVpcTenancyFuture); ok {
+	var r0 *ec2stub.ModifyVpcTenancyFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpcTenancyInput) *ec2stub.ModifyVpcTenancyFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpcTenancyFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpcTenancyFuture)
 		}
 	}
 
@@ -14237,15 +14237,15 @@ func (_m *Mockec2clientstub) ModifyVpnConnection(ctx internal.Context, input *ec
 }
 
 // ModifyVpnConnectionAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpnConnectionAsync(ctx internal.Context, input *ec2.ModifyVpnConnectionInput) (_result_0 *ec2stub.EC2ModifyVpnConnectionFuture) {
+func (_m *Mockec2clientstub) ModifyVpnConnectionAsync(ctx internal.Context, input *ec2.ModifyVpnConnectionInput) (_result_0 *ec2stub.ModifyVpnConnectionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpnConnectionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpnConnectionInput) *ec2stub.EC2ModifyVpnConnectionFuture); ok {
+	var r0 *ec2stub.ModifyVpnConnectionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpnConnectionInput) *ec2stub.ModifyVpnConnectionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpnConnectionFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpnConnectionFuture)
 		}
 	}
 
@@ -14276,15 +14276,15 @@ func (_m *Mockec2clientstub) ModifyVpnConnectionOptions(ctx internal.Context, in
 }
 
 // ModifyVpnConnectionOptionsAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpnConnectionOptionsAsync(ctx internal.Context, input *ec2.ModifyVpnConnectionOptionsInput) (_result_0 *ec2stub.EC2ModifyVpnConnectionOptionsFuture) {
+func (_m *Mockec2clientstub) ModifyVpnConnectionOptionsAsync(ctx internal.Context, input *ec2.ModifyVpnConnectionOptionsInput) (_result_0 *ec2stub.ModifyVpnConnectionOptionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpnConnectionOptionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpnConnectionOptionsInput) *ec2stub.EC2ModifyVpnConnectionOptionsFuture); ok {
+	var r0 *ec2stub.ModifyVpnConnectionOptionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpnConnectionOptionsInput) *ec2stub.ModifyVpnConnectionOptionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpnConnectionOptionsFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpnConnectionOptionsFuture)
 		}
 	}
 
@@ -14315,15 +14315,15 @@ func (_m *Mockec2clientstub) ModifyVpnTunnelCertificate(ctx internal.Context, in
 }
 
 // ModifyVpnTunnelCertificateAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpnTunnelCertificateAsync(ctx internal.Context, input *ec2.ModifyVpnTunnelCertificateInput) (_result_0 *ec2stub.EC2ModifyVpnTunnelCertificateFuture) {
+func (_m *Mockec2clientstub) ModifyVpnTunnelCertificateAsync(ctx internal.Context, input *ec2.ModifyVpnTunnelCertificateInput) (_result_0 *ec2stub.ModifyVpnTunnelCertificateFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpnTunnelCertificateFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpnTunnelCertificateInput) *ec2stub.EC2ModifyVpnTunnelCertificateFuture); ok {
+	var r0 *ec2stub.ModifyVpnTunnelCertificateFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpnTunnelCertificateInput) *ec2stub.ModifyVpnTunnelCertificateFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpnTunnelCertificateFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpnTunnelCertificateFuture)
 		}
 	}
 
@@ -14354,15 +14354,15 @@ func (_m *Mockec2clientstub) ModifyVpnTunnelOptions(ctx internal.Context, input 
 }
 
 // ModifyVpnTunnelOptionsAsync provides a mock function.
-func (_m *Mockec2clientstub) ModifyVpnTunnelOptionsAsync(ctx internal.Context, input *ec2.ModifyVpnTunnelOptionsInput) (_result_0 *ec2stub.EC2ModifyVpnTunnelOptionsFuture) {
+func (_m *Mockec2clientstub) ModifyVpnTunnelOptionsAsync(ctx internal.Context, input *ec2.ModifyVpnTunnelOptionsInput) (_result_0 *ec2stub.ModifyVpnTunnelOptionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ModifyVpnTunnelOptionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpnTunnelOptionsInput) *ec2stub.EC2ModifyVpnTunnelOptionsFuture); ok {
+	var r0 *ec2stub.ModifyVpnTunnelOptionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ModifyVpnTunnelOptionsInput) *ec2stub.ModifyVpnTunnelOptionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ModifyVpnTunnelOptionsFuture)
+			r0 = ret.Get(0).(*ec2stub.ModifyVpnTunnelOptionsFuture)
 		}
 	}
 
@@ -14393,15 +14393,15 @@ func (_m *Mockec2clientstub) MonitorInstances(ctx internal.Context, input *ec2.M
 }
 
 // MonitorInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) MonitorInstancesAsync(ctx internal.Context, input *ec2.MonitorInstancesInput) (_result_0 *ec2stub.EC2MonitorInstancesFuture) {
+func (_m *Mockec2clientstub) MonitorInstancesAsync(ctx internal.Context, input *ec2.MonitorInstancesInput) (_result_0 *ec2stub.MonitorInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2MonitorInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.MonitorInstancesInput) *ec2stub.EC2MonitorInstancesFuture); ok {
+	var r0 *ec2stub.MonitorInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.MonitorInstancesInput) *ec2stub.MonitorInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2MonitorInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.MonitorInstancesFuture)
 		}
 	}
 
@@ -14432,15 +14432,15 @@ func (_m *Mockec2clientstub) MoveAddressToVpc(ctx internal.Context, input *ec2.M
 }
 
 // MoveAddressToVpcAsync provides a mock function.
-func (_m *Mockec2clientstub) MoveAddressToVpcAsync(ctx internal.Context, input *ec2.MoveAddressToVpcInput) (_result_0 *ec2stub.EC2MoveAddressToVpcFuture) {
+func (_m *Mockec2clientstub) MoveAddressToVpcAsync(ctx internal.Context, input *ec2.MoveAddressToVpcInput) (_result_0 *ec2stub.MoveAddressToVpcFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2MoveAddressToVpcFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.MoveAddressToVpcInput) *ec2stub.EC2MoveAddressToVpcFuture); ok {
+	var r0 *ec2stub.MoveAddressToVpcFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.MoveAddressToVpcInput) *ec2stub.MoveAddressToVpcFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2MoveAddressToVpcFuture)
+			r0 = ret.Get(0).(*ec2stub.MoveAddressToVpcFuture)
 		}
 	}
 
@@ -14471,15 +14471,15 @@ func (_m *Mockec2clientstub) ProvisionByoipCidr(ctx internal.Context, input *ec2
 }
 
 // ProvisionByoipCidrAsync provides a mock function.
-func (_m *Mockec2clientstub) ProvisionByoipCidrAsync(ctx internal.Context, input *ec2.ProvisionByoipCidrInput) (_result_0 *ec2stub.EC2ProvisionByoipCidrFuture) {
+func (_m *Mockec2clientstub) ProvisionByoipCidrAsync(ctx internal.Context, input *ec2.ProvisionByoipCidrInput) (_result_0 *ec2stub.ProvisionByoipCidrFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ProvisionByoipCidrFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ProvisionByoipCidrInput) *ec2stub.EC2ProvisionByoipCidrFuture); ok {
+	var r0 *ec2stub.ProvisionByoipCidrFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ProvisionByoipCidrInput) *ec2stub.ProvisionByoipCidrFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ProvisionByoipCidrFuture)
+			r0 = ret.Get(0).(*ec2stub.ProvisionByoipCidrFuture)
 		}
 	}
 
@@ -14510,15 +14510,15 @@ func (_m *Mockec2clientstub) PurchaseHostReservation(ctx internal.Context, input
 }
 
 // PurchaseHostReservationAsync provides a mock function.
-func (_m *Mockec2clientstub) PurchaseHostReservationAsync(ctx internal.Context, input *ec2.PurchaseHostReservationInput) (_result_0 *ec2stub.EC2PurchaseHostReservationFuture) {
+func (_m *Mockec2clientstub) PurchaseHostReservationAsync(ctx internal.Context, input *ec2.PurchaseHostReservationInput) (_result_0 *ec2stub.PurchaseHostReservationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2PurchaseHostReservationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.PurchaseHostReservationInput) *ec2stub.EC2PurchaseHostReservationFuture); ok {
+	var r0 *ec2stub.PurchaseHostReservationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.PurchaseHostReservationInput) *ec2stub.PurchaseHostReservationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2PurchaseHostReservationFuture)
+			r0 = ret.Get(0).(*ec2stub.PurchaseHostReservationFuture)
 		}
 	}
 
@@ -14549,15 +14549,15 @@ func (_m *Mockec2clientstub) PurchaseReservedInstancesOffering(ctx internal.Cont
 }
 
 // PurchaseReservedInstancesOfferingAsync provides a mock function.
-func (_m *Mockec2clientstub) PurchaseReservedInstancesOfferingAsync(ctx internal.Context, input *ec2.PurchaseReservedInstancesOfferingInput) (_result_0 *ec2stub.EC2PurchaseReservedInstancesOfferingFuture) {
+func (_m *Mockec2clientstub) PurchaseReservedInstancesOfferingAsync(ctx internal.Context, input *ec2.PurchaseReservedInstancesOfferingInput) (_result_0 *ec2stub.PurchaseReservedInstancesOfferingFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2PurchaseReservedInstancesOfferingFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.PurchaseReservedInstancesOfferingInput) *ec2stub.EC2PurchaseReservedInstancesOfferingFuture); ok {
+	var r0 *ec2stub.PurchaseReservedInstancesOfferingFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.PurchaseReservedInstancesOfferingInput) *ec2stub.PurchaseReservedInstancesOfferingFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2PurchaseReservedInstancesOfferingFuture)
+			r0 = ret.Get(0).(*ec2stub.PurchaseReservedInstancesOfferingFuture)
 		}
 	}
 
@@ -14588,15 +14588,15 @@ func (_m *Mockec2clientstub) PurchaseScheduledInstances(ctx internal.Context, in
 }
 
 // PurchaseScheduledInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) PurchaseScheduledInstancesAsync(ctx internal.Context, input *ec2.PurchaseScheduledInstancesInput) (_result_0 *ec2stub.EC2PurchaseScheduledInstancesFuture) {
+func (_m *Mockec2clientstub) PurchaseScheduledInstancesAsync(ctx internal.Context, input *ec2.PurchaseScheduledInstancesInput) (_result_0 *ec2stub.PurchaseScheduledInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2PurchaseScheduledInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.PurchaseScheduledInstancesInput) *ec2stub.EC2PurchaseScheduledInstancesFuture); ok {
+	var r0 *ec2stub.PurchaseScheduledInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.PurchaseScheduledInstancesInput) *ec2stub.PurchaseScheduledInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2PurchaseScheduledInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.PurchaseScheduledInstancesFuture)
 		}
 	}
 
@@ -14627,15 +14627,15 @@ func (_m *Mockec2clientstub) RebootInstances(ctx internal.Context, input *ec2.Re
 }
 
 // RebootInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) RebootInstancesAsync(ctx internal.Context, input *ec2.RebootInstancesInput) (_result_0 *ec2stub.EC2RebootInstancesFuture) {
+func (_m *Mockec2clientstub) RebootInstancesAsync(ctx internal.Context, input *ec2.RebootInstancesInput) (_result_0 *ec2stub.RebootInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RebootInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RebootInstancesInput) *ec2stub.EC2RebootInstancesFuture); ok {
+	var r0 *ec2stub.RebootInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RebootInstancesInput) *ec2stub.RebootInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RebootInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.RebootInstancesFuture)
 		}
 	}
 
@@ -14666,15 +14666,15 @@ func (_m *Mockec2clientstub) RegisterImage(ctx internal.Context, input *ec2.Regi
 }
 
 // RegisterImageAsync provides a mock function.
-func (_m *Mockec2clientstub) RegisterImageAsync(ctx internal.Context, input *ec2.RegisterImageInput) (_result_0 *ec2stub.EC2RegisterImageFuture) {
+func (_m *Mockec2clientstub) RegisterImageAsync(ctx internal.Context, input *ec2.RegisterImageInput) (_result_0 *ec2stub.RegisterImageFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RegisterImageFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RegisterImageInput) *ec2stub.EC2RegisterImageFuture); ok {
+	var r0 *ec2stub.RegisterImageFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RegisterImageInput) *ec2stub.RegisterImageFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RegisterImageFuture)
+			r0 = ret.Get(0).(*ec2stub.RegisterImageFuture)
 		}
 	}
 
@@ -14705,15 +14705,15 @@ func (_m *Mockec2clientstub) RegisterInstanceEventNotificationAttributes(ctx int
 }
 
 // RegisterInstanceEventNotificationAttributesAsync provides a mock function.
-func (_m *Mockec2clientstub) RegisterInstanceEventNotificationAttributesAsync(ctx internal.Context, input *ec2.RegisterInstanceEventNotificationAttributesInput) (_result_0 *ec2stub.EC2RegisterInstanceEventNotificationAttributesFuture) {
+func (_m *Mockec2clientstub) RegisterInstanceEventNotificationAttributesAsync(ctx internal.Context, input *ec2.RegisterInstanceEventNotificationAttributesInput) (_result_0 *ec2stub.RegisterInstanceEventNotificationAttributesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RegisterInstanceEventNotificationAttributesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RegisterInstanceEventNotificationAttributesInput) *ec2stub.EC2RegisterInstanceEventNotificationAttributesFuture); ok {
+	var r0 *ec2stub.RegisterInstanceEventNotificationAttributesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RegisterInstanceEventNotificationAttributesInput) *ec2stub.RegisterInstanceEventNotificationAttributesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RegisterInstanceEventNotificationAttributesFuture)
+			r0 = ret.Get(0).(*ec2stub.RegisterInstanceEventNotificationAttributesFuture)
 		}
 	}
 
@@ -14744,15 +14744,15 @@ func (_m *Mockec2clientstub) RegisterTransitGatewayMulticastGroupMembers(ctx int
 }
 
 // RegisterTransitGatewayMulticastGroupMembersAsync provides a mock function.
-func (_m *Mockec2clientstub) RegisterTransitGatewayMulticastGroupMembersAsync(ctx internal.Context, input *ec2.RegisterTransitGatewayMulticastGroupMembersInput) (_result_0 *ec2stub.EC2RegisterTransitGatewayMulticastGroupMembersFuture) {
+func (_m *Mockec2clientstub) RegisterTransitGatewayMulticastGroupMembersAsync(ctx internal.Context, input *ec2.RegisterTransitGatewayMulticastGroupMembersInput) (_result_0 *ec2stub.RegisterTransitGatewayMulticastGroupMembersFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RegisterTransitGatewayMulticastGroupMembersFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RegisterTransitGatewayMulticastGroupMembersInput) *ec2stub.EC2RegisterTransitGatewayMulticastGroupMembersFuture); ok {
+	var r0 *ec2stub.RegisterTransitGatewayMulticastGroupMembersFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RegisterTransitGatewayMulticastGroupMembersInput) *ec2stub.RegisterTransitGatewayMulticastGroupMembersFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RegisterTransitGatewayMulticastGroupMembersFuture)
+			r0 = ret.Get(0).(*ec2stub.RegisterTransitGatewayMulticastGroupMembersFuture)
 		}
 	}
 
@@ -14783,15 +14783,15 @@ func (_m *Mockec2clientstub) RegisterTransitGatewayMulticastGroupSources(ctx int
 }
 
 // RegisterTransitGatewayMulticastGroupSourcesAsync provides a mock function.
-func (_m *Mockec2clientstub) RegisterTransitGatewayMulticastGroupSourcesAsync(ctx internal.Context, input *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) (_result_0 *ec2stub.EC2RegisterTransitGatewayMulticastGroupSourcesFuture) {
+func (_m *Mockec2clientstub) RegisterTransitGatewayMulticastGroupSourcesAsync(ctx internal.Context, input *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) (_result_0 *ec2stub.RegisterTransitGatewayMulticastGroupSourcesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RegisterTransitGatewayMulticastGroupSourcesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) *ec2stub.EC2RegisterTransitGatewayMulticastGroupSourcesFuture); ok {
+	var r0 *ec2stub.RegisterTransitGatewayMulticastGroupSourcesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) *ec2stub.RegisterTransitGatewayMulticastGroupSourcesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RegisterTransitGatewayMulticastGroupSourcesFuture)
+			r0 = ret.Get(0).(*ec2stub.RegisterTransitGatewayMulticastGroupSourcesFuture)
 		}
 	}
 
@@ -14822,15 +14822,15 @@ func (_m *Mockec2clientstub) RejectTransitGatewayPeeringAttachment(ctx internal.
 }
 
 // RejectTransitGatewayPeeringAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) RejectTransitGatewayPeeringAttachmentAsync(ctx internal.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) (_result_0 *ec2stub.EC2RejectTransitGatewayPeeringAttachmentFuture) {
+func (_m *Mockec2clientstub) RejectTransitGatewayPeeringAttachmentAsync(ctx internal.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) (_result_0 *ec2stub.RejectTransitGatewayPeeringAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RejectTransitGatewayPeeringAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectTransitGatewayPeeringAttachmentInput) *ec2stub.EC2RejectTransitGatewayPeeringAttachmentFuture); ok {
+	var r0 *ec2stub.RejectTransitGatewayPeeringAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectTransitGatewayPeeringAttachmentInput) *ec2stub.RejectTransitGatewayPeeringAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RejectTransitGatewayPeeringAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.RejectTransitGatewayPeeringAttachmentFuture)
 		}
 	}
 
@@ -14861,15 +14861,15 @@ func (_m *Mockec2clientstub) RejectTransitGatewayVpcAttachment(ctx internal.Cont
 }
 
 // RejectTransitGatewayVpcAttachmentAsync provides a mock function.
-func (_m *Mockec2clientstub) RejectTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.RejectTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.EC2RejectTransitGatewayVpcAttachmentFuture) {
+func (_m *Mockec2clientstub) RejectTransitGatewayVpcAttachmentAsync(ctx internal.Context, input *ec2.RejectTransitGatewayVpcAttachmentInput) (_result_0 *ec2stub.RejectTransitGatewayVpcAttachmentFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RejectTransitGatewayVpcAttachmentFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectTransitGatewayVpcAttachmentInput) *ec2stub.EC2RejectTransitGatewayVpcAttachmentFuture); ok {
+	var r0 *ec2stub.RejectTransitGatewayVpcAttachmentFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectTransitGatewayVpcAttachmentInput) *ec2stub.RejectTransitGatewayVpcAttachmentFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RejectTransitGatewayVpcAttachmentFuture)
+			r0 = ret.Get(0).(*ec2stub.RejectTransitGatewayVpcAttachmentFuture)
 		}
 	}
 
@@ -14900,15 +14900,15 @@ func (_m *Mockec2clientstub) RejectVpcEndpointConnections(ctx internal.Context, 
 }
 
 // RejectVpcEndpointConnectionsAsync provides a mock function.
-func (_m *Mockec2clientstub) RejectVpcEndpointConnectionsAsync(ctx internal.Context, input *ec2.RejectVpcEndpointConnectionsInput) (_result_0 *ec2stub.EC2RejectVpcEndpointConnectionsFuture) {
+func (_m *Mockec2clientstub) RejectVpcEndpointConnectionsAsync(ctx internal.Context, input *ec2.RejectVpcEndpointConnectionsInput) (_result_0 *ec2stub.RejectVpcEndpointConnectionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RejectVpcEndpointConnectionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectVpcEndpointConnectionsInput) *ec2stub.EC2RejectVpcEndpointConnectionsFuture); ok {
+	var r0 *ec2stub.RejectVpcEndpointConnectionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectVpcEndpointConnectionsInput) *ec2stub.RejectVpcEndpointConnectionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RejectVpcEndpointConnectionsFuture)
+			r0 = ret.Get(0).(*ec2stub.RejectVpcEndpointConnectionsFuture)
 		}
 	}
 
@@ -14939,15 +14939,15 @@ func (_m *Mockec2clientstub) RejectVpcPeeringConnection(ctx internal.Context, in
 }
 
 // RejectVpcPeeringConnectionAsync provides a mock function.
-func (_m *Mockec2clientstub) RejectVpcPeeringConnectionAsync(ctx internal.Context, input *ec2.RejectVpcPeeringConnectionInput) (_result_0 *ec2stub.EC2RejectVpcPeeringConnectionFuture) {
+func (_m *Mockec2clientstub) RejectVpcPeeringConnectionAsync(ctx internal.Context, input *ec2.RejectVpcPeeringConnectionInput) (_result_0 *ec2stub.RejectVpcPeeringConnectionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RejectVpcPeeringConnectionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectVpcPeeringConnectionInput) *ec2stub.EC2RejectVpcPeeringConnectionFuture); ok {
+	var r0 *ec2stub.RejectVpcPeeringConnectionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectVpcPeeringConnectionInput) *ec2stub.RejectVpcPeeringConnectionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RejectVpcPeeringConnectionFuture)
+			r0 = ret.Get(0).(*ec2stub.RejectVpcPeeringConnectionFuture)
 		}
 	}
 
@@ -14978,15 +14978,15 @@ func (_m *Mockec2clientstub) ReleaseAddress(ctx internal.Context, input *ec2.Rel
 }
 
 // ReleaseAddressAsync provides a mock function.
-func (_m *Mockec2clientstub) ReleaseAddressAsync(ctx internal.Context, input *ec2.ReleaseAddressInput) (_result_0 *ec2stub.EC2ReleaseAddressFuture) {
+func (_m *Mockec2clientstub) ReleaseAddressAsync(ctx internal.Context, input *ec2.ReleaseAddressInput) (_result_0 *ec2stub.ReleaseAddressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReleaseAddressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReleaseAddressInput) *ec2stub.EC2ReleaseAddressFuture); ok {
+	var r0 *ec2stub.ReleaseAddressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReleaseAddressInput) *ec2stub.ReleaseAddressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReleaseAddressFuture)
+			r0 = ret.Get(0).(*ec2stub.ReleaseAddressFuture)
 		}
 	}
 
@@ -15017,15 +15017,15 @@ func (_m *Mockec2clientstub) ReleaseHosts(ctx internal.Context, input *ec2.Relea
 }
 
 // ReleaseHostsAsync provides a mock function.
-func (_m *Mockec2clientstub) ReleaseHostsAsync(ctx internal.Context, input *ec2.ReleaseHostsInput) (_result_0 *ec2stub.EC2ReleaseHostsFuture) {
+func (_m *Mockec2clientstub) ReleaseHostsAsync(ctx internal.Context, input *ec2.ReleaseHostsInput) (_result_0 *ec2stub.ReleaseHostsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReleaseHostsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReleaseHostsInput) *ec2stub.EC2ReleaseHostsFuture); ok {
+	var r0 *ec2stub.ReleaseHostsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReleaseHostsInput) *ec2stub.ReleaseHostsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReleaseHostsFuture)
+			r0 = ret.Get(0).(*ec2stub.ReleaseHostsFuture)
 		}
 	}
 
@@ -15056,15 +15056,15 @@ func (_m *Mockec2clientstub) ReplaceIamInstanceProfileAssociation(ctx internal.C
 }
 
 // ReplaceIamInstanceProfileAssociationAsync provides a mock function.
-func (_m *Mockec2clientstub) ReplaceIamInstanceProfileAssociationAsync(ctx internal.Context, input *ec2.ReplaceIamInstanceProfileAssociationInput) (_result_0 *ec2stub.EC2ReplaceIamInstanceProfileAssociationFuture) {
+func (_m *Mockec2clientstub) ReplaceIamInstanceProfileAssociationAsync(ctx internal.Context, input *ec2.ReplaceIamInstanceProfileAssociationInput) (_result_0 *ec2stub.ReplaceIamInstanceProfileAssociationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReplaceIamInstanceProfileAssociationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceIamInstanceProfileAssociationInput) *ec2stub.EC2ReplaceIamInstanceProfileAssociationFuture); ok {
+	var r0 *ec2stub.ReplaceIamInstanceProfileAssociationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceIamInstanceProfileAssociationInput) *ec2stub.ReplaceIamInstanceProfileAssociationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReplaceIamInstanceProfileAssociationFuture)
+			r0 = ret.Get(0).(*ec2stub.ReplaceIamInstanceProfileAssociationFuture)
 		}
 	}
 
@@ -15095,15 +15095,15 @@ func (_m *Mockec2clientstub) ReplaceNetworkAclAssociation(ctx internal.Context, 
 }
 
 // ReplaceNetworkAclAssociationAsync provides a mock function.
-func (_m *Mockec2clientstub) ReplaceNetworkAclAssociationAsync(ctx internal.Context, input *ec2.ReplaceNetworkAclAssociationInput) (_result_0 *ec2stub.EC2ReplaceNetworkAclAssociationFuture) {
+func (_m *Mockec2clientstub) ReplaceNetworkAclAssociationAsync(ctx internal.Context, input *ec2.ReplaceNetworkAclAssociationInput) (_result_0 *ec2stub.ReplaceNetworkAclAssociationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReplaceNetworkAclAssociationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceNetworkAclAssociationInput) *ec2stub.EC2ReplaceNetworkAclAssociationFuture); ok {
+	var r0 *ec2stub.ReplaceNetworkAclAssociationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceNetworkAclAssociationInput) *ec2stub.ReplaceNetworkAclAssociationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReplaceNetworkAclAssociationFuture)
+			r0 = ret.Get(0).(*ec2stub.ReplaceNetworkAclAssociationFuture)
 		}
 	}
 
@@ -15134,15 +15134,15 @@ func (_m *Mockec2clientstub) ReplaceNetworkAclEntry(ctx internal.Context, input 
 }
 
 // ReplaceNetworkAclEntryAsync provides a mock function.
-func (_m *Mockec2clientstub) ReplaceNetworkAclEntryAsync(ctx internal.Context, input *ec2.ReplaceNetworkAclEntryInput) (_result_0 *ec2stub.EC2ReplaceNetworkAclEntryFuture) {
+func (_m *Mockec2clientstub) ReplaceNetworkAclEntryAsync(ctx internal.Context, input *ec2.ReplaceNetworkAclEntryInput) (_result_0 *ec2stub.ReplaceNetworkAclEntryFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReplaceNetworkAclEntryFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceNetworkAclEntryInput) *ec2stub.EC2ReplaceNetworkAclEntryFuture); ok {
+	var r0 *ec2stub.ReplaceNetworkAclEntryFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceNetworkAclEntryInput) *ec2stub.ReplaceNetworkAclEntryFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReplaceNetworkAclEntryFuture)
+			r0 = ret.Get(0).(*ec2stub.ReplaceNetworkAclEntryFuture)
 		}
 	}
 
@@ -15173,15 +15173,15 @@ func (_m *Mockec2clientstub) ReplaceRoute(ctx internal.Context, input *ec2.Repla
 }
 
 // ReplaceRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) ReplaceRouteAsync(ctx internal.Context, input *ec2.ReplaceRouteInput) (_result_0 *ec2stub.EC2ReplaceRouteFuture) {
+func (_m *Mockec2clientstub) ReplaceRouteAsync(ctx internal.Context, input *ec2.ReplaceRouteInput) (_result_0 *ec2stub.ReplaceRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReplaceRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceRouteInput) *ec2stub.EC2ReplaceRouteFuture); ok {
+	var r0 *ec2stub.ReplaceRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceRouteInput) *ec2stub.ReplaceRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReplaceRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.ReplaceRouteFuture)
 		}
 	}
 
@@ -15212,15 +15212,15 @@ func (_m *Mockec2clientstub) ReplaceRouteTableAssociation(ctx internal.Context, 
 }
 
 // ReplaceRouteTableAssociationAsync provides a mock function.
-func (_m *Mockec2clientstub) ReplaceRouteTableAssociationAsync(ctx internal.Context, input *ec2.ReplaceRouteTableAssociationInput) (_result_0 *ec2stub.EC2ReplaceRouteTableAssociationFuture) {
+func (_m *Mockec2clientstub) ReplaceRouteTableAssociationAsync(ctx internal.Context, input *ec2.ReplaceRouteTableAssociationInput) (_result_0 *ec2stub.ReplaceRouteTableAssociationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReplaceRouteTableAssociationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceRouteTableAssociationInput) *ec2stub.EC2ReplaceRouteTableAssociationFuture); ok {
+	var r0 *ec2stub.ReplaceRouteTableAssociationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceRouteTableAssociationInput) *ec2stub.ReplaceRouteTableAssociationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReplaceRouteTableAssociationFuture)
+			r0 = ret.Get(0).(*ec2stub.ReplaceRouteTableAssociationFuture)
 		}
 	}
 
@@ -15251,15 +15251,15 @@ func (_m *Mockec2clientstub) ReplaceTransitGatewayRoute(ctx internal.Context, in
 }
 
 // ReplaceTransitGatewayRouteAsync provides a mock function.
-func (_m *Mockec2clientstub) ReplaceTransitGatewayRouteAsync(ctx internal.Context, input *ec2.ReplaceTransitGatewayRouteInput) (_result_0 *ec2stub.EC2ReplaceTransitGatewayRouteFuture) {
+func (_m *Mockec2clientstub) ReplaceTransitGatewayRouteAsync(ctx internal.Context, input *ec2.ReplaceTransitGatewayRouteInput) (_result_0 *ec2stub.ReplaceTransitGatewayRouteFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReplaceTransitGatewayRouteFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceTransitGatewayRouteInput) *ec2stub.EC2ReplaceTransitGatewayRouteFuture); ok {
+	var r0 *ec2stub.ReplaceTransitGatewayRouteFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReplaceTransitGatewayRouteInput) *ec2stub.ReplaceTransitGatewayRouteFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReplaceTransitGatewayRouteFuture)
+			r0 = ret.Get(0).(*ec2stub.ReplaceTransitGatewayRouteFuture)
 		}
 	}
 
@@ -15290,15 +15290,15 @@ func (_m *Mockec2clientstub) ReportInstanceStatus(ctx internal.Context, input *e
 }
 
 // ReportInstanceStatusAsync provides a mock function.
-func (_m *Mockec2clientstub) ReportInstanceStatusAsync(ctx internal.Context, input *ec2.ReportInstanceStatusInput) (_result_0 *ec2stub.EC2ReportInstanceStatusFuture) {
+func (_m *Mockec2clientstub) ReportInstanceStatusAsync(ctx internal.Context, input *ec2.ReportInstanceStatusInput) (_result_0 *ec2stub.ReportInstanceStatusFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ReportInstanceStatusFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReportInstanceStatusInput) *ec2stub.EC2ReportInstanceStatusFuture); ok {
+	var r0 *ec2stub.ReportInstanceStatusFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ReportInstanceStatusInput) *ec2stub.ReportInstanceStatusFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ReportInstanceStatusFuture)
+			r0 = ret.Get(0).(*ec2stub.ReportInstanceStatusFuture)
 		}
 	}
 
@@ -15329,15 +15329,15 @@ func (_m *Mockec2clientstub) RequestSpotFleet(ctx internal.Context, input *ec2.R
 }
 
 // RequestSpotFleetAsync provides a mock function.
-func (_m *Mockec2clientstub) RequestSpotFleetAsync(ctx internal.Context, input *ec2.RequestSpotFleetInput) (_result_0 *ec2stub.EC2RequestSpotFleetFuture) {
+func (_m *Mockec2clientstub) RequestSpotFleetAsync(ctx internal.Context, input *ec2.RequestSpotFleetInput) (_result_0 *ec2stub.RequestSpotFleetFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RequestSpotFleetFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RequestSpotFleetInput) *ec2stub.EC2RequestSpotFleetFuture); ok {
+	var r0 *ec2stub.RequestSpotFleetFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RequestSpotFleetInput) *ec2stub.RequestSpotFleetFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RequestSpotFleetFuture)
+			r0 = ret.Get(0).(*ec2stub.RequestSpotFleetFuture)
 		}
 	}
 
@@ -15368,15 +15368,15 @@ func (_m *Mockec2clientstub) RequestSpotInstances(ctx internal.Context, input *e
 }
 
 // RequestSpotInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) RequestSpotInstancesAsync(ctx internal.Context, input *ec2.RequestSpotInstancesInput) (_result_0 *ec2stub.EC2RequestSpotInstancesFuture) {
+func (_m *Mockec2clientstub) RequestSpotInstancesAsync(ctx internal.Context, input *ec2.RequestSpotInstancesInput) (_result_0 *ec2stub.RequestSpotInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RequestSpotInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RequestSpotInstancesInput) *ec2stub.EC2RequestSpotInstancesFuture); ok {
+	var r0 *ec2stub.RequestSpotInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RequestSpotInstancesInput) *ec2stub.RequestSpotInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RequestSpotInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.RequestSpotInstancesFuture)
 		}
 	}
 
@@ -15407,15 +15407,15 @@ func (_m *Mockec2clientstub) ResetEbsDefaultKmsKeyId(ctx internal.Context, input
 }
 
 // ResetEbsDefaultKmsKeyIdAsync provides a mock function.
-func (_m *Mockec2clientstub) ResetEbsDefaultKmsKeyIdAsync(ctx internal.Context, input *ec2.ResetEbsDefaultKmsKeyIdInput) (_result_0 *ec2stub.EC2ResetEbsDefaultKmsKeyIdFuture) {
+func (_m *Mockec2clientstub) ResetEbsDefaultKmsKeyIdAsync(ctx internal.Context, input *ec2.ResetEbsDefaultKmsKeyIdInput) (_result_0 *ec2stub.ResetEbsDefaultKmsKeyIdFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ResetEbsDefaultKmsKeyIdFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetEbsDefaultKmsKeyIdInput) *ec2stub.EC2ResetEbsDefaultKmsKeyIdFuture); ok {
+	var r0 *ec2stub.ResetEbsDefaultKmsKeyIdFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetEbsDefaultKmsKeyIdInput) *ec2stub.ResetEbsDefaultKmsKeyIdFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ResetEbsDefaultKmsKeyIdFuture)
+			r0 = ret.Get(0).(*ec2stub.ResetEbsDefaultKmsKeyIdFuture)
 		}
 	}
 
@@ -15446,15 +15446,15 @@ func (_m *Mockec2clientstub) ResetFpgaImageAttribute(ctx internal.Context, input
 }
 
 // ResetFpgaImageAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ResetFpgaImageAttributeAsync(ctx internal.Context, input *ec2.ResetFpgaImageAttributeInput) (_result_0 *ec2stub.EC2ResetFpgaImageAttributeFuture) {
+func (_m *Mockec2clientstub) ResetFpgaImageAttributeAsync(ctx internal.Context, input *ec2.ResetFpgaImageAttributeInput) (_result_0 *ec2stub.ResetFpgaImageAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ResetFpgaImageAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetFpgaImageAttributeInput) *ec2stub.EC2ResetFpgaImageAttributeFuture); ok {
+	var r0 *ec2stub.ResetFpgaImageAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetFpgaImageAttributeInput) *ec2stub.ResetFpgaImageAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ResetFpgaImageAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ResetFpgaImageAttributeFuture)
 		}
 	}
 
@@ -15485,15 +15485,15 @@ func (_m *Mockec2clientstub) ResetImageAttribute(ctx internal.Context, input *ec
 }
 
 // ResetImageAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ResetImageAttributeAsync(ctx internal.Context, input *ec2.ResetImageAttributeInput) (_result_0 *ec2stub.EC2ResetImageAttributeFuture) {
+func (_m *Mockec2clientstub) ResetImageAttributeAsync(ctx internal.Context, input *ec2.ResetImageAttributeInput) (_result_0 *ec2stub.ResetImageAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ResetImageAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetImageAttributeInput) *ec2stub.EC2ResetImageAttributeFuture); ok {
+	var r0 *ec2stub.ResetImageAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetImageAttributeInput) *ec2stub.ResetImageAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ResetImageAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ResetImageAttributeFuture)
 		}
 	}
 
@@ -15524,15 +15524,15 @@ func (_m *Mockec2clientstub) ResetInstanceAttribute(ctx internal.Context, input 
 }
 
 // ResetInstanceAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ResetInstanceAttributeAsync(ctx internal.Context, input *ec2.ResetInstanceAttributeInput) (_result_0 *ec2stub.EC2ResetInstanceAttributeFuture) {
+func (_m *Mockec2clientstub) ResetInstanceAttributeAsync(ctx internal.Context, input *ec2.ResetInstanceAttributeInput) (_result_0 *ec2stub.ResetInstanceAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ResetInstanceAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetInstanceAttributeInput) *ec2stub.EC2ResetInstanceAttributeFuture); ok {
+	var r0 *ec2stub.ResetInstanceAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetInstanceAttributeInput) *ec2stub.ResetInstanceAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ResetInstanceAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ResetInstanceAttributeFuture)
 		}
 	}
 
@@ -15563,15 +15563,15 @@ func (_m *Mockec2clientstub) ResetNetworkInterfaceAttribute(ctx internal.Context
 }
 
 // ResetNetworkInterfaceAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ResetNetworkInterfaceAttributeAsync(ctx internal.Context, input *ec2.ResetNetworkInterfaceAttributeInput) (_result_0 *ec2stub.EC2ResetNetworkInterfaceAttributeFuture) {
+func (_m *Mockec2clientstub) ResetNetworkInterfaceAttributeAsync(ctx internal.Context, input *ec2.ResetNetworkInterfaceAttributeInput) (_result_0 *ec2stub.ResetNetworkInterfaceAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ResetNetworkInterfaceAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetNetworkInterfaceAttributeInput) *ec2stub.EC2ResetNetworkInterfaceAttributeFuture); ok {
+	var r0 *ec2stub.ResetNetworkInterfaceAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetNetworkInterfaceAttributeInput) *ec2stub.ResetNetworkInterfaceAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ResetNetworkInterfaceAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ResetNetworkInterfaceAttributeFuture)
 		}
 	}
 
@@ -15602,15 +15602,15 @@ func (_m *Mockec2clientstub) ResetSnapshotAttribute(ctx internal.Context, input 
 }
 
 // ResetSnapshotAttributeAsync provides a mock function.
-func (_m *Mockec2clientstub) ResetSnapshotAttributeAsync(ctx internal.Context, input *ec2.ResetSnapshotAttributeInput) (_result_0 *ec2stub.EC2ResetSnapshotAttributeFuture) {
+func (_m *Mockec2clientstub) ResetSnapshotAttributeAsync(ctx internal.Context, input *ec2.ResetSnapshotAttributeInput) (_result_0 *ec2stub.ResetSnapshotAttributeFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2ResetSnapshotAttributeFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetSnapshotAttributeInput) *ec2stub.EC2ResetSnapshotAttributeFuture); ok {
+	var r0 *ec2stub.ResetSnapshotAttributeFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.ResetSnapshotAttributeInput) *ec2stub.ResetSnapshotAttributeFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2ResetSnapshotAttributeFuture)
+			r0 = ret.Get(0).(*ec2stub.ResetSnapshotAttributeFuture)
 		}
 	}
 
@@ -15641,15 +15641,15 @@ func (_m *Mockec2clientstub) RestoreAddressToClassic(ctx internal.Context, input
 }
 
 // RestoreAddressToClassicAsync provides a mock function.
-func (_m *Mockec2clientstub) RestoreAddressToClassicAsync(ctx internal.Context, input *ec2.RestoreAddressToClassicInput) (_result_0 *ec2stub.EC2RestoreAddressToClassicFuture) {
+func (_m *Mockec2clientstub) RestoreAddressToClassicAsync(ctx internal.Context, input *ec2.RestoreAddressToClassicInput) (_result_0 *ec2stub.RestoreAddressToClassicFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RestoreAddressToClassicFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RestoreAddressToClassicInput) *ec2stub.EC2RestoreAddressToClassicFuture); ok {
+	var r0 *ec2stub.RestoreAddressToClassicFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RestoreAddressToClassicInput) *ec2stub.RestoreAddressToClassicFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RestoreAddressToClassicFuture)
+			r0 = ret.Get(0).(*ec2stub.RestoreAddressToClassicFuture)
 		}
 	}
 
@@ -15680,15 +15680,15 @@ func (_m *Mockec2clientstub) RestoreManagedPrefixListVersion(ctx internal.Contex
 }
 
 // RestoreManagedPrefixListVersionAsync provides a mock function.
-func (_m *Mockec2clientstub) RestoreManagedPrefixListVersionAsync(ctx internal.Context, input *ec2.RestoreManagedPrefixListVersionInput) (_result_0 *ec2stub.EC2RestoreManagedPrefixListVersionFuture) {
+func (_m *Mockec2clientstub) RestoreManagedPrefixListVersionAsync(ctx internal.Context, input *ec2.RestoreManagedPrefixListVersionInput) (_result_0 *ec2stub.RestoreManagedPrefixListVersionFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RestoreManagedPrefixListVersionFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RestoreManagedPrefixListVersionInput) *ec2stub.EC2RestoreManagedPrefixListVersionFuture); ok {
+	var r0 *ec2stub.RestoreManagedPrefixListVersionFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RestoreManagedPrefixListVersionInput) *ec2stub.RestoreManagedPrefixListVersionFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RestoreManagedPrefixListVersionFuture)
+			r0 = ret.Get(0).(*ec2stub.RestoreManagedPrefixListVersionFuture)
 		}
 	}
 
@@ -15719,15 +15719,15 @@ func (_m *Mockec2clientstub) RevokeClientVpnIngress(ctx internal.Context, input 
 }
 
 // RevokeClientVpnIngressAsync provides a mock function.
-func (_m *Mockec2clientstub) RevokeClientVpnIngressAsync(ctx internal.Context, input *ec2.RevokeClientVpnIngressInput) (_result_0 *ec2stub.EC2RevokeClientVpnIngressFuture) {
+func (_m *Mockec2clientstub) RevokeClientVpnIngressAsync(ctx internal.Context, input *ec2.RevokeClientVpnIngressInput) (_result_0 *ec2stub.RevokeClientVpnIngressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RevokeClientVpnIngressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RevokeClientVpnIngressInput) *ec2stub.EC2RevokeClientVpnIngressFuture); ok {
+	var r0 *ec2stub.RevokeClientVpnIngressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RevokeClientVpnIngressInput) *ec2stub.RevokeClientVpnIngressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RevokeClientVpnIngressFuture)
+			r0 = ret.Get(0).(*ec2stub.RevokeClientVpnIngressFuture)
 		}
 	}
 
@@ -15758,15 +15758,15 @@ func (_m *Mockec2clientstub) RevokeSecurityGroupEgress(ctx internal.Context, inp
 }
 
 // RevokeSecurityGroupEgressAsync provides a mock function.
-func (_m *Mockec2clientstub) RevokeSecurityGroupEgressAsync(ctx internal.Context, input *ec2.RevokeSecurityGroupEgressInput) (_result_0 *ec2stub.EC2RevokeSecurityGroupEgressFuture) {
+func (_m *Mockec2clientstub) RevokeSecurityGroupEgressAsync(ctx internal.Context, input *ec2.RevokeSecurityGroupEgressInput) (_result_0 *ec2stub.RevokeSecurityGroupEgressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RevokeSecurityGroupEgressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RevokeSecurityGroupEgressInput) *ec2stub.EC2RevokeSecurityGroupEgressFuture); ok {
+	var r0 *ec2stub.RevokeSecurityGroupEgressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RevokeSecurityGroupEgressInput) *ec2stub.RevokeSecurityGroupEgressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RevokeSecurityGroupEgressFuture)
+			r0 = ret.Get(0).(*ec2stub.RevokeSecurityGroupEgressFuture)
 		}
 	}
 
@@ -15797,15 +15797,15 @@ func (_m *Mockec2clientstub) RevokeSecurityGroupIngress(ctx internal.Context, in
 }
 
 // RevokeSecurityGroupIngressAsync provides a mock function.
-func (_m *Mockec2clientstub) RevokeSecurityGroupIngressAsync(ctx internal.Context, input *ec2.RevokeSecurityGroupIngressInput) (_result_0 *ec2stub.EC2RevokeSecurityGroupIngressFuture) {
+func (_m *Mockec2clientstub) RevokeSecurityGroupIngressAsync(ctx internal.Context, input *ec2.RevokeSecurityGroupIngressInput) (_result_0 *ec2stub.RevokeSecurityGroupIngressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RevokeSecurityGroupIngressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RevokeSecurityGroupIngressInput) *ec2stub.EC2RevokeSecurityGroupIngressFuture); ok {
+	var r0 *ec2stub.RevokeSecurityGroupIngressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RevokeSecurityGroupIngressInput) *ec2stub.RevokeSecurityGroupIngressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RevokeSecurityGroupIngressFuture)
+			r0 = ret.Get(0).(*ec2stub.RevokeSecurityGroupIngressFuture)
 		}
 	}
 
@@ -15836,15 +15836,15 @@ func (_m *Mockec2clientstub) RunInstances(ctx internal.Context, input *ec2.RunIn
 }
 
 // RunInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) RunInstancesAsync(ctx internal.Context, input *ec2.RunInstancesInput) (_result_0 *ec2stub.EC2RunInstancesFuture) {
+func (_m *Mockec2clientstub) RunInstancesAsync(ctx internal.Context, input *ec2.RunInstancesInput) (_result_0 *ec2stub.RunInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RunInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RunInstancesInput) *ec2stub.EC2RunInstancesFuture); ok {
+	var r0 *ec2stub.RunInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RunInstancesInput) *ec2stub.RunInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RunInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.RunInstancesFuture)
 		}
 	}
 
@@ -15875,15 +15875,15 @@ func (_m *Mockec2clientstub) RunScheduledInstances(ctx internal.Context, input *
 }
 
 // RunScheduledInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) RunScheduledInstancesAsync(ctx internal.Context, input *ec2.RunScheduledInstancesInput) (_result_0 *ec2stub.EC2RunScheduledInstancesFuture) {
+func (_m *Mockec2clientstub) RunScheduledInstancesAsync(ctx internal.Context, input *ec2.RunScheduledInstancesInput) (_result_0 *ec2stub.RunScheduledInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2RunScheduledInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RunScheduledInstancesInput) *ec2stub.EC2RunScheduledInstancesFuture); ok {
+	var r0 *ec2stub.RunScheduledInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RunScheduledInstancesInput) *ec2stub.RunScheduledInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2RunScheduledInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.RunScheduledInstancesFuture)
 		}
 	}
 
@@ -15914,15 +15914,15 @@ func (_m *Mockec2clientstub) SearchLocalGatewayRoutes(ctx internal.Context, inpu
 }
 
 // SearchLocalGatewayRoutesAsync provides a mock function.
-func (_m *Mockec2clientstub) SearchLocalGatewayRoutesAsync(ctx internal.Context, input *ec2.SearchLocalGatewayRoutesInput) (_result_0 *ec2stub.EC2SearchLocalGatewayRoutesFuture) {
+func (_m *Mockec2clientstub) SearchLocalGatewayRoutesAsync(ctx internal.Context, input *ec2.SearchLocalGatewayRoutesInput) (_result_0 *ec2stub.SearchLocalGatewayRoutesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2SearchLocalGatewayRoutesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.SearchLocalGatewayRoutesInput) *ec2stub.EC2SearchLocalGatewayRoutesFuture); ok {
+	var r0 *ec2stub.SearchLocalGatewayRoutesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.SearchLocalGatewayRoutesInput) *ec2stub.SearchLocalGatewayRoutesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2SearchLocalGatewayRoutesFuture)
+			r0 = ret.Get(0).(*ec2stub.SearchLocalGatewayRoutesFuture)
 		}
 	}
 
@@ -15953,15 +15953,15 @@ func (_m *Mockec2clientstub) SearchTransitGatewayMulticastGroups(ctx internal.Co
 }
 
 // SearchTransitGatewayMulticastGroupsAsync provides a mock function.
-func (_m *Mockec2clientstub) SearchTransitGatewayMulticastGroupsAsync(ctx internal.Context, input *ec2.SearchTransitGatewayMulticastGroupsInput) (_result_0 *ec2stub.EC2SearchTransitGatewayMulticastGroupsFuture) {
+func (_m *Mockec2clientstub) SearchTransitGatewayMulticastGroupsAsync(ctx internal.Context, input *ec2.SearchTransitGatewayMulticastGroupsInput) (_result_0 *ec2stub.SearchTransitGatewayMulticastGroupsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2SearchTransitGatewayMulticastGroupsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.SearchTransitGatewayMulticastGroupsInput) *ec2stub.EC2SearchTransitGatewayMulticastGroupsFuture); ok {
+	var r0 *ec2stub.SearchTransitGatewayMulticastGroupsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.SearchTransitGatewayMulticastGroupsInput) *ec2stub.SearchTransitGatewayMulticastGroupsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2SearchTransitGatewayMulticastGroupsFuture)
+			r0 = ret.Get(0).(*ec2stub.SearchTransitGatewayMulticastGroupsFuture)
 		}
 	}
 
@@ -15992,15 +15992,15 @@ func (_m *Mockec2clientstub) SearchTransitGatewayRoutes(ctx internal.Context, in
 }
 
 // SearchTransitGatewayRoutesAsync provides a mock function.
-func (_m *Mockec2clientstub) SearchTransitGatewayRoutesAsync(ctx internal.Context, input *ec2.SearchTransitGatewayRoutesInput) (_result_0 *ec2stub.EC2SearchTransitGatewayRoutesFuture) {
+func (_m *Mockec2clientstub) SearchTransitGatewayRoutesAsync(ctx internal.Context, input *ec2.SearchTransitGatewayRoutesInput) (_result_0 *ec2stub.SearchTransitGatewayRoutesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2SearchTransitGatewayRoutesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.SearchTransitGatewayRoutesInput) *ec2stub.EC2SearchTransitGatewayRoutesFuture); ok {
+	var r0 *ec2stub.SearchTransitGatewayRoutesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.SearchTransitGatewayRoutesInput) *ec2stub.SearchTransitGatewayRoutesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2SearchTransitGatewayRoutesFuture)
+			r0 = ret.Get(0).(*ec2stub.SearchTransitGatewayRoutesFuture)
 		}
 	}
 
@@ -16031,15 +16031,15 @@ func (_m *Mockec2clientstub) SendDiagnosticInterrupt(ctx internal.Context, input
 }
 
 // SendDiagnosticInterruptAsync provides a mock function.
-func (_m *Mockec2clientstub) SendDiagnosticInterruptAsync(ctx internal.Context, input *ec2.SendDiagnosticInterruptInput) (_result_0 *ec2stub.EC2SendDiagnosticInterruptFuture) {
+func (_m *Mockec2clientstub) SendDiagnosticInterruptAsync(ctx internal.Context, input *ec2.SendDiagnosticInterruptInput) (_result_0 *ec2stub.SendDiagnosticInterruptFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2SendDiagnosticInterruptFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.SendDiagnosticInterruptInput) *ec2stub.EC2SendDiagnosticInterruptFuture); ok {
+	var r0 *ec2stub.SendDiagnosticInterruptFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.SendDiagnosticInterruptInput) *ec2stub.SendDiagnosticInterruptFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2SendDiagnosticInterruptFuture)
+			r0 = ret.Get(0).(*ec2stub.SendDiagnosticInterruptFuture)
 		}
 	}
 
@@ -16070,15 +16070,15 @@ func (_m *Mockec2clientstub) StartInstances(ctx internal.Context, input *ec2.Sta
 }
 
 // StartInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) StartInstancesAsync(ctx internal.Context, input *ec2.StartInstancesInput) (_result_0 *ec2stub.EC2StartInstancesFuture) {
+func (_m *Mockec2clientstub) StartInstancesAsync(ctx internal.Context, input *ec2.StartInstancesInput) (_result_0 *ec2stub.StartInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2StartInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.StartInstancesInput) *ec2stub.EC2StartInstancesFuture); ok {
+	var r0 *ec2stub.StartInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.StartInstancesInput) *ec2stub.StartInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2StartInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.StartInstancesFuture)
 		}
 	}
 
@@ -16109,15 +16109,15 @@ func (_m *Mockec2clientstub) StartVpcEndpointServicePrivateDnsVerification(ctx i
 }
 
 // StartVpcEndpointServicePrivateDnsVerificationAsync provides a mock function.
-func (_m *Mockec2clientstub) StartVpcEndpointServicePrivateDnsVerificationAsync(ctx internal.Context, input *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) (_result_0 *ec2stub.EC2StartVpcEndpointServicePrivateDnsVerificationFuture) {
+func (_m *Mockec2clientstub) StartVpcEndpointServicePrivateDnsVerificationAsync(ctx internal.Context, input *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) (_result_0 *ec2stub.StartVpcEndpointServicePrivateDnsVerificationFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2StartVpcEndpointServicePrivateDnsVerificationFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *ec2stub.EC2StartVpcEndpointServicePrivateDnsVerificationFuture); ok {
+	var r0 *ec2stub.StartVpcEndpointServicePrivateDnsVerificationFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *ec2stub.StartVpcEndpointServicePrivateDnsVerificationFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2StartVpcEndpointServicePrivateDnsVerificationFuture)
+			r0 = ret.Get(0).(*ec2stub.StartVpcEndpointServicePrivateDnsVerificationFuture)
 		}
 	}
 
@@ -16148,15 +16148,15 @@ func (_m *Mockec2clientstub) StopInstances(ctx internal.Context, input *ec2.Stop
 }
 
 // StopInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) StopInstancesAsync(ctx internal.Context, input *ec2.StopInstancesInput) (_result_0 *ec2stub.EC2StopInstancesFuture) {
+func (_m *Mockec2clientstub) StopInstancesAsync(ctx internal.Context, input *ec2.StopInstancesInput) (_result_0 *ec2stub.StopInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2StopInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.StopInstancesInput) *ec2stub.EC2StopInstancesFuture); ok {
+	var r0 *ec2stub.StopInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.StopInstancesInput) *ec2stub.StopInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2StopInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.StopInstancesFuture)
 		}
 	}
 
@@ -16187,15 +16187,15 @@ func (_m *Mockec2clientstub) TerminateClientVpnConnections(ctx internal.Context,
 }
 
 // TerminateClientVpnConnectionsAsync provides a mock function.
-func (_m *Mockec2clientstub) TerminateClientVpnConnectionsAsync(ctx internal.Context, input *ec2.TerminateClientVpnConnectionsInput) (_result_0 *ec2stub.EC2TerminateClientVpnConnectionsFuture) {
+func (_m *Mockec2clientstub) TerminateClientVpnConnectionsAsync(ctx internal.Context, input *ec2.TerminateClientVpnConnectionsInput) (_result_0 *ec2stub.TerminateClientVpnConnectionsFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2TerminateClientVpnConnectionsFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.TerminateClientVpnConnectionsInput) *ec2stub.EC2TerminateClientVpnConnectionsFuture); ok {
+	var r0 *ec2stub.TerminateClientVpnConnectionsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.TerminateClientVpnConnectionsInput) *ec2stub.TerminateClientVpnConnectionsFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2TerminateClientVpnConnectionsFuture)
+			r0 = ret.Get(0).(*ec2stub.TerminateClientVpnConnectionsFuture)
 		}
 	}
 
@@ -16226,15 +16226,15 @@ func (_m *Mockec2clientstub) TerminateInstances(ctx internal.Context, input *ec2
 }
 
 // TerminateInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) TerminateInstancesAsync(ctx internal.Context, input *ec2.TerminateInstancesInput) (_result_0 *ec2stub.EC2TerminateInstancesFuture) {
+func (_m *Mockec2clientstub) TerminateInstancesAsync(ctx internal.Context, input *ec2.TerminateInstancesInput) (_result_0 *ec2stub.TerminateInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2TerminateInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.TerminateInstancesInput) *ec2stub.EC2TerminateInstancesFuture); ok {
+	var r0 *ec2stub.TerminateInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.TerminateInstancesInput) *ec2stub.TerminateInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2TerminateInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.TerminateInstancesFuture)
 		}
 	}
 
@@ -16265,15 +16265,15 @@ func (_m *Mockec2clientstub) UnassignIpv6Addresses(ctx internal.Context, input *
 }
 
 // UnassignIpv6AddressesAsync provides a mock function.
-func (_m *Mockec2clientstub) UnassignIpv6AddressesAsync(ctx internal.Context, input *ec2.UnassignIpv6AddressesInput) (_result_0 *ec2stub.EC2UnassignIpv6AddressesFuture) {
+func (_m *Mockec2clientstub) UnassignIpv6AddressesAsync(ctx internal.Context, input *ec2.UnassignIpv6AddressesInput) (_result_0 *ec2stub.UnassignIpv6AddressesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2UnassignIpv6AddressesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UnassignIpv6AddressesInput) *ec2stub.EC2UnassignIpv6AddressesFuture); ok {
+	var r0 *ec2stub.UnassignIpv6AddressesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UnassignIpv6AddressesInput) *ec2stub.UnassignIpv6AddressesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2UnassignIpv6AddressesFuture)
+			r0 = ret.Get(0).(*ec2stub.UnassignIpv6AddressesFuture)
 		}
 	}
 
@@ -16304,15 +16304,15 @@ func (_m *Mockec2clientstub) UnassignPrivateIpAddresses(ctx internal.Context, in
 }
 
 // UnassignPrivateIpAddressesAsync provides a mock function.
-func (_m *Mockec2clientstub) UnassignPrivateIpAddressesAsync(ctx internal.Context, input *ec2.UnassignPrivateIpAddressesInput) (_result_0 *ec2stub.EC2UnassignPrivateIpAddressesFuture) {
+func (_m *Mockec2clientstub) UnassignPrivateIpAddressesAsync(ctx internal.Context, input *ec2.UnassignPrivateIpAddressesInput) (_result_0 *ec2stub.UnassignPrivateIpAddressesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2UnassignPrivateIpAddressesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UnassignPrivateIpAddressesInput) *ec2stub.EC2UnassignPrivateIpAddressesFuture); ok {
+	var r0 *ec2stub.UnassignPrivateIpAddressesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UnassignPrivateIpAddressesInput) *ec2stub.UnassignPrivateIpAddressesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2UnassignPrivateIpAddressesFuture)
+			r0 = ret.Get(0).(*ec2stub.UnassignPrivateIpAddressesFuture)
 		}
 	}
 
@@ -16343,15 +16343,15 @@ func (_m *Mockec2clientstub) UnmonitorInstances(ctx internal.Context, input *ec2
 }
 
 // UnmonitorInstancesAsync provides a mock function.
-func (_m *Mockec2clientstub) UnmonitorInstancesAsync(ctx internal.Context, input *ec2.UnmonitorInstancesInput) (_result_0 *ec2stub.EC2UnmonitorInstancesFuture) {
+func (_m *Mockec2clientstub) UnmonitorInstancesAsync(ctx internal.Context, input *ec2.UnmonitorInstancesInput) (_result_0 *ec2stub.UnmonitorInstancesFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2UnmonitorInstancesFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UnmonitorInstancesInput) *ec2stub.EC2UnmonitorInstancesFuture); ok {
+	var r0 *ec2stub.UnmonitorInstancesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UnmonitorInstancesInput) *ec2stub.UnmonitorInstancesFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2UnmonitorInstancesFuture)
+			r0 = ret.Get(0).(*ec2stub.UnmonitorInstancesFuture)
 		}
 	}
 
@@ -16382,15 +16382,15 @@ func (_m *Mockec2clientstub) UpdateSecurityGroupRuleDescriptionsEgress(ctx inter
 }
 
 // UpdateSecurityGroupRuleDescriptionsEgressAsync provides a mock function.
-func (_m *Mockec2clientstub) UpdateSecurityGroupRuleDescriptionsEgressAsync(ctx internal.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) (_result_0 *ec2stub.EC2UpdateSecurityGroupRuleDescriptionsEgressFuture) {
+func (_m *Mockec2clientstub) UpdateSecurityGroupRuleDescriptionsEgressAsync(ctx internal.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) (_result_0 *ec2stub.UpdateSecurityGroupRuleDescriptionsEgressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2UpdateSecurityGroupRuleDescriptionsEgressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) *ec2stub.EC2UpdateSecurityGroupRuleDescriptionsEgressFuture); ok {
+	var r0 *ec2stub.UpdateSecurityGroupRuleDescriptionsEgressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) *ec2stub.UpdateSecurityGroupRuleDescriptionsEgressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2UpdateSecurityGroupRuleDescriptionsEgressFuture)
+			r0 = ret.Get(0).(*ec2stub.UpdateSecurityGroupRuleDescriptionsEgressFuture)
 		}
 	}
 
@@ -16421,15 +16421,15 @@ func (_m *Mockec2clientstub) UpdateSecurityGroupRuleDescriptionsIngress(ctx inte
 }
 
 // UpdateSecurityGroupRuleDescriptionsIngressAsync provides a mock function.
-func (_m *Mockec2clientstub) UpdateSecurityGroupRuleDescriptionsIngressAsync(ctx internal.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) (_result_0 *ec2stub.EC2UpdateSecurityGroupRuleDescriptionsIngressFuture) {
+func (_m *Mockec2clientstub) UpdateSecurityGroupRuleDescriptionsIngressAsync(ctx internal.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) (_result_0 *ec2stub.UpdateSecurityGroupRuleDescriptionsIngressFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2UpdateSecurityGroupRuleDescriptionsIngressFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) *ec2stub.EC2UpdateSecurityGroupRuleDescriptionsIngressFuture); ok {
+	var r0 *ec2stub.UpdateSecurityGroupRuleDescriptionsIngressFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) *ec2stub.UpdateSecurityGroupRuleDescriptionsIngressFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2UpdateSecurityGroupRuleDescriptionsIngressFuture)
+			r0 = ret.Get(0).(*ec2stub.UpdateSecurityGroupRuleDescriptionsIngressFuture)
 		}
 	}
 
@@ -17420,15 +17420,15 @@ func (_m *Mockec2clientstub) WithdrawByoipCidr(ctx internal.Context, input *ec2.
 }
 
 // WithdrawByoipCidrAsync provides a mock function.
-func (_m *Mockec2clientstub) WithdrawByoipCidrAsync(ctx internal.Context, input *ec2.WithdrawByoipCidrInput) (_result_0 *ec2stub.EC2WithdrawByoipCidrFuture) {
+func (_m *Mockec2clientstub) WithdrawByoipCidrAsync(ctx internal.Context, input *ec2.WithdrawByoipCidrInput) (_result_0 *ec2stub.WithdrawByoipCidrFuture) {
 	ret := _m.Called(ctx, input)
 
-	var r0 *ec2stub.EC2WithdrawByoipCidrFuture
-	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.WithdrawByoipCidrInput) *ec2stub.EC2WithdrawByoipCidrFuture); ok {
+	var r0 *ec2stub.WithdrawByoipCidrFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.WithdrawByoipCidrInput) *ec2stub.WithdrawByoipCidrFuture); ok {
 		r0 = rf(ctx, input)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ec2stub.EC2WithdrawByoipCidrFuture)
+			r0 = ret.Get(0).(*ec2stub.WithdrawByoipCidrFuture)
 		}
 	}
 

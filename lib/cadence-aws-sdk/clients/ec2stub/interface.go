@@ -15,1270 +15,1270 @@ var _ clients.VoidFuture
 
 type Client interface {
 	AcceptReservedInstancesExchangeQuote(ctx workflow.Context, input *ec2.AcceptReservedInstancesExchangeQuoteInput) (*ec2.AcceptReservedInstancesExchangeQuoteOutput, error)
-	AcceptReservedInstancesExchangeQuoteAsync(ctx workflow.Context, input *ec2.AcceptReservedInstancesExchangeQuoteInput) *EC2AcceptReservedInstancesExchangeQuoteFuture
+	AcceptReservedInstancesExchangeQuoteAsync(ctx workflow.Context, input *ec2.AcceptReservedInstancesExchangeQuoteInput) *AcceptReservedInstancesExchangeQuoteFuture
 
 	AcceptTransitGatewayPeeringAttachment(ctx workflow.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) (*ec2.AcceptTransitGatewayPeeringAttachmentOutput, error)
-	AcceptTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) *EC2AcceptTransitGatewayPeeringAttachmentFuture
+	AcceptTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) *AcceptTransitGatewayPeeringAttachmentFuture
 
 	AcceptTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.AcceptTransitGatewayVpcAttachmentInput) (*ec2.AcceptTransitGatewayVpcAttachmentOutput, error)
-	AcceptTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.AcceptTransitGatewayVpcAttachmentInput) *EC2AcceptTransitGatewayVpcAttachmentFuture
+	AcceptTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.AcceptTransitGatewayVpcAttachmentInput) *AcceptTransitGatewayVpcAttachmentFuture
 
 	AcceptVpcEndpointConnections(ctx workflow.Context, input *ec2.AcceptVpcEndpointConnectionsInput) (*ec2.AcceptVpcEndpointConnectionsOutput, error)
-	AcceptVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.AcceptVpcEndpointConnectionsInput) *EC2AcceptVpcEndpointConnectionsFuture
+	AcceptVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.AcceptVpcEndpointConnectionsInput) *AcceptVpcEndpointConnectionsFuture
 
 	AcceptVpcPeeringConnection(ctx workflow.Context, input *ec2.AcceptVpcPeeringConnectionInput) (*ec2.AcceptVpcPeeringConnectionOutput, error)
-	AcceptVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.AcceptVpcPeeringConnectionInput) *EC2AcceptVpcPeeringConnectionFuture
+	AcceptVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.AcceptVpcPeeringConnectionInput) *AcceptVpcPeeringConnectionFuture
 
 	AdvertiseByoipCidr(ctx workflow.Context, input *ec2.AdvertiseByoipCidrInput) (*ec2.AdvertiseByoipCidrOutput, error)
-	AdvertiseByoipCidrAsync(ctx workflow.Context, input *ec2.AdvertiseByoipCidrInput) *EC2AdvertiseByoipCidrFuture
+	AdvertiseByoipCidrAsync(ctx workflow.Context, input *ec2.AdvertiseByoipCidrInput) *AdvertiseByoipCidrFuture
 
 	AllocateAddress(ctx workflow.Context, input *ec2.AllocateAddressInput) (*ec2.AllocateAddressOutput, error)
-	AllocateAddressAsync(ctx workflow.Context, input *ec2.AllocateAddressInput) *EC2AllocateAddressFuture
+	AllocateAddressAsync(ctx workflow.Context, input *ec2.AllocateAddressInput) *AllocateAddressFuture
 
 	AllocateHosts(ctx workflow.Context, input *ec2.AllocateHostsInput) (*ec2.AllocateHostsOutput, error)
-	AllocateHostsAsync(ctx workflow.Context, input *ec2.AllocateHostsInput) *EC2AllocateHostsFuture
+	AllocateHostsAsync(ctx workflow.Context, input *ec2.AllocateHostsInput) *AllocateHostsFuture
 
 	ApplySecurityGroupsToClientVpnTargetNetwork(ctx workflow.Context, input *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) (*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput, error)
-	ApplySecurityGroupsToClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *EC2ApplySecurityGroupsToClientVpnTargetNetworkFuture
+	ApplySecurityGroupsToClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *ApplySecurityGroupsToClientVpnTargetNetworkFuture
 
 	AssignIpv6Addresses(ctx workflow.Context, input *ec2.AssignIpv6AddressesInput) (*ec2.AssignIpv6AddressesOutput, error)
-	AssignIpv6AddressesAsync(ctx workflow.Context, input *ec2.AssignIpv6AddressesInput) *EC2AssignIpv6AddressesFuture
+	AssignIpv6AddressesAsync(ctx workflow.Context, input *ec2.AssignIpv6AddressesInput) *AssignIpv6AddressesFuture
 
 	AssignPrivateIpAddresses(ctx workflow.Context, input *ec2.AssignPrivateIpAddressesInput) (*ec2.AssignPrivateIpAddressesOutput, error)
-	AssignPrivateIpAddressesAsync(ctx workflow.Context, input *ec2.AssignPrivateIpAddressesInput) *EC2AssignPrivateIpAddressesFuture
+	AssignPrivateIpAddressesAsync(ctx workflow.Context, input *ec2.AssignPrivateIpAddressesInput) *AssignPrivateIpAddressesFuture
 
 	AssociateAddress(ctx workflow.Context, input *ec2.AssociateAddressInput) (*ec2.AssociateAddressOutput, error)
-	AssociateAddressAsync(ctx workflow.Context, input *ec2.AssociateAddressInput) *EC2AssociateAddressFuture
+	AssociateAddressAsync(ctx workflow.Context, input *ec2.AssociateAddressInput) *AssociateAddressFuture
 
 	AssociateClientVpnTargetNetwork(ctx workflow.Context, input *ec2.AssociateClientVpnTargetNetworkInput) (*ec2.AssociateClientVpnTargetNetworkOutput, error)
-	AssociateClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.AssociateClientVpnTargetNetworkInput) *EC2AssociateClientVpnTargetNetworkFuture
+	AssociateClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.AssociateClientVpnTargetNetworkInput) *AssociateClientVpnTargetNetworkFuture
 
 	AssociateDhcpOptions(ctx workflow.Context, input *ec2.AssociateDhcpOptionsInput) (*ec2.AssociateDhcpOptionsOutput, error)
-	AssociateDhcpOptionsAsync(ctx workflow.Context, input *ec2.AssociateDhcpOptionsInput) *EC2AssociateDhcpOptionsFuture
+	AssociateDhcpOptionsAsync(ctx workflow.Context, input *ec2.AssociateDhcpOptionsInput) *AssociateDhcpOptionsFuture
 
 	AssociateEnclaveCertificateIamRole(ctx workflow.Context, input *ec2.AssociateEnclaveCertificateIamRoleInput) (*ec2.AssociateEnclaveCertificateIamRoleOutput, error)
-	AssociateEnclaveCertificateIamRoleAsync(ctx workflow.Context, input *ec2.AssociateEnclaveCertificateIamRoleInput) *EC2AssociateEnclaveCertificateIamRoleFuture
+	AssociateEnclaveCertificateIamRoleAsync(ctx workflow.Context, input *ec2.AssociateEnclaveCertificateIamRoleInput) *AssociateEnclaveCertificateIamRoleFuture
 
 	AssociateIamInstanceProfile(ctx workflow.Context, input *ec2.AssociateIamInstanceProfileInput) (*ec2.AssociateIamInstanceProfileOutput, error)
-	AssociateIamInstanceProfileAsync(ctx workflow.Context, input *ec2.AssociateIamInstanceProfileInput) *EC2AssociateIamInstanceProfileFuture
+	AssociateIamInstanceProfileAsync(ctx workflow.Context, input *ec2.AssociateIamInstanceProfileInput) *AssociateIamInstanceProfileFuture
 
 	AssociateRouteTable(ctx workflow.Context, input *ec2.AssociateRouteTableInput) (*ec2.AssociateRouteTableOutput, error)
-	AssociateRouteTableAsync(ctx workflow.Context, input *ec2.AssociateRouteTableInput) *EC2AssociateRouteTableFuture
+	AssociateRouteTableAsync(ctx workflow.Context, input *ec2.AssociateRouteTableInput) *AssociateRouteTableFuture
 
 	AssociateSubnetCidrBlock(ctx workflow.Context, input *ec2.AssociateSubnetCidrBlockInput) (*ec2.AssociateSubnetCidrBlockOutput, error)
-	AssociateSubnetCidrBlockAsync(ctx workflow.Context, input *ec2.AssociateSubnetCidrBlockInput) *EC2AssociateSubnetCidrBlockFuture
+	AssociateSubnetCidrBlockAsync(ctx workflow.Context, input *ec2.AssociateSubnetCidrBlockInput) *AssociateSubnetCidrBlockFuture
 
 	AssociateTransitGatewayMulticastDomain(ctx workflow.Context, input *ec2.AssociateTransitGatewayMulticastDomainInput) (*ec2.AssociateTransitGatewayMulticastDomainOutput, error)
-	AssociateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.AssociateTransitGatewayMulticastDomainInput) *EC2AssociateTransitGatewayMulticastDomainFuture
+	AssociateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.AssociateTransitGatewayMulticastDomainInput) *AssociateTransitGatewayMulticastDomainFuture
 
 	AssociateTransitGatewayRouteTable(ctx workflow.Context, input *ec2.AssociateTransitGatewayRouteTableInput) (*ec2.AssociateTransitGatewayRouteTableOutput, error)
-	AssociateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.AssociateTransitGatewayRouteTableInput) *EC2AssociateTransitGatewayRouteTableFuture
+	AssociateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.AssociateTransitGatewayRouteTableInput) *AssociateTransitGatewayRouteTableFuture
 
 	AssociateVpcCidrBlock(ctx workflow.Context, input *ec2.AssociateVpcCidrBlockInput) (*ec2.AssociateVpcCidrBlockOutput, error)
-	AssociateVpcCidrBlockAsync(ctx workflow.Context, input *ec2.AssociateVpcCidrBlockInput) *EC2AssociateVpcCidrBlockFuture
+	AssociateVpcCidrBlockAsync(ctx workflow.Context, input *ec2.AssociateVpcCidrBlockInput) *AssociateVpcCidrBlockFuture
 
 	AttachClassicLinkVpc(ctx workflow.Context, input *ec2.AttachClassicLinkVpcInput) (*ec2.AttachClassicLinkVpcOutput, error)
-	AttachClassicLinkVpcAsync(ctx workflow.Context, input *ec2.AttachClassicLinkVpcInput) *EC2AttachClassicLinkVpcFuture
+	AttachClassicLinkVpcAsync(ctx workflow.Context, input *ec2.AttachClassicLinkVpcInput) *AttachClassicLinkVpcFuture
 
 	AttachInternetGateway(ctx workflow.Context, input *ec2.AttachInternetGatewayInput) (*ec2.AttachInternetGatewayOutput, error)
-	AttachInternetGatewayAsync(ctx workflow.Context, input *ec2.AttachInternetGatewayInput) *EC2AttachInternetGatewayFuture
+	AttachInternetGatewayAsync(ctx workflow.Context, input *ec2.AttachInternetGatewayInput) *AttachInternetGatewayFuture
 
 	AttachNetworkInterface(ctx workflow.Context, input *ec2.AttachNetworkInterfaceInput) (*ec2.AttachNetworkInterfaceOutput, error)
-	AttachNetworkInterfaceAsync(ctx workflow.Context, input *ec2.AttachNetworkInterfaceInput) *EC2AttachNetworkInterfaceFuture
+	AttachNetworkInterfaceAsync(ctx workflow.Context, input *ec2.AttachNetworkInterfaceInput) *AttachNetworkInterfaceFuture
 
 	AttachVolume(ctx workflow.Context, input *ec2.AttachVolumeInput) (*ec2.VolumeAttachment, error)
-	AttachVolumeAsync(ctx workflow.Context, input *ec2.AttachVolumeInput) *EC2AttachVolumeFuture
+	AttachVolumeAsync(ctx workflow.Context, input *ec2.AttachVolumeInput) *AttachVolumeFuture
 
 	AttachVpnGateway(ctx workflow.Context, input *ec2.AttachVpnGatewayInput) (*ec2.AttachVpnGatewayOutput, error)
-	AttachVpnGatewayAsync(ctx workflow.Context, input *ec2.AttachVpnGatewayInput) *EC2AttachVpnGatewayFuture
+	AttachVpnGatewayAsync(ctx workflow.Context, input *ec2.AttachVpnGatewayInput) *AttachVpnGatewayFuture
 
 	AuthorizeClientVpnIngress(ctx workflow.Context, input *ec2.AuthorizeClientVpnIngressInput) (*ec2.AuthorizeClientVpnIngressOutput, error)
-	AuthorizeClientVpnIngressAsync(ctx workflow.Context, input *ec2.AuthorizeClientVpnIngressInput) *EC2AuthorizeClientVpnIngressFuture
+	AuthorizeClientVpnIngressAsync(ctx workflow.Context, input *ec2.AuthorizeClientVpnIngressInput) *AuthorizeClientVpnIngressFuture
 
 	AuthorizeSecurityGroupEgress(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupEgressInput) (*ec2.AuthorizeSecurityGroupEgressOutput, error)
-	AuthorizeSecurityGroupEgressAsync(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupEgressInput) *EC2AuthorizeSecurityGroupEgressFuture
+	AuthorizeSecurityGroupEgressAsync(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupEgressInput) *AuthorizeSecurityGroupEgressFuture
 
 	AuthorizeSecurityGroupIngress(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupIngressInput) (*ec2.AuthorizeSecurityGroupIngressOutput, error)
-	AuthorizeSecurityGroupIngressAsync(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupIngressInput) *EC2AuthorizeSecurityGroupIngressFuture
+	AuthorizeSecurityGroupIngressAsync(ctx workflow.Context, input *ec2.AuthorizeSecurityGroupIngressInput) *AuthorizeSecurityGroupIngressFuture
 
 	BundleInstance(ctx workflow.Context, input *ec2.BundleInstanceInput) (*ec2.BundleInstanceOutput, error)
-	BundleInstanceAsync(ctx workflow.Context, input *ec2.BundleInstanceInput) *EC2BundleInstanceFuture
+	BundleInstanceAsync(ctx workflow.Context, input *ec2.BundleInstanceInput) *BundleInstanceFuture
 
 	CancelBundleTask(ctx workflow.Context, input *ec2.CancelBundleTaskInput) (*ec2.CancelBundleTaskOutput, error)
-	CancelBundleTaskAsync(ctx workflow.Context, input *ec2.CancelBundleTaskInput) *EC2CancelBundleTaskFuture
+	CancelBundleTaskAsync(ctx workflow.Context, input *ec2.CancelBundleTaskInput) *CancelBundleTaskFuture
 
 	CancelCapacityReservation(ctx workflow.Context, input *ec2.CancelCapacityReservationInput) (*ec2.CancelCapacityReservationOutput, error)
-	CancelCapacityReservationAsync(ctx workflow.Context, input *ec2.CancelCapacityReservationInput) *EC2CancelCapacityReservationFuture
+	CancelCapacityReservationAsync(ctx workflow.Context, input *ec2.CancelCapacityReservationInput) *CancelCapacityReservationFuture
 
 	CancelConversionTask(ctx workflow.Context, input *ec2.CancelConversionTaskInput) (*ec2.CancelConversionTaskOutput, error)
-	CancelConversionTaskAsync(ctx workflow.Context, input *ec2.CancelConversionTaskInput) *EC2CancelConversionTaskFuture
+	CancelConversionTaskAsync(ctx workflow.Context, input *ec2.CancelConversionTaskInput) *CancelConversionTaskFuture
 
 	CancelExportTask(ctx workflow.Context, input *ec2.CancelExportTaskInput) (*ec2.CancelExportTaskOutput, error)
-	CancelExportTaskAsync(ctx workflow.Context, input *ec2.CancelExportTaskInput) *EC2CancelExportTaskFuture
+	CancelExportTaskAsync(ctx workflow.Context, input *ec2.CancelExportTaskInput) *CancelExportTaskFuture
 
 	CancelImportTask(ctx workflow.Context, input *ec2.CancelImportTaskInput) (*ec2.CancelImportTaskOutput, error)
-	CancelImportTaskAsync(ctx workflow.Context, input *ec2.CancelImportTaskInput) *EC2CancelImportTaskFuture
+	CancelImportTaskAsync(ctx workflow.Context, input *ec2.CancelImportTaskInput) *CancelImportTaskFuture
 
 	CancelReservedInstancesListing(ctx workflow.Context, input *ec2.CancelReservedInstancesListingInput) (*ec2.CancelReservedInstancesListingOutput, error)
-	CancelReservedInstancesListingAsync(ctx workflow.Context, input *ec2.CancelReservedInstancesListingInput) *EC2CancelReservedInstancesListingFuture
+	CancelReservedInstancesListingAsync(ctx workflow.Context, input *ec2.CancelReservedInstancesListingInput) *CancelReservedInstancesListingFuture
 
 	CancelSpotFleetRequests(ctx workflow.Context, input *ec2.CancelSpotFleetRequestsInput) (*ec2.CancelSpotFleetRequestsOutput, error)
-	CancelSpotFleetRequestsAsync(ctx workflow.Context, input *ec2.CancelSpotFleetRequestsInput) *EC2CancelSpotFleetRequestsFuture
+	CancelSpotFleetRequestsAsync(ctx workflow.Context, input *ec2.CancelSpotFleetRequestsInput) *CancelSpotFleetRequestsFuture
 
 	CancelSpotInstanceRequests(ctx workflow.Context, input *ec2.CancelSpotInstanceRequestsInput) (*ec2.CancelSpotInstanceRequestsOutput, error)
-	CancelSpotInstanceRequestsAsync(ctx workflow.Context, input *ec2.CancelSpotInstanceRequestsInput) *EC2CancelSpotInstanceRequestsFuture
+	CancelSpotInstanceRequestsAsync(ctx workflow.Context, input *ec2.CancelSpotInstanceRequestsInput) *CancelSpotInstanceRequestsFuture
 
 	ConfirmProductInstance(ctx workflow.Context, input *ec2.ConfirmProductInstanceInput) (*ec2.ConfirmProductInstanceOutput, error)
-	ConfirmProductInstanceAsync(ctx workflow.Context, input *ec2.ConfirmProductInstanceInput) *EC2ConfirmProductInstanceFuture
+	ConfirmProductInstanceAsync(ctx workflow.Context, input *ec2.ConfirmProductInstanceInput) *ConfirmProductInstanceFuture
 
 	CopyFpgaImage(ctx workflow.Context, input *ec2.CopyFpgaImageInput) (*ec2.CopyFpgaImageOutput, error)
-	CopyFpgaImageAsync(ctx workflow.Context, input *ec2.CopyFpgaImageInput) *EC2CopyFpgaImageFuture
+	CopyFpgaImageAsync(ctx workflow.Context, input *ec2.CopyFpgaImageInput) *CopyFpgaImageFuture
 
 	CopyImage(ctx workflow.Context, input *ec2.CopyImageInput) (*ec2.CopyImageOutput, error)
-	CopyImageAsync(ctx workflow.Context, input *ec2.CopyImageInput) *EC2CopyImageFuture
+	CopyImageAsync(ctx workflow.Context, input *ec2.CopyImageInput) *CopyImageFuture
 
 	CopySnapshot(ctx workflow.Context, input *ec2.CopySnapshotInput) (*ec2.CopySnapshotOutput, error)
-	CopySnapshotAsync(ctx workflow.Context, input *ec2.CopySnapshotInput) *EC2CopySnapshotFuture
+	CopySnapshotAsync(ctx workflow.Context, input *ec2.CopySnapshotInput) *CopySnapshotFuture
 
 	CreateCapacityReservation(ctx workflow.Context, input *ec2.CreateCapacityReservationInput) (*ec2.CreateCapacityReservationOutput, error)
-	CreateCapacityReservationAsync(ctx workflow.Context, input *ec2.CreateCapacityReservationInput) *EC2CreateCapacityReservationFuture
+	CreateCapacityReservationAsync(ctx workflow.Context, input *ec2.CreateCapacityReservationInput) *CreateCapacityReservationFuture
 
 	CreateCarrierGateway(ctx workflow.Context, input *ec2.CreateCarrierGatewayInput) (*ec2.CreateCarrierGatewayOutput, error)
-	CreateCarrierGatewayAsync(ctx workflow.Context, input *ec2.CreateCarrierGatewayInput) *EC2CreateCarrierGatewayFuture
+	CreateCarrierGatewayAsync(ctx workflow.Context, input *ec2.CreateCarrierGatewayInput) *CreateCarrierGatewayFuture
 
 	CreateClientVpnEndpoint(ctx workflow.Context, input *ec2.CreateClientVpnEndpointInput) (*ec2.CreateClientVpnEndpointOutput, error)
-	CreateClientVpnEndpointAsync(ctx workflow.Context, input *ec2.CreateClientVpnEndpointInput) *EC2CreateClientVpnEndpointFuture
+	CreateClientVpnEndpointAsync(ctx workflow.Context, input *ec2.CreateClientVpnEndpointInput) *CreateClientVpnEndpointFuture
 
 	CreateClientVpnRoute(ctx workflow.Context, input *ec2.CreateClientVpnRouteInput) (*ec2.CreateClientVpnRouteOutput, error)
-	CreateClientVpnRouteAsync(ctx workflow.Context, input *ec2.CreateClientVpnRouteInput) *EC2CreateClientVpnRouteFuture
+	CreateClientVpnRouteAsync(ctx workflow.Context, input *ec2.CreateClientVpnRouteInput) *CreateClientVpnRouteFuture
 
 	CreateCustomerGateway(ctx workflow.Context, input *ec2.CreateCustomerGatewayInput) (*ec2.CreateCustomerGatewayOutput, error)
-	CreateCustomerGatewayAsync(ctx workflow.Context, input *ec2.CreateCustomerGatewayInput) *EC2CreateCustomerGatewayFuture
+	CreateCustomerGatewayAsync(ctx workflow.Context, input *ec2.CreateCustomerGatewayInput) *CreateCustomerGatewayFuture
 
 	CreateDefaultSubnet(ctx workflow.Context, input *ec2.CreateDefaultSubnetInput) (*ec2.CreateDefaultSubnetOutput, error)
-	CreateDefaultSubnetAsync(ctx workflow.Context, input *ec2.CreateDefaultSubnetInput) *EC2CreateDefaultSubnetFuture
+	CreateDefaultSubnetAsync(ctx workflow.Context, input *ec2.CreateDefaultSubnetInput) *CreateDefaultSubnetFuture
 
 	CreateDefaultVpc(ctx workflow.Context, input *ec2.CreateDefaultVpcInput) (*ec2.CreateDefaultVpcOutput, error)
-	CreateDefaultVpcAsync(ctx workflow.Context, input *ec2.CreateDefaultVpcInput) *EC2CreateDefaultVpcFuture
+	CreateDefaultVpcAsync(ctx workflow.Context, input *ec2.CreateDefaultVpcInput) *CreateDefaultVpcFuture
 
 	CreateDhcpOptions(ctx workflow.Context, input *ec2.CreateDhcpOptionsInput) (*ec2.CreateDhcpOptionsOutput, error)
-	CreateDhcpOptionsAsync(ctx workflow.Context, input *ec2.CreateDhcpOptionsInput) *EC2CreateDhcpOptionsFuture
+	CreateDhcpOptionsAsync(ctx workflow.Context, input *ec2.CreateDhcpOptionsInput) *CreateDhcpOptionsFuture
 
 	CreateEgressOnlyInternetGateway(ctx workflow.Context, input *ec2.CreateEgressOnlyInternetGatewayInput) (*ec2.CreateEgressOnlyInternetGatewayOutput, error)
-	CreateEgressOnlyInternetGatewayAsync(ctx workflow.Context, input *ec2.CreateEgressOnlyInternetGatewayInput) *EC2CreateEgressOnlyInternetGatewayFuture
+	CreateEgressOnlyInternetGatewayAsync(ctx workflow.Context, input *ec2.CreateEgressOnlyInternetGatewayInput) *CreateEgressOnlyInternetGatewayFuture
 
 	CreateFleet(ctx workflow.Context, input *ec2.CreateFleetInput) (*ec2.CreateFleetOutput, error)
-	CreateFleetAsync(ctx workflow.Context, input *ec2.CreateFleetInput) *EC2CreateFleetFuture
+	CreateFleetAsync(ctx workflow.Context, input *ec2.CreateFleetInput) *CreateFleetFuture
 
 	CreateFlowLogs(ctx workflow.Context, input *ec2.CreateFlowLogsInput) (*ec2.CreateFlowLogsOutput, error)
-	CreateFlowLogsAsync(ctx workflow.Context, input *ec2.CreateFlowLogsInput) *EC2CreateFlowLogsFuture
+	CreateFlowLogsAsync(ctx workflow.Context, input *ec2.CreateFlowLogsInput) *CreateFlowLogsFuture
 
 	CreateFpgaImage(ctx workflow.Context, input *ec2.CreateFpgaImageInput) (*ec2.CreateFpgaImageOutput, error)
-	CreateFpgaImageAsync(ctx workflow.Context, input *ec2.CreateFpgaImageInput) *EC2CreateFpgaImageFuture
+	CreateFpgaImageAsync(ctx workflow.Context, input *ec2.CreateFpgaImageInput) *CreateFpgaImageFuture
 
 	CreateImage(ctx workflow.Context, input *ec2.CreateImageInput) (*ec2.CreateImageOutput, error)
-	CreateImageAsync(ctx workflow.Context, input *ec2.CreateImageInput) *EC2CreateImageFuture
+	CreateImageAsync(ctx workflow.Context, input *ec2.CreateImageInput) *CreateImageFuture
 
 	CreateInstanceExportTask(ctx workflow.Context, input *ec2.CreateInstanceExportTaskInput) (*ec2.CreateInstanceExportTaskOutput, error)
-	CreateInstanceExportTaskAsync(ctx workflow.Context, input *ec2.CreateInstanceExportTaskInput) *EC2CreateInstanceExportTaskFuture
+	CreateInstanceExportTaskAsync(ctx workflow.Context, input *ec2.CreateInstanceExportTaskInput) *CreateInstanceExportTaskFuture
 
 	CreateInternetGateway(ctx workflow.Context, input *ec2.CreateInternetGatewayInput) (*ec2.CreateInternetGatewayOutput, error)
-	CreateInternetGatewayAsync(ctx workflow.Context, input *ec2.CreateInternetGatewayInput) *EC2CreateInternetGatewayFuture
+	CreateInternetGatewayAsync(ctx workflow.Context, input *ec2.CreateInternetGatewayInput) *CreateInternetGatewayFuture
 
 	CreateKeyPair(ctx workflow.Context, input *ec2.CreateKeyPairInput) (*ec2.CreateKeyPairOutput, error)
-	CreateKeyPairAsync(ctx workflow.Context, input *ec2.CreateKeyPairInput) *EC2CreateKeyPairFuture
+	CreateKeyPairAsync(ctx workflow.Context, input *ec2.CreateKeyPairInput) *CreateKeyPairFuture
 
 	CreateLaunchTemplate(ctx workflow.Context, input *ec2.CreateLaunchTemplateInput) (*ec2.CreateLaunchTemplateOutput, error)
-	CreateLaunchTemplateAsync(ctx workflow.Context, input *ec2.CreateLaunchTemplateInput) *EC2CreateLaunchTemplateFuture
+	CreateLaunchTemplateAsync(ctx workflow.Context, input *ec2.CreateLaunchTemplateInput) *CreateLaunchTemplateFuture
 
 	CreateLaunchTemplateVersion(ctx workflow.Context, input *ec2.CreateLaunchTemplateVersionInput) (*ec2.CreateLaunchTemplateVersionOutput, error)
-	CreateLaunchTemplateVersionAsync(ctx workflow.Context, input *ec2.CreateLaunchTemplateVersionInput) *EC2CreateLaunchTemplateVersionFuture
+	CreateLaunchTemplateVersionAsync(ctx workflow.Context, input *ec2.CreateLaunchTemplateVersionInput) *CreateLaunchTemplateVersionFuture
 
 	CreateLocalGatewayRoute(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteInput) (*ec2.CreateLocalGatewayRouteOutput, error)
-	CreateLocalGatewayRouteAsync(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteInput) *EC2CreateLocalGatewayRouteFuture
+	CreateLocalGatewayRouteAsync(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteInput) *CreateLocalGatewayRouteFuture
 
 	CreateLocalGatewayRouteTableVpcAssociation(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) (*ec2.CreateLocalGatewayRouteTableVpcAssociationOutput, error)
-	CreateLocalGatewayRouteTableVpcAssociationAsync(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) *EC2CreateLocalGatewayRouteTableVpcAssociationFuture
+	CreateLocalGatewayRouteTableVpcAssociationAsync(ctx workflow.Context, input *ec2.CreateLocalGatewayRouteTableVpcAssociationInput) *CreateLocalGatewayRouteTableVpcAssociationFuture
 
 	CreateManagedPrefixList(ctx workflow.Context, input *ec2.CreateManagedPrefixListInput) (*ec2.CreateManagedPrefixListOutput, error)
-	CreateManagedPrefixListAsync(ctx workflow.Context, input *ec2.CreateManagedPrefixListInput) *EC2CreateManagedPrefixListFuture
+	CreateManagedPrefixListAsync(ctx workflow.Context, input *ec2.CreateManagedPrefixListInput) *CreateManagedPrefixListFuture
 
 	CreateNatGateway(ctx workflow.Context, input *ec2.CreateNatGatewayInput) (*ec2.CreateNatGatewayOutput, error)
-	CreateNatGatewayAsync(ctx workflow.Context, input *ec2.CreateNatGatewayInput) *EC2CreateNatGatewayFuture
+	CreateNatGatewayAsync(ctx workflow.Context, input *ec2.CreateNatGatewayInput) *CreateNatGatewayFuture
 
 	CreateNetworkAcl(ctx workflow.Context, input *ec2.CreateNetworkAclInput) (*ec2.CreateNetworkAclOutput, error)
-	CreateNetworkAclAsync(ctx workflow.Context, input *ec2.CreateNetworkAclInput) *EC2CreateNetworkAclFuture
+	CreateNetworkAclAsync(ctx workflow.Context, input *ec2.CreateNetworkAclInput) *CreateNetworkAclFuture
 
 	CreateNetworkAclEntry(ctx workflow.Context, input *ec2.CreateNetworkAclEntryInput) (*ec2.CreateNetworkAclEntryOutput, error)
-	CreateNetworkAclEntryAsync(ctx workflow.Context, input *ec2.CreateNetworkAclEntryInput) *EC2CreateNetworkAclEntryFuture
+	CreateNetworkAclEntryAsync(ctx workflow.Context, input *ec2.CreateNetworkAclEntryInput) *CreateNetworkAclEntryFuture
 
 	CreateNetworkInterface(ctx workflow.Context, input *ec2.CreateNetworkInterfaceInput) (*ec2.CreateNetworkInterfaceOutput, error)
-	CreateNetworkInterfaceAsync(ctx workflow.Context, input *ec2.CreateNetworkInterfaceInput) *EC2CreateNetworkInterfaceFuture
+	CreateNetworkInterfaceAsync(ctx workflow.Context, input *ec2.CreateNetworkInterfaceInput) *CreateNetworkInterfaceFuture
 
 	CreateNetworkInterfacePermission(ctx workflow.Context, input *ec2.CreateNetworkInterfacePermissionInput) (*ec2.CreateNetworkInterfacePermissionOutput, error)
-	CreateNetworkInterfacePermissionAsync(ctx workflow.Context, input *ec2.CreateNetworkInterfacePermissionInput) *EC2CreateNetworkInterfacePermissionFuture
+	CreateNetworkInterfacePermissionAsync(ctx workflow.Context, input *ec2.CreateNetworkInterfacePermissionInput) *CreateNetworkInterfacePermissionFuture
 
 	CreatePlacementGroup(ctx workflow.Context, input *ec2.CreatePlacementGroupInput) (*ec2.CreatePlacementGroupOutput, error)
-	CreatePlacementGroupAsync(ctx workflow.Context, input *ec2.CreatePlacementGroupInput) *EC2CreatePlacementGroupFuture
+	CreatePlacementGroupAsync(ctx workflow.Context, input *ec2.CreatePlacementGroupInput) *CreatePlacementGroupFuture
 
 	CreateReservedInstancesListing(ctx workflow.Context, input *ec2.CreateReservedInstancesListingInput) (*ec2.CreateReservedInstancesListingOutput, error)
-	CreateReservedInstancesListingAsync(ctx workflow.Context, input *ec2.CreateReservedInstancesListingInput) *EC2CreateReservedInstancesListingFuture
+	CreateReservedInstancesListingAsync(ctx workflow.Context, input *ec2.CreateReservedInstancesListingInput) *CreateReservedInstancesListingFuture
 
 	CreateRoute(ctx workflow.Context, input *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error)
-	CreateRouteAsync(ctx workflow.Context, input *ec2.CreateRouteInput) *EC2CreateRouteFuture
+	CreateRouteAsync(ctx workflow.Context, input *ec2.CreateRouteInput) *CreateRouteFuture
 
 	CreateRouteTable(ctx workflow.Context, input *ec2.CreateRouteTableInput) (*ec2.CreateRouteTableOutput, error)
-	CreateRouteTableAsync(ctx workflow.Context, input *ec2.CreateRouteTableInput) *EC2CreateRouteTableFuture
+	CreateRouteTableAsync(ctx workflow.Context, input *ec2.CreateRouteTableInput) *CreateRouteTableFuture
 
 	CreateSecurityGroup(ctx workflow.Context, input *ec2.CreateSecurityGroupInput) (*ec2.CreateSecurityGroupOutput, error)
-	CreateSecurityGroupAsync(ctx workflow.Context, input *ec2.CreateSecurityGroupInput) *EC2CreateSecurityGroupFuture
+	CreateSecurityGroupAsync(ctx workflow.Context, input *ec2.CreateSecurityGroupInput) *CreateSecurityGroupFuture
 
 	CreateSnapshot(ctx workflow.Context, input *ec2.CreateSnapshotInput) (*ec2.Snapshot, error)
-	CreateSnapshotAsync(ctx workflow.Context, input *ec2.CreateSnapshotInput) *EC2CreateSnapshotFuture
+	CreateSnapshotAsync(ctx workflow.Context, input *ec2.CreateSnapshotInput) *CreateSnapshotFuture
 
 	CreateSnapshots(ctx workflow.Context, input *ec2.CreateSnapshotsInput) (*ec2.CreateSnapshotsOutput, error)
-	CreateSnapshotsAsync(ctx workflow.Context, input *ec2.CreateSnapshotsInput) *EC2CreateSnapshotsFuture
+	CreateSnapshotsAsync(ctx workflow.Context, input *ec2.CreateSnapshotsInput) *CreateSnapshotsFuture
 
 	CreateSpotDatafeedSubscription(ctx workflow.Context, input *ec2.CreateSpotDatafeedSubscriptionInput) (*ec2.CreateSpotDatafeedSubscriptionOutput, error)
-	CreateSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.CreateSpotDatafeedSubscriptionInput) *EC2CreateSpotDatafeedSubscriptionFuture
+	CreateSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.CreateSpotDatafeedSubscriptionInput) *CreateSpotDatafeedSubscriptionFuture
 
 	CreateSubnet(ctx workflow.Context, input *ec2.CreateSubnetInput) (*ec2.CreateSubnetOutput, error)
-	CreateSubnetAsync(ctx workflow.Context, input *ec2.CreateSubnetInput) *EC2CreateSubnetFuture
+	CreateSubnetAsync(ctx workflow.Context, input *ec2.CreateSubnetInput) *CreateSubnetFuture
 
 	CreateTags(ctx workflow.Context, input *ec2.CreateTagsInput) (*ec2.CreateTagsOutput, error)
-	CreateTagsAsync(ctx workflow.Context, input *ec2.CreateTagsInput) *EC2CreateTagsFuture
+	CreateTagsAsync(ctx workflow.Context, input *ec2.CreateTagsInput) *CreateTagsFuture
 
 	CreateTrafficMirrorFilter(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterInput) (*ec2.CreateTrafficMirrorFilterOutput, error)
-	CreateTrafficMirrorFilterAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterInput) *EC2CreateTrafficMirrorFilterFuture
+	CreateTrafficMirrorFilterAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterInput) *CreateTrafficMirrorFilterFuture
 
 	CreateTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterRuleInput) (*ec2.CreateTrafficMirrorFilterRuleOutput, error)
-	CreateTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterRuleInput) *EC2CreateTrafficMirrorFilterRuleFuture
+	CreateTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorFilterRuleInput) *CreateTrafficMirrorFilterRuleFuture
 
 	CreateTrafficMirrorSession(ctx workflow.Context, input *ec2.CreateTrafficMirrorSessionInput) (*ec2.CreateTrafficMirrorSessionOutput, error)
-	CreateTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorSessionInput) *EC2CreateTrafficMirrorSessionFuture
+	CreateTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorSessionInput) *CreateTrafficMirrorSessionFuture
 
 	CreateTrafficMirrorTarget(ctx workflow.Context, input *ec2.CreateTrafficMirrorTargetInput) (*ec2.CreateTrafficMirrorTargetOutput, error)
-	CreateTrafficMirrorTargetAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorTargetInput) *EC2CreateTrafficMirrorTargetFuture
+	CreateTrafficMirrorTargetAsync(ctx workflow.Context, input *ec2.CreateTrafficMirrorTargetInput) *CreateTrafficMirrorTargetFuture
 
 	CreateTransitGateway(ctx workflow.Context, input *ec2.CreateTransitGatewayInput) (*ec2.CreateTransitGatewayOutput, error)
-	CreateTransitGatewayAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayInput) *EC2CreateTransitGatewayFuture
+	CreateTransitGatewayAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayInput) *CreateTransitGatewayFuture
 
 	CreateTransitGatewayMulticastDomain(ctx workflow.Context, input *ec2.CreateTransitGatewayMulticastDomainInput) (*ec2.CreateTransitGatewayMulticastDomainOutput, error)
-	CreateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayMulticastDomainInput) *EC2CreateTransitGatewayMulticastDomainFuture
+	CreateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayMulticastDomainInput) *CreateTransitGatewayMulticastDomainFuture
 
 	CreateTransitGatewayPeeringAttachment(ctx workflow.Context, input *ec2.CreateTransitGatewayPeeringAttachmentInput) (*ec2.CreateTransitGatewayPeeringAttachmentOutput, error)
-	CreateTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayPeeringAttachmentInput) *EC2CreateTransitGatewayPeeringAttachmentFuture
+	CreateTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayPeeringAttachmentInput) *CreateTransitGatewayPeeringAttachmentFuture
 
 	CreateTransitGatewayPrefixListReference(ctx workflow.Context, input *ec2.CreateTransitGatewayPrefixListReferenceInput) (*ec2.CreateTransitGatewayPrefixListReferenceOutput, error)
-	CreateTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayPrefixListReferenceInput) *EC2CreateTransitGatewayPrefixListReferenceFuture
+	CreateTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayPrefixListReferenceInput) *CreateTransitGatewayPrefixListReferenceFuture
 
 	CreateTransitGatewayRoute(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteInput) (*ec2.CreateTransitGatewayRouteOutput, error)
-	CreateTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteInput) *EC2CreateTransitGatewayRouteFuture
+	CreateTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteInput) *CreateTransitGatewayRouteFuture
 
 	CreateTransitGatewayRouteTable(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteTableInput) (*ec2.CreateTransitGatewayRouteTableOutput, error)
-	CreateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteTableInput) *EC2CreateTransitGatewayRouteTableFuture
+	CreateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayRouteTableInput) *CreateTransitGatewayRouteTableFuture
 
 	CreateTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.CreateTransitGatewayVpcAttachmentInput) (*ec2.CreateTransitGatewayVpcAttachmentOutput, error)
-	CreateTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayVpcAttachmentInput) *EC2CreateTransitGatewayVpcAttachmentFuture
+	CreateTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.CreateTransitGatewayVpcAttachmentInput) *CreateTransitGatewayVpcAttachmentFuture
 
 	CreateVolume(ctx workflow.Context, input *ec2.CreateVolumeInput) (*ec2.Volume, error)
-	CreateVolumeAsync(ctx workflow.Context, input *ec2.CreateVolumeInput) *EC2CreateVolumeFuture
+	CreateVolumeAsync(ctx workflow.Context, input *ec2.CreateVolumeInput) *CreateVolumeFuture
 
 	CreateVpc(ctx workflow.Context, input *ec2.CreateVpcInput) (*ec2.CreateVpcOutput, error)
-	CreateVpcAsync(ctx workflow.Context, input *ec2.CreateVpcInput) *EC2CreateVpcFuture
+	CreateVpcAsync(ctx workflow.Context, input *ec2.CreateVpcInput) *CreateVpcFuture
 
 	CreateVpcEndpoint(ctx workflow.Context, input *ec2.CreateVpcEndpointInput) (*ec2.CreateVpcEndpointOutput, error)
-	CreateVpcEndpointAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointInput) *EC2CreateVpcEndpointFuture
+	CreateVpcEndpointAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointInput) *CreateVpcEndpointFuture
 
 	CreateVpcEndpointConnectionNotification(ctx workflow.Context, input *ec2.CreateVpcEndpointConnectionNotificationInput) (*ec2.CreateVpcEndpointConnectionNotificationOutput, error)
-	CreateVpcEndpointConnectionNotificationAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointConnectionNotificationInput) *EC2CreateVpcEndpointConnectionNotificationFuture
+	CreateVpcEndpointConnectionNotificationAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointConnectionNotificationInput) *CreateVpcEndpointConnectionNotificationFuture
 
 	CreateVpcEndpointServiceConfiguration(ctx workflow.Context, input *ec2.CreateVpcEndpointServiceConfigurationInput) (*ec2.CreateVpcEndpointServiceConfigurationOutput, error)
-	CreateVpcEndpointServiceConfigurationAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointServiceConfigurationInput) *EC2CreateVpcEndpointServiceConfigurationFuture
+	CreateVpcEndpointServiceConfigurationAsync(ctx workflow.Context, input *ec2.CreateVpcEndpointServiceConfigurationInput) *CreateVpcEndpointServiceConfigurationFuture
 
 	CreateVpcPeeringConnection(ctx workflow.Context, input *ec2.CreateVpcPeeringConnectionInput) (*ec2.CreateVpcPeeringConnectionOutput, error)
-	CreateVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.CreateVpcPeeringConnectionInput) *EC2CreateVpcPeeringConnectionFuture
+	CreateVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.CreateVpcPeeringConnectionInput) *CreateVpcPeeringConnectionFuture
 
 	CreateVpnConnection(ctx workflow.Context, input *ec2.CreateVpnConnectionInput) (*ec2.CreateVpnConnectionOutput, error)
-	CreateVpnConnectionAsync(ctx workflow.Context, input *ec2.CreateVpnConnectionInput) *EC2CreateVpnConnectionFuture
+	CreateVpnConnectionAsync(ctx workflow.Context, input *ec2.CreateVpnConnectionInput) *CreateVpnConnectionFuture
 
 	CreateVpnConnectionRoute(ctx workflow.Context, input *ec2.CreateVpnConnectionRouteInput) (*ec2.CreateVpnConnectionRouteOutput, error)
-	CreateVpnConnectionRouteAsync(ctx workflow.Context, input *ec2.CreateVpnConnectionRouteInput) *EC2CreateVpnConnectionRouteFuture
+	CreateVpnConnectionRouteAsync(ctx workflow.Context, input *ec2.CreateVpnConnectionRouteInput) *CreateVpnConnectionRouteFuture
 
 	CreateVpnGateway(ctx workflow.Context, input *ec2.CreateVpnGatewayInput) (*ec2.CreateVpnGatewayOutput, error)
-	CreateVpnGatewayAsync(ctx workflow.Context, input *ec2.CreateVpnGatewayInput) *EC2CreateVpnGatewayFuture
+	CreateVpnGatewayAsync(ctx workflow.Context, input *ec2.CreateVpnGatewayInput) *CreateVpnGatewayFuture
 
 	DeleteCarrierGateway(ctx workflow.Context, input *ec2.DeleteCarrierGatewayInput) (*ec2.DeleteCarrierGatewayOutput, error)
-	DeleteCarrierGatewayAsync(ctx workflow.Context, input *ec2.DeleteCarrierGatewayInput) *EC2DeleteCarrierGatewayFuture
+	DeleteCarrierGatewayAsync(ctx workflow.Context, input *ec2.DeleteCarrierGatewayInput) *DeleteCarrierGatewayFuture
 
 	DeleteClientVpnEndpoint(ctx workflow.Context, input *ec2.DeleteClientVpnEndpointInput) (*ec2.DeleteClientVpnEndpointOutput, error)
-	DeleteClientVpnEndpointAsync(ctx workflow.Context, input *ec2.DeleteClientVpnEndpointInput) *EC2DeleteClientVpnEndpointFuture
+	DeleteClientVpnEndpointAsync(ctx workflow.Context, input *ec2.DeleteClientVpnEndpointInput) *DeleteClientVpnEndpointFuture
 
 	DeleteClientVpnRoute(ctx workflow.Context, input *ec2.DeleteClientVpnRouteInput) (*ec2.DeleteClientVpnRouteOutput, error)
-	DeleteClientVpnRouteAsync(ctx workflow.Context, input *ec2.DeleteClientVpnRouteInput) *EC2DeleteClientVpnRouteFuture
+	DeleteClientVpnRouteAsync(ctx workflow.Context, input *ec2.DeleteClientVpnRouteInput) *DeleteClientVpnRouteFuture
 
 	DeleteCustomerGateway(ctx workflow.Context, input *ec2.DeleteCustomerGatewayInput) (*ec2.DeleteCustomerGatewayOutput, error)
-	DeleteCustomerGatewayAsync(ctx workflow.Context, input *ec2.DeleteCustomerGatewayInput) *EC2DeleteCustomerGatewayFuture
+	DeleteCustomerGatewayAsync(ctx workflow.Context, input *ec2.DeleteCustomerGatewayInput) *DeleteCustomerGatewayFuture
 
 	DeleteDhcpOptions(ctx workflow.Context, input *ec2.DeleteDhcpOptionsInput) (*ec2.DeleteDhcpOptionsOutput, error)
-	DeleteDhcpOptionsAsync(ctx workflow.Context, input *ec2.DeleteDhcpOptionsInput) *EC2DeleteDhcpOptionsFuture
+	DeleteDhcpOptionsAsync(ctx workflow.Context, input *ec2.DeleteDhcpOptionsInput) *DeleteDhcpOptionsFuture
 
 	DeleteEgressOnlyInternetGateway(ctx workflow.Context, input *ec2.DeleteEgressOnlyInternetGatewayInput) (*ec2.DeleteEgressOnlyInternetGatewayOutput, error)
-	DeleteEgressOnlyInternetGatewayAsync(ctx workflow.Context, input *ec2.DeleteEgressOnlyInternetGatewayInput) *EC2DeleteEgressOnlyInternetGatewayFuture
+	DeleteEgressOnlyInternetGatewayAsync(ctx workflow.Context, input *ec2.DeleteEgressOnlyInternetGatewayInput) *DeleteEgressOnlyInternetGatewayFuture
 
 	DeleteFleets(ctx workflow.Context, input *ec2.DeleteFleetsInput) (*ec2.DeleteFleetsOutput, error)
-	DeleteFleetsAsync(ctx workflow.Context, input *ec2.DeleteFleetsInput) *EC2DeleteFleetsFuture
+	DeleteFleetsAsync(ctx workflow.Context, input *ec2.DeleteFleetsInput) *DeleteFleetsFuture
 
 	DeleteFlowLogs(ctx workflow.Context, input *ec2.DeleteFlowLogsInput) (*ec2.DeleteFlowLogsOutput, error)
-	DeleteFlowLogsAsync(ctx workflow.Context, input *ec2.DeleteFlowLogsInput) *EC2DeleteFlowLogsFuture
+	DeleteFlowLogsAsync(ctx workflow.Context, input *ec2.DeleteFlowLogsInput) *DeleteFlowLogsFuture
 
 	DeleteFpgaImage(ctx workflow.Context, input *ec2.DeleteFpgaImageInput) (*ec2.DeleteFpgaImageOutput, error)
-	DeleteFpgaImageAsync(ctx workflow.Context, input *ec2.DeleteFpgaImageInput) *EC2DeleteFpgaImageFuture
+	DeleteFpgaImageAsync(ctx workflow.Context, input *ec2.DeleteFpgaImageInput) *DeleteFpgaImageFuture
 
 	DeleteInternetGateway(ctx workflow.Context, input *ec2.DeleteInternetGatewayInput) (*ec2.DeleteInternetGatewayOutput, error)
-	DeleteInternetGatewayAsync(ctx workflow.Context, input *ec2.DeleteInternetGatewayInput) *EC2DeleteInternetGatewayFuture
+	DeleteInternetGatewayAsync(ctx workflow.Context, input *ec2.DeleteInternetGatewayInput) *DeleteInternetGatewayFuture
 
 	DeleteKeyPair(ctx workflow.Context, input *ec2.DeleteKeyPairInput) (*ec2.DeleteKeyPairOutput, error)
-	DeleteKeyPairAsync(ctx workflow.Context, input *ec2.DeleteKeyPairInput) *EC2DeleteKeyPairFuture
+	DeleteKeyPairAsync(ctx workflow.Context, input *ec2.DeleteKeyPairInput) *DeleteKeyPairFuture
 
 	DeleteLaunchTemplate(ctx workflow.Context, input *ec2.DeleteLaunchTemplateInput) (*ec2.DeleteLaunchTemplateOutput, error)
-	DeleteLaunchTemplateAsync(ctx workflow.Context, input *ec2.DeleteLaunchTemplateInput) *EC2DeleteLaunchTemplateFuture
+	DeleteLaunchTemplateAsync(ctx workflow.Context, input *ec2.DeleteLaunchTemplateInput) *DeleteLaunchTemplateFuture
 
 	DeleteLaunchTemplateVersions(ctx workflow.Context, input *ec2.DeleteLaunchTemplateVersionsInput) (*ec2.DeleteLaunchTemplateVersionsOutput, error)
-	DeleteLaunchTemplateVersionsAsync(ctx workflow.Context, input *ec2.DeleteLaunchTemplateVersionsInput) *EC2DeleteLaunchTemplateVersionsFuture
+	DeleteLaunchTemplateVersionsAsync(ctx workflow.Context, input *ec2.DeleteLaunchTemplateVersionsInput) *DeleteLaunchTemplateVersionsFuture
 
 	DeleteLocalGatewayRoute(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteInput) (*ec2.DeleteLocalGatewayRouteOutput, error)
-	DeleteLocalGatewayRouteAsync(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteInput) *EC2DeleteLocalGatewayRouteFuture
+	DeleteLocalGatewayRouteAsync(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteInput) *DeleteLocalGatewayRouteFuture
 
 	DeleteLocalGatewayRouteTableVpcAssociation(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) (*ec2.DeleteLocalGatewayRouteTableVpcAssociationOutput, error)
-	DeleteLocalGatewayRouteTableVpcAssociationAsync(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) *EC2DeleteLocalGatewayRouteTableVpcAssociationFuture
+	DeleteLocalGatewayRouteTableVpcAssociationAsync(ctx workflow.Context, input *ec2.DeleteLocalGatewayRouteTableVpcAssociationInput) *DeleteLocalGatewayRouteTableVpcAssociationFuture
 
 	DeleteManagedPrefixList(ctx workflow.Context, input *ec2.DeleteManagedPrefixListInput) (*ec2.DeleteManagedPrefixListOutput, error)
-	DeleteManagedPrefixListAsync(ctx workflow.Context, input *ec2.DeleteManagedPrefixListInput) *EC2DeleteManagedPrefixListFuture
+	DeleteManagedPrefixListAsync(ctx workflow.Context, input *ec2.DeleteManagedPrefixListInput) *DeleteManagedPrefixListFuture
 
 	DeleteNatGateway(ctx workflow.Context, input *ec2.DeleteNatGatewayInput) (*ec2.DeleteNatGatewayOutput, error)
-	DeleteNatGatewayAsync(ctx workflow.Context, input *ec2.DeleteNatGatewayInput) *EC2DeleteNatGatewayFuture
+	DeleteNatGatewayAsync(ctx workflow.Context, input *ec2.DeleteNatGatewayInput) *DeleteNatGatewayFuture
 
 	DeleteNetworkAcl(ctx workflow.Context, input *ec2.DeleteNetworkAclInput) (*ec2.DeleteNetworkAclOutput, error)
-	DeleteNetworkAclAsync(ctx workflow.Context, input *ec2.DeleteNetworkAclInput) *EC2DeleteNetworkAclFuture
+	DeleteNetworkAclAsync(ctx workflow.Context, input *ec2.DeleteNetworkAclInput) *DeleteNetworkAclFuture
 
 	DeleteNetworkAclEntry(ctx workflow.Context, input *ec2.DeleteNetworkAclEntryInput) (*ec2.DeleteNetworkAclEntryOutput, error)
-	DeleteNetworkAclEntryAsync(ctx workflow.Context, input *ec2.DeleteNetworkAclEntryInput) *EC2DeleteNetworkAclEntryFuture
+	DeleteNetworkAclEntryAsync(ctx workflow.Context, input *ec2.DeleteNetworkAclEntryInput) *DeleteNetworkAclEntryFuture
 
 	DeleteNetworkInterface(ctx workflow.Context, input *ec2.DeleteNetworkInterfaceInput) (*ec2.DeleteNetworkInterfaceOutput, error)
-	DeleteNetworkInterfaceAsync(ctx workflow.Context, input *ec2.DeleteNetworkInterfaceInput) *EC2DeleteNetworkInterfaceFuture
+	DeleteNetworkInterfaceAsync(ctx workflow.Context, input *ec2.DeleteNetworkInterfaceInput) *DeleteNetworkInterfaceFuture
 
 	DeleteNetworkInterfacePermission(ctx workflow.Context, input *ec2.DeleteNetworkInterfacePermissionInput) (*ec2.DeleteNetworkInterfacePermissionOutput, error)
-	DeleteNetworkInterfacePermissionAsync(ctx workflow.Context, input *ec2.DeleteNetworkInterfacePermissionInput) *EC2DeleteNetworkInterfacePermissionFuture
+	DeleteNetworkInterfacePermissionAsync(ctx workflow.Context, input *ec2.DeleteNetworkInterfacePermissionInput) *DeleteNetworkInterfacePermissionFuture
 
 	DeletePlacementGroup(ctx workflow.Context, input *ec2.DeletePlacementGroupInput) (*ec2.DeletePlacementGroupOutput, error)
-	DeletePlacementGroupAsync(ctx workflow.Context, input *ec2.DeletePlacementGroupInput) *EC2DeletePlacementGroupFuture
+	DeletePlacementGroupAsync(ctx workflow.Context, input *ec2.DeletePlacementGroupInput) *DeletePlacementGroupFuture
 
 	DeleteQueuedReservedInstances(ctx workflow.Context, input *ec2.DeleteQueuedReservedInstancesInput) (*ec2.DeleteQueuedReservedInstancesOutput, error)
-	DeleteQueuedReservedInstancesAsync(ctx workflow.Context, input *ec2.DeleteQueuedReservedInstancesInput) *EC2DeleteQueuedReservedInstancesFuture
+	DeleteQueuedReservedInstancesAsync(ctx workflow.Context, input *ec2.DeleteQueuedReservedInstancesInput) *DeleteQueuedReservedInstancesFuture
 
 	DeleteRoute(ctx workflow.Context, input *ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error)
-	DeleteRouteAsync(ctx workflow.Context, input *ec2.DeleteRouteInput) *EC2DeleteRouteFuture
+	DeleteRouteAsync(ctx workflow.Context, input *ec2.DeleteRouteInput) *DeleteRouteFuture
 
 	DeleteRouteTable(ctx workflow.Context, input *ec2.DeleteRouteTableInput) (*ec2.DeleteRouteTableOutput, error)
-	DeleteRouteTableAsync(ctx workflow.Context, input *ec2.DeleteRouteTableInput) *EC2DeleteRouteTableFuture
+	DeleteRouteTableAsync(ctx workflow.Context, input *ec2.DeleteRouteTableInput) *DeleteRouteTableFuture
 
 	DeleteSecurityGroup(ctx workflow.Context, input *ec2.DeleteSecurityGroupInput) (*ec2.DeleteSecurityGroupOutput, error)
-	DeleteSecurityGroupAsync(ctx workflow.Context, input *ec2.DeleteSecurityGroupInput) *EC2DeleteSecurityGroupFuture
+	DeleteSecurityGroupAsync(ctx workflow.Context, input *ec2.DeleteSecurityGroupInput) *DeleteSecurityGroupFuture
 
 	DeleteSnapshot(ctx workflow.Context, input *ec2.DeleteSnapshotInput) (*ec2.DeleteSnapshotOutput, error)
-	DeleteSnapshotAsync(ctx workflow.Context, input *ec2.DeleteSnapshotInput) *EC2DeleteSnapshotFuture
+	DeleteSnapshotAsync(ctx workflow.Context, input *ec2.DeleteSnapshotInput) *DeleteSnapshotFuture
 
 	DeleteSpotDatafeedSubscription(ctx workflow.Context, input *ec2.DeleteSpotDatafeedSubscriptionInput) (*ec2.DeleteSpotDatafeedSubscriptionOutput, error)
-	DeleteSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.DeleteSpotDatafeedSubscriptionInput) *EC2DeleteSpotDatafeedSubscriptionFuture
+	DeleteSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.DeleteSpotDatafeedSubscriptionInput) *DeleteSpotDatafeedSubscriptionFuture
 
 	DeleteSubnet(ctx workflow.Context, input *ec2.DeleteSubnetInput) (*ec2.DeleteSubnetOutput, error)
-	DeleteSubnetAsync(ctx workflow.Context, input *ec2.DeleteSubnetInput) *EC2DeleteSubnetFuture
+	DeleteSubnetAsync(ctx workflow.Context, input *ec2.DeleteSubnetInput) *DeleteSubnetFuture
 
 	DeleteTags(ctx workflow.Context, input *ec2.DeleteTagsInput) (*ec2.DeleteTagsOutput, error)
-	DeleteTagsAsync(ctx workflow.Context, input *ec2.DeleteTagsInput) *EC2DeleteTagsFuture
+	DeleteTagsAsync(ctx workflow.Context, input *ec2.DeleteTagsInput) *DeleteTagsFuture
 
 	DeleteTrafficMirrorFilter(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterInput) (*ec2.DeleteTrafficMirrorFilterOutput, error)
-	DeleteTrafficMirrorFilterAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterInput) *EC2DeleteTrafficMirrorFilterFuture
+	DeleteTrafficMirrorFilterAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterInput) *DeleteTrafficMirrorFilterFuture
 
 	DeleteTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterRuleInput) (*ec2.DeleteTrafficMirrorFilterRuleOutput, error)
-	DeleteTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterRuleInput) *EC2DeleteTrafficMirrorFilterRuleFuture
+	DeleteTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorFilterRuleInput) *DeleteTrafficMirrorFilterRuleFuture
 
 	DeleteTrafficMirrorSession(ctx workflow.Context, input *ec2.DeleteTrafficMirrorSessionInput) (*ec2.DeleteTrafficMirrorSessionOutput, error)
-	DeleteTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorSessionInput) *EC2DeleteTrafficMirrorSessionFuture
+	DeleteTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorSessionInput) *DeleteTrafficMirrorSessionFuture
 
 	DeleteTrafficMirrorTarget(ctx workflow.Context, input *ec2.DeleteTrafficMirrorTargetInput) (*ec2.DeleteTrafficMirrorTargetOutput, error)
-	DeleteTrafficMirrorTargetAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorTargetInput) *EC2DeleteTrafficMirrorTargetFuture
+	DeleteTrafficMirrorTargetAsync(ctx workflow.Context, input *ec2.DeleteTrafficMirrorTargetInput) *DeleteTrafficMirrorTargetFuture
 
 	DeleteTransitGateway(ctx workflow.Context, input *ec2.DeleteTransitGatewayInput) (*ec2.DeleteTransitGatewayOutput, error)
-	DeleteTransitGatewayAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayInput) *EC2DeleteTransitGatewayFuture
+	DeleteTransitGatewayAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayInput) *DeleteTransitGatewayFuture
 
 	DeleteTransitGatewayMulticastDomain(ctx workflow.Context, input *ec2.DeleteTransitGatewayMulticastDomainInput) (*ec2.DeleteTransitGatewayMulticastDomainOutput, error)
-	DeleteTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayMulticastDomainInput) *EC2DeleteTransitGatewayMulticastDomainFuture
+	DeleteTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayMulticastDomainInput) *DeleteTransitGatewayMulticastDomainFuture
 
 	DeleteTransitGatewayPeeringAttachment(ctx workflow.Context, input *ec2.DeleteTransitGatewayPeeringAttachmentInput) (*ec2.DeleteTransitGatewayPeeringAttachmentOutput, error)
-	DeleteTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayPeeringAttachmentInput) *EC2DeleteTransitGatewayPeeringAttachmentFuture
+	DeleteTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayPeeringAttachmentInput) *DeleteTransitGatewayPeeringAttachmentFuture
 
 	DeleteTransitGatewayPrefixListReference(ctx workflow.Context, input *ec2.DeleteTransitGatewayPrefixListReferenceInput) (*ec2.DeleteTransitGatewayPrefixListReferenceOutput, error)
-	DeleteTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayPrefixListReferenceInput) *EC2DeleteTransitGatewayPrefixListReferenceFuture
+	DeleteTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayPrefixListReferenceInput) *DeleteTransitGatewayPrefixListReferenceFuture
 
 	DeleteTransitGatewayRoute(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteInput) (*ec2.DeleteTransitGatewayRouteOutput, error)
-	DeleteTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteInput) *EC2DeleteTransitGatewayRouteFuture
+	DeleteTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteInput) *DeleteTransitGatewayRouteFuture
 
 	DeleteTransitGatewayRouteTable(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteTableInput) (*ec2.DeleteTransitGatewayRouteTableOutput, error)
-	DeleteTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteTableInput) *EC2DeleteTransitGatewayRouteTableFuture
+	DeleteTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayRouteTableInput) *DeleteTransitGatewayRouteTableFuture
 
 	DeleteTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.DeleteTransitGatewayVpcAttachmentInput) (*ec2.DeleteTransitGatewayVpcAttachmentOutput, error)
-	DeleteTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayVpcAttachmentInput) *EC2DeleteTransitGatewayVpcAttachmentFuture
+	DeleteTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.DeleteTransitGatewayVpcAttachmentInput) *DeleteTransitGatewayVpcAttachmentFuture
 
 	DeleteVolume(ctx workflow.Context, input *ec2.DeleteVolumeInput) (*ec2.DeleteVolumeOutput, error)
-	DeleteVolumeAsync(ctx workflow.Context, input *ec2.DeleteVolumeInput) *EC2DeleteVolumeFuture
+	DeleteVolumeAsync(ctx workflow.Context, input *ec2.DeleteVolumeInput) *DeleteVolumeFuture
 
 	DeleteVpc(ctx workflow.Context, input *ec2.DeleteVpcInput) (*ec2.DeleteVpcOutput, error)
-	DeleteVpcAsync(ctx workflow.Context, input *ec2.DeleteVpcInput) *EC2DeleteVpcFuture
+	DeleteVpcAsync(ctx workflow.Context, input *ec2.DeleteVpcInput) *DeleteVpcFuture
 
 	DeleteVpcEndpointConnectionNotifications(ctx workflow.Context, input *ec2.DeleteVpcEndpointConnectionNotificationsInput) (*ec2.DeleteVpcEndpointConnectionNotificationsOutput, error)
-	DeleteVpcEndpointConnectionNotificationsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointConnectionNotificationsInput) *EC2DeleteVpcEndpointConnectionNotificationsFuture
+	DeleteVpcEndpointConnectionNotificationsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointConnectionNotificationsInput) *DeleteVpcEndpointConnectionNotificationsFuture
 
 	DeleteVpcEndpointServiceConfigurations(ctx workflow.Context, input *ec2.DeleteVpcEndpointServiceConfigurationsInput) (*ec2.DeleteVpcEndpointServiceConfigurationsOutput, error)
-	DeleteVpcEndpointServiceConfigurationsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointServiceConfigurationsInput) *EC2DeleteVpcEndpointServiceConfigurationsFuture
+	DeleteVpcEndpointServiceConfigurationsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointServiceConfigurationsInput) *DeleteVpcEndpointServiceConfigurationsFuture
 
 	DeleteVpcEndpoints(ctx workflow.Context, input *ec2.DeleteVpcEndpointsInput) (*ec2.DeleteVpcEndpointsOutput, error)
-	DeleteVpcEndpointsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointsInput) *EC2DeleteVpcEndpointsFuture
+	DeleteVpcEndpointsAsync(ctx workflow.Context, input *ec2.DeleteVpcEndpointsInput) *DeleteVpcEndpointsFuture
 
 	DeleteVpcPeeringConnection(ctx workflow.Context, input *ec2.DeleteVpcPeeringConnectionInput) (*ec2.DeleteVpcPeeringConnectionOutput, error)
-	DeleteVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.DeleteVpcPeeringConnectionInput) *EC2DeleteVpcPeeringConnectionFuture
+	DeleteVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.DeleteVpcPeeringConnectionInput) *DeleteVpcPeeringConnectionFuture
 
 	DeleteVpnConnection(ctx workflow.Context, input *ec2.DeleteVpnConnectionInput) (*ec2.DeleteVpnConnectionOutput, error)
-	DeleteVpnConnectionAsync(ctx workflow.Context, input *ec2.DeleteVpnConnectionInput) *EC2DeleteVpnConnectionFuture
+	DeleteVpnConnectionAsync(ctx workflow.Context, input *ec2.DeleteVpnConnectionInput) *DeleteVpnConnectionFuture
 
 	DeleteVpnConnectionRoute(ctx workflow.Context, input *ec2.DeleteVpnConnectionRouteInput) (*ec2.DeleteVpnConnectionRouteOutput, error)
-	DeleteVpnConnectionRouteAsync(ctx workflow.Context, input *ec2.DeleteVpnConnectionRouteInput) *EC2DeleteVpnConnectionRouteFuture
+	DeleteVpnConnectionRouteAsync(ctx workflow.Context, input *ec2.DeleteVpnConnectionRouteInput) *DeleteVpnConnectionRouteFuture
 
 	DeleteVpnGateway(ctx workflow.Context, input *ec2.DeleteVpnGatewayInput) (*ec2.DeleteVpnGatewayOutput, error)
-	DeleteVpnGatewayAsync(ctx workflow.Context, input *ec2.DeleteVpnGatewayInput) *EC2DeleteVpnGatewayFuture
+	DeleteVpnGatewayAsync(ctx workflow.Context, input *ec2.DeleteVpnGatewayInput) *DeleteVpnGatewayFuture
 
 	DeprovisionByoipCidr(ctx workflow.Context, input *ec2.DeprovisionByoipCidrInput) (*ec2.DeprovisionByoipCidrOutput, error)
-	DeprovisionByoipCidrAsync(ctx workflow.Context, input *ec2.DeprovisionByoipCidrInput) *EC2DeprovisionByoipCidrFuture
+	DeprovisionByoipCidrAsync(ctx workflow.Context, input *ec2.DeprovisionByoipCidrInput) *DeprovisionByoipCidrFuture
 
 	DeregisterImage(ctx workflow.Context, input *ec2.DeregisterImageInput) (*ec2.DeregisterImageOutput, error)
-	DeregisterImageAsync(ctx workflow.Context, input *ec2.DeregisterImageInput) *EC2DeregisterImageFuture
+	DeregisterImageAsync(ctx workflow.Context, input *ec2.DeregisterImageInput) *DeregisterImageFuture
 
 	DeregisterInstanceEventNotificationAttributes(ctx workflow.Context, input *ec2.DeregisterInstanceEventNotificationAttributesInput) (*ec2.DeregisterInstanceEventNotificationAttributesOutput, error)
-	DeregisterInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.DeregisterInstanceEventNotificationAttributesInput) *EC2DeregisterInstanceEventNotificationAttributesFuture
+	DeregisterInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.DeregisterInstanceEventNotificationAttributesInput) *DeregisterInstanceEventNotificationAttributesFuture
 
 	DeregisterTransitGatewayMulticastGroupMembers(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) (*ec2.DeregisterTransitGatewayMulticastGroupMembersOutput, error)
-	DeregisterTransitGatewayMulticastGroupMembersAsync(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) *EC2DeregisterTransitGatewayMulticastGroupMembersFuture
+	DeregisterTransitGatewayMulticastGroupMembersAsync(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) *DeregisterTransitGatewayMulticastGroupMembersFuture
 
 	DeregisterTransitGatewayMulticastGroupSources(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) (*ec2.DeregisterTransitGatewayMulticastGroupSourcesOutput, error)
-	DeregisterTransitGatewayMulticastGroupSourcesAsync(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) *EC2DeregisterTransitGatewayMulticastGroupSourcesFuture
+	DeregisterTransitGatewayMulticastGroupSourcesAsync(ctx workflow.Context, input *ec2.DeregisterTransitGatewayMulticastGroupSourcesInput) *DeregisterTransitGatewayMulticastGroupSourcesFuture
 
 	DescribeAccountAttributes(ctx workflow.Context, input *ec2.DescribeAccountAttributesInput) (*ec2.DescribeAccountAttributesOutput, error)
-	DescribeAccountAttributesAsync(ctx workflow.Context, input *ec2.DescribeAccountAttributesInput) *EC2DescribeAccountAttributesFuture
+	DescribeAccountAttributesAsync(ctx workflow.Context, input *ec2.DescribeAccountAttributesInput) *DescribeAccountAttributesFuture
 
 	DescribeAddresses(ctx workflow.Context, input *ec2.DescribeAddressesInput) (*ec2.DescribeAddressesOutput, error)
-	DescribeAddressesAsync(ctx workflow.Context, input *ec2.DescribeAddressesInput) *EC2DescribeAddressesFuture
+	DescribeAddressesAsync(ctx workflow.Context, input *ec2.DescribeAddressesInput) *DescribeAddressesFuture
 
 	DescribeAggregateIdFormat(ctx workflow.Context, input *ec2.DescribeAggregateIdFormatInput) (*ec2.DescribeAggregateIdFormatOutput, error)
-	DescribeAggregateIdFormatAsync(ctx workflow.Context, input *ec2.DescribeAggregateIdFormatInput) *EC2DescribeAggregateIdFormatFuture
+	DescribeAggregateIdFormatAsync(ctx workflow.Context, input *ec2.DescribeAggregateIdFormatInput) *DescribeAggregateIdFormatFuture
 
 	DescribeAvailabilityZones(ctx workflow.Context, input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error)
-	DescribeAvailabilityZonesAsync(ctx workflow.Context, input *ec2.DescribeAvailabilityZonesInput) *EC2DescribeAvailabilityZonesFuture
+	DescribeAvailabilityZonesAsync(ctx workflow.Context, input *ec2.DescribeAvailabilityZonesInput) *DescribeAvailabilityZonesFuture
 
 	DescribeBundleTasks(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) (*ec2.DescribeBundleTasksOutput, error)
-	DescribeBundleTasksAsync(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) *EC2DescribeBundleTasksFuture
+	DescribeBundleTasksAsync(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) *DescribeBundleTasksFuture
 
 	DescribeByoipCidrs(ctx workflow.Context, input *ec2.DescribeByoipCidrsInput) (*ec2.DescribeByoipCidrsOutput, error)
-	DescribeByoipCidrsAsync(ctx workflow.Context, input *ec2.DescribeByoipCidrsInput) *EC2DescribeByoipCidrsFuture
+	DescribeByoipCidrsAsync(ctx workflow.Context, input *ec2.DescribeByoipCidrsInput) *DescribeByoipCidrsFuture
 
 	DescribeCapacityReservations(ctx workflow.Context, input *ec2.DescribeCapacityReservationsInput) (*ec2.DescribeCapacityReservationsOutput, error)
-	DescribeCapacityReservationsAsync(ctx workflow.Context, input *ec2.DescribeCapacityReservationsInput) *EC2DescribeCapacityReservationsFuture
+	DescribeCapacityReservationsAsync(ctx workflow.Context, input *ec2.DescribeCapacityReservationsInput) *DescribeCapacityReservationsFuture
 
 	DescribeCarrierGateways(ctx workflow.Context, input *ec2.DescribeCarrierGatewaysInput) (*ec2.DescribeCarrierGatewaysOutput, error)
-	DescribeCarrierGatewaysAsync(ctx workflow.Context, input *ec2.DescribeCarrierGatewaysInput) *EC2DescribeCarrierGatewaysFuture
+	DescribeCarrierGatewaysAsync(ctx workflow.Context, input *ec2.DescribeCarrierGatewaysInput) *DescribeCarrierGatewaysFuture
 
 	DescribeClassicLinkInstances(ctx workflow.Context, input *ec2.DescribeClassicLinkInstancesInput) (*ec2.DescribeClassicLinkInstancesOutput, error)
-	DescribeClassicLinkInstancesAsync(ctx workflow.Context, input *ec2.DescribeClassicLinkInstancesInput) *EC2DescribeClassicLinkInstancesFuture
+	DescribeClassicLinkInstancesAsync(ctx workflow.Context, input *ec2.DescribeClassicLinkInstancesInput) *DescribeClassicLinkInstancesFuture
 
 	DescribeClientVpnAuthorizationRules(ctx workflow.Context, input *ec2.DescribeClientVpnAuthorizationRulesInput) (*ec2.DescribeClientVpnAuthorizationRulesOutput, error)
-	DescribeClientVpnAuthorizationRulesAsync(ctx workflow.Context, input *ec2.DescribeClientVpnAuthorizationRulesInput) *EC2DescribeClientVpnAuthorizationRulesFuture
+	DescribeClientVpnAuthorizationRulesAsync(ctx workflow.Context, input *ec2.DescribeClientVpnAuthorizationRulesInput) *DescribeClientVpnAuthorizationRulesFuture
 
 	DescribeClientVpnConnections(ctx workflow.Context, input *ec2.DescribeClientVpnConnectionsInput) (*ec2.DescribeClientVpnConnectionsOutput, error)
-	DescribeClientVpnConnectionsAsync(ctx workflow.Context, input *ec2.DescribeClientVpnConnectionsInput) *EC2DescribeClientVpnConnectionsFuture
+	DescribeClientVpnConnectionsAsync(ctx workflow.Context, input *ec2.DescribeClientVpnConnectionsInput) *DescribeClientVpnConnectionsFuture
 
 	DescribeClientVpnEndpoints(ctx workflow.Context, input *ec2.DescribeClientVpnEndpointsInput) (*ec2.DescribeClientVpnEndpointsOutput, error)
-	DescribeClientVpnEndpointsAsync(ctx workflow.Context, input *ec2.DescribeClientVpnEndpointsInput) *EC2DescribeClientVpnEndpointsFuture
+	DescribeClientVpnEndpointsAsync(ctx workflow.Context, input *ec2.DescribeClientVpnEndpointsInput) *DescribeClientVpnEndpointsFuture
 
 	DescribeClientVpnRoutes(ctx workflow.Context, input *ec2.DescribeClientVpnRoutesInput) (*ec2.DescribeClientVpnRoutesOutput, error)
-	DescribeClientVpnRoutesAsync(ctx workflow.Context, input *ec2.DescribeClientVpnRoutesInput) *EC2DescribeClientVpnRoutesFuture
+	DescribeClientVpnRoutesAsync(ctx workflow.Context, input *ec2.DescribeClientVpnRoutesInput) *DescribeClientVpnRoutesFuture
 
 	DescribeClientVpnTargetNetworks(ctx workflow.Context, input *ec2.DescribeClientVpnTargetNetworksInput) (*ec2.DescribeClientVpnTargetNetworksOutput, error)
-	DescribeClientVpnTargetNetworksAsync(ctx workflow.Context, input *ec2.DescribeClientVpnTargetNetworksInput) *EC2DescribeClientVpnTargetNetworksFuture
+	DescribeClientVpnTargetNetworksAsync(ctx workflow.Context, input *ec2.DescribeClientVpnTargetNetworksInput) *DescribeClientVpnTargetNetworksFuture
 
 	DescribeCoipPools(ctx workflow.Context, input *ec2.DescribeCoipPoolsInput) (*ec2.DescribeCoipPoolsOutput, error)
-	DescribeCoipPoolsAsync(ctx workflow.Context, input *ec2.DescribeCoipPoolsInput) *EC2DescribeCoipPoolsFuture
+	DescribeCoipPoolsAsync(ctx workflow.Context, input *ec2.DescribeCoipPoolsInput) *DescribeCoipPoolsFuture
 
 	DescribeConversionTasks(ctx workflow.Context, input *ec2.DescribeConversionTasksInput) (*ec2.DescribeConversionTasksOutput, error)
-	DescribeConversionTasksAsync(ctx workflow.Context, input *ec2.DescribeConversionTasksInput) *EC2DescribeConversionTasksFuture
+	DescribeConversionTasksAsync(ctx workflow.Context, input *ec2.DescribeConversionTasksInput) *DescribeConversionTasksFuture
 
 	DescribeCustomerGateways(ctx workflow.Context, input *ec2.DescribeCustomerGatewaysInput) (*ec2.DescribeCustomerGatewaysOutput, error)
-	DescribeCustomerGatewaysAsync(ctx workflow.Context, input *ec2.DescribeCustomerGatewaysInput) *EC2DescribeCustomerGatewaysFuture
+	DescribeCustomerGatewaysAsync(ctx workflow.Context, input *ec2.DescribeCustomerGatewaysInput) *DescribeCustomerGatewaysFuture
 
 	DescribeDhcpOptions(ctx workflow.Context, input *ec2.DescribeDhcpOptionsInput) (*ec2.DescribeDhcpOptionsOutput, error)
-	DescribeDhcpOptionsAsync(ctx workflow.Context, input *ec2.DescribeDhcpOptionsInput) *EC2DescribeDhcpOptionsFuture
+	DescribeDhcpOptionsAsync(ctx workflow.Context, input *ec2.DescribeDhcpOptionsInput) *DescribeDhcpOptionsFuture
 
 	DescribeEgressOnlyInternetGateways(ctx workflow.Context, input *ec2.DescribeEgressOnlyInternetGatewaysInput) (*ec2.DescribeEgressOnlyInternetGatewaysOutput, error)
-	DescribeEgressOnlyInternetGatewaysAsync(ctx workflow.Context, input *ec2.DescribeEgressOnlyInternetGatewaysInput) *EC2DescribeEgressOnlyInternetGatewaysFuture
+	DescribeEgressOnlyInternetGatewaysAsync(ctx workflow.Context, input *ec2.DescribeEgressOnlyInternetGatewaysInput) *DescribeEgressOnlyInternetGatewaysFuture
 
 	DescribeElasticGpus(ctx workflow.Context, input *ec2.DescribeElasticGpusInput) (*ec2.DescribeElasticGpusOutput, error)
-	DescribeElasticGpusAsync(ctx workflow.Context, input *ec2.DescribeElasticGpusInput) *EC2DescribeElasticGpusFuture
+	DescribeElasticGpusAsync(ctx workflow.Context, input *ec2.DescribeElasticGpusInput) *DescribeElasticGpusFuture
 
 	DescribeExportImageTasks(ctx workflow.Context, input *ec2.DescribeExportImageTasksInput) (*ec2.DescribeExportImageTasksOutput, error)
-	DescribeExportImageTasksAsync(ctx workflow.Context, input *ec2.DescribeExportImageTasksInput) *EC2DescribeExportImageTasksFuture
+	DescribeExportImageTasksAsync(ctx workflow.Context, input *ec2.DescribeExportImageTasksInput) *DescribeExportImageTasksFuture
 
 	DescribeExportTasks(ctx workflow.Context, input *ec2.DescribeExportTasksInput) (*ec2.DescribeExportTasksOutput, error)
-	DescribeExportTasksAsync(ctx workflow.Context, input *ec2.DescribeExportTasksInput) *EC2DescribeExportTasksFuture
+	DescribeExportTasksAsync(ctx workflow.Context, input *ec2.DescribeExportTasksInput) *DescribeExportTasksFuture
 
 	DescribeFastSnapshotRestores(ctx workflow.Context, input *ec2.DescribeFastSnapshotRestoresInput) (*ec2.DescribeFastSnapshotRestoresOutput, error)
-	DescribeFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.DescribeFastSnapshotRestoresInput) *EC2DescribeFastSnapshotRestoresFuture
+	DescribeFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.DescribeFastSnapshotRestoresInput) *DescribeFastSnapshotRestoresFuture
 
 	DescribeFleetHistory(ctx workflow.Context, input *ec2.DescribeFleetHistoryInput) (*ec2.DescribeFleetHistoryOutput, error)
-	DescribeFleetHistoryAsync(ctx workflow.Context, input *ec2.DescribeFleetHistoryInput) *EC2DescribeFleetHistoryFuture
+	DescribeFleetHistoryAsync(ctx workflow.Context, input *ec2.DescribeFleetHistoryInput) *DescribeFleetHistoryFuture
 
 	DescribeFleetInstances(ctx workflow.Context, input *ec2.DescribeFleetInstancesInput) (*ec2.DescribeFleetInstancesOutput, error)
-	DescribeFleetInstancesAsync(ctx workflow.Context, input *ec2.DescribeFleetInstancesInput) *EC2DescribeFleetInstancesFuture
+	DescribeFleetInstancesAsync(ctx workflow.Context, input *ec2.DescribeFleetInstancesInput) *DescribeFleetInstancesFuture
 
 	DescribeFleets(ctx workflow.Context, input *ec2.DescribeFleetsInput) (*ec2.DescribeFleetsOutput, error)
-	DescribeFleetsAsync(ctx workflow.Context, input *ec2.DescribeFleetsInput) *EC2DescribeFleetsFuture
+	DescribeFleetsAsync(ctx workflow.Context, input *ec2.DescribeFleetsInput) *DescribeFleetsFuture
 
 	DescribeFlowLogs(ctx workflow.Context, input *ec2.DescribeFlowLogsInput) (*ec2.DescribeFlowLogsOutput, error)
-	DescribeFlowLogsAsync(ctx workflow.Context, input *ec2.DescribeFlowLogsInput) *EC2DescribeFlowLogsFuture
+	DescribeFlowLogsAsync(ctx workflow.Context, input *ec2.DescribeFlowLogsInput) *DescribeFlowLogsFuture
 
 	DescribeFpgaImageAttribute(ctx workflow.Context, input *ec2.DescribeFpgaImageAttributeInput) (*ec2.DescribeFpgaImageAttributeOutput, error)
-	DescribeFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.DescribeFpgaImageAttributeInput) *EC2DescribeFpgaImageAttributeFuture
+	DescribeFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.DescribeFpgaImageAttributeInput) *DescribeFpgaImageAttributeFuture
 
 	DescribeFpgaImages(ctx workflow.Context, input *ec2.DescribeFpgaImagesInput) (*ec2.DescribeFpgaImagesOutput, error)
-	DescribeFpgaImagesAsync(ctx workflow.Context, input *ec2.DescribeFpgaImagesInput) *EC2DescribeFpgaImagesFuture
+	DescribeFpgaImagesAsync(ctx workflow.Context, input *ec2.DescribeFpgaImagesInput) *DescribeFpgaImagesFuture
 
 	DescribeHostReservationOfferings(ctx workflow.Context, input *ec2.DescribeHostReservationOfferingsInput) (*ec2.DescribeHostReservationOfferingsOutput, error)
-	DescribeHostReservationOfferingsAsync(ctx workflow.Context, input *ec2.DescribeHostReservationOfferingsInput) *EC2DescribeHostReservationOfferingsFuture
+	DescribeHostReservationOfferingsAsync(ctx workflow.Context, input *ec2.DescribeHostReservationOfferingsInput) *DescribeHostReservationOfferingsFuture
 
 	DescribeHostReservations(ctx workflow.Context, input *ec2.DescribeHostReservationsInput) (*ec2.DescribeHostReservationsOutput, error)
-	DescribeHostReservationsAsync(ctx workflow.Context, input *ec2.DescribeHostReservationsInput) *EC2DescribeHostReservationsFuture
+	DescribeHostReservationsAsync(ctx workflow.Context, input *ec2.DescribeHostReservationsInput) *DescribeHostReservationsFuture
 
 	DescribeHosts(ctx workflow.Context, input *ec2.DescribeHostsInput) (*ec2.DescribeHostsOutput, error)
-	DescribeHostsAsync(ctx workflow.Context, input *ec2.DescribeHostsInput) *EC2DescribeHostsFuture
+	DescribeHostsAsync(ctx workflow.Context, input *ec2.DescribeHostsInput) *DescribeHostsFuture
 
 	DescribeIamInstanceProfileAssociations(ctx workflow.Context, input *ec2.DescribeIamInstanceProfileAssociationsInput) (*ec2.DescribeIamInstanceProfileAssociationsOutput, error)
-	DescribeIamInstanceProfileAssociationsAsync(ctx workflow.Context, input *ec2.DescribeIamInstanceProfileAssociationsInput) *EC2DescribeIamInstanceProfileAssociationsFuture
+	DescribeIamInstanceProfileAssociationsAsync(ctx workflow.Context, input *ec2.DescribeIamInstanceProfileAssociationsInput) *DescribeIamInstanceProfileAssociationsFuture
 
 	DescribeIdFormat(ctx workflow.Context, input *ec2.DescribeIdFormatInput) (*ec2.DescribeIdFormatOutput, error)
-	DescribeIdFormatAsync(ctx workflow.Context, input *ec2.DescribeIdFormatInput) *EC2DescribeIdFormatFuture
+	DescribeIdFormatAsync(ctx workflow.Context, input *ec2.DescribeIdFormatInput) *DescribeIdFormatFuture
 
 	DescribeIdentityIdFormat(ctx workflow.Context, input *ec2.DescribeIdentityIdFormatInput) (*ec2.DescribeIdentityIdFormatOutput, error)
-	DescribeIdentityIdFormatAsync(ctx workflow.Context, input *ec2.DescribeIdentityIdFormatInput) *EC2DescribeIdentityIdFormatFuture
+	DescribeIdentityIdFormatAsync(ctx workflow.Context, input *ec2.DescribeIdentityIdFormatInput) *DescribeIdentityIdFormatFuture
 
 	DescribeImageAttribute(ctx workflow.Context, input *ec2.DescribeImageAttributeInput) (*ec2.DescribeImageAttributeOutput, error)
-	DescribeImageAttributeAsync(ctx workflow.Context, input *ec2.DescribeImageAttributeInput) *EC2DescribeImageAttributeFuture
+	DescribeImageAttributeAsync(ctx workflow.Context, input *ec2.DescribeImageAttributeInput) *DescribeImageAttributeFuture
 
 	DescribeImages(ctx workflow.Context, input *ec2.DescribeImagesInput) (*ec2.DescribeImagesOutput, error)
-	DescribeImagesAsync(ctx workflow.Context, input *ec2.DescribeImagesInput) *EC2DescribeImagesFuture
+	DescribeImagesAsync(ctx workflow.Context, input *ec2.DescribeImagesInput) *DescribeImagesFuture
 
 	DescribeImportImageTasks(ctx workflow.Context, input *ec2.DescribeImportImageTasksInput) (*ec2.DescribeImportImageTasksOutput, error)
-	DescribeImportImageTasksAsync(ctx workflow.Context, input *ec2.DescribeImportImageTasksInput) *EC2DescribeImportImageTasksFuture
+	DescribeImportImageTasksAsync(ctx workflow.Context, input *ec2.DescribeImportImageTasksInput) *DescribeImportImageTasksFuture
 
 	DescribeImportSnapshotTasks(ctx workflow.Context, input *ec2.DescribeImportSnapshotTasksInput) (*ec2.DescribeImportSnapshotTasksOutput, error)
-	DescribeImportSnapshotTasksAsync(ctx workflow.Context, input *ec2.DescribeImportSnapshotTasksInput) *EC2DescribeImportSnapshotTasksFuture
+	DescribeImportSnapshotTasksAsync(ctx workflow.Context, input *ec2.DescribeImportSnapshotTasksInput) *DescribeImportSnapshotTasksFuture
 
 	DescribeInstanceAttribute(ctx workflow.Context, input *ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error)
-	DescribeInstanceAttributeAsync(ctx workflow.Context, input *ec2.DescribeInstanceAttributeInput) *EC2DescribeInstanceAttributeFuture
+	DescribeInstanceAttributeAsync(ctx workflow.Context, input *ec2.DescribeInstanceAttributeInput) *DescribeInstanceAttributeFuture
 
 	DescribeInstanceCreditSpecifications(ctx workflow.Context, input *ec2.DescribeInstanceCreditSpecificationsInput) (*ec2.DescribeInstanceCreditSpecificationsOutput, error)
-	DescribeInstanceCreditSpecificationsAsync(ctx workflow.Context, input *ec2.DescribeInstanceCreditSpecificationsInput) *EC2DescribeInstanceCreditSpecificationsFuture
+	DescribeInstanceCreditSpecificationsAsync(ctx workflow.Context, input *ec2.DescribeInstanceCreditSpecificationsInput) *DescribeInstanceCreditSpecificationsFuture
 
 	DescribeInstanceEventNotificationAttributes(ctx workflow.Context, input *ec2.DescribeInstanceEventNotificationAttributesInput) (*ec2.DescribeInstanceEventNotificationAttributesOutput, error)
-	DescribeInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.DescribeInstanceEventNotificationAttributesInput) *EC2DescribeInstanceEventNotificationAttributesFuture
+	DescribeInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.DescribeInstanceEventNotificationAttributesInput) *DescribeInstanceEventNotificationAttributesFuture
 
 	DescribeInstanceStatus(ctx workflow.Context, input *ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error)
-	DescribeInstanceStatusAsync(ctx workflow.Context, input *ec2.DescribeInstanceStatusInput) *EC2DescribeInstanceStatusFuture
+	DescribeInstanceStatusAsync(ctx workflow.Context, input *ec2.DescribeInstanceStatusInput) *DescribeInstanceStatusFuture
 
 	DescribeInstanceTypeOfferings(ctx workflow.Context, input *ec2.DescribeInstanceTypeOfferingsInput) (*ec2.DescribeInstanceTypeOfferingsOutput, error)
-	DescribeInstanceTypeOfferingsAsync(ctx workflow.Context, input *ec2.DescribeInstanceTypeOfferingsInput) *EC2DescribeInstanceTypeOfferingsFuture
+	DescribeInstanceTypeOfferingsAsync(ctx workflow.Context, input *ec2.DescribeInstanceTypeOfferingsInput) *DescribeInstanceTypeOfferingsFuture
 
 	DescribeInstanceTypes(ctx workflow.Context, input *ec2.DescribeInstanceTypesInput) (*ec2.DescribeInstanceTypesOutput, error)
-	DescribeInstanceTypesAsync(ctx workflow.Context, input *ec2.DescribeInstanceTypesInput) *EC2DescribeInstanceTypesFuture
+	DescribeInstanceTypesAsync(ctx workflow.Context, input *ec2.DescribeInstanceTypesInput) *DescribeInstanceTypesFuture
 
 	DescribeInstances(ctx workflow.Context, input *ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error)
-	DescribeInstancesAsync(ctx workflow.Context, input *ec2.DescribeInstancesInput) *EC2DescribeInstancesFuture
+	DescribeInstancesAsync(ctx workflow.Context, input *ec2.DescribeInstancesInput) *DescribeInstancesFuture
 
 	DescribeInternetGateways(ctx workflow.Context, input *ec2.DescribeInternetGatewaysInput) (*ec2.DescribeInternetGatewaysOutput, error)
-	DescribeInternetGatewaysAsync(ctx workflow.Context, input *ec2.DescribeInternetGatewaysInput) *EC2DescribeInternetGatewaysFuture
+	DescribeInternetGatewaysAsync(ctx workflow.Context, input *ec2.DescribeInternetGatewaysInput) *DescribeInternetGatewaysFuture
 
 	DescribeIpv6Pools(ctx workflow.Context, input *ec2.DescribeIpv6PoolsInput) (*ec2.DescribeIpv6PoolsOutput, error)
-	DescribeIpv6PoolsAsync(ctx workflow.Context, input *ec2.DescribeIpv6PoolsInput) *EC2DescribeIpv6PoolsFuture
+	DescribeIpv6PoolsAsync(ctx workflow.Context, input *ec2.DescribeIpv6PoolsInput) *DescribeIpv6PoolsFuture
 
 	DescribeKeyPairs(ctx workflow.Context, input *ec2.DescribeKeyPairsInput) (*ec2.DescribeKeyPairsOutput, error)
-	DescribeKeyPairsAsync(ctx workflow.Context, input *ec2.DescribeKeyPairsInput) *EC2DescribeKeyPairsFuture
+	DescribeKeyPairsAsync(ctx workflow.Context, input *ec2.DescribeKeyPairsInput) *DescribeKeyPairsFuture
 
 	DescribeLaunchTemplateVersions(ctx workflow.Context, input *ec2.DescribeLaunchTemplateVersionsInput) (*ec2.DescribeLaunchTemplateVersionsOutput, error)
-	DescribeLaunchTemplateVersionsAsync(ctx workflow.Context, input *ec2.DescribeLaunchTemplateVersionsInput) *EC2DescribeLaunchTemplateVersionsFuture
+	DescribeLaunchTemplateVersionsAsync(ctx workflow.Context, input *ec2.DescribeLaunchTemplateVersionsInput) *DescribeLaunchTemplateVersionsFuture
 
 	DescribeLaunchTemplates(ctx workflow.Context, input *ec2.DescribeLaunchTemplatesInput) (*ec2.DescribeLaunchTemplatesOutput, error)
-	DescribeLaunchTemplatesAsync(ctx workflow.Context, input *ec2.DescribeLaunchTemplatesInput) *EC2DescribeLaunchTemplatesFuture
+	DescribeLaunchTemplatesAsync(ctx workflow.Context, input *ec2.DescribeLaunchTemplatesInput) *DescribeLaunchTemplatesFuture
 
 	DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) (*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, error)
-	DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) *EC2DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture
+	DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) *DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsFuture
 
 	DescribeLocalGatewayRouteTableVpcAssociations(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) (*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, error)
-	DescribeLocalGatewayRouteTableVpcAssociationsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) *EC2DescribeLocalGatewayRouteTableVpcAssociationsFuture
+	DescribeLocalGatewayRouteTableVpcAssociationsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput) *DescribeLocalGatewayRouteTableVpcAssociationsFuture
 
 	DescribeLocalGatewayRouteTables(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTablesInput) (*ec2.DescribeLocalGatewayRouteTablesOutput, error)
-	DescribeLocalGatewayRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTablesInput) *EC2DescribeLocalGatewayRouteTablesFuture
+	DescribeLocalGatewayRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayRouteTablesInput) *DescribeLocalGatewayRouteTablesFuture
 
 	DescribeLocalGatewayVirtualInterfaceGroups(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) (*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, error)
-	DescribeLocalGatewayVirtualInterfaceGroupsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) *EC2DescribeLocalGatewayVirtualInterfaceGroupsFuture
+	DescribeLocalGatewayVirtualInterfaceGroupsAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput) *DescribeLocalGatewayVirtualInterfaceGroupsFuture
 
 	DescribeLocalGatewayVirtualInterfaces(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfacesInput) (*ec2.DescribeLocalGatewayVirtualInterfacesOutput, error)
-	DescribeLocalGatewayVirtualInterfacesAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfacesInput) *EC2DescribeLocalGatewayVirtualInterfacesFuture
+	DescribeLocalGatewayVirtualInterfacesAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewayVirtualInterfacesInput) *DescribeLocalGatewayVirtualInterfacesFuture
 
 	DescribeLocalGateways(ctx workflow.Context, input *ec2.DescribeLocalGatewaysInput) (*ec2.DescribeLocalGatewaysOutput, error)
-	DescribeLocalGatewaysAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewaysInput) *EC2DescribeLocalGatewaysFuture
+	DescribeLocalGatewaysAsync(ctx workflow.Context, input *ec2.DescribeLocalGatewaysInput) *DescribeLocalGatewaysFuture
 
 	DescribeManagedPrefixLists(ctx workflow.Context, input *ec2.DescribeManagedPrefixListsInput) (*ec2.DescribeManagedPrefixListsOutput, error)
-	DescribeManagedPrefixListsAsync(ctx workflow.Context, input *ec2.DescribeManagedPrefixListsInput) *EC2DescribeManagedPrefixListsFuture
+	DescribeManagedPrefixListsAsync(ctx workflow.Context, input *ec2.DescribeManagedPrefixListsInput) *DescribeManagedPrefixListsFuture
 
 	DescribeMovingAddresses(ctx workflow.Context, input *ec2.DescribeMovingAddressesInput) (*ec2.DescribeMovingAddressesOutput, error)
-	DescribeMovingAddressesAsync(ctx workflow.Context, input *ec2.DescribeMovingAddressesInput) *EC2DescribeMovingAddressesFuture
+	DescribeMovingAddressesAsync(ctx workflow.Context, input *ec2.DescribeMovingAddressesInput) *DescribeMovingAddressesFuture
 
 	DescribeNatGateways(ctx workflow.Context, input *ec2.DescribeNatGatewaysInput) (*ec2.DescribeNatGatewaysOutput, error)
-	DescribeNatGatewaysAsync(ctx workflow.Context, input *ec2.DescribeNatGatewaysInput) *EC2DescribeNatGatewaysFuture
+	DescribeNatGatewaysAsync(ctx workflow.Context, input *ec2.DescribeNatGatewaysInput) *DescribeNatGatewaysFuture
 
 	DescribeNetworkAcls(ctx workflow.Context, input *ec2.DescribeNetworkAclsInput) (*ec2.DescribeNetworkAclsOutput, error)
-	DescribeNetworkAclsAsync(ctx workflow.Context, input *ec2.DescribeNetworkAclsInput) *EC2DescribeNetworkAclsFuture
+	DescribeNetworkAclsAsync(ctx workflow.Context, input *ec2.DescribeNetworkAclsInput) *DescribeNetworkAclsFuture
 
 	DescribeNetworkInterfaceAttribute(ctx workflow.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) (*ec2.DescribeNetworkInterfaceAttributeOutput, error)
-	DescribeNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) *EC2DescribeNetworkInterfaceAttributeFuture
+	DescribeNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) *DescribeNetworkInterfaceAttributeFuture
 
 	DescribeNetworkInterfacePermissions(ctx workflow.Context, input *ec2.DescribeNetworkInterfacePermissionsInput) (*ec2.DescribeNetworkInterfacePermissionsOutput, error)
-	DescribeNetworkInterfacePermissionsAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfacePermissionsInput) *EC2DescribeNetworkInterfacePermissionsFuture
+	DescribeNetworkInterfacePermissionsAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfacePermissionsInput) *DescribeNetworkInterfacePermissionsFuture
 
 	DescribeNetworkInterfaces(ctx workflow.Context, input *ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error)
-	DescribeNetworkInterfacesAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfacesInput) *EC2DescribeNetworkInterfacesFuture
+	DescribeNetworkInterfacesAsync(ctx workflow.Context, input *ec2.DescribeNetworkInterfacesInput) *DescribeNetworkInterfacesFuture
 
 	DescribePlacementGroups(ctx workflow.Context, input *ec2.DescribePlacementGroupsInput) (*ec2.DescribePlacementGroupsOutput, error)
-	DescribePlacementGroupsAsync(ctx workflow.Context, input *ec2.DescribePlacementGroupsInput) *EC2DescribePlacementGroupsFuture
+	DescribePlacementGroupsAsync(ctx workflow.Context, input *ec2.DescribePlacementGroupsInput) *DescribePlacementGroupsFuture
 
 	DescribePrefixLists(ctx workflow.Context, input *ec2.DescribePrefixListsInput) (*ec2.DescribePrefixListsOutput, error)
-	DescribePrefixListsAsync(ctx workflow.Context, input *ec2.DescribePrefixListsInput) *EC2DescribePrefixListsFuture
+	DescribePrefixListsAsync(ctx workflow.Context, input *ec2.DescribePrefixListsInput) *DescribePrefixListsFuture
 
 	DescribePrincipalIdFormat(ctx workflow.Context, input *ec2.DescribePrincipalIdFormatInput) (*ec2.DescribePrincipalIdFormatOutput, error)
-	DescribePrincipalIdFormatAsync(ctx workflow.Context, input *ec2.DescribePrincipalIdFormatInput) *EC2DescribePrincipalIdFormatFuture
+	DescribePrincipalIdFormatAsync(ctx workflow.Context, input *ec2.DescribePrincipalIdFormatInput) *DescribePrincipalIdFormatFuture
 
 	DescribePublicIpv4Pools(ctx workflow.Context, input *ec2.DescribePublicIpv4PoolsInput) (*ec2.DescribePublicIpv4PoolsOutput, error)
-	DescribePublicIpv4PoolsAsync(ctx workflow.Context, input *ec2.DescribePublicIpv4PoolsInput) *EC2DescribePublicIpv4PoolsFuture
+	DescribePublicIpv4PoolsAsync(ctx workflow.Context, input *ec2.DescribePublicIpv4PoolsInput) *DescribePublicIpv4PoolsFuture
 
 	DescribeRegions(ctx workflow.Context, input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error)
-	DescribeRegionsAsync(ctx workflow.Context, input *ec2.DescribeRegionsInput) *EC2DescribeRegionsFuture
+	DescribeRegionsAsync(ctx workflow.Context, input *ec2.DescribeRegionsInput) *DescribeRegionsFuture
 
 	DescribeReservedInstances(ctx workflow.Context, input *ec2.DescribeReservedInstancesInput) (*ec2.DescribeReservedInstancesOutput, error)
-	DescribeReservedInstancesAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesInput) *EC2DescribeReservedInstancesFuture
+	DescribeReservedInstancesAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesInput) *DescribeReservedInstancesFuture
 
 	DescribeReservedInstancesListings(ctx workflow.Context, input *ec2.DescribeReservedInstancesListingsInput) (*ec2.DescribeReservedInstancesListingsOutput, error)
-	DescribeReservedInstancesListingsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesListingsInput) *EC2DescribeReservedInstancesListingsFuture
+	DescribeReservedInstancesListingsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesListingsInput) *DescribeReservedInstancesListingsFuture
 
 	DescribeReservedInstancesModifications(ctx workflow.Context, input *ec2.DescribeReservedInstancesModificationsInput) (*ec2.DescribeReservedInstancesModificationsOutput, error)
-	DescribeReservedInstancesModificationsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesModificationsInput) *EC2DescribeReservedInstancesModificationsFuture
+	DescribeReservedInstancesModificationsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesModificationsInput) *DescribeReservedInstancesModificationsFuture
 
 	DescribeReservedInstancesOfferings(ctx workflow.Context, input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput, error)
-	DescribeReservedInstancesOfferingsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesOfferingsInput) *EC2DescribeReservedInstancesOfferingsFuture
+	DescribeReservedInstancesOfferingsAsync(ctx workflow.Context, input *ec2.DescribeReservedInstancesOfferingsInput) *DescribeReservedInstancesOfferingsFuture
 
 	DescribeRouteTables(ctx workflow.Context, input *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error)
-	DescribeRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeRouteTablesInput) *EC2DescribeRouteTablesFuture
+	DescribeRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeRouteTablesInput) *DescribeRouteTablesFuture
 
 	DescribeScheduledInstanceAvailability(ctx workflow.Context, input *ec2.DescribeScheduledInstanceAvailabilityInput) (*ec2.DescribeScheduledInstanceAvailabilityOutput, error)
-	DescribeScheduledInstanceAvailabilityAsync(ctx workflow.Context, input *ec2.DescribeScheduledInstanceAvailabilityInput) *EC2DescribeScheduledInstanceAvailabilityFuture
+	DescribeScheduledInstanceAvailabilityAsync(ctx workflow.Context, input *ec2.DescribeScheduledInstanceAvailabilityInput) *DescribeScheduledInstanceAvailabilityFuture
 
 	DescribeScheduledInstances(ctx workflow.Context, input *ec2.DescribeScheduledInstancesInput) (*ec2.DescribeScheduledInstancesOutput, error)
-	DescribeScheduledInstancesAsync(ctx workflow.Context, input *ec2.DescribeScheduledInstancesInput) *EC2DescribeScheduledInstancesFuture
+	DescribeScheduledInstancesAsync(ctx workflow.Context, input *ec2.DescribeScheduledInstancesInput) *DescribeScheduledInstancesFuture
 
 	DescribeSecurityGroupReferences(ctx workflow.Context, input *ec2.DescribeSecurityGroupReferencesInput) (*ec2.DescribeSecurityGroupReferencesOutput, error)
-	DescribeSecurityGroupReferencesAsync(ctx workflow.Context, input *ec2.DescribeSecurityGroupReferencesInput) *EC2DescribeSecurityGroupReferencesFuture
+	DescribeSecurityGroupReferencesAsync(ctx workflow.Context, input *ec2.DescribeSecurityGroupReferencesInput) *DescribeSecurityGroupReferencesFuture
 
 	DescribeSecurityGroups(ctx workflow.Context, input *ec2.DescribeSecurityGroupsInput) (*ec2.DescribeSecurityGroupsOutput, error)
-	DescribeSecurityGroupsAsync(ctx workflow.Context, input *ec2.DescribeSecurityGroupsInput) *EC2DescribeSecurityGroupsFuture
+	DescribeSecurityGroupsAsync(ctx workflow.Context, input *ec2.DescribeSecurityGroupsInput) *DescribeSecurityGroupsFuture
 
 	DescribeSnapshotAttribute(ctx workflow.Context, input *ec2.DescribeSnapshotAttributeInput) (*ec2.DescribeSnapshotAttributeOutput, error)
-	DescribeSnapshotAttributeAsync(ctx workflow.Context, input *ec2.DescribeSnapshotAttributeInput) *EC2DescribeSnapshotAttributeFuture
+	DescribeSnapshotAttributeAsync(ctx workflow.Context, input *ec2.DescribeSnapshotAttributeInput) *DescribeSnapshotAttributeFuture
 
 	DescribeSnapshots(ctx workflow.Context, input *ec2.DescribeSnapshotsInput) (*ec2.DescribeSnapshotsOutput, error)
-	DescribeSnapshotsAsync(ctx workflow.Context, input *ec2.DescribeSnapshotsInput) *EC2DescribeSnapshotsFuture
+	DescribeSnapshotsAsync(ctx workflow.Context, input *ec2.DescribeSnapshotsInput) *DescribeSnapshotsFuture
 
 	DescribeSpotDatafeedSubscription(ctx workflow.Context, input *ec2.DescribeSpotDatafeedSubscriptionInput) (*ec2.DescribeSpotDatafeedSubscriptionOutput, error)
-	DescribeSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.DescribeSpotDatafeedSubscriptionInput) *EC2DescribeSpotDatafeedSubscriptionFuture
+	DescribeSpotDatafeedSubscriptionAsync(ctx workflow.Context, input *ec2.DescribeSpotDatafeedSubscriptionInput) *DescribeSpotDatafeedSubscriptionFuture
 
 	DescribeSpotFleetInstances(ctx workflow.Context, input *ec2.DescribeSpotFleetInstancesInput) (*ec2.DescribeSpotFleetInstancesOutput, error)
-	DescribeSpotFleetInstancesAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetInstancesInput) *EC2DescribeSpotFleetInstancesFuture
+	DescribeSpotFleetInstancesAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetInstancesInput) *DescribeSpotFleetInstancesFuture
 
 	DescribeSpotFleetRequestHistory(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestHistoryInput) (*ec2.DescribeSpotFleetRequestHistoryOutput, error)
-	DescribeSpotFleetRequestHistoryAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestHistoryInput) *EC2DescribeSpotFleetRequestHistoryFuture
+	DescribeSpotFleetRequestHistoryAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestHistoryInput) *DescribeSpotFleetRequestHistoryFuture
 
 	DescribeSpotFleetRequests(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestsInput) (*ec2.DescribeSpotFleetRequestsOutput, error)
-	DescribeSpotFleetRequestsAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestsInput) *EC2DescribeSpotFleetRequestsFuture
+	DescribeSpotFleetRequestsAsync(ctx workflow.Context, input *ec2.DescribeSpotFleetRequestsInput) *DescribeSpotFleetRequestsFuture
 
 	DescribeSpotInstanceRequests(ctx workflow.Context, input *ec2.DescribeSpotInstanceRequestsInput) (*ec2.DescribeSpotInstanceRequestsOutput, error)
-	DescribeSpotInstanceRequestsAsync(ctx workflow.Context, input *ec2.DescribeSpotInstanceRequestsInput) *EC2DescribeSpotInstanceRequestsFuture
+	DescribeSpotInstanceRequestsAsync(ctx workflow.Context, input *ec2.DescribeSpotInstanceRequestsInput) *DescribeSpotInstanceRequestsFuture
 
 	DescribeSpotPriceHistory(ctx workflow.Context, input *ec2.DescribeSpotPriceHistoryInput) (*ec2.DescribeSpotPriceHistoryOutput, error)
-	DescribeSpotPriceHistoryAsync(ctx workflow.Context, input *ec2.DescribeSpotPriceHistoryInput) *EC2DescribeSpotPriceHistoryFuture
+	DescribeSpotPriceHistoryAsync(ctx workflow.Context, input *ec2.DescribeSpotPriceHistoryInput) *DescribeSpotPriceHistoryFuture
 
 	DescribeStaleSecurityGroups(ctx workflow.Context, input *ec2.DescribeStaleSecurityGroupsInput) (*ec2.DescribeStaleSecurityGroupsOutput, error)
-	DescribeStaleSecurityGroupsAsync(ctx workflow.Context, input *ec2.DescribeStaleSecurityGroupsInput) *EC2DescribeStaleSecurityGroupsFuture
+	DescribeStaleSecurityGroupsAsync(ctx workflow.Context, input *ec2.DescribeStaleSecurityGroupsInput) *DescribeStaleSecurityGroupsFuture
 
 	DescribeSubnets(ctx workflow.Context, input *ec2.DescribeSubnetsInput) (*ec2.DescribeSubnetsOutput, error)
-	DescribeSubnetsAsync(ctx workflow.Context, input *ec2.DescribeSubnetsInput) *EC2DescribeSubnetsFuture
+	DescribeSubnetsAsync(ctx workflow.Context, input *ec2.DescribeSubnetsInput) *DescribeSubnetsFuture
 
 	DescribeTags(ctx workflow.Context, input *ec2.DescribeTagsInput) (*ec2.DescribeTagsOutput, error)
-	DescribeTagsAsync(ctx workflow.Context, input *ec2.DescribeTagsInput) *EC2DescribeTagsFuture
+	DescribeTagsAsync(ctx workflow.Context, input *ec2.DescribeTagsInput) *DescribeTagsFuture
 
 	DescribeTrafficMirrorFilters(ctx workflow.Context, input *ec2.DescribeTrafficMirrorFiltersInput) (*ec2.DescribeTrafficMirrorFiltersOutput, error)
-	DescribeTrafficMirrorFiltersAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorFiltersInput) *EC2DescribeTrafficMirrorFiltersFuture
+	DescribeTrafficMirrorFiltersAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorFiltersInput) *DescribeTrafficMirrorFiltersFuture
 
 	DescribeTrafficMirrorSessions(ctx workflow.Context, input *ec2.DescribeTrafficMirrorSessionsInput) (*ec2.DescribeTrafficMirrorSessionsOutput, error)
-	DescribeTrafficMirrorSessionsAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorSessionsInput) *EC2DescribeTrafficMirrorSessionsFuture
+	DescribeTrafficMirrorSessionsAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorSessionsInput) *DescribeTrafficMirrorSessionsFuture
 
 	DescribeTrafficMirrorTargets(ctx workflow.Context, input *ec2.DescribeTrafficMirrorTargetsInput) (*ec2.DescribeTrafficMirrorTargetsOutput, error)
-	DescribeTrafficMirrorTargetsAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorTargetsInput) *EC2DescribeTrafficMirrorTargetsFuture
+	DescribeTrafficMirrorTargetsAsync(ctx workflow.Context, input *ec2.DescribeTrafficMirrorTargetsInput) *DescribeTrafficMirrorTargetsFuture
 
 	DescribeTransitGatewayAttachments(ctx workflow.Context, input *ec2.DescribeTransitGatewayAttachmentsInput) (*ec2.DescribeTransitGatewayAttachmentsOutput, error)
-	DescribeTransitGatewayAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayAttachmentsInput) *EC2DescribeTransitGatewayAttachmentsFuture
+	DescribeTransitGatewayAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayAttachmentsInput) *DescribeTransitGatewayAttachmentsFuture
 
 	DescribeTransitGatewayMulticastDomains(ctx workflow.Context, input *ec2.DescribeTransitGatewayMulticastDomainsInput) (*ec2.DescribeTransitGatewayMulticastDomainsOutput, error)
-	DescribeTransitGatewayMulticastDomainsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayMulticastDomainsInput) *EC2DescribeTransitGatewayMulticastDomainsFuture
+	DescribeTransitGatewayMulticastDomainsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayMulticastDomainsInput) *DescribeTransitGatewayMulticastDomainsFuture
 
 	DescribeTransitGatewayPeeringAttachments(ctx workflow.Context, input *ec2.DescribeTransitGatewayPeeringAttachmentsInput) (*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, error)
-	DescribeTransitGatewayPeeringAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayPeeringAttachmentsInput) *EC2DescribeTransitGatewayPeeringAttachmentsFuture
+	DescribeTransitGatewayPeeringAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayPeeringAttachmentsInput) *DescribeTransitGatewayPeeringAttachmentsFuture
 
 	DescribeTransitGatewayRouteTables(ctx workflow.Context, input *ec2.DescribeTransitGatewayRouteTablesInput) (*ec2.DescribeTransitGatewayRouteTablesOutput, error)
-	DescribeTransitGatewayRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayRouteTablesInput) *EC2DescribeTransitGatewayRouteTablesFuture
+	DescribeTransitGatewayRouteTablesAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayRouteTablesInput) *DescribeTransitGatewayRouteTablesFuture
 
 	DescribeTransitGatewayVpcAttachments(ctx workflow.Context, input *ec2.DescribeTransitGatewayVpcAttachmentsInput) (*ec2.DescribeTransitGatewayVpcAttachmentsOutput, error)
-	DescribeTransitGatewayVpcAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayVpcAttachmentsInput) *EC2DescribeTransitGatewayVpcAttachmentsFuture
+	DescribeTransitGatewayVpcAttachmentsAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewayVpcAttachmentsInput) *DescribeTransitGatewayVpcAttachmentsFuture
 
 	DescribeTransitGateways(ctx workflow.Context, input *ec2.DescribeTransitGatewaysInput) (*ec2.DescribeTransitGatewaysOutput, error)
-	DescribeTransitGatewaysAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewaysInput) *EC2DescribeTransitGatewaysFuture
+	DescribeTransitGatewaysAsync(ctx workflow.Context, input *ec2.DescribeTransitGatewaysInput) *DescribeTransitGatewaysFuture
 
 	DescribeVolumeAttribute(ctx workflow.Context, input *ec2.DescribeVolumeAttributeInput) (*ec2.DescribeVolumeAttributeOutput, error)
-	DescribeVolumeAttributeAsync(ctx workflow.Context, input *ec2.DescribeVolumeAttributeInput) *EC2DescribeVolumeAttributeFuture
+	DescribeVolumeAttributeAsync(ctx workflow.Context, input *ec2.DescribeVolumeAttributeInput) *DescribeVolumeAttributeFuture
 
 	DescribeVolumeStatus(ctx workflow.Context, input *ec2.DescribeVolumeStatusInput) (*ec2.DescribeVolumeStatusOutput, error)
-	DescribeVolumeStatusAsync(ctx workflow.Context, input *ec2.DescribeVolumeStatusInput) *EC2DescribeVolumeStatusFuture
+	DescribeVolumeStatusAsync(ctx workflow.Context, input *ec2.DescribeVolumeStatusInput) *DescribeVolumeStatusFuture
 
 	DescribeVolumes(ctx workflow.Context, input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error)
-	DescribeVolumesAsync(ctx workflow.Context, input *ec2.DescribeVolumesInput) *EC2DescribeVolumesFuture
+	DescribeVolumesAsync(ctx workflow.Context, input *ec2.DescribeVolumesInput) *DescribeVolumesFuture
 
 	DescribeVolumesModifications(ctx workflow.Context, input *ec2.DescribeVolumesModificationsInput) (*ec2.DescribeVolumesModificationsOutput, error)
-	DescribeVolumesModificationsAsync(ctx workflow.Context, input *ec2.DescribeVolumesModificationsInput) *EC2DescribeVolumesModificationsFuture
+	DescribeVolumesModificationsAsync(ctx workflow.Context, input *ec2.DescribeVolumesModificationsInput) *DescribeVolumesModificationsFuture
 
 	DescribeVpcAttribute(ctx workflow.Context, input *ec2.DescribeVpcAttributeInput) (*ec2.DescribeVpcAttributeOutput, error)
-	DescribeVpcAttributeAsync(ctx workflow.Context, input *ec2.DescribeVpcAttributeInput) *EC2DescribeVpcAttributeFuture
+	DescribeVpcAttributeAsync(ctx workflow.Context, input *ec2.DescribeVpcAttributeInput) *DescribeVpcAttributeFuture
 
 	DescribeVpcClassicLink(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkInput) (*ec2.DescribeVpcClassicLinkOutput, error)
-	DescribeVpcClassicLinkAsync(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkInput) *EC2DescribeVpcClassicLinkFuture
+	DescribeVpcClassicLinkAsync(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkInput) *DescribeVpcClassicLinkFuture
 
 	DescribeVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkDnsSupportInput) (*ec2.DescribeVpcClassicLinkDnsSupportOutput, error)
-	DescribeVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkDnsSupportInput) *EC2DescribeVpcClassicLinkDnsSupportFuture
+	DescribeVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.DescribeVpcClassicLinkDnsSupportInput) *DescribeVpcClassicLinkDnsSupportFuture
 
 	DescribeVpcEndpointConnectionNotifications(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionNotificationsInput) (*ec2.DescribeVpcEndpointConnectionNotificationsOutput, error)
-	DescribeVpcEndpointConnectionNotificationsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionNotificationsInput) *EC2DescribeVpcEndpointConnectionNotificationsFuture
+	DescribeVpcEndpointConnectionNotificationsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionNotificationsInput) *DescribeVpcEndpointConnectionNotificationsFuture
 
 	DescribeVpcEndpointConnections(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionsInput) (*ec2.DescribeVpcEndpointConnectionsOutput, error)
-	DescribeVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionsInput) *EC2DescribeVpcEndpointConnectionsFuture
+	DescribeVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointConnectionsInput) *DescribeVpcEndpointConnectionsFuture
 
 	DescribeVpcEndpointServiceConfigurations(ctx workflow.Context, input *ec2.DescribeVpcEndpointServiceConfigurationsInput) (*ec2.DescribeVpcEndpointServiceConfigurationsOutput, error)
-	DescribeVpcEndpointServiceConfigurationsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServiceConfigurationsInput) *EC2DescribeVpcEndpointServiceConfigurationsFuture
+	DescribeVpcEndpointServiceConfigurationsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServiceConfigurationsInput) *DescribeVpcEndpointServiceConfigurationsFuture
 
 	DescribeVpcEndpointServicePermissions(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicePermissionsInput) (*ec2.DescribeVpcEndpointServicePermissionsOutput, error)
-	DescribeVpcEndpointServicePermissionsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicePermissionsInput) *EC2DescribeVpcEndpointServicePermissionsFuture
+	DescribeVpcEndpointServicePermissionsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicePermissionsInput) *DescribeVpcEndpointServicePermissionsFuture
 
 	DescribeVpcEndpointServices(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicesInput) (*ec2.DescribeVpcEndpointServicesOutput, error)
-	DescribeVpcEndpointServicesAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicesInput) *EC2DescribeVpcEndpointServicesFuture
+	DescribeVpcEndpointServicesAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointServicesInput) *DescribeVpcEndpointServicesFuture
 
 	DescribeVpcEndpoints(ctx workflow.Context, input *ec2.DescribeVpcEndpointsInput) (*ec2.DescribeVpcEndpointsOutput, error)
-	DescribeVpcEndpointsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointsInput) *EC2DescribeVpcEndpointsFuture
+	DescribeVpcEndpointsAsync(ctx workflow.Context, input *ec2.DescribeVpcEndpointsInput) *DescribeVpcEndpointsFuture
 
 	DescribeVpcPeeringConnections(ctx workflow.Context, input *ec2.DescribeVpcPeeringConnectionsInput) (*ec2.DescribeVpcPeeringConnectionsOutput, error)
-	DescribeVpcPeeringConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpcPeeringConnectionsInput) *EC2DescribeVpcPeeringConnectionsFuture
+	DescribeVpcPeeringConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpcPeeringConnectionsInput) *DescribeVpcPeeringConnectionsFuture
 
 	DescribeVpcs(ctx workflow.Context, input *ec2.DescribeVpcsInput) (*ec2.DescribeVpcsOutput, error)
-	DescribeVpcsAsync(ctx workflow.Context, input *ec2.DescribeVpcsInput) *EC2DescribeVpcsFuture
+	DescribeVpcsAsync(ctx workflow.Context, input *ec2.DescribeVpcsInput) *DescribeVpcsFuture
 
 	DescribeVpnConnections(ctx workflow.Context, input *ec2.DescribeVpnConnectionsInput) (*ec2.DescribeVpnConnectionsOutput, error)
-	DescribeVpnConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpnConnectionsInput) *EC2DescribeVpnConnectionsFuture
+	DescribeVpnConnectionsAsync(ctx workflow.Context, input *ec2.DescribeVpnConnectionsInput) *DescribeVpnConnectionsFuture
 
 	DescribeVpnGateways(ctx workflow.Context, input *ec2.DescribeVpnGatewaysInput) (*ec2.DescribeVpnGatewaysOutput, error)
-	DescribeVpnGatewaysAsync(ctx workflow.Context, input *ec2.DescribeVpnGatewaysInput) *EC2DescribeVpnGatewaysFuture
+	DescribeVpnGatewaysAsync(ctx workflow.Context, input *ec2.DescribeVpnGatewaysInput) *DescribeVpnGatewaysFuture
 
 	DetachClassicLinkVpc(ctx workflow.Context, input *ec2.DetachClassicLinkVpcInput) (*ec2.DetachClassicLinkVpcOutput, error)
-	DetachClassicLinkVpcAsync(ctx workflow.Context, input *ec2.DetachClassicLinkVpcInput) *EC2DetachClassicLinkVpcFuture
+	DetachClassicLinkVpcAsync(ctx workflow.Context, input *ec2.DetachClassicLinkVpcInput) *DetachClassicLinkVpcFuture
 
 	DetachInternetGateway(ctx workflow.Context, input *ec2.DetachInternetGatewayInput) (*ec2.DetachInternetGatewayOutput, error)
-	DetachInternetGatewayAsync(ctx workflow.Context, input *ec2.DetachInternetGatewayInput) *EC2DetachInternetGatewayFuture
+	DetachInternetGatewayAsync(ctx workflow.Context, input *ec2.DetachInternetGatewayInput) *DetachInternetGatewayFuture
 
 	DetachNetworkInterface(ctx workflow.Context, input *ec2.DetachNetworkInterfaceInput) (*ec2.DetachNetworkInterfaceOutput, error)
-	DetachNetworkInterfaceAsync(ctx workflow.Context, input *ec2.DetachNetworkInterfaceInput) *EC2DetachNetworkInterfaceFuture
+	DetachNetworkInterfaceAsync(ctx workflow.Context, input *ec2.DetachNetworkInterfaceInput) *DetachNetworkInterfaceFuture
 
 	DetachVolume(ctx workflow.Context, input *ec2.DetachVolumeInput) (*ec2.VolumeAttachment, error)
-	DetachVolumeAsync(ctx workflow.Context, input *ec2.DetachVolumeInput) *EC2DetachVolumeFuture
+	DetachVolumeAsync(ctx workflow.Context, input *ec2.DetachVolumeInput) *DetachVolumeFuture
 
 	DetachVpnGateway(ctx workflow.Context, input *ec2.DetachVpnGatewayInput) (*ec2.DetachVpnGatewayOutput, error)
-	DetachVpnGatewayAsync(ctx workflow.Context, input *ec2.DetachVpnGatewayInput) *EC2DetachVpnGatewayFuture
+	DetachVpnGatewayAsync(ctx workflow.Context, input *ec2.DetachVpnGatewayInput) *DetachVpnGatewayFuture
 
 	DisableEbsEncryptionByDefault(ctx workflow.Context, input *ec2.DisableEbsEncryptionByDefaultInput) (*ec2.DisableEbsEncryptionByDefaultOutput, error)
-	DisableEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.DisableEbsEncryptionByDefaultInput) *EC2DisableEbsEncryptionByDefaultFuture
+	DisableEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.DisableEbsEncryptionByDefaultInput) *DisableEbsEncryptionByDefaultFuture
 
 	DisableFastSnapshotRestores(ctx workflow.Context, input *ec2.DisableFastSnapshotRestoresInput) (*ec2.DisableFastSnapshotRestoresOutput, error)
-	DisableFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.DisableFastSnapshotRestoresInput) *EC2DisableFastSnapshotRestoresFuture
+	DisableFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.DisableFastSnapshotRestoresInput) *DisableFastSnapshotRestoresFuture
 
 	DisableTransitGatewayRouteTablePropagation(ctx workflow.Context, input *ec2.DisableTransitGatewayRouteTablePropagationInput) (*ec2.DisableTransitGatewayRouteTablePropagationOutput, error)
-	DisableTransitGatewayRouteTablePropagationAsync(ctx workflow.Context, input *ec2.DisableTransitGatewayRouteTablePropagationInput) *EC2DisableTransitGatewayRouteTablePropagationFuture
+	DisableTransitGatewayRouteTablePropagationAsync(ctx workflow.Context, input *ec2.DisableTransitGatewayRouteTablePropagationInput) *DisableTransitGatewayRouteTablePropagationFuture
 
 	DisableVgwRoutePropagation(ctx workflow.Context, input *ec2.DisableVgwRoutePropagationInput) (*ec2.DisableVgwRoutePropagationOutput, error)
-	DisableVgwRoutePropagationAsync(ctx workflow.Context, input *ec2.DisableVgwRoutePropagationInput) *EC2DisableVgwRoutePropagationFuture
+	DisableVgwRoutePropagationAsync(ctx workflow.Context, input *ec2.DisableVgwRoutePropagationInput) *DisableVgwRoutePropagationFuture
 
 	DisableVpcClassicLink(ctx workflow.Context, input *ec2.DisableVpcClassicLinkInput) (*ec2.DisableVpcClassicLinkOutput, error)
-	DisableVpcClassicLinkAsync(ctx workflow.Context, input *ec2.DisableVpcClassicLinkInput) *EC2DisableVpcClassicLinkFuture
+	DisableVpcClassicLinkAsync(ctx workflow.Context, input *ec2.DisableVpcClassicLinkInput) *DisableVpcClassicLinkFuture
 
 	DisableVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2.DisableVpcClassicLinkDnsSupportInput) (*ec2.DisableVpcClassicLinkDnsSupportOutput, error)
-	DisableVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.DisableVpcClassicLinkDnsSupportInput) *EC2DisableVpcClassicLinkDnsSupportFuture
+	DisableVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.DisableVpcClassicLinkDnsSupportInput) *DisableVpcClassicLinkDnsSupportFuture
 
 	DisassociateAddress(ctx workflow.Context, input *ec2.DisassociateAddressInput) (*ec2.DisassociateAddressOutput, error)
-	DisassociateAddressAsync(ctx workflow.Context, input *ec2.DisassociateAddressInput) *EC2DisassociateAddressFuture
+	DisassociateAddressAsync(ctx workflow.Context, input *ec2.DisassociateAddressInput) *DisassociateAddressFuture
 
 	DisassociateClientVpnTargetNetwork(ctx workflow.Context, input *ec2.DisassociateClientVpnTargetNetworkInput) (*ec2.DisassociateClientVpnTargetNetworkOutput, error)
-	DisassociateClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.DisassociateClientVpnTargetNetworkInput) *EC2DisassociateClientVpnTargetNetworkFuture
+	DisassociateClientVpnTargetNetworkAsync(ctx workflow.Context, input *ec2.DisassociateClientVpnTargetNetworkInput) *DisassociateClientVpnTargetNetworkFuture
 
 	DisassociateEnclaveCertificateIamRole(ctx workflow.Context, input *ec2.DisassociateEnclaveCertificateIamRoleInput) (*ec2.DisassociateEnclaveCertificateIamRoleOutput, error)
-	DisassociateEnclaveCertificateIamRoleAsync(ctx workflow.Context, input *ec2.DisassociateEnclaveCertificateIamRoleInput) *EC2DisassociateEnclaveCertificateIamRoleFuture
+	DisassociateEnclaveCertificateIamRoleAsync(ctx workflow.Context, input *ec2.DisassociateEnclaveCertificateIamRoleInput) *DisassociateEnclaveCertificateIamRoleFuture
 
 	DisassociateIamInstanceProfile(ctx workflow.Context, input *ec2.DisassociateIamInstanceProfileInput) (*ec2.DisassociateIamInstanceProfileOutput, error)
-	DisassociateIamInstanceProfileAsync(ctx workflow.Context, input *ec2.DisassociateIamInstanceProfileInput) *EC2DisassociateIamInstanceProfileFuture
+	DisassociateIamInstanceProfileAsync(ctx workflow.Context, input *ec2.DisassociateIamInstanceProfileInput) *DisassociateIamInstanceProfileFuture
 
 	DisassociateRouteTable(ctx workflow.Context, input *ec2.DisassociateRouteTableInput) (*ec2.DisassociateRouteTableOutput, error)
-	DisassociateRouteTableAsync(ctx workflow.Context, input *ec2.DisassociateRouteTableInput) *EC2DisassociateRouteTableFuture
+	DisassociateRouteTableAsync(ctx workflow.Context, input *ec2.DisassociateRouteTableInput) *DisassociateRouteTableFuture
 
 	DisassociateSubnetCidrBlock(ctx workflow.Context, input *ec2.DisassociateSubnetCidrBlockInput) (*ec2.DisassociateSubnetCidrBlockOutput, error)
-	DisassociateSubnetCidrBlockAsync(ctx workflow.Context, input *ec2.DisassociateSubnetCidrBlockInput) *EC2DisassociateSubnetCidrBlockFuture
+	DisassociateSubnetCidrBlockAsync(ctx workflow.Context, input *ec2.DisassociateSubnetCidrBlockInput) *DisassociateSubnetCidrBlockFuture
 
 	DisassociateTransitGatewayMulticastDomain(ctx workflow.Context, input *ec2.DisassociateTransitGatewayMulticastDomainInput) (*ec2.DisassociateTransitGatewayMulticastDomainOutput, error)
-	DisassociateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.DisassociateTransitGatewayMulticastDomainInput) *EC2DisassociateTransitGatewayMulticastDomainFuture
+	DisassociateTransitGatewayMulticastDomainAsync(ctx workflow.Context, input *ec2.DisassociateTransitGatewayMulticastDomainInput) *DisassociateTransitGatewayMulticastDomainFuture
 
 	DisassociateTransitGatewayRouteTable(ctx workflow.Context, input *ec2.DisassociateTransitGatewayRouteTableInput) (*ec2.DisassociateTransitGatewayRouteTableOutput, error)
-	DisassociateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.DisassociateTransitGatewayRouteTableInput) *EC2DisassociateTransitGatewayRouteTableFuture
+	DisassociateTransitGatewayRouteTableAsync(ctx workflow.Context, input *ec2.DisassociateTransitGatewayRouteTableInput) *DisassociateTransitGatewayRouteTableFuture
 
 	DisassociateVpcCidrBlock(ctx workflow.Context, input *ec2.DisassociateVpcCidrBlockInput) (*ec2.DisassociateVpcCidrBlockOutput, error)
-	DisassociateVpcCidrBlockAsync(ctx workflow.Context, input *ec2.DisassociateVpcCidrBlockInput) *EC2DisassociateVpcCidrBlockFuture
+	DisassociateVpcCidrBlockAsync(ctx workflow.Context, input *ec2.DisassociateVpcCidrBlockInput) *DisassociateVpcCidrBlockFuture
 
 	EnableEbsEncryptionByDefault(ctx workflow.Context, input *ec2.EnableEbsEncryptionByDefaultInput) (*ec2.EnableEbsEncryptionByDefaultOutput, error)
-	EnableEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.EnableEbsEncryptionByDefaultInput) *EC2EnableEbsEncryptionByDefaultFuture
+	EnableEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.EnableEbsEncryptionByDefaultInput) *EnableEbsEncryptionByDefaultFuture
 
 	EnableFastSnapshotRestores(ctx workflow.Context, input *ec2.EnableFastSnapshotRestoresInput) (*ec2.EnableFastSnapshotRestoresOutput, error)
-	EnableFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.EnableFastSnapshotRestoresInput) *EC2EnableFastSnapshotRestoresFuture
+	EnableFastSnapshotRestoresAsync(ctx workflow.Context, input *ec2.EnableFastSnapshotRestoresInput) *EnableFastSnapshotRestoresFuture
 
 	EnableTransitGatewayRouteTablePropagation(ctx workflow.Context, input *ec2.EnableTransitGatewayRouteTablePropagationInput) (*ec2.EnableTransitGatewayRouteTablePropagationOutput, error)
-	EnableTransitGatewayRouteTablePropagationAsync(ctx workflow.Context, input *ec2.EnableTransitGatewayRouteTablePropagationInput) *EC2EnableTransitGatewayRouteTablePropagationFuture
+	EnableTransitGatewayRouteTablePropagationAsync(ctx workflow.Context, input *ec2.EnableTransitGatewayRouteTablePropagationInput) *EnableTransitGatewayRouteTablePropagationFuture
 
 	EnableVgwRoutePropagation(ctx workflow.Context, input *ec2.EnableVgwRoutePropagationInput) (*ec2.EnableVgwRoutePropagationOutput, error)
-	EnableVgwRoutePropagationAsync(ctx workflow.Context, input *ec2.EnableVgwRoutePropagationInput) *EC2EnableVgwRoutePropagationFuture
+	EnableVgwRoutePropagationAsync(ctx workflow.Context, input *ec2.EnableVgwRoutePropagationInput) *EnableVgwRoutePropagationFuture
 
 	EnableVolumeIO(ctx workflow.Context, input *ec2.EnableVolumeIOInput) (*ec2.EnableVolumeIOOutput, error)
-	EnableVolumeIOAsync(ctx workflow.Context, input *ec2.EnableVolumeIOInput) *EC2EnableVolumeIOFuture
+	EnableVolumeIOAsync(ctx workflow.Context, input *ec2.EnableVolumeIOInput) *EnableVolumeIOFuture
 
 	EnableVpcClassicLink(ctx workflow.Context, input *ec2.EnableVpcClassicLinkInput) (*ec2.EnableVpcClassicLinkOutput, error)
-	EnableVpcClassicLinkAsync(ctx workflow.Context, input *ec2.EnableVpcClassicLinkInput) *EC2EnableVpcClassicLinkFuture
+	EnableVpcClassicLinkAsync(ctx workflow.Context, input *ec2.EnableVpcClassicLinkInput) *EnableVpcClassicLinkFuture
 
 	EnableVpcClassicLinkDnsSupport(ctx workflow.Context, input *ec2.EnableVpcClassicLinkDnsSupportInput) (*ec2.EnableVpcClassicLinkDnsSupportOutput, error)
-	EnableVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.EnableVpcClassicLinkDnsSupportInput) *EC2EnableVpcClassicLinkDnsSupportFuture
+	EnableVpcClassicLinkDnsSupportAsync(ctx workflow.Context, input *ec2.EnableVpcClassicLinkDnsSupportInput) *EnableVpcClassicLinkDnsSupportFuture
 
 	ExportClientVpnClientCertificateRevocationList(ctx workflow.Context, input *ec2.ExportClientVpnClientCertificateRevocationListInput) (*ec2.ExportClientVpnClientCertificateRevocationListOutput, error)
-	ExportClientVpnClientCertificateRevocationListAsync(ctx workflow.Context, input *ec2.ExportClientVpnClientCertificateRevocationListInput) *EC2ExportClientVpnClientCertificateRevocationListFuture
+	ExportClientVpnClientCertificateRevocationListAsync(ctx workflow.Context, input *ec2.ExportClientVpnClientCertificateRevocationListInput) *ExportClientVpnClientCertificateRevocationListFuture
 
 	ExportClientVpnClientConfiguration(ctx workflow.Context, input *ec2.ExportClientVpnClientConfigurationInput) (*ec2.ExportClientVpnClientConfigurationOutput, error)
-	ExportClientVpnClientConfigurationAsync(ctx workflow.Context, input *ec2.ExportClientVpnClientConfigurationInput) *EC2ExportClientVpnClientConfigurationFuture
+	ExportClientVpnClientConfigurationAsync(ctx workflow.Context, input *ec2.ExportClientVpnClientConfigurationInput) *ExportClientVpnClientConfigurationFuture
 
 	ExportImage(ctx workflow.Context, input *ec2.ExportImageInput) (*ec2.ExportImageOutput, error)
-	ExportImageAsync(ctx workflow.Context, input *ec2.ExportImageInput) *EC2ExportImageFuture
+	ExportImageAsync(ctx workflow.Context, input *ec2.ExportImageInput) *ExportImageFuture
 
 	ExportTransitGatewayRoutes(ctx workflow.Context, input *ec2.ExportTransitGatewayRoutesInput) (*ec2.ExportTransitGatewayRoutesOutput, error)
-	ExportTransitGatewayRoutesAsync(ctx workflow.Context, input *ec2.ExportTransitGatewayRoutesInput) *EC2ExportTransitGatewayRoutesFuture
+	ExportTransitGatewayRoutesAsync(ctx workflow.Context, input *ec2.ExportTransitGatewayRoutesInput) *ExportTransitGatewayRoutesFuture
 
 	GetAssociatedEnclaveCertificateIamRoles(ctx workflow.Context, input *ec2.GetAssociatedEnclaveCertificateIamRolesInput) (*ec2.GetAssociatedEnclaveCertificateIamRolesOutput, error)
-	GetAssociatedEnclaveCertificateIamRolesAsync(ctx workflow.Context, input *ec2.GetAssociatedEnclaveCertificateIamRolesInput) *EC2GetAssociatedEnclaveCertificateIamRolesFuture
+	GetAssociatedEnclaveCertificateIamRolesAsync(ctx workflow.Context, input *ec2.GetAssociatedEnclaveCertificateIamRolesInput) *GetAssociatedEnclaveCertificateIamRolesFuture
 
 	GetAssociatedIpv6PoolCidrs(ctx workflow.Context, input *ec2.GetAssociatedIpv6PoolCidrsInput) (*ec2.GetAssociatedIpv6PoolCidrsOutput, error)
-	GetAssociatedIpv6PoolCidrsAsync(ctx workflow.Context, input *ec2.GetAssociatedIpv6PoolCidrsInput) *EC2GetAssociatedIpv6PoolCidrsFuture
+	GetAssociatedIpv6PoolCidrsAsync(ctx workflow.Context, input *ec2.GetAssociatedIpv6PoolCidrsInput) *GetAssociatedIpv6PoolCidrsFuture
 
 	GetCapacityReservationUsage(ctx workflow.Context, input *ec2.GetCapacityReservationUsageInput) (*ec2.GetCapacityReservationUsageOutput, error)
-	GetCapacityReservationUsageAsync(ctx workflow.Context, input *ec2.GetCapacityReservationUsageInput) *EC2GetCapacityReservationUsageFuture
+	GetCapacityReservationUsageAsync(ctx workflow.Context, input *ec2.GetCapacityReservationUsageInput) *GetCapacityReservationUsageFuture
 
 	GetCoipPoolUsage(ctx workflow.Context, input *ec2.GetCoipPoolUsageInput) (*ec2.GetCoipPoolUsageOutput, error)
-	GetCoipPoolUsageAsync(ctx workflow.Context, input *ec2.GetCoipPoolUsageInput) *EC2GetCoipPoolUsageFuture
+	GetCoipPoolUsageAsync(ctx workflow.Context, input *ec2.GetCoipPoolUsageInput) *GetCoipPoolUsageFuture
 
 	GetConsoleOutput(ctx workflow.Context, input *ec2.GetConsoleOutputInput) (*ec2.GetConsoleOutputOutput, error)
-	GetConsoleOutputAsync(ctx workflow.Context, input *ec2.GetConsoleOutputInput) *EC2GetConsoleOutputFuture
+	GetConsoleOutputAsync(ctx workflow.Context, input *ec2.GetConsoleOutputInput) *GetConsoleOutputFuture
 
 	GetConsoleScreenshot(ctx workflow.Context, input *ec2.GetConsoleScreenshotInput) (*ec2.GetConsoleScreenshotOutput, error)
-	GetConsoleScreenshotAsync(ctx workflow.Context, input *ec2.GetConsoleScreenshotInput) *EC2GetConsoleScreenshotFuture
+	GetConsoleScreenshotAsync(ctx workflow.Context, input *ec2.GetConsoleScreenshotInput) *GetConsoleScreenshotFuture
 
 	GetDefaultCreditSpecification(ctx workflow.Context, input *ec2.GetDefaultCreditSpecificationInput) (*ec2.GetDefaultCreditSpecificationOutput, error)
-	GetDefaultCreditSpecificationAsync(ctx workflow.Context, input *ec2.GetDefaultCreditSpecificationInput) *EC2GetDefaultCreditSpecificationFuture
+	GetDefaultCreditSpecificationAsync(ctx workflow.Context, input *ec2.GetDefaultCreditSpecificationInput) *GetDefaultCreditSpecificationFuture
 
 	GetEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.GetEbsDefaultKmsKeyIdInput) (*ec2.GetEbsDefaultKmsKeyIdOutput, error)
-	GetEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.GetEbsDefaultKmsKeyIdInput) *EC2GetEbsDefaultKmsKeyIdFuture
+	GetEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.GetEbsDefaultKmsKeyIdInput) *GetEbsDefaultKmsKeyIdFuture
 
 	GetEbsEncryptionByDefault(ctx workflow.Context, input *ec2.GetEbsEncryptionByDefaultInput) (*ec2.GetEbsEncryptionByDefaultOutput, error)
-	GetEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.GetEbsEncryptionByDefaultInput) *EC2GetEbsEncryptionByDefaultFuture
+	GetEbsEncryptionByDefaultAsync(ctx workflow.Context, input *ec2.GetEbsEncryptionByDefaultInput) *GetEbsEncryptionByDefaultFuture
 
 	GetGroupsForCapacityReservation(ctx workflow.Context, input *ec2.GetGroupsForCapacityReservationInput) (*ec2.GetGroupsForCapacityReservationOutput, error)
-	GetGroupsForCapacityReservationAsync(ctx workflow.Context, input *ec2.GetGroupsForCapacityReservationInput) *EC2GetGroupsForCapacityReservationFuture
+	GetGroupsForCapacityReservationAsync(ctx workflow.Context, input *ec2.GetGroupsForCapacityReservationInput) *GetGroupsForCapacityReservationFuture
 
 	GetHostReservationPurchasePreview(ctx workflow.Context, input *ec2.GetHostReservationPurchasePreviewInput) (*ec2.GetHostReservationPurchasePreviewOutput, error)
-	GetHostReservationPurchasePreviewAsync(ctx workflow.Context, input *ec2.GetHostReservationPurchasePreviewInput) *EC2GetHostReservationPurchasePreviewFuture
+	GetHostReservationPurchasePreviewAsync(ctx workflow.Context, input *ec2.GetHostReservationPurchasePreviewInput) *GetHostReservationPurchasePreviewFuture
 
 	GetLaunchTemplateData(ctx workflow.Context, input *ec2.GetLaunchTemplateDataInput) (*ec2.GetLaunchTemplateDataOutput, error)
-	GetLaunchTemplateDataAsync(ctx workflow.Context, input *ec2.GetLaunchTemplateDataInput) *EC2GetLaunchTemplateDataFuture
+	GetLaunchTemplateDataAsync(ctx workflow.Context, input *ec2.GetLaunchTemplateDataInput) *GetLaunchTemplateDataFuture
 
 	GetManagedPrefixListAssociations(ctx workflow.Context, input *ec2.GetManagedPrefixListAssociationsInput) (*ec2.GetManagedPrefixListAssociationsOutput, error)
-	GetManagedPrefixListAssociationsAsync(ctx workflow.Context, input *ec2.GetManagedPrefixListAssociationsInput) *EC2GetManagedPrefixListAssociationsFuture
+	GetManagedPrefixListAssociationsAsync(ctx workflow.Context, input *ec2.GetManagedPrefixListAssociationsInput) *GetManagedPrefixListAssociationsFuture
 
 	GetManagedPrefixListEntries(ctx workflow.Context, input *ec2.GetManagedPrefixListEntriesInput) (*ec2.GetManagedPrefixListEntriesOutput, error)
-	GetManagedPrefixListEntriesAsync(ctx workflow.Context, input *ec2.GetManagedPrefixListEntriesInput) *EC2GetManagedPrefixListEntriesFuture
+	GetManagedPrefixListEntriesAsync(ctx workflow.Context, input *ec2.GetManagedPrefixListEntriesInput) *GetManagedPrefixListEntriesFuture
 
 	GetPasswordData(ctx workflow.Context, input *ec2.GetPasswordDataInput) (*ec2.GetPasswordDataOutput, error)
-	GetPasswordDataAsync(ctx workflow.Context, input *ec2.GetPasswordDataInput) *EC2GetPasswordDataFuture
+	GetPasswordDataAsync(ctx workflow.Context, input *ec2.GetPasswordDataInput) *GetPasswordDataFuture
 
 	GetReservedInstancesExchangeQuote(ctx workflow.Context, input *ec2.GetReservedInstancesExchangeQuoteInput) (*ec2.GetReservedInstancesExchangeQuoteOutput, error)
-	GetReservedInstancesExchangeQuoteAsync(ctx workflow.Context, input *ec2.GetReservedInstancesExchangeQuoteInput) *EC2GetReservedInstancesExchangeQuoteFuture
+	GetReservedInstancesExchangeQuoteAsync(ctx workflow.Context, input *ec2.GetReservedInstancesExchangeQuoteInput) *GetReservedInstancesExchangeQuoteFuture
 
 	GetTransitGatewayAttachmentPropagations(ctx workflow.Context, input *ec2.GetTransitGatewayAttachmentPropagationsInput) (*ec2.GetTransitGatewayAttachmentPropagationsOutput, error)
-	GetTransitGatewayAttachmentPropagationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayAttachmentPropagationsInput) *EC2GetTransitGatewayAttachmentPropagationsFuture
+	GetTransitGatewayAttachmentPropagationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayAttachmentPropagationsInput) *GetTransitGatewayAttachmentPropagationsFuture
 
 	GetTransitGatewayMulticastDomainAssociations(ctx workflow.Context, input *ec2.GetTransitGatewayMulticastDomainAssociationsInput) (*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, error)
-	GetTransitGatewayMulticastDomainAssociationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayMulticastDomainAssociationsInput) *EC2GetTransitGatewayMulticastDomainAssociationsFuture
+	GetTransitGatewayMulticastDomainAssociationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayMulticastDomainAssociationsInput) *GetTransitGatewayMulticastDomainAssociationsFuture
 
 	GetTransitGatewayPrefixListReferences(ctx workflow.Context, input *ec2.GetTransitGatewayPrefixListReferencesInput) (*ec2.GetTransitGatewayPrefixListReferencesOutput, error)
-	GetTransitGatewayPrefixListReferencesAsync(ctx workflow.Context, input *ec2.GetTransitGatewayPrefixListReferencesInput) *EC2GetTransitGatewayPrefixListReferencesFuture
+	GetTransitGatewayPrefixListReferencesAsync(ctx workflow.Context, input *ec2.GetTransitGatewayPrefixListReferencesInput) *GetTransitGatewayPrefixListReferencesFuture
 
 	GetTransitGatewayRouteTableAssociations(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTableAssociationsInput) (*ec2.GetTransitGatewayRouteTableAssociationsOutput, error)
-	GetTransitGatewayRouteTableAssociationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTableAssociationsInput) *EC2GetTransitGatewayRouteTableAssociationsFuture
+	GetTransitGatewayRouteTableAssociationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTableAssociationsInput) *GetTransitGatewayRouteTableAssociationsFuture
 
 	GetTransitGatewayRouteTablePropagations(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTablePropagationsInput) (*ec2.GetTransitGatewayRouteTablePropagationsOutput, error)
-	GetTransitGatewayRouteTablePropagationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTablePropagationsInput) *EC2GetTransitGatewayRouteTablePropagationsFuture
+	GetTransitGatewayRouteTablePropagationsAsync(ctx workflow.Context, input *ec2.GetTransitGatewayRouteTablePropagationsInput) *GetTransitGatewayRouteTablePropagationsFuture
 
 	ImportClientVpnClientCertificateRevocationList(ctx workflow.Context, input *ec2.ImportClientVpnClientCertificateRevocationListInput) (*ec2.ImportClientVpnClientCertificateRevocationListOutput, error)
-	ImportClientVpnClientCertificateRevocationListAsync(ctx workflow.Context, input *ec2.ImportClientVpnClientCertificateRevocationListInput) *EC2ImportClientVpnClientCertificateRevocationListFuture
+	ImportClientVpnClientCertificateRevocationListAsync(ctx workflow.Context, input *ec2.ImportClientVpnClientCertificateRevocationListInput) *ImportClientVpnClientCertificateRevocationListFuture
 
 	ImportImage(ctx workflow.Context, input *ec2.ImportImageInput) (*ec2.ImportImageOutput, error)
-	ImportImageAsync(ctx workflow.Context, input *ec2.ImportImageInput) *EC2ImportImageFuture
+	ImportImageAsync(ctx workflow.Context, input *ec2.ImportImageInput) *ImportImageFuture
 
 	ImportInstance(ctx workflow.Context, input *ec2.ImportInstanceInput) (*ec2.ImportInstanceOutput, error)
-	ImportInstanceAsync(ctx workflow.Context, input *ec2.ImportInstanceInput) *EC2ImportInstanceFuture
+	ImportInstanceAsync(ctx workflow.Context, input *ec2.ImportInstanceInput) *ImportInstanceFuture
 
 	ImportKeyPair(ctx workflow.Context, input *ec2.ImportKeyPairInput) (*ec2.ImportKeyPairOutput, error)
-	ImportKeyPairAsync(ctx workflow.Context, input *ec2.ImportKeyPairInput) *EC2ImportKeyPairFuture
+	ImportKeyPairAsync(ctx workflow.Context, input *ec2.ImportKeyPairInput) *ImportKeyPairFuture
 
 	ImportSnapshot(ctx workflow.Context, input *ec2.ImportSnapshotInput) (*ec2.ImportSnapshotOutput, error)
-	ImportSnapshotAsync(ctx workflow.Context, input *ec2.ImportSnapshotInput) *EC2ImportSnapshotFuture
+	ImportSnapshotAsync(ctx workflow.Context, input *ec2.ImportSnapshotInput) *ImportSnapshotFuture
 
 	ImportVolume(ctx workflow.Context, input *ec2.ImportVolumeInput) (*ec2.ImportVolumeOutput, error)
-	ImportVolumeAsync(ctx workflow.Context, input *ec2.ImportVolumeInput) *EC2ImportVolumeFuture
+	ImportVolumeAsync(ctx workflow.Context, input *ec2.ImportVolumeInput) *ImportVolumeFuture
 
 	ModifyAvailabilityZoneGroup(ctx workflow.Context, input *ec2.ModifyAvailabilityZoneGroupInput) (*ec2.ModifyAvailabilityZoneGroupOutput, error)
-	ModifyAvailabilityZoneGroupAsync(ctx workflow.Context, input *ec2.ModifyAvailabilityZoneGroupInput) *EC2ModifyAvailabilityZoneGroupFuture
+	ModifyAvailabilityZoneGroupAsync(ctx workflow.Context, input *ec2.ModifyAvailabilityZoneGroupInput) *ModifyAvailabilityZoneGroupFuture
 
 	ModifyCapacityReservation(ctx workflow.Context, input *ec2.ModifyCapacityReservationInput) (*ec2.ModifyCapacityReservationOutput, error)
-	ModifyCapacityReservationAsync(ctx workflow.Context, input *ec2.ModifyCapacityReservationInput) *EC2ModifyCapacityReservationFuture
+	ModifyCapacityReservationAsync(ctx workflow.Context, input *ec2.ModifyCapacityReservationInput) *ModifyCapacityReservationFuture
 
 	ModifyClientVpnEndpoint(ctx workflow.Context, input *ec2.ModifyClientVpnEndpointInput) (*ec2.ModifyClientVpnEndpointOutput, error)
-	ModifyClientVpnEndpointAsync(ctx workflow.Context, input *ec2.ModifyClientVpnEndpointInput) *EC2ModifyClientVpnEndpointFuture
+	ModifyClientVpnEndpointAsync(ctx workflow.Context, input *ec2.ModifyClientVpnEndpointInput) *ModifyClientVpnEndpointFuture
 
 	ModifyDefaultCreditSpecification(ctx workflow.Context, input *ec2.ModifyDefaultCreditSpecificationInput) (*ec2.ModifyDefaultCreditSpecificationOutput, error)
-	ModifyDefaultCreditSpecificationAsync(ctx workflow.Context, input *ec2.ModifyDefaultCreditSpecificationInput) *EC2ModifyDefaultCreditSpecificationFuture
+	ModifyDefaultCreditSpecificationAsync(ctx workflow.Context, input *ec2.ModifyDefaultCreditSpecificationInput) *ModifyDefaultCreditSpecificationFuture
 
 	ModifyEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.ModifyEbsDefaultKmsKeyIdInput) (*ec2.ModifyEbsDefaultKmsKeyIdOutput, error)
-	ModifyEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.ModifyEbsDefaultKmsKeyIdInput) *EC2ModifyEbsDefaultKmsKeyIdFuture
+	ModifyEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.ModifyEbsDefaultKmsKeyIdInput) *ModifyEbsDefaultKmsKeyIdFuture
 
 	ModifyFleet(ctx workflow.Context, input *ec2.ModifyFleetInput) (*ec2.ModifyFleetOutput, error)
-	ModifyFleetAsync(ctx workflow.Context, input *ec2.ModifyFleetInput) *EC2ModifyFleetFuture
+	ModifyFleetAsync(ctx workflow.Context, input *ec2.ModifyFleetInput) *ModifyFleetFuture
 
 	ModifyFpgaImageAttribute(ctx workflow.Context, input *ec2.ModifyFpgaImageAttributeInput) (*ec2.ModifyFpgaImageAttributeOutput, error)
-	ModifyFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.ModifyFpgaImageAttributeInput) *EC2ModifyFpgaImageAttributeFuture
+	ModifyFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.ModifyFpgaImageAttributeInput) *ModifyFpgaImageAttributeFuture
 
 	ModifyHosts(ctx workflow.Context, input *ec2.ModifyHostsInput) (*ec2.ModifyHostsOutput, error)
-	ModifyHostsAsync(ctx workflow.Context, input *ec2.ModifyHostsInput) *EC2ModifyHostsFuture
+	ModifyHostsAsync(ctx workflow.Context, input *ec2.ModifyHostsInput) *ModifyHostsFuture
 
 	ModifyIdFormat(ctx workflow.Context, input *ec2.ModifyIdFormatInput) (*ec2.ModifyIdFormatOutput, error)
-	ModifyIdFormatAsync(ctx workflow.Context, input *ec2.ModifyIdFormatInput) *EC2ModifyIdFormatFuture
+	ModifyIdFormatAsync(ctx workflow.Context, input *ec2.ModifyIdFormatInput) *ModifyIdFormatFuture
 
 	ModifyIdentityIdFormat(ctx workflow.Context, input *ec2.ModifyIdentityIdFormatInput) (*ec2.ModifyIdentityIdFormatOutput, error)
-	ModifyIdentityIdFormatAsync(ctx workflow.Context, input *ec2.ModifyIdentityIdFormatInput) *EC2ModifyIdentityIdFormatFuture
+	ModifyIdentityIdFormatAsync(ctx workflow.Context, input *ec2.ModifyIdentityIdFormatInput) *ModifyIdentityIdFormatFuture
 
 	ModifyImageAttribute(ctx workflow.Context, input *ec2.ModifyImageAttributeInput) (*ec2.ModifyImageAttributeOutput, error)
-	ModifyImageAttributeAsync(ctx workflow.Context, input *ec2.ModifyImageAttributeInput) *EC2ModifyImageAttributeFuture
+	ModifyImageAttributeAsync(ctx workflow.Context, input *ec2.ModifyImageAttributeInput) *ModifyImageAttributeFuture
 
 	ModifyInstanceAttribute(ctx workflow.Context, input *ec2.ModifyInstanceAttributeInput) (*ec2.ModifyInstanceAttributeOutput, error)
-	ModifyInstanceAttributeAsync(ctx workflow.Context, input *ec2.ModifyInstanceAttributeInput) *EC2ModifyInstanceAttributeFuture
+	ModifyInstanceAttributeAsync(ctx workflow.Context, input *ec2.ModifyInstanceAttributeInput) *ModifyInstanceAttributeFuture
 
 	ModifyInstanceCapacityReservationAttributes(ctx workflow.Context, input *ec2.ModifyInstanceCapacityReservationAttributesInput) (*ec2.ModifyInstanceCapacityReservationAttributesOutput, error)
-	ModifyInstanceCapacityReservationAttributesAsync(ctx workflow.Context, input *ec2.ModifyInstanceCapacityReservationAttributesInput) *EC2ModifyInstanceCapacityReservationAttributesFuture
+	ModifyInstanceCapacityReservationAttributesAsync(ctx workflow.Context, input *ec2.ModifyInstanceCapacityReservationAttributesInput) *ModifyInstanceCapacityReservationAttributesFuture
 
 	ModifyInstanceCreditSpecification(ctx workflow.Context, input *ec2.ModifyInstanceCreditSpecificationInput) (*ec2.ModifyInstanceCreditSpecificationOutput, error)
-	ModifyInstanceCreditSpecificationAsync(ctx workflow.Context, input *ec2.ModifyInstanceCreditSpecificationInput) *EC2ModifyInstanceCreditSpecificationFuture
+	ModifyInstanceCreditSpecificationAsync(ctx workflow.Context, input *ec2.ModifyInstanceCreditSpecificationInput) *ModifyInstanceCreditSpecificationFuture
 
 	ModifyInstanceEventStartTime(ctx workflow.Context, input *ec2.ModifyInstanceEventStartTimeInput) (*ec2.ModifyInstanceEventStartTimeOutput, error)
-	ModifyInstanceEventStartTimeAsync(ctx workflow.Context, input *ec2.ModifyInstanceEventStartTimeInput) *EC2ModifyInstanceEventStartTimeFuture
+	ModifyInstanceEventStartTimeAsync(ctx workflow.Context, input *ec2.ModifyInstanceEventStartTimeInput) *ModifyInstanceEventStartTimeFuture
 
 	ModifyInstanceMetadataOptions(ctx workflow.Context, input *ec2.ModifyInstanceMetadataOptionsInput) (*ec2.ModifyInstanceMetadataOptionsOutput, error)
-	ModifyInstanceMetadataOptionsAsync(ctx workflow.Context, input *ec2.ModifyInstanceMetadataOptionsInput) *EC2ModifyInstanceMetadataOptionsFuture
+	ModifyInstanceMetadataOptionsAsync(ctx workflow.Context, input *ec2.ModifyInstanceMetadataOptionsInput) *ModifyInstanceMetadataOptionsFuture
 
 	ModifyInstancePlacement(ctx workflow.Context, input *ec2.ModifyInstancePlacementInput) (*ec2.ModifyInstancePlacementOutput, error)
-	ModifyInstancePlacementAsync(ctx workflow.Context, input *ec2.ModifyInstancePlacementInput) *EC2ModifyInstancePlacementFuture
+	ModifyInstancePlacementAsync(ctx workflow.Context, input *ec2.ModifyInstancePlacementInput) *ModifyInstancePlacementFuture
 
 	ModifyLaunchTemplate(ctx workflow.Context, input *ec2.ModifyLaunchTemplateInput) (*ec2.ModifyLaunchTemplateOutput, error)
-	ModifyLaunchTemplateAsync(ctx workflow.Context, input *ec2.ModifyLaunchTemplateInput) *EC2ModifyLaunchTemplateFuture
+	ModifyLaunchTemplateAsync(ctx workflow.Context, input *ec2.ModifyLaunchTemplateInput) *ModifyLaunchTemplateFuture
 
 	ModifyManagedPrefixList(ctx workflow.Context, input *ec2.ModifyManagedPrefixListInput) (*ec2.ModifyManagedPrefixListOutput, error)
-	ModifyManagedPrefixListAsync(ctx workflow.Context, input *ec2.ModifyManagedPrefixListInput) *EC2ModifyManagedPrefixListFuture
+	ModifyManagedPrefixListAsync(ctx workflow.Context, input *ec2.ModifyManagedPrefixListInput) *ModifyManagedPrefixListFuture
 
 	ModifyNetworkInterfaceAttribute(ctx workflow.Context, input *ec2.ModifyNetworkInterfaceAttributeInput) (*ec2.ModifyNetworkInterfaceAttributeOutput, error)
-	ModifyNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.ModifyNetworkInterfaceAttributeInput) *EC2ModifyNetworkInterfaceAttributeFuture
+	ModifyNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.ModifyNetworkInterfaceAttributeInput) *ModifyNetworkInterfaceAttributeFuture
 
 	ModifyReservedInstances(ctx workflow.Context, input *ec2.ModifyReservedInstancesInput) (*ec2.ModifyReservedInstancesOutput, error)
-	ModifyReservedInstancesAsync(ctx workflow.Context, input *ec2.ModifyReservedInstancesInput) *EC2ModifyReservedInstancesFuture
+	ModifyReservedInstancesAsync(ctx workflow.Context, input *ec2.ModifyReservedInstancesInput) *ModifyReservedInstancesFuture
 
 	ModifySnapshotAttribute(ctx workflow.Context, input *ec2.ModifySnapshotAttributeInput) (*ec2.ModifySnapshotAttributeOutput, error)
-	ModifySnapshotAttributeAsync(ctx workflow.Context, input *ec2.ModifySnapshotAttributeInput) *EC2ModifySnapshotAttributeFuture
+	ModifySnapshotAttributeAsync(ctx workflow.Context, input *ec2.ModifySnapshotAttributeInput) *ModifySnapshotAttributeFuture
 
 	ModifySubnetAttribute(ctx workflow.Context, input *ec2.ModifySubnetAttributeInput) (*ec2.ModifySubnetAttributeOutput, error)
-	ModifySubnetAttributeAsync(ctx workflow.Context, input *ec2.ModifySubnetAttributeInput) *EC2ModifySubnetAttributeFuture
+	ModifySubnetAttributeAsync(ctx workflow.Context, input *ec2.ModifySubnetAttributeInput) *ModifySubnetAttributeFuture
 
 	ModifyTrafficMirrorFilterNetworkServices(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) (*ec2.ModifyTrafficMirrorFilterNetworkServicesOutput, error)
-	ModifyTrafficMirrorFilterNetworkServicesAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) *EC2ModifyTrafficMirrorFilterNetworkServicesFuture
+	ModifyTrafficMirrorFilterNetworkServicesAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterNetworkServicesInput) *ModifyTrafficMirrorFilterNetworkServicesFuture
 
 	ModifyTrafficMirrorFilterRule(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterRuleInput) (*ec2.ModifyTrafficMirrorFilterRuleOutput, error)
-	ModifyTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterRuleInput) *EC2ModifyTrafficMirrorFilterRuleFuture
+	ModifyTrafficMirrorFilterRuleAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorFilterRuleInput) *ModifyTrafficMirrorFilterRuleFuture
 
 	ModifyTrafficMirrorSession(ctx workflow.Context, input *ec2.ModifyTrafficMirrorSessionInput) (*ec2.ModifyTrafficMirrorSessionOutput, error)
-	ModifyTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorSessionInput) *EC2ModifyTrafficMirrorSessionFuture
+	ModifyTrafficMirrorSessionAsync(ctx workflow.Context, input *ec2.ModifyTrafficMirrorSessionInput) *ModifyTrafficMirrorSessionFuture
 
 	ModifyTransitGateway(ctx workflow.Context, input *ec2.ModifyTransitGatewayInput) (*ec2.ModifyTransitGatewayOutput, error)
-	ModifyTransitGatewayAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayInput) *EC2ModifyTransitGatewayFuture
+	ModifyTransitGatewayAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayInput) *ModifyTransitGatewayFuture
 
 	ModifyTransitGatewayPrefixListReference(ctx workflow.Context, input *ec2.ModifyTransitGatewayPrefixListReferenceInput) (*ec2.ModifyTransitGatewayPrefixListReferenceOutput, error)
-	ModifyTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayPrefixListReferenceInput) *EC2ModifyTransitGatewayPrefixListReferenceFuture
+	ModifyTransitGatewayPrefixListReferenceAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayPrefixListReferenceInput) *ModifyTransitGatewayPrefixListReferenceFuture
 
 	ModifyTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.ModifyTransitGatewayVpcAttachmentInput) (*ec2.ModifyTransitGatewayVpcAttachmentOutput, error)
-	ModifyTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayVpcAttachmentInput) *EC2ModifyTransitGatewayVpcAttachmentFuture
+	ModifyTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.ModifyTransitGatewayVpcAttachmentInput) *ModifyTransitGatewayVpcAttachmentFuture
 
 	ModifyVolume(ctx workflow.Context, input *ec2.ModifyVolumeInput) (*ec2.ModifyVolumeOutput, error)
-	ModifyVolumeAsync(ctx workflow.Context, input *ec2.ModifyVolumeInput) *EC2ModifyVolumeFuture
+	ModifyVolumeAsync(ctx workflow.Context, input *ec2.ModifyVolumeInput) *ModifyVolumeFuture
 
 	ModifyVolumeAttribute(ctx workflow.Context, input *ec2.ModifyVolumeAttributeInput) (*ec2.ModifyVolumeAttributeOutput, error)
-	ModifyVolumeAttributeAsync(ctx workflow.Context, input *ec2.ModifyVolumeAttributeInput) *EC2ModifyVolumeAttributeFuture
+	ModifyVolumeAttributeAsync(ctx workflow.Context, input *ec2.ModifyVolumeAttributeInput) *ModifyVolumeAttributeFuture
 
 	ModifyVpcAttribute(ctx workflow.Context, input *ec2.ModifyVpcAttributeInput) (*ec2.ModifyVpcAttributeOutput, error)
-	ModifyVpcAttributeAsync(ctx workflow.Context, input *ec2.ModifyVpcAttributeInput) *EC2ModifyVpcAttributeFuture
+	ModifyVpcAttributeAsync(ctx workflow.Context, input *ec2.ModifyVpcAttributeInput) *ModifyVpcAttributeFuture
 
 	ModifyVpcEndpoint(ctx workflow.Context, input *ec2.ModifyVpcEndpointInput) (*ec2.ModifyVpcEndpointOutput, error)
-	ModifyVpcEndpointAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointInput) *EC2ModifyVpcEndpointFuture
+	ModifyVpcEndpointAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointInput) *ModifyVpcEndpointFuture
 
 	ModifyVpcEndpointConnectionNotification(ctx workflow.Context, input *ec2.ModifyVpcEndpointConnectionNotificationInput) (*ec2.ModifyVpcEndpointConnectionNotificationOutput, error)
-	ModifyVpcEndpointConnectionNotificationAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointConnectionNotificationInput) *EC2ModifyVpcEndpointConnectionNotificationFuture
+	ModifyVpcEndpointConnectionNotificationAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointConnectionNotificationInput) *ModifyVpcEndpointConnectionNotificationFuture
 
 	ModifyVpcEndpointServiceConfiguration(ctx workflow.Context, input *ec2.ModifyVpcEndpointServiceConfigurationInput) (*ec2.ModifyVpcEndpointServiceConfigurationOutput, error)
-	ModifyVpcEndpointServiceConfigurationAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointServiceConfigurationInput) *EC2ModifyVpcEndpointServiceConfigurationFuture
+	ModifyVpcEndpointServiceConfigurationAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointServiceConfigurationInput) *ModifyVpcEndpointServiceConfigurationFuture
 
 	ModifyVpcEndpointServicePermissions(ctx workflow.Context, input *ec2.ModifyVpcEndpointServicePermissionsInput) (*ec2.ModifyVpcEndpointServicePermissionsOutput, error)
-	ModifyVpcEndpointServicePermissionsAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointServicePermissionsInput) *EC2ModifyVpcEndpointServicePermissionsFuture
+	ModifyVpcEndpointServicePermissionsAsync(ctx workflow.Context, input *ec2.ModifyVpcEndpointServicePermissionsInput) *ModifyVpcEndpointServicePermissionsFuture
 
 	ModifyVpcPeeringConnectionOptions(ctx workflow.Context, input *ec2.ModifyVpcPeeringConnectionOptionsInput) (*ec2.ModifyVpcPeeringConnectionOptionsOutput, error)
-	ModifyVpcPeeringConnectionOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpcPeeringConnectionOptionsInput) *EC2ModifyVpcPeeringConnectionOptionsFuture
+	ModifyVpcPeeringConnectionOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpcPeeringConnectionOptionsInput) *ModifyVpcPeeringConnectionOptionsFuture
 
 	ModifyVpcTenancy(ctx workflow.Context, input *ec2.ModifyVpcTenancyInput) (*ec2.ModifyVpcTenancyOutput, error)
-	ModifyVpcTenancyAsync(ctx workflow.Context, input *ec2.ModifyVpcTenancyInput) *EC2ModifyVpcTenancyFuture
+	ModifyVpcTenancyAsync(ctx workflow.Context, input *ec2.ModifyVpcTenancyInput) *ModifyVpcTenancyFuture
 
 	ModifyVpnConnection(ctx workflow.Context, input *ec2.ModifyVpnConnectionInput) (*ec2.ModifyVpnConnectionOutput, error)
-	ModifyVpnConnectionAsync(ctx workflow.Context, input *ec2.ModifyVpnConnectionInput) *EC2ModifyVpnConnectionFuture
+	ModifyVpnConnectionAsync(ctx workflow.Context, input *ec2.ModifyVpnConnectionInput) *ModifyVpnConnectionFuture
 
 	ModifyVpnConnectionOptions(ctx workflow.Context, input *ec2.ModifyVpnConnectionOptionsInput) (*ec2.ModifyVpnConnectionOptionsOutput, error)
-	ModifyVpnConnectionOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpnConnectionOptionsInput) *EC2ModifyVpnConnectionOptionsFuture
+	ModifyVpnConnectionOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpnConnectionOptionsInput) *ModifyVpnConnectionOptionsFuture
 
 	ModifyVpnTunnelCertificate(ctx workflow.Context, input *ec2.ModifyVpnTunnelCertificateInput) (*ec2.ModifyVpnTunnelCertificateOutput, error)
-	ModifyVpnTunnelCertificateAsync(ctx workflow.Context, input *ec2.ModifyVpnTunnelCertificateInput) *EC2ModifyVpnTunnelCertificateFuture
+	ModifyVpnTunnelCertificateAsync(ctx workflow.Context, input *ec2.ModifyVpnTunnelCertificateInput) *ModifyVpnTunnelCertificateFuture
 
 	ModifyVpnTunnelOptions(ctx workflow.Context, input *ec2.ModifyVpnTunnelOptionsInput) (*ec2.ModifyVpnTunnelOptionsOutput, error)
-	ModifyVpnTunnelOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpnTunnelOptionsInput) *EC2ModifyVpnTunnelOptionsFuture
+	ModifyVpnTunnelOptionsAsync(ctx workflow.Context, input *ec2.ModifyVpnTunnelOptionsInput) *ModifyVpnTunnelOptionsFuture
 
 	MonitorInstances(ctx workflow.Context, input *ec2.MonitorInstancesInput) (*ec2.MonitorInstancesOutput, error)
-	MonitorInstancesAsync(ctx workflow.Context, input *ec2.MonitorInstancesInput) *EC2MonitorInstancesFuture
+	MonitorInstancesAsync(ctx workflow.Context, input *ec2.MonitorInstancesInput) *MonitorInstancesFuture
 
 	MoveAddressToVpc(ctx workflow.Context, input *ec2.MoveAddressToVpcInput) (*ec2.MoveAddressToVpcOutput, error)
-	MoveAddressToVpcAsync(ctx workflow.Context, input *ec2.MoveAddressToVpcInput) *EC2MoveAddressToVpcFuture
+	MoveAddressToVpcAsync(ctx workflow.Context, input *ec2.MoveAddressToVpcInput) *MoveAddressToVpcFuture
 
 	ProvisionByoipCidr(ctx workflow.Context, input *ec2.ProvisionByoipCidrInput) (*ec2.ProvisionByoipCidrOutput, error)
-	ProvisionByoipCidrAsync(ctx workflow.Context, input *ec2.ProvisionByoipCidrInput) *EC2ProvisionByoipCidrFuture
+	ProvisionByoipCidrAsync(ctx workflow.Context, input *ec2.ProvisionByoipCidrInput) *ProvisionByoipCidrFuture
 
 	PurchaseHostReservation(ctx workflow.Context, input *ec2.PurchaseHostReservationInput) (*ec2.PurchaseHostReservationOutput, error)
-	PurchaseHostReservationAsync(ctx workflow.Context, input *ec2.PurchaseHostReservationInput) *EC2PurchaseHostReservationFuture
+	PurchaseHostReservationAsync(ctx workflow.Context, input *ec2.PurchaseHostReservationInput) *PurchaseHostReservationFuture
 
 	PurchaseReservedInstancesOffering(ctx workflow.Context, input *ec2.PurchaseReservedInstancesOfferingInput) (*ec2.PurchaseReservedInstancesOfferingOutput, error)
-	PurchaseReservedInstancesOfferingAsync(ctx workflow.Context, input *ec2.PurchaseReservedInstancesOfferingInput) *EC2PurchaseReservedInstancesOfferingFuture
+	PurchaseReservedInstancesOfferingAsync(ctx workflow.Context, input *ec2.PurchaseReservedInstancesOfferingInput) *PurchaseReservedInstancesOfferingFuture
 
 	PurchaseScheduledInstances(ctx workflow.Context, input *ec2.PurchaseScheduledInstancesInput) (*ec2.PurchaseScheduledInstancesOutput, error)
-	PurchaseScheduledInstancesAsync(ctx workflow.Context, input *ec2.PurchaseScheduledInstancesInput) *EC2PurchaseScheduledInstancesFuture
+	PurchaseScheduledInstancesAsync(ctx workflow.Context, input *ec2.PurchaseScheduledInstancesInput) *PurchaseScheduledInstancesFuture
 
 	RebootInstances(ctx workflow.Context, input *ec2.RebootInstancesInput) (*ec2.RebootInstancesOutput, error)
-	RebootInstancesAsync(ctx workflow.Context, input *ec2.RebootInstancesInput) *EC2RebootInstancesFuture
+	RebootInstancesAsync(ctx workflow.Context, input *ec2.RebootInstancesInput) *RebootInstancesFuture
 
 	RegisterImage(ctx workflow.Context, input *ec2.RegisterImageInput) (*ec2.RegisterImageOutput, error)
-	RegisterImageAsync(ctx workflow.Context, input *ec2.RegisterImageInput) *EC2RegisterImageFuture
+	RegisterImageAsync(ctx workflow.Context, input *ec2.RegisterImageInput) *RegisterImageFuture
 
 	RegisterInstanceEventNotificationAttributes(ctx workflow.Context, input *ec2.RegisterInstanceEventNotificationAttributesInput) (*ec2.RegisterInstanceEventNotificationAttributesOutput, error)
-	RegisterInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.RegisterInstanceEventNotificationAttributesInput) *EC2RegisterInstanceEventNotificationAttributesFuture
+	RegisterInstanceEventNotificationAttributesAsync(ctx workflow.Context, input *ec2.RegisterInstanceEventNotificationAttributesInput) *RegisterInstanceEventNotificationAttributesFuture
 
 	RegisterTransitGatewayMulticastGroupMembers(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupMembersInput) (*ec2.RegisterTransitGatewayMulticastGroupMembersOutput, error)
-	RegisterTransitGatewayMulticastGroupMembersAsync(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupMembersInput) *EC2RegisterTransitGatewayMulticastGroupMembersFuture
+	RegisterTransitGatewayMulticastGroupMembersAsync(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupMembersInput) *RegisterTransitGatewayMulticastGroupMembersFuture
 
 	RegisterTransitGatewayMulticastGroupSources(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) (*ec2.RegisterTransitGatewayMulticastGroupSourcesOutput, error)
-	RegisterTransitGatewayMulticastGroupSourcesAsync(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) *EC2RegisterTransitGatewayMulticastGroupSourcesFuture
+	RegisterTransitGatewayMulticastGroupSourcesAsync(ctx workflow.Context, input *ec2.RegisterTransitGatewayMulticastGroupSourcesInput) *RegisterTransitGatewayMulticastGroupSourcesFuture
 
 	RejectTransitGatewayPeeringAttachment(ctx workflow.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) (*ec2.RejectTransitGatewayPeeringAttachmentOutput, error)
-	RejectTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) *EC2RejectTransitGatewayPeeringAttachmentFuture
+	RejectTransitGatewayPeeringAttachmentAsync(ctx workflow.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) *RejectTransitGatewayPeeringAttachmentFuture
 
 	RejectTransitGatewayVpcAttachment(ctx workflow.Context, input *ec2.RejectTransitGatewayVpcAttachmentInput) (*ec2.RejectTransitGatewayVpcAttachmentOutput, error)
-	RejectTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.RejectTransitGatewayVpcAttachmentInput) *EC2RejectTransitGatewayVpcAttachmentFuture
+	RejectTransitGatewayVpcAttachmentAsync(ctx workflow.Context, input *ec2.RejectTransitGatewayVpcAttachmentInput) *RejectTransitGatewayVpcAttachmentFuture
 
 	RejectVpcEndpointConnections(ctx workflow.Context, input *ec2.RejectVpcEndpointConnectionsInput) (*ec2.RejectVpcEndpointConnectionsOutput, error)
-	RejectVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.RejectVpcEndpointConnectionsInput) *EC2RejectVpcEndpointConnectionsFuture
+	RejectVpcEndpointConnectionsAsync(ctx workflow.Context, input *ec2.RejectVpcEndpointConnectionsInput) *RejectVpcEndpointConnectionsFuture
 
 	RejectVpcPeeringConnection(ctx workflow.Context, input *ec2.RejectVpcPeeringConnectionInput) (*ec2.RejectVpcPeeringConnectionOutput, error)
-	RejectVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.RejectVpcPeeringConnectionInput) *EC2RejectVpcPeeringConnectionFuture
+	RejectVpcPeeringConnectionAsync(ctx workflow.Context, input *ec2.RejectVpcPeeringConnectionInput) *RejectVpcPeeringConnectionFuture
 
 	ReleaseAddress(ctx workflow.Context, input *ec2.ReleaseAddressInput) (*ec2.ReleaseAddressOutput, error)
-	ReleaseAddressAsync(ctx workflow.Context, input *ec2.ReleaseAddressInput) *EC2ReleaseAddressFuture
+	ReleaseAddressAsync(ctx workflow.Context, input *ec2.ReleaseAddressInput) *ReleaseAddressFuture
 
 	ReleaseHosts(ctx workflow.Context, input *ec2.ReleaseHostsInput) (*ec2.ReleaseHostsOutput, error)
-	ReleaseHostsAsync(ctx workflow.Context, input *ec2.ReleaseHostsInput) *EC2ReleaseHostsFuture
+	ReleaseHostsAsync(ctx workflow.Context, input *ec2.ReleaseHostsInput) *ReleaseHostsFuture
 
 	ReplaceIamInstanceProfileAssociation(ctx workflow.Context, input *ec2.ReplaceIamInstanceProfileAssociationInput) (*ec2.ReplaceIamInstanceProfileAssociationOutput, error)
-	ReplaceIamInstanceProfileAssociationAsync(ctx workflow.Context, input *ec2.ReplaceIamInstanceProfileAssociationInput) *EC2ReplaceIamInstanceProfileAssociationFuture
+	ReplaceIamInstanceProfileAssociationAsync(ctx workflow.Context, input *ec2.ReplaceIamInstanceProfileAssociationInput) *ReplaceIamInstanceProfileAssociationFuture
 
 	ReplaceNetworkAclAssociation(ctx workflow.Context, input *ec2.ReplaceNetworkAclAssociationInput) (*ec2.ReplaceNetworkAclAssociationOutput, error)
-	ReplaceNetworkAclAssociationAsync(ctx workflow.Context, input *ec2.ReplaceNetworkAclAssociationInput) *EC2ReplaceNetworkAclAssociationFuture
+	ReplaceNetworkAclAssociationAsync(ctx workflow.Context, input *ec2.ReplaceNetworkAclAssociationInput) *ReplaceNetworkAclAssociationFuture
 
 	ReplaceNetworkAclEntry(ctx workflow.Context, input *ec2.ReplaceNetworkAclEntryInput) (*ec2.ReplaceNetworkAclEntryOutput, error)
-	ReplaceNetworkAclEntryAsync(ctx workflow.Context, input *ec2.ReplaceNetworkAclEntryInput) *EC2ReplaceNetworkAclEntryFuture
+	ReplaceNetworkAclEntryAsync(ctx workflow.Context, input *ec2.ReplaceNetworkAclEntryInput) *ReplaceNetworkAclEntryFuture
 
 	ReplaceRoute(ctx workflow.Context, input *ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error)
-	ReplaceRouteAsync(ctx workflow.Context, input *ec2.ReplaceRouteInput) *EC2ReplaceRouteFuture
+	ReplaceRouteAsync(ctx workflow.Context, input *ec2.ReplaceRouteInput) *ReplaceRouteFuture
 
 	ReplaceRouteTableAssociation(ctx workflow.Context, input *ec2.ReplaceRouteTableAssociationInput) (*ec2.ReplaceRouteTableAssociationOutput, error)
-	ReplaceRouteTableAssociationAsync(ctx workflow.Context, input *ec2.ReplaceRouteTableAssociationInput) *EC2ReplaceRouteTableAssociationFuture
+	ReplaceRouteTableAssociationAsync(ctx workflow.Context, input *ec2.ReplaceRouteTableAssociationInput) *ReplaceRouteTableAssociationFuture
 
 	ReplaceTransitGatewayRoute(ctx workflow.Context, input *ec2.ReplaceTransitGatewayRouteInput) (*ec2.ReplaceTransitGatewayRouteOutput, error)
-	ReplaceTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.ReplaceTransitGatewayRouteInput) *EC2ReplaceTransitGatewayRouteFuture
+	ReplaceTransitGatewayRouteAsync(ctx workflow.Context, input *ec2.ReplaceTransitGatewayRouteInput) *ReplaceTransitGatewayRouteFuture
 
 	ReportInstanceStatus(ctx workflow.Context, input *ec2.ReportInstanceStatusInput) (*ec2.ReportInstanceStatusOutput, error)
-	ReportInstanceStatusAsync(ctx workflow.Context, input *ec2.ReportInstanceStatusInput) *EC2ReportInstanceStatusFuture
+	ReportInstanceStatusAsync(ctx workflow.Context, input *ec2.ReportInstanceStatusInput) *ReportInstanceStatusFuture
 
 	RequestSpotFleet(ctx workflow.Context, input *ec2.RequestSpotFleetInput) (*ec2.RequestSpotFleetOutput, error)
-	RequestSpotFleetAsync(ctx workflow.Context, input *ec2.RequestSpotFleetInput) *EC2RequestSpotFleetFuture
+	RequestSpotFleetAsync(ctx workflow.Context, input *ec2.RequestSpotFleetInput) *RequestSpotFleetFuture
 
 	RequestSpotInstances(ctx workflow.Context, input *ec2.RequestSpotInstancesInput) (*ec2.RequestSpotInstancesOutput, error)
-	RequestSpotInstancesAsync(ctx workflow.Context, input *ec2.RequestSpotInstancesInput) *EC2RequestSpotInstancesFuture
+	RequestSpotInstancesAsync(ctx workflow.Context, input *ec2.RequestSpotInstancesInput) *RequestSpotInstancesFuture
 
 	ResetEbsDefaultKmsKeyId(ctx workflow.Context, input *ec2.ResetEbsDefaultKmsKeyIdInput) (*ec2.ResetEbsDefaultKmsKeyIdOutput, error)
-	ResetEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.ResetEbsDefaultKmsKeyIdInput) *EC2ResetEbsDefaultKmsKeyIdFuture
+	ResetEbsDefaultKmsKeyIdAsync(ctx workflow.Context, input *ec2.ResetEbsDefaultKmsKeyIdInput) *ResetEbsDefaultKmsKeyIdFuture
 
 	ResetFpgaImageAttribute(ctx workflow.Context, input *ec2.ResetFpgaImageAttributeInput) (*ec2.ResetFpgaImageAttributeOutput, error)
-	ResetFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.ResetFpgaImageAttributeInput) *EC2ResetFpgaImageAttributeFuture
+	ResetFpgaImageAttributeAsync(ctx workflow.Context, input *ec2.ResetFpgaImageAttributeInput) *ResetFpgaImageAttributeFuture
 
 	ResetImageAttribute(ctx workflow.Context, input *ec2.ResetImageAttributeInput) (*ec2.ResetImageAttributeOutput, error)
-	ResetImageAttributeAsync(ctx workflow.Context, input *ec2.ResetImageAttributeInput) *EC2ResetImageAttributeFuture
+	ResetImageAttributeAsync(ctx workflow.Context, input *ec2.ResetImageAttributeInput) *ResetImageAttributeFuture
 
 	ResetInstanceAttribute(ctx workflow.Context, input *ec2.ResetInstanceAttributeInput) (*ec2.ResetInstanceAttributeOutput, error)
-	ResetInstanceAttributeAsync(ctx workflow.Context, input *ec2.ResetInstanceAttributeInput) *EC2ResetInstanceAttributeFuture
+	ResetInstanceAttributeAsync(ctx workflow.Context, input *ec2.ResetInstanceAttributeInput) *ResetInstanceAttributeFuture
 
 	ResetNetworkInterfaceAttribute(ctx workflow.Context, input *ec2.ResetNetworkInterfaceAttributeInput) (*ec2.ResetNetworkInterfaceAttributeOutput, error)
-	ResetNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.ResetNetworkInterfaceAttributeInput) *EC2ResetNetworkInterfaceAttributeFuture
+	ResetNetworkInterfaceAttributeAsync(ctx workflow.Context, input *ec2.ResetNetworkInterfaceAttributeInput) *ResetNetworkInterfaceAttributeFuture
 
 	ResetSnapshotAttribute(ctx workflow.Context, input *ec2.ResetSnapshotAttributeInput) (*ec2.ResetSnapshotAttributeOutput, error)
-	ResetSnapshotAttributeAsync(ctx workflow.Context, input *ec2.ResetSnapshotAttributeInput) *EC2ResetSnapshotAttributeFuture
+	ResetSnapshotAttributeAsync(ctx workflow.Context, input *ec2.ResetSnapshotAttributeInput) *ResetSnapshotAttributeFuture
 
 	RestoreAddressToClassic(ctx workflow.Context, input *ec2.RestoreAddressToClassicInput) (*ec2.RestoreAddressToClassicOutput, error)
-	RestoreAddressToClassicAsync(ctx workflow.Context, input *ec2.RestoreAddressToClassicInput) *EC2RestoreAddressToClassicFuture
+	RestoreAddressToClassicAsync(ctx workflow.Context, input *ec2.RestoreAddressToClassicInput) *RestoreAddressToClassicFuture
 
 	RestoreManagedPrefixListVersion(ctx workflow.Context, input *ec2.RestoreManagedPrefixListVersionInput) (*ec2.RestoreManagedPrefixListVersionOutput, error)
-	RestoreManagedPrefixListVersionAsync(ctx workflow.Context, input *ec2.RestoreManagedPrefixListVersionInput) *EC2RestoreManagedPrefixListVersionFuture
+	RestoreManagedPrefixListVersionAsync(ctx workflow.Context, input *ec2.RestoreManagedPrefixListVersionInput) *RestoreManagedPrefixListVersionFuture
 
 	RevokeClientVpnIngress(ctx workflow.Context, input *ec2.RevokeClientVpnIngressInput) (*ec2.RevokeClientVpnIngressOutput, error)
-	RevokeClientVpnIngressAsync(ctx workflow.Context, input *ec2.RevokeClientVpnIngressInput) *EC2RevokeClientVpnIngressFuture
+	RevokeClientVpnIngressAsync(ctx workflow.Context, input *ec2.RevokeClientVpnIngressInput) *RevokeClientVpnIngressFuture
 
 	RevokeSecurityGroupEgress(ctx workflow.Context, input *ec2.RevokeSecurityGroupEgressInput) (*ec2.RevokeSecurityGroupEgressOutput, error)
-	RevokeSecurityGroupEgressAsync(ctx workflow.Context, input *ec2.RevokeSecurityGroupEgressInput) *EC2RevokeSecurityGroupEgressFuture
+	RevokeSecurityGroupEgressAsync(ctx workflow.Context, input *ec2.RevokeSecurityGroupEgressInput) *RevokeSecurityGroupEgressFuture
 
 	RevokeSecurityGroupIngress(ctx workflow.Context, input *ec2.RevokeSecurityGroupIngressInput) (*ec2.RevokeSecurityGroupIngressOutput, error)
-	RevokeSecurityGroupIngressAsync(ctx workflow.Context, input *ec2.RevokeSecurityGroupIngressInput) *EC2RevokeSecurityGroupIngressFuture
+	RevokeSecurityGroupIngressAsync(ctx workflow.Context, input *ec2.RevokeSecurityGroupIngressInput) *RevokeSecurityGroupIngressFuture
 
 	RunInstances(ctx workflow.Context, input *ec2.RunInstancesInput) (*ec2.Reservation, error)
-	RunInstancesAsync(ctx workflow.Context, input *ec2.RunInstancesInput) *EC2RunInstancesFuture
+	RunInstancesAsync(ctx workflow.Context, input *ec2.RunInstancesInput) *RunInstancesFuture
 
 	RunScheduledInstances(ctx workflow.Context, input *ec2.RunScheduledInstancesInput) (*ec2.RunScheduledInstancesOutput, error)
-	RunScheduledInstancesAsync(ctx workflow.Context, input *ec2.RunScheduledInstancesInput) *EC2RunScheduledInstancesFuture
+	RunScheduledInstancesAsync(ctx workflow.Context, input *ec2.RunScheduledInstancesInput) *RunScheduledInstancesFuture
 
 	SearchLocalGatewayRoutes(ctx workflow.Context, input *ec2.SearchLocalGatewayRoutesInput) (*ec2.SearchLocalGatewayRoutesOutput, error)
-	SearchLocalGatewayRoutesAsync(ctx workflow.Context, input *ec2.SearchLocalGatewayRoutesInput) *EC2SearchLocalGatewayRoutesFuture
+	SearchLocalGatewayRoutesAsync(ctx workflow.Context, input *ec2.SearchLocalGatewayRoutesInput) *SearchLocalGatewayRoutesFuture
 
 	SearchTransitGatewayMulticastGroups(ctx workflow.Context, input *ec2.SearchTransitGatewayMulticastGroupsInput) (*ec2.SearchTransitGatewayMulticastGroupsOutput, error)
-	SearchTransitGatewayMulticastGroupsAsync(ctx workflow.Context, input *ec2.SearchTransitGatewayMulticastGroupsInput) *EC2SearchTransitGatewayMulticastGroupsFuture
+	SearchTransitGatewayMulticastGroupsAsync(ctx workflow.Context, input *ec2.SearchTransitGatewayMulticastGroupsInput) *SearchTransitGatewayMulticastGroupsFuture
 
 	SearchTransitGatewayRoutes(ctx workflow.Context, input *ec2.SearchTransitGatewayRoutesInput) (*ec2.SearchTransitGatewayRoutesOutput, error)
-	SearchTransitGatewayRoutesAsync(ctx workflow.Context, input *ec2.SearchTransitGatewayRoutesInput) *EC2SearchTransitGatewayRoutesFuture
+	SearchTransitGatewayRoutesAsync(ctx workflow.Context, input *ec2.SearchTransitGatewayRoutesInput) *SearchTransitGatewayRoutesFuture
 
 	SendDiagnosticInterrupt(ctx workflow.Context, input *ec2.SendDiagnosticInterruptInput) (*ec2.SendDiagnosticInterruptOutput, error)
-	SendDiagnosticInterruptAsync(ctx workflow.Context, input *ec2.SendDiagnosticInterruptInput) *EC2SendDiagnosticInterruptFuture
+	SendDiagnosticInterruptAsync(ctx workflow.Context, input *ec2.SendDiagnosticInterruptInput) *SendDiagnosticInterruptFuture
 
 	StartInstances(ctx workflow.Context, input *ec2.StartInstancesInput) (*ec2.StartInstancesOutput, error)
-	StartInstancesAsync(ctx workflow.Context, input *ec2.StartInstancesInput) *EC2StartInstancesFuture
+	StartInstancesAsync(ctx workflow.Context, input *ec2.StartInstancesInput) *StartInstancesFuture
 
 	StartVpcEndpointServicePrivateDnsVerification(ctx workflow.Context, input *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) (*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput, error)
-	StartVpcEndpointServicePrivateDnsVerificationAsync(ctx workflow.Context, input *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *EC2StartVpcEndpointServicePrivateDnsVerificationFuture
+	StartVpcEndpointServicePrivateDnsVerificationAsync(ctx workflow.Context, input *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *StartVpcEndpointServicePrivateDnsVerificationFuture
 
 	StopInstances(ctx workflow.Context, input *ec2.StopInstancesInput) (*ec2.StopInstancesOutput, error)
-	StopInstancesAsync(ctx workflow.Context, input *ec2.StopInstancesInput) *EC2StopInstancesFuture
+	StopInstancesAsync(ctx workflow.Context, input *ec2.StopInstancesInput) *StopInstancesFuture
 
 	TerminateClientVpnConnections(ctx workflow.Context, input *ec2.TerminateClientVpnConnectionsInput) (*ec2.TerminateClientVpnConnectionsOutput, error)
-	TerminateClientVpnConnectionsAsync(ctx workflow.Context, input *ec2.TerminateClientVpnConnectionsInput) *EC2TerminateClientVpnConnectionsFuture
+	TerminateClientVpnConnectionsAsync(ctx workflow.Context, input *ec2.TerminateClientVpnConnectionsInput) *TerminateClientVpnConnectionsFuture
 
 	TerminateInstances(ctx workflow.Context, input *ec2.TerminateInstancesInput) (*ec2.TerminateInstancesOutput, error)
-	TerminateInstancesAsync(ctx workflow.Context, input *ec2.TerminateInstancesInput) *EC2TerminateInstancesFuture
+	TerminateInstancesAsync(ctx workflow.Context, input *ec2.TerminateInstancesInput) *TerminateInstancesFuture
 
 	UnassignIpv6Addresses(ctx workflow.Context, input *ec2.UnassignIpv6AddressesInput) (*ec2.UnassignIpv6AddressesOutput, error)
-	UnassignIpv6AddressesAsync(ctx workflow.Context, input *ec2.UnassignIpv6AddressesInput) *EC2UnassignIpv6AddressesFuture
+	UnassignIpv6AddressesAsync(ctx workflow.Context, input *ec2.UnassignIpv6AddressesInput) *UnassignIpv6AddressesFuture
 
 	UnassignPrivateIpAddresses(ctx workflow.Context, input *ec2.UnassignPrivateIpAddressesInput) (*ec2.UnassignPrivateIpAddressesOutput, error)
-	UnassignPrivateIpAddressesAsync(ctx workflow.Context, input *ec2.UnassignPrivateIpAddressesInput) *EC2UnassignPrivateIpAddressesFuture
+	UnassignPrivateIpAddressesAsync(ctx workflow.Context, input *ec2.UnassignPrivateIpAddressesInput) *UnassignPrivateIpAddressesFuture
 
 	UnmonitorInstances(ctx workflow.Context, input *ec2.UnmonitorInstancesInput) (*ec2.UnmonitorInstancesOutput, error)
-	UnmonitorInstancesAsync(ctx workflow.Context, input *ec2.UnmonitorInstancesInput) *EC2UnmonitorInstancesFuture
+	UnmonitorInstancesAsync(ctx workflow.Context, input *ec2.UnmonitorInstancesInput) *UnmonitorInstancesFuture
 
 	UpdateSecurityGroupRuleDescriptionsEgress(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) (*ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput, error)
-	UpdateSecurityGroupRuleDescriptionsEgressAsync(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) *EC2UpdateSecurityGroupRuleDescriptionsEgressFuture
+	UpdateSecurityGroupRuleDescriptionsEgressAsync(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput) *UpdateSecurityGroupRuleDescriptionsEgressFuture
 
 	UpdateSecurityGroupRuleDescriptionsIngress(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) (*ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput, error)
-	UpdateSecurityGroupRuleDescriptionsIngressAsync(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) *EC2UpdateSecurityGroupRuleDescriptionsIngressFuture
+	UpdateSecurityGroupRuleDescriptionsIngressAsync(ctx workflow.Context, input *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput) *UpdateSecurityGroupRuleDescriptionsIngressFuture
 
 	WithdrawByoipCidr(ctx workflow.Context, input *ec2.WithdrawByoipCidrInput) (*ec2.WithdrawByoipCidrOutput, error)
-	WithdrawByoipCidrAsync(ctx workflow.Context, input *ec2.WithdrawByoipCidrInput) *EC2WithdrawByoipCidrFuture
+	WithdrawByoipCidrAsync(ctx workflow.Context, input *ec2.WithdrawByoipCidrInput) *WithdrawByoipCidrFuture
 
 	WaitUntilBundleTaskComplete(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) error
 	WaitUntilBundleTaskCompleteAsync(ctx workflow.Context, input *ec2.DescribeBundleTasksInput) *clients.VoidFuture
