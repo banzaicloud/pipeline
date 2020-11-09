@@ -489,21 +489,49 @@ Resources:
     Properties:
       Description: Allow the cluster control plane to communicate with worker Kubelet and pods
       DestinationSecurityGroupId: !Ref NodeSecurityGroup
-      FromPort: 0
+      FromPort: 0 # Note: unused because of IpProtocol -1.
       GroupId: !Ref ClusterControlPlaneSecurityGroup
-      IpProtocol: "-1"
+      IpProtocol: "-1" # Note: deliberately using all protocols and all ports.
       ToPort: 65535
+
+  # Note: unused because ControlPlaneEgressToNodeSecurityGroup allows all
+  # protocols and ports.
+  #
+  # ControlPlaneEgressToNodeSecurityGroupOn443:
+  #   Type: "AWS::EC2::SecurityGroupEgress"
+  # DependsOn: NodeSecurityGroup # Note: NodeSecurityGroup is preinitialized.
+  #   Properties:
+  #     Description: Allow the cluster control plane to communicate with pods running extension API servers on port 443
+  #     DestinationSecurityGroupId: !Ref NodeSecurityGroup
+  #     FromPort: 443
+  #     GroupId: !Ref ClusterControlPlaneSecurityGroup
+  #     IpProtocol: tcp
+  #     ToPort: 443
 
   NodeSecurityGroupFromControlPlaneIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
     # DependsOn: NodeSecurityGroup # Note: NodeSecurityGroup is preinitialized.
     Properties:
       Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
-      FromPort: 0
+      FromPort: 0 # Note: unused because of IpProtocol -1.
       GroupId: !Ref NodeSecurityGroup
-      IpProtocol: "-1"
+      IpProtocol: "-1" # Note: deliberately using all protocols and all ports.
       SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
       ToPort: 65535
+
+  # Note: unused because NodeSecurityGroupFromControlPlaneIngress allows all
+  # protocols and ports.
+  #
+  # NodeSecurityGroupFromControlPlaneOn443Ingress:
+  #   Type: "AWS::EC2::SecurityGroupIngress"
+  # DependsOn: NodeSecurityGroup # Note: NodeSecurityGroup is preinitialized.
+  #   Properties:
+  #     Description: Allow pods running extension API servers on port 443 to receive communication from cluster control plane
+  #     FromPort: 443
+  #     GroupId: !Ref NodeSecurityGroup
+  #     IpProtocol: tcp
+  #     SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+  #     ToPort: 443
 
   NodeSecurityGroupSsh:
     Type: "AWS::EC2::SecurityGroupIngress"
