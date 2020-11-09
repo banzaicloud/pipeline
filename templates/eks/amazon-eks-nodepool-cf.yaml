@@ -449,6 +449,18 @@ Resources:
       Roles:
         - !Ref NodeInstanceRoleId # Note: deliberately custom parameter.
 
+  # Note: we are using a preinitialized node security group parameter, possibly
+  # specified by the end user.
+  #
+  # NodeSecurityGroup:
+  #   Type: "AWS::EC2::SecurityGroup"
+  #   Properties:
+  #     GroupDescription: Security group for all nodes in the cluster
+  #     Tags:
+  #       - Key: !Sub kubernetes.io/cluster/${ClusterName}
+  #         Value: owned
+  #     VpcId: !Ref VpcId
+
   NodeSecurityGroupIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
