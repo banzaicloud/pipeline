@@ -410,7 +410,7 @@ dex:
 #        ith:
 #            enabled: true
 #            chart: "banzaicloud-stable/instance-termination-handler"
-#            version: "0.0.7"
+#            version: "0.0.9"
 #
 #        hpa:
 #            enabled: true
