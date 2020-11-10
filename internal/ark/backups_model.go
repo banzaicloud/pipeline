@@ -78,8 +78,6 @@ func (backup *ClusterBackupsModel) ConvertModelToEntity() *api.Backup {
 		Cloud:            backup.Cloud,
 		Distribution:     backup.Distribution,
 		Status:           backup.Status,
-		StartAt:          state.Status.StartTimestamp.Time,
-		ExpireAt:         state.Status.Expiration.Time,
 		ValidationErrors: state.Status.ValidationErrors,
 		ClusterID:        backup.ClusterID,
 		ActiveClusterID:  backup.Bucket.Deployment.ClusterID,
@@ -92,6 +90,13 @@ func (backup *ClusterBackupsModel) ConvertModelToEntity() *api.Backup {
 			LabelSelector:           state.Spec.LabelSelector,
 			SnapshotVolumes:         state.Spec.SnapshotVolumes,
 		},
+	}
+
+	if state.Status.StartTimestamp != nil {
+		item.StartAt = state.Status.StartTimestamp.Time
+	}
+	if state.Status.Expiration != nil {
+		item.ExpireAt = state.Status.Expiration.Time
 	}
 
 	if backup.Bucket.ID > 0 {
