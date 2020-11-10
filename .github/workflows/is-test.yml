@@ -1,0 +1,33 @@
+name: Integrated Service test
+
+on:
+  push:
+    branches:
+      - master
+      - integrated-service-testing
+  pull_request:
+
+jobs:
+  is-test:
+    runs-on: ubuntu-latest
+    env:
+      VERBOSE: 1
+      GOFLAGS: -mod=readonly
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create kind cluster and run tests
+        run: |
+          make test-integrated-service-up
+          make build-worker
+          make test-integrated-service-worker &
+          pid=$!
+          make test-integrated-service
+          kill $pid

@@ -37,7 +37,12 @@ import (
 // using the same config: testconfig/config.yaml
 //
 // Example how to trigger this using make:
-// make test-integrated-service-functional-worker & ; pid=$! ; make test-integrated-service-functional ; kill $pid
+// make test-integrated-service-up
+// make test-integrated-service-worker &
+// pid=$!
+// make test-integrated-service
+// kill $pid
+// make test-integrated-service-down
 
 func (s *Suite) TestActivateDisabledDNSShouldFail() {
 	ctx, cancel := context.WithCancel(context.Background())

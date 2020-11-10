@@ -211,23 +211,32 @@ test-all: ## Run all tests
 test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
 	@${MAKE} TEST_ASSET_KUBE_APISERVER=$(abspath bin/test/kube-apiserver) TEST_ASSET_ETCD=$(abspath bin/test/etcd) GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
 
-.PHONY: test-integrated-service-functional
-test-integrated-service-functional: ## Run integrated service functional tests
+.PHONY: test-integrated-service-up
+test-integrated-service-up: ## Run integrated service functional tests
+	if ! kind get kubeconfig --name pipeline-is-test 1>/dev/null; then kind create cluster --name pipeline-is-test --kubeconfig $(HOME)/.kube/kind-pipeline-is-test; fi
 	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
-	docker-compose -f docker-compose.yml -f internal/integratedservices/testconfig/docker-compose.yml up -d
-	# Waiting for Dex to initialize with potential container restarts.
-	@ while ! docker-compose logs dex | grep -q "listening (http)" ; do sleep 1 ; echo -n "." ; done
+	uid=$(shell id -u) gid=$(shell id -g) docker-compose -f docker-compose.yml -f internal/integratedservices/testconfig/docker-compose.yml up -d
+	@while ! test -f $(HOME)/.vault-token; do echo "waiting for vault root token"; docker ps; docker-compose logs --tail 10; sleep 3; done
+	ls -alh $(HOME)/.vault-token
+
+.PHONY: test-integrated-service
+test-integrated-service: ## Run integrated service functional tests
 	cd internal/integratedservices; \
 		PROJECT_DIR=$(PWD) \
 		PIPELINE_CONFIG_DIR=$(PWD)/internal/integratedservices/testconfig \
-		KUBECONFIG=<(kind get kubeconfig --name pipeline) \
+		KUBECONFIG=<(kind get kubeconfig --name pipeline-is-test) \
 		VAULT_ADDR="http://127.0.0.1:8200" \
 		go test -v -run ^TestFunctional
 
-.PHONY: test-integrated-service-functional-worker
-test-integrated-service-functional-worker: GOTAGS += dev
-test-integrated-service-functional-worker: build-worker
+.PHONY: test-integrated-service-worker
+test-integrated-service-worker: GOTAGS += dev
+test-integrated-service-worker: build-worker
 	VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker --config $(PWD)/internal/integratedservices/testconfig/config.yaml ${ARGS}
+
+.PHONY: test-integrated-service-down
+test-integrated-service-down:
+	docker-compose -f docker-compose.yml -f internal/integratedservices/testconfig/docker-compose.yml down
+	kind delete clusters pipeline-is-test
 
 bin/test/kube-apiserver:
 	@mkdir -p bin/test
