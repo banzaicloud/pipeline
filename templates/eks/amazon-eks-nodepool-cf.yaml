@@ -28,6 +28,7 @@ Metadata:
           - NodeVolumeSize
           - KeyName
           - BootstrapArguments
+          - TemplateVersion
       - Label:
           default: Worker Network Configuration
         Parameters:
@@ -387,6 +388,10 @@ Parameters:
   Subnets:
     Type: "List<AWS::EC2::Subnet::Id>"
     Description: The subnets where workers can be created.
+
+  TemplateVersion:
+    Type: String
+    Description: Version of the template structure as metainformation for created stacks.
 
   TerminationDetachEnabled:
     Type: String
