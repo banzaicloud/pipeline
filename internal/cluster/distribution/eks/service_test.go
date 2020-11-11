@@ -141,6 +141,10 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 				stack: &cloudformation.Stack{
 					Parameters: []*cloudformation.Parameter{
 						{
+							ParameterKey:   aws.String("TemplateVersion"),
+							ParameterValue: aws.String("2.0.0"),
+						},
+						{
 							ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
 							ParameterValue: aws.String("not-a-bool"),
 						},
@@ -198,6 +202,10 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 				name: "node-pool",
 				stack: &cloudformation.Stack{
 					Parameters: []*cloudformation.Parameter{
+						{
+							ParameterKey:   aws.String("TemplateVersion"),
+							ParameterValue: aws.String("2.0.0"),
+						},
 						{
 							ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
 							ParameterValue: aws.String("true"),
