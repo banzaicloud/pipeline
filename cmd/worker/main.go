@@ -630,8 +630,18 @@ func main() {
 
 			expirerService := adapter.NewAsyncExpiryService(workflowClient, logger)
 
-			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
-				integratedServiceDNS.MakeIntegratedServiceOperator(
+			var dnsISOp integratedservices.IntegratedServiceOperator
+			if config.IntegratedService.V2 {
+				dnsISOp = integratedServiceDNS.NewDNSISOperator(
+					clusterGetter,
+					clusterService,
+					orgDomainService,
+					commonSecretStore,
+					config.Cluster.DNS.Config,
+					logger,
+				)
+			} else {
+				dnsISOp = integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					unifiedHelmReleaser,
@@ -639,7 +649,11 @@ func main() {
 					orgDomainService,
 					commonSecretStore,
 					config.Cluster.DNS.Config,
-				),
+				)
+			}
+
+			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
+				dnsISOp,
 				securityscan.MakeIntegratedServiceOperator(
 					config.Cluster.SecurityScan.Config,
 					clusterGetter,
@@ -689,7 +703,7 @@ func main() {
 				),
 			})
 
-			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, config.IntegratedService.V2)
 		}
 
 		group.Add(appkitrun.CadenceWorkerRun(worker))
