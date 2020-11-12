@@ -12,6 +12,7 @@ Metadata:
           - ClusterName
           - ClusterControlPlaneSecurityGroup
           - NodeSecurityGroup
+          - CustomSecurityGroup
       -
         Label:
           default: "Worker Node Configuration"
@@ -374,6 +375,11 @@ Parameters:
       Description: Security group for all nodes in the cluster.
       Type: AWS::EC2::SecurityGroup::Id
 
+  CustomSecurityGroup:
+      Description: Cusotm security group for all nodes in the cluster.
+      Type: String
+      Default: "NONE"
+
   NodeSpotPrice:
       Type: String
       Description: The spot price for this ASG
@@ -387,6 +393,7 @@ Conditions:
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
   HasKeyName: !Not [ !Equals [ !Ref KeyName, "" ] ]
   NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
+  HasCustomSecurityGroup: !Not [ !Equals [ !Ref CustomSecurityGroup, "NONE" ] ]
 
 Resources:
   NodeInstanceProfile:
@@ -471,6 +478,7 @@ Resources:
               InstanceType: !Ref NodeInstanceType
               KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
               SecurityGroupIds:
+                  - !If [ HasCustomSecurityGroup, !Ref CustomSecurityGroup, !Ref 'AWS::NoValue' ]
                   - Ref: NodeSecurityGroup
               UserData: !Base64
                   "Fn::Sub": |
