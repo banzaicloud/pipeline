@@ -90,6 +90,37 @@ func IntegratedServiceJobWorkflow(ctx workflow.Context, input IntegratedServiceJ
 	return nil
 }
 
+// IntegratedServiceJobWorkflowV2 workflow that skips status updates (and all database operations related to integrated services)
+func IntegratedServiceJobWorkflowV2(ctx workflow.Context, input IntegratedServiceJobWorkflowInput) error {
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		ScheduleToStartTimeout: 15 * time.Minute,
+		StartToCloseTimeout:    3 * time.Hour,
+		WaitForCancellation:    true,
+	})
+
+	jobsChannel := workflow.GetSignalChannel(ctx, IntegratedServiceJobSignalName)
+
+	var signalInput IntegratedServiceJobSignalInput
+	jobsChannel.Receive(ctx, &signalInput) // wait until the first job arrives
+
+	if err := executeJobs(ctx, input, &signalInput, jobsChannel); err != nil {
+		return err
+	}
+
+	switch op := signalInput.Operation; op {
+	case OperationApply:
+		// todo revisit this: do nothing / success flow
+	case OperationDeactivate:
+		if err := deleteIntegratedService(ctx, input); err != nil {
+			return err
+		}
+	default:
+		workflow.GetLogger(ctx).Error("unsupported operation", zap.String("operation", op))
+	}
+
+	return nil
+}
+
 func getActivity(workflowInput IntegratedServiceJobWorkflowInput, signalInput IntegratedServiceJobSignalInput) (string, interface{}, error) {
 	switch op := signalInput.Operation; op {
 	case OperationApply:
