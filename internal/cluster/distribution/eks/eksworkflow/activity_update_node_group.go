@@ -211,6 +211,8 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 				return UpdateNodeGroupActivityOutput{}, errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 			}
 		}
+
+		return UpdateNodeGroupActivityOutput{}, err
 	}
 
 	return UpdateNodeGroupActivityOutput{NodePoolChanged: true}, nil
