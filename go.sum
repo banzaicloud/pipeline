@@ -210,6 +210,7 @@ github.com/banzaicloud/go-gin-prometheus v0.1.0 h1:zetacN1k3svVc7DtzGfpHA49uO0G8
 github.com/banzaicloud/go-gin-prometheus v0.1.0/go.mod h1:1eXhK1Ld1vRFbNpqi8Eu1ktCCk5LARA1Tbdl8EsAfgE=
 github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4 h1:nz020decQ0q8AkYzrnc/NZTbcuzw9B8N+s7LW5DA+3E=
 github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
+github.com/banzaicloud/k8s-objectmatcher v1.5.0 h1:mYrLzvRgxCHBlJZEcyIglDuoKpMhwHocgsAXl1nmm10=
 github.com/banzaicloud/k8s-objectmatcher v1.5.0/go.mod h1:9MWY5HsM/OaTmoTirczhlO8UALbH722WgdpaaR7Y8OE=
 github.com/banzaicloud/logging-operator/pkg/sdk v0.5.0 h1:ILhyUcRpjCtphDMmIpt+6YT0caHo6hu3a26hqMdCWME=
 github.com/banzaicloud/logging-operator/pkg/sdk v0.5.0/go.mod h1:XRfx5/77NBG+GaUvCxCaK/tzJmuN6LADSFIk87D6UpE=
@@ -244,6 +245,7 @@ github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b h1:AP/Y7sqYicnjGDf
 github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b/go.mod h1:ac9efd0D1fsDb3EJvhqgXRbFx7bs2wqZ10HQPeU8U/Q=
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
+github.com/briandowns/spinner v1.11.1 h1:OixPqDEcX3juo5AjQZAnFPbeUA0jvkp2qzB5gOZJ/L0=
 github.com/briandowns/spinner v1.11.1/go.mod h1:QOuQk7x+EaDASo80FEXwlwiA+j/PPIcX3FScO+3/ZPQ=
 github.com/bshuster-repo/logrus-logstash-hook v0.4.1 h1:pgAtgj+A31JBVtEHu2uHuEx0n+2ukqUJnS2vVe5pQNA=
 github.com/bshuster-repo/logrus-logstash-hook v0.4.1/go.mod h1:zsTqEiSzDgAa/8GZR7E1qaXrhYNDKBYy5/dWPTIflbk=
@@ -339,6 +341,7 @@ github.com/coreos/pkg v0.0.0-20160727233714-3ac0863d7acf/go.mod h1:E3G3o1h8I7cfc
 github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f h1:lBNOc5arjvs8E5mO2tbpBpLoyyu8B6e44T7hJy6potg=
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
+github.com/cppforlife/go-patch v0.2.0 h1:Y14MnCQjDlbw7WXT4k+u6DPAA9XnygN4BfrSpI/19RU=
 github.com/cppforlife/go-patch v0.2.0/go.mod h1:67a7aIi94FHDZdoeGSJRRFDp66l9MhaAG1yGxpUoFD8=
 github.com/cpuguy83/go-md2man v1.0.10/go.mod h1:SmD6nW6nTyfqj6ABTjUi3V3JVMnlJmwcJI5acqYI6dE=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
@@ -1382,6 +1385,7 @@ github.com/vmware/govmomi v0.20.3/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59b
 github.com/vmware/govmomi v0.22.0 h1:fIg5KkUxu4b/y1BmmtNFO9pyN10CkVzvriaJyynAdE8=
 github.com/vmware/govmomi v0.22.0/go.mod h1:Y+Wq4lst78L85Ge/F8+ORXIWiKYqaro1vhAulACy9Lc=
 github.com/vmware/vmw-guestinfo v0.0.0-20170707015358-25eff159a728/go.mod h1:x9oS4Wk2s2u4tS29nEaDLdzvuHdB19CvSGJjPgkZJNk=
+github.com/wayneashleyberry/terminal-dimensions v1.0.0 h1:LawtS1nqKjAfqrmKOzkcrDLAjSzh38lEhC401JPjQVA=
 github.com/wayneashleyberry/terminal-dimensions v1.0.0/go.mod h1:PW2XrtV6KmKOPhuf7wbtcmw1/IFnC39mryRET2XbxeE=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f h1:J9EGpcZtP0E/raorCMxlFGSTBrsSlaDGf3jU/qvAE2c=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
@@ -1951,6 +1955,8 @@ sigs.k8s.io/controller-runtime v0.5.9/go.mod h1:UI/unU7Q+mo/rWBrND0NAaVNj/Xjh/+a
 sigs.k8s.io/controller-runtime v0.6.1/go.mod h1:XRYBPdbf5XJu9kpS84VJiZ7h/u1hF3gEORz0efEja7A=
 sigs.k8s.io/controller-runtime v0.6.2 h1:jkAnfdTYBpFwlmBn3pS5HFO06SfxvnTZ1p5PeEF/zAA=
 sigs.k8s.io/controller-runtime v0.6.2/go.mod h1:vhcq/rlnENJ09SIRp3EveTaZ0yqH526hjf9iJdbUJ/E=
+sigs.k8s.io/controller-runtime v0.6.3 h1:SBbr+inLPEKhvlJtrvDcwIpm+uhDvp63Bl72xYJtoOE=
+sigs.k8s.io/controller-runtime v0.6.3/go.mod h1:WlZNXcM0++oyaQt4B7C2lEE5JYRs8vJUzRP4N4JpdAY=
 sigs.k8s.io/kind v0.7.1-0.20200303021537-981bd80d3802/go.mod h1:HIZ3PWUezpklcjkqpFbnYOqaqsAE1JeCTEwkgvPLXjk=
 sigs.k8s.io/kubefed v0.4.0 h1:eNZ5SpblUBQEzPHs8XtAjEwmkbs498IhrGvqzdynHOY=
 sigs.k8s.io/kubefed v0.4.0/go.mod h1:YBq2sF7Usjfh1xmop6E7k+5USBYfhB5IMLitCoOnOkM=
