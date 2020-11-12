@@ -215,7 +215,7 @@ test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
 test-integrated-service-up: ## Run integrated service functional tests
 	if ! kind get kubeconfig --name pipeline-is-test 1>/dev/null; then kind create cluster --name pipeline-is-test --kubeconfig $(HOME)/.kube/kind-pipeline-is-test; fi
 	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
-	uid=$(shell id -u) gid=$(shell id -g) docker-compose -f docker-compose.yml -f internal/integratedservices/testconfig/docker-compose.yml up -d
+	uid=$(shell id -u) gid=$(shell id -g) docker-compose -p pipeline-is-test --project-directory $(PWD) -f $(PWD)/internal/integratedservices/testconfig/docker-compose.yml up -d
 	@while ! test -f $(HOME)/.vault-token; do echo "waiting for vault root token"; docker ps; docker-compose logs --tail 10; sleep 3; done
 	ls -alh $(HOME)/.vault-token
 
@@ -235,7 +235,7 @@ test-integrated-service-worker: build-worker
 
 .PHONY: test-integrated-service-down
 test-integrated-service-down:
-	docker-compose -f docker-compose.yml -f internal/integratedservices/testconfig/docker-compose.yml down
+	docker-compose -p pipeline-is-test --project-directory $(PWD) -f $(PWD)/internal/integratedservices/testconfig/docker-compose.yml down
 	kind delete clusters pipeline-is-test
 
 bin/test/kube-apiserver:

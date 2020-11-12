@@ -23,6 +23,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Go build cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/go-build
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/*.go', '**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-
+
       - name: Create kind cluster and run tests
         run: |
           make test-integrated-service-up
