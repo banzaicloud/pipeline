@@ -16,12 +16,15 @@ package integratedservices_test
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -44,7 +47,7 @@ import (
 // kill $pid
 // make test-integrated-service-down
 
-func (s *Suite) TestActivateDisabledDNSShouldFail() {
+func (s *Suite) TestActivateBanzaiDNSWithoutSecret() {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.T().Cleanup(func() {
 		cancel()
@@ -56,7 +59,7 @@ func (s *Suite) TestActivateDisabledDNSShouldFail() {
 	org := uint(r.Uint32())
 	user := uint(r.Uint32())
 
-	cluster, err := importCluster(s.kubeconfigPath, "is-test", org, user)
+	cluster, err := importCluster(s.kubeconfig, fmt.Sprintf("is-test-%d", org), org, user)
 	s.Require().NoError(err)
 
 	s.T().Logf("imported cluster id: %d", cluster.GetID())
@@ -88,10 +91,86 @@ func (s *Suite) TestActivateDisabledDNSShouldFail() {
 			if i.Name == integratedServiceDNS.IntegratedServiceName {
 				switch i.Status {
 				case integratedservices.IntegratedServiceStatusActive:
-					return true
+					s.T().Fatal("unexpected active status")
 				case integratedservices.IntegratedServiceStatusError:
 					s.T().Logf("integrated service activation failed, but this is expected")
 					return true
+				}
+				s.T().Logf("is status %s", i.Status)
+			}
+		}
+		return false
+	}, time.Second*30, time.Second*2)
+}
+
+func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
+	ctx, cancel := context.WithCancel(context.Background())
+	s.T().Cleanup(func() {
+		cancel()
+	})
+
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+
+	org := uint(r.Uint32())
+	user := uint(r.Uint32())
+
+	cluster, err := importCluster(s.kubeconfig, fmt.Sprintf("is-test-%d", org), org, user)
+	s.Require().NoError(err)
+
+	s.T().Logf("imported cluster id: %d", cluster.GetID())
+
+	m := integratedServiceDNS.NewIntegratedServicesManager(
+		importedCluster{KubeCluster: cluster},
+		importedCluster{KubeCluster: cluster},
+		s.config.Cluster.DNS.Config)
+
+	integratedServicesService, err := s.integratedServiceServiceCreater(m)
+	s.Require().NoError(err)
+
+	createSecretRequest := secret.CreateSecretRequest{
+		Name: "fake-dns-secret",
+		Type: secrettype.Google,
+		Values: map[string]string{
+			"type":                        "fake-type",
+			"project_id":                  "fake-project_id",
+			"private_key_id":              "fake-private_key_id",
+			"private_key":                 "fake-private_key",
+			"client_email":                "fake-client_email",
+			"client_id":                   "fake-client_id",
+			"auth_uri":                    "fake-auth_uri",
+			"token_uri":                   "fake-token_uri",
+			"auth_provider_x509_cert_url": "fake-auth_provider_x509_cert_url",
+			"client_x509_cert_url":        "fake-client_x509_cert_url",
+		},
+	}
+
+	fakeSecretId, err := secret.Store.Store(org, &createSecretRequest)
+	s.Require().NoError(err)
+
+	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, map[string]interface{}{
+		"clusterDomain": "asd",
+		"externalDns": map[string]interface{}{
+			"provider": map[string]string{
+				"name":     "fake",
+				"secretId": fakeSecretId,
+			},
+		},
+	})
+	s.Require().NoError(err)
+
+	s.Require().Eventually(func() bool {
+		isList, err := integratedServicesService.List(ctx, cluster.GetID())
+		if err != nil {
+			s.T().Fatalf("%+v", err)
+		}
+		for _, i := range isList {
+			if i.Name == integratedServiceDNS.IntegratedServiceName {
+				switch i.Status {
+				case integratedservices.IntegratedServiceStatusActive:
+					return true
+				case integratedservices.IntegratedServiceStatusError:
+					s.T().Fatal("unexpected error status")
 				}
 				s.T().Logf("is status %s", i.Status)
 			}

@@ -17,7 +17,6 @@ package integratedservices_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -47,12 +46,7 @@ func (i importedCluster) GetClusterOrgID(_ context.Context, _ uint) (uint, error
 	return i.GetOrganizationId(), nil
 }
 
-func importCluster(kubeconfigPath, name string, userID, orgID uint) (*cluster.KubeCluster, error) {
-	kubeconfigContent, err := ioutil.ReadFile(kubeconfigPath)
-	if err != nil {
-		return nil, err
-	}
-
+func importCluster(kubeconfigContent, name string, orgID, userID uint) (*cluster.KubeCluster, error) {
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("%s-kubeconfig", name),
 		Type: secrettype.Kubernetes,

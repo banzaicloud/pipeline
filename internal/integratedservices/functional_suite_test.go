@@ -16,6 +16,7 @@ package integratedservices_test
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
 	"regexp"
 
@@ -41,9 +42,9 @@ import (
 type Suite struct {
 	suite.Suite
 
-	projectDir     string
-	kubeconfigPath string
-	config         *cmd.Config
+	projectDir string
+	kubeconfig string
+	config     *cmd.Config
 
 	integratedServiceServiceCreater func(...integratedservices.IntegratedServiceManager) (*integratedservices.IntegratedServiceService, error)
 }
@@ -55,10 +56,15 @@ func (s *Suite) SetupSuite() {
 	if os.Getenv("VAULT_ADDR") == "" {
 		s.T().Fatal("VAULT_ADDR is not defined")
 	}
-	s.kubeconfigPath = os.Getenv("KUBECONFIG")
-	if s.kubeconfigPath == "" {
+	kubeconfigPath := os.Getenv("KUBECONFIG")
+	if kubeconfigPath == "" {
 		s.T().Fatal("KUBECONFIG is not defined")
 	}
+	kubeconfig, err := ioutil.ReadFile(kubeconfigPath)
+	if err != nil {
+		s.T().Fatal("reading kubeconfig failed")
+	}
+	s.kubeconfig = string(kubeconfig)
 	s.projectDir = os.Getenv("PROJECT_DIR")
 	if s.projectDir == "" {
 		s.T().Fatal("PROJECT_DIR is not defined")
