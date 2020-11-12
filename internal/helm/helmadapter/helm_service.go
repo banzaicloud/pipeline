@@ -256,12 +256,25 @@ func (h *helm3UnifiedReleaser) AddRepositoryIfNotExists(repository helm.Reposito
 	if err != nil {
 		return err
 	}
+	foundRepo := helm.Repository{}
 	for _, r := range repos {
-		if r.URL == repository.URL {
-			return nil
+		if r.Name == repository.Name {
+			foundRepo = r
+			break
 		}
 	}
-	return h.helmService.AddRepository(context.Background(), 0, repository)
+
+	if (foundRepo == helm.Repository{}) {
+		// the repository is not added
+		return h.helmService.AddRepository(context.Background(), platformOrgID, repository)
+	}
+
+	if foundRepo.URL != repository.URL {
+		// the url is changed
+		return h.helmService.ModifyRepository(context.Background(), platformOrgID, repository)
+	}
+
+	return nil
 }
 
 func (h *helm3UnifiedReleaser) GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error) {
