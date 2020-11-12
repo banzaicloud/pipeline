@@ -222,7 +222,6 @@ test-integrated-service-up: ## Run integrated service functional tests
 .PHONY: test-integrated-service
 test-integrated-service: ## Run integrated service functional tests
 	cd internal/integratedservices; \
-		PROJECT_DIR=$(PWD) \
 		PIPELINE_CONFIG_DIR=$(PWD)/internal/integratedservices/testconfig \
 		KUBECONFIG=<(kind get kubeconfig --name pipeline-is-test) \
 		VAULT_ADDR="http://127.0.0.1:8200" \

@@ -42,7 +42,6 @@ import (
 type Suite struct {
 	suite.Suite
 
-	projectDir string
 	kubeconfig string
 	config     *cmd.Config
 
@@ -65,10 +64,6 @@ func (s *Suite) SetupSuite() {
 		s.T().Fatal("reading kubeconfig failed")
 	}
 	s.kubeconfig = string(kubeconfig)
-	s.projectDir = os.Getenv("PROJECT_DIR")
-	if s.projectDir == "" {
-		s.T().Fatal("PROJECT_DIR is not defined")
-	}
 
 	s.config = loadConfig()
 
