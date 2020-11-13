@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/.gen/go/shared"
-	cadence "go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 )
@@ -67,13 +66,13 @@ func NewService(store Store) Service {
 }
 
 // NewWorkflowService returns a new WorkflowService.
-func NewWorkflowService(store Store, cadenceClient cadence.Client) WorkflowService {
-	return service{store: store, cadenceClient: cadenceClient}
+func NewWorkflowService(store Store, workflowClient workflowClient) WorkflowService {
+	return service{store: store, workflowClient: workflowClient}
 }
 
 type service struct {
-	store         Store
-	cadenceClient cadence.Client
+	store          Store
+	workflowClient workflowClient
 }
 
 // Store persists access processes in a persistent store.
@@ -134,12 +133,17 @@ func (s service) LogProcessEvent(ctx context.Context, p ProcessEvent) (ProcessEv
 	return p, s.store.LogProcessEvent(ctx, p)
 }
 
+type workflowClient interface {
+	CancelWorkflow(ctx context.Context, workflowID string, runID string) error
+	SignalWorkflow(ctx context.Context, workflowID string, runID string, signalName string, arg interface{}) error
+}
+
 func (s service) CancelProcess(ctx context.Context, id string) error {
-	if s.cadenceClient == nil {
+	if s.workflowClient == nil {
 		return errors.New("workflow client not available")
 	}
 
-	err := s.cadenceClient.CancelWorkflow(ctx, id, "")
+	err := s.workflowClient.CancelWorkflow(ctx, id, "")
 	if _, ok := err.(*shared.EntityNotExistsError); ok {
 		return NotFoundError{ID: id}
 	}
@@ -148,11 +152,11 @@ func (s service) CancelProcess(ctx context.Context, id string) error {
 }
 
 func (s service) SignalProcess(ctx context.Context, id string, signal string, value interface{}) error {
-	if s.cadenceClient == nil {
+	if s.workflowClient == nil {
 		return errors.New("workflow client not available")
 	}
 
-	err := s.cadenceClient.SignalWorkflow(ctx, id, "", signal, value)
+	err := s.workflowClient.SignalWorkflow(ctx, id, "", signal, value)
 	if _, ok := err.(*shared.EntityNotExistsError); ok {
 		return NotFoundError{ID: id}
 	}
