@@ -30,7 +30,7 @@ import (
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
-func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+func RegisterHTTPHandlers(endpoints WorkflowEndpoints, router *mux.Router, options ...kithttp.ServerOption) {
 	errorEncoder := kitxhttp.NewJSONProblemErrorResponseEncoder(apphttp.NewDefaultProblemConverter())
 
 	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
@@ -56,7 +56,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 }
 
 func encodeListProcessesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	resp := response.(ListProcessesResponse)
+	resp := response.(ListProcessesWorkflowResponse)
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp.Processes)
 }
@@ -69,7 +69,7 @@ func decodeGetProcessHTTPRequest(_ context.Context, r *http.Request) (interface{
 		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "id")
 	}
 
-	return GetProcessRequest{Id: id}, nil
+	return GetProcessWorkflowRequest{Id: id}, nil
 }
 
 func decodeCancelProcessHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -80,11 +80,11 @@ func decodeCancelProcessHTTPRequest(_ context.Context, r *http.Request) (interfa
 		return nil, errors.NewWithDetails("missing parameter from the URL", "param", "id")
 	}
 
-	return CancelProcessRequest{Id: id}, nil
+	return CancelProcessWorkflowRequest{Id: id}, nil
 }
 
 func encodeGetProcessHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	resp := response.(GetProcessResponse)
+	resp := response.(GetProcessWorkflowResponse)
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, resp.Process)
 }
@@ -114,5 +114,5 @@ func decodeListProcessesHTTPRequest(_ context.Context, r *http.Request) (interfa
 		query.Status = pipeline.ProcessStatus(rt[0])
 	}
 
-	return ListProcessesRequest{Query: query}, nil
+	return ListProcessesWorkflowRequest{Query: query}, nil
 }

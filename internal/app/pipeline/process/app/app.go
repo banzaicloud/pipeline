@@ -53,9 +53,9 @@ func RegisterApp(
 		appkitendpoint.LoggingMiddleware(logger),
 	}
 
-	service := process.NewService(processadapter.NewGormStore(db), cadenceClient)
+	service := process.NewWorkflowService(processadapter.NewGormStore(db), cadenceClient)
 
-	endpoints := processdriver.MakeEndpoints(
+	endpoints := processdriver.MakeWorkflowEndpoints(
 		service,
 		kitxendpoint.Combine(endpointMiddleware...),
 	)
