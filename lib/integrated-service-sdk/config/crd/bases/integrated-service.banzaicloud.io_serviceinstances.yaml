@@ -48,16 +48,12 @@ spec:
         status:
           description: ServiceInstanceStatus defines the observed state of ServiceInstance.
           properties:
-            availableTransitions:
+            availableVersions:
               additionalProperties:
                 items:
                   type: string
                 type: array
               type: object
-            availableVersions:
-              items:
-                type: string
-              type: array
             phase:
               type: string
             version:

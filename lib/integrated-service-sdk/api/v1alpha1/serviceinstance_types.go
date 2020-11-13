@@ -47,10 +47,9 @@ const (
 
 // ServiceInstanceStatus defines the observed state of ServiceInstance.
 type ServiceInstanceStatus struct {
-	AvailableVersions    []string            `json:"availableVersions,omitempty"`
-	AvailableTransitions map[string][]string `json:"availableTransitions,omitempty"`
-	Version              string              `json:"version,omitempty"`
-	Phase                Phase               `json:"phase,omitempty"`
+	AvailableVersions map[string][]string `json:"availableVersions,omitempty"`
+	Version           string              `json:"version,omitempty"`
+	Phase             Phase               `json:"phase,omitempty"`
 }
 
 // +kubebuilder:object:root=true
