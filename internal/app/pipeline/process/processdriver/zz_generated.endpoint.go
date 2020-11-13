@@ -23,10 +23,10 @@ type serviceError interface {
 	ServiceError() bool
 }
 
-// Endpoints collects all of the endpoints that compose the underlying service. It's
+// WorkflowEndpoints collects all of the endpoints that compose the underlying service. It's
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
-type Endpoints struct {
+type WorkflowEndpoints struct {
 	CancelProcess   endpoint.Endpoint
 	GetProcess      endpoint.Endpoint
 	ListProcesses   endpoint.Endpoint
@@ -35,245 +35,245 @@ type Endpoints struct {
 	SignalProcess   endpoint.Endpoint
 }
 
-// MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
+// MakeWorkflowEndpoints returns a(n) WorkflowEndpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
-func MakeEndpoints(service process.Service, middleware ...endpoint.Middleware) Endpoints {
+func MakeWorkflowEndpoints(service process.WorkflowService, middleware ...endpoint.Middleware) WorkflowEndpoints {
 	mw := kitxendpoint.Combine(middleware...)
 
-	return Endpoints{
-		CancelProcess:   kitxendpoint.OperationNameMiddleware("process.CancelProcess")(mw(MakeCancelProcessEndpoint(service))),
-		GetProcess:      kitxendpoint.OperationNameMiddleware("process.GetProcess")(mw(MakeGetProcessEndpoint(service))),
-		ListProcesses:   kitxendpoint.OperationNameMiddleware("process.ListProcesses")(mw(MakeListProcessesEndpoint(service))),
-		LogProcess:      kitxendpoint.OperationNameMiddleware("process.LogProcess")(mw(MakeLogProcessEndpoint(service))),
-		LogProcessEvent: kitxendpoint.OperationNameMiddleware("process.LogProcessEvent")(mw(MakeLogProcessEventEndpoint(service))),
-		SignalProcess:   kitxendpoint.OperationNameMiddleware("process.SignalProcess")(mw(MakeSignalProcessEndpoint(service))),
+	return WorkflowEndpoints{
+		CancelProcess:   kitxendpoint.OperationNameMiddleware("process.Workflow.CancelProcess")(mw(MakeCancelProcessWorkflowEndpoint(service))),
+		GetProcess:      kitxendpoint.OperationNameMiddleware("process.Workflow.GetProcess")(mw(MakeGetProcessWorkflowEndpoint(service))),
+		ListProcesses:   kitxendpoint.OperationNameMiddleware("process.Workflow.ListProcesses")(mw(MakeListProcessesWorkflowEndpoint(service))),
+		LogProcess:      kitxendpoint.OperationNameMiddleware("process.Workflow.LogProcess")(mw(MakeLogProcessWorkflowEndpoint(service))),
+		LogProcessEvent: kitxendpoint.OperationNameMiddleware("process.Workflow.LogProcessEvent")(mw(MakeLogProcessEventWorkflowEndpoint(service))),
+		SignalProcess:   kitxendpoint.OperationNameMiddleware("process.Workflow.SignalProcess")(mw(MakeSignalProcessWorkflowEndpoint(service))),
 	}
 }
 
-// CancelProcessRequest is a request struct for CancelProcess endpoint.
-type CancelProcessRequest struct {
+// CancelProcessWorkflowRequest is a request struct for CancelProcess endpoint.
+type CancelProcessWorkflowRequest struct {
 	Id string
 }
 
-// CancelProcessResponse is a response struct for CancelProcess endpoint.
-type CancelProcessResponse struct {
+// CancelProcessWorkflowResponse is a response struct for CancelProcess endpoint.
+type CancelProcessWorkflowResponse struct {
 	Err error
 }
 
-func (r CancelProcessResponse) Failed() error {
+func (r CancelProcessWorkflowResponse) Failed() error {
 	return r.Err
 }
 
-// MakeCancelProcessEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeCancelProcessEndpoint(service process.Service) endpoint.Endpoint {
+// MakeCancelProcessWorkflowEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeCancelProcessWorkflowEndpoint(service process.WorkflowService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(CancelProcessRequest)
+		req := request.(CancelProcessWorkflowRequest)
 
 		err := service.CancelProcess(ctx, req.Id)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return CancelProcessResponse{Err: err}, nil
+				return CancelProcessWorkflowResponse{Err: err}, nil
 			}
 
-			return CancelProcessResponse{Err: err}, err
+			return CancelProcessWorkflowResponse{Err: err}, err
 		}
 
-		return CancelProcessResponse{}, nil
+		return CancelProcessWorkflowResponse{}, nil
 	}
 }
 
-// GetProcessRequest is a request struct for GetProcess endpoint.
-type GetProcessRequest struct {
+// GetProcessWorkflowRequest is a request struct for GetProcess endpoint.
+type GetProcessWorkflowRequest struct {
 	Id string
 }
 
-// GetProcessResponse is a response struct for GetProcess endpoint.
-type GetProcessResponse struct {
+// GetProcessWorkflowResponse is a response struct for GetProcess endpoint.
+type GetProcessWorkflowResponse struct {
 	Process pipeline.Process
 	Err     error
 }
 
-func (r GetProcessResponse) Failed() error {
+func (r GetProcessWorkflowResponse) Failed() error {
 	return r.Err
 }
 
-// MakeGetProcessEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeGetProcessEndpoint(service process.Service) endpoint.Endpoint {
+// MakeGetProcessWorkflowEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeGetProcessWorkflowEndpoint(service process.WorkflowService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(GetProcessRequest)
+		req := request.(GetProcessWorkflowRequest)
 
 		process, err := service.GetProcess(ctx, req.Id)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return GetProcessResponse{
+				return GetProcessWorkflowResponse{
 					Err:     err,
 					Process: process,
 				}, nil
 			}
 
-			return GetProcessResponse{
+			return GetProcessWorkflowResponse{
 				Err:     err,
 				Process: process,
 			}, err
 		}
 
-		return GetProcessResponse{Process: process}, nil
+		return GetProcessWorkflowResponse{Process: process}, nil
 	}
 }
 
-// ListProcessesRequest is a request struct for ListProcesses endpoint.
-type ListProcessesRequest struct {
+// ListProcessesWorkflowRequest is a request struct for ListProcesses endpoint.
+type ListProcessesWorkflowRequest struct {
 	Query pipeline.Process
 }
 
-// ListProcessesResponse is a response struct for ListProcesses endpoint.
-type ListProcessesResponse struct {
+// ListProcessesWorkflowResponse is a response struct for ListProcesses endpoint.
+type ListProcessesWorkflowResponse struct {
 	Processes []pipeline.Process
 	Err       error
 }
 
-func (r ListProcessesResponse) Failed() error {
+func (r ListProcessesWorkflowResponse) Failed() error {
 	return r.Err
 }
 
-// MakeListProcessesEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeListProcessesEndpoint(service process.Service) endpoint.Endpoint {
+// MakeListProcessesWorkflowEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeListProcessesWorkflowEndpoint(service process.WorkflowService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(ListProcessesRequest)
+		req := request.(ListProcessesWorkflowRequest)
 
 		processes, err := service.ListProcesses(ctx, req.Query)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return ListProcessesResponse{
+				return ListProcessesWorkflowResponse{
 					Err:       err,
 					Processes: processes,
 				}, nil
 			}
 
-			return ListProcessesResponse{
+			return ListProcessesWorkflowResponse{
 				Err:       err,
 				Processes: processes,
 			}, err
 		}
 
-		return ListProcessesResponse{Processes: processes}, nil
+		return ListProcessesWorkflowResponse{Processes: processes}, nil
 	}
 }
 
-// LogProcessRequest is a request struct for LogProcess endpoint.
-type LogProcessRequest struct {
+// LogProcessWorkflowRequest is a request struct for LogProcess endpoint.
+type LogProcessWorkflowRequest struct {
 	Proc pipeline.Process
 }
 
-// LogProcessResponse is a response struct for LogProcess endpoint.
-type LogProcessResponse struct {
+// LogProcessWorkflowResponse is a response struct for LogProcess endpoint.
+type LogProcessWorkflowResponse struct {
 	Process pipeline.Process
 	Err     error
 }
 
-func (r LogProcessResponse) Failed() error {
+func (r LogProcessWorkflowResponse) Failed() error {
 	return r.Err
 }
 
-// MakeLogProcessEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeLogProcessEndpoint(service process.Service) endpoint.Endpoint {
+// MakeLogProcessWorkflowEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeLogProcessWorkflowEndpoint(service process.WorkflowService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(LogProcessRequest)
+		req := request.(LogProcessWorkflowRequest)
 
 		process, err := service.LogProcess(ctx, req.Proc)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return LogProcessResponse{
+				return LogProcessWorkflowResponse{
 					Err:     err,
 					Process: process,
 				}, nil
 			}
 
-			return LogProcessResponse{
+			return LogProcessWorkflowResponse{
 				Err:     err,
 				Process: process,
 			}, err
 		}
 
-		return LogProcessResponse{Process: process}, nil
+		return LogProcessWorkflowResponse{Process: process}, nil
 	}
 }
 
-// LogProcessEventRequest is a request struct for LogProcessEvent endpoint.
-type LogProcessEventRequest struct {
+// LogProcessEventWorkflowRequest is a request struct for LogProcessEvent endpoint.
+type LogProcessEventWorkflowRequest struct {
 	Proc pipeline.ProcessEvent
 }
 
-// LogProcessEventResponse is a response struct for LogProcessEvent endpoint.
-type LogProcessEventResponse struct {
+// LogProcessEventWorkflowResponse is a response struct for LogProcessEvent endpoint.
+type LogProcessEventWorkflowResponse struct {
 	ProcessEvent pipeline.ProcessEvent
 	Err          error
 }
 
-func (r LogProcessEventResponse) Failed() error {
+func (r LogProcessEventWorkflowResponse) Failed() error {
 	return r.Err
 }
 
-// MakeLogProcessEventEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeLogProcessEventEndpoint(service process.Service) endpoint.Endpoint {
+// MakeLogProcessEventWorkflowEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeLogProcessEventWorkflowEndpoint(service process.WorkflowService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(LogProcessEventRequest)
+		req := request.(LogProcessEventWorkflowRequest)
 
 		processEvent, err := service.LogProcessEvent(ctx, req.Proc)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return LogProcessEventResponse{
+				return LogProcessEventWorkflowResponse{
 					Err:          err,
 					ProcessEvent: processEvent,
 				}, nil
 			}
 
-			return LogProcessEventResponse{
+			return LogProcessEventWorkflowResponse{
 				Err:          err,
 				ProcessEvent: processEvent,
 			}, err
 		}
 
-		return LogProcessEventResponse{ProcessEvent: processEvent}, nil
+		return LogProcessEventWorkflowResponse{ProcessEvent: processEvent}, nil
 	}
 }
 
-// SignalProcessRequest is a request struct for SignalProcess endpoint.
-type SignalProcessRequest struct {
+// SignalProcessWorkflowRequest is a request struct for SignalProcess endpoint.
+type SignalProcessWorkflowRequest struct {
 	Id     string
 	Signal string
 	Value  interface{}
 }
 
-// SignalProcessResponse is a response struct for SignalProcess endpoint.
-type SignalProcessResponse struct {
+// SignalProcessWorkflowResponse is a response struct for SignalProcess endpoint.
+type SignalProcessWorkflowResponse struct {
 	Err error
 }
 
-func (r SignalProcessResponse) Failed() error {
+func (r SignalProcessWorkflowResponse) Failed() error {
 	return r.Err
 }
 
-// MakeSignalProcessEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeSignalProcessEndpoint(service process.Service) endpoint.Endpoint {
+// MakeSignalProcessWorkflowEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeSignalProcessWorkflowEndpoint(service process.WorkflowService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(SignalProcessRequest)
+		req := request.(SignalProcessWorkflowRequest)
 
 		err := service.SignalProcess(ctx, req.Id, req.Signal, req.Value)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return SignalProcessResponse{Err: err}, nil
+				return SignalProcessWorkflowResponse{Err: err}, nil
 			}
 
-			return SignalProcessResponse{Err: err}, err
+			return SignalProcessWorkflowResponse{Err: err}, err
 		}
 
-		return SignalProcessResponse{}, nil
+		return SignalProcessWorkflowResponse{}, nil
 	}
 }

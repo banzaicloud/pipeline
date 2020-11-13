@@ -1063,7 +1063,7 @@ func main() {
 			)
 			pkeAPI.RegisterRoutes(pkeGroup)
 
-			processService := process.NewService(processadapter.NewGormStore(db), workflowClient)
+			processService := process.NewWorkflowService(processadapter.NewGormStore(db), workflowClient)
 			pkeService := pkeservice.NewService(
 				clusterStore,
 				processService,

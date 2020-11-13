@@ -17,6 +17,7 @@ package process
 import (
 	"context"
 
+	"emperror.dev/errors"
 	"go.uber.org/cadence/.gen/go/shared"
 	cadence "go.uber.org/cadence/client"
 
@@ -32,9 +33,6 @@ type ProcessEvent = pipeline.ProcessEvent
 // ProcessStatus represents an pipeline process/event status.
 type ProcessStatus = pipeline.ProcessStatus
 
-// +kit:endpoint:errorStrategy=service
-// +testify:mock
-
 // Service provides access to pipeline processes.
 type Service interface {
 	// LogProcess create a process entry
@@ -48,6 +46,13 @@ type Service interface {
 
 	// GetProcess returns a single process.
 	GetProcess(ctx context.Context, id string) (process Process, err error)
+}
+
+// +kit:endpoint:errorStrategy=service
+// +testify:mock
+
+type WorkflowService interface {
+	Service
 
 	// CancelProcess cancels a single process.
 	CancelProcess(ctx context.Context, id string) (err error)
@@ -57,7 +62,12 @@ type Service interface {
 }
 
 // NewService returns a new Service.
-func NewService(store Store, cadenceClient cadence.Client) Service {
+func NewService(store Store) Service {
+	return service{store: store}
+}
+
+// NewWorkflowService returns a new WorkflowService.
+func NewWorkflowService(store Store, cadenceClient cadence.Client) WorkflowService {
 	return service{store: store, cadenceClient: cadenceClient}
 }
 
@@ -125,6 +135,10 @@ func (s service) LogProcessEvent(ctx context.Context, p ProcessEvent) (ProcessEv
 }
 
 func (s service) CancelProcess(ctx context.Context, id string) error {
+	if s.cadenceClient == nil {
+		return errors.New("workflow client not available")
+	}
+
 	err := s.cadenceClient.CancelWorkflow(ctx, id, "")
 	if _, ok := err.(*shared.EntityNotExistsError); ok {
 		return NotFoundError{ID: id}
@@ -134,6 +148,10 @@ func (s service) CancelProcess(ctx context.Context, id string) error {
 }
 
 func (s service) SignalProcess(ctx context.Context, id string, signal string, value interface{}) error {
+	if s.cadenceClient == nil {
+		return errors.New("workflow client not available")
+	}
+
 	err := s.cadenceClient.SignalWorkflow(ctx, id, "", signal, value)
 	if _, ok := err.(*shared.EntityNotExistsError); ok {
 		return NotFoundError{ID: id}

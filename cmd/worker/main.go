@@ -293,7 +293,7 @@ func main() {
 
 		configFactory := kubernetes.NewConfigFactory(commonSecretStore)
 
-		processService := process.NewService(processadapter.NewGormStore(db), workflowClient)
+		processService := process.NewWorkflowService(processadapter.NewGormStore(db), workflowClient)
 		processActivity := process.NewProcessActivity(processService)
 
 		worker.RegisterActivityWithOptions(processActivity.ExecuteProcess, activity.RegisterOptions{Name: process.ProcessActivityName})
