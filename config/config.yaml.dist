@@ -425,6 +425,7 @@ dex:
 #        stable: "https://charts.helm.sh/stable"
 #        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
 #        loki: "https://grafana.github.io/loki/charts"
+#        kubefed-charts: "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts"
 
 #cloud:
 #    amazon:
