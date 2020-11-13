@@ -28,7 +28,8 @@ import (
 
 const (
 	CreateClusterWorkflowName = "pke-create-cluster"
-	signalName                = "node-bootstrapped"
+	errorSignalName           = "node-bootstrap-failed"
+	readySignalName           = "node-ready"
 )
 
 type TokenGenerator interface {
@@ -453,13 +454,16 @@ func (d decodableError) Error() string {
 }
 
 func waitForMasterReadySignal(ctx workflow.Context, timeout time.Duration) error {
-	signalChan := workflow.GetSignalChannel(ctx, signalName)
+	signalChan := workflow.GetSignalChannel(ctx, readySignalName)
+	errSignalChan := workflow.GetSignalChannel(ctx, errorSignalName)
 	signalTimeoutTimer := workflow.NewTimer(ctx, timeout)
 	signalTimeout := false
 
 	var signalValue decodableError
-	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
+	signalSelector := workflow.NewSelector(ctx).AddReceive(errSignalChan, func(c workflow.Channel, more bool) {
 		c.Receive(ctx, &signalValue)
+	}).AddReceive(signalChan, func(c workflow.Channel, more bool) {
+		c.Receive(ctx, nil)
 	}).AddFuture(signalTimeoutTimer, func(workflow.Future) {
 		signalTimeout = true
 	})
@@ -467,10 +471,10 @@ func waitForMasterReadySignal(ctx workflow.Context, timeout time.Duration) error
 	signalSelector.Select(ctx) // wait for signal
 
 	if signalTimeout {
-		return fmt.Errorf("timeout while waiting for %q signal", signalName)
+		return fmt.Errorf("timeout while waiting for signal")
 	}
 	if signalValue.Error() != "" {
-		return errors.Wrap(signalValue, "failed to start node")
+		return errors.Wrap(signalValue, "failed to start master node")
 	}
 	return nil
 }

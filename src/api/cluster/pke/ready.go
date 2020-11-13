@@ -138,7 +138,7 @@ func (a *API) PostReady(c *gin.Context) {
 			c.Request.Context(),
 			workflowID,
 			"",
-			"node-bootstrapped",
+			"node-ready",
 			nil,
 		)
 		if err != nil {
