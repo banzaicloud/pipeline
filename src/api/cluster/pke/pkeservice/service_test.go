@@ -212,7 +212,7 @@ func TestRegisterNodeStatus(t *testing.T) {
 			ProcessEvent{Id: 0, ProcessId: "previous", Type: "pke-hard", Log: "big trouble", Status: Failed, Timestamp: newts}).Return(ProcessEvent{}, nil)
 		// process signalled
 		// newServiceError("node-host failed: big trouble")
-		process.On("SignalProcess", ctx, "running-flow", "node-bootstrapped", mock.AnythingOfType("serviceError")).Return(nil)
+		process.On("SignalProcess", ctx, "running-flow", "node-bootstrap-error", mock.AnythingOfType("serviceError")).Return(nil)
 
 		_, err := svc.RegisterNodeStatus(ctx, clusterID, status)
 		require.NoError(t, err)

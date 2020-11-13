@@ -214,7 +214,7 @@ func (s service) RegisterNodeStatus(ctx context.Context, clusterIdentifier clust
 		signalValue := newServiceError("%s failed: %s", nodeStatus.Name, nodeStatus.Message)
 		for _, cp := range clusterProcesses {
 			// send signals with best effort
-			_ = s.processes.SignalProcess(ctx, cp.Id, "node-bootstrapped", signalValue)
+			_ = s.processes.SignalProcess(ctx, cp.Id, "node-bootstrap-error", signalValue)
 		}
 	}
 
