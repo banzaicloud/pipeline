@@ -317,15 +317,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 			fedControllerManager.Webhook.Repository
 	}
 
-	err := m.helmService.AddRepositoryIfNotExists(internalHelm.Repository{
-		Name: "kubefed-charts",
-		URL:  "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts",
-	})
-	if err != nil {
-		return errors.WrapIf(err, "failed to add kubefed-charts repo")
-	}
-
-	err = m.helmService.InstallOrUpgrade(
+	err := m.helmService.InstallOrUpgrade(
 		noOrgID,
 		c,
 		internalHelm.Release{

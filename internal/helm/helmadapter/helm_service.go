@@ -251,32 +251,6 @@ func (h *helm3UnifiedReleaser) Delete(c helm.ClusterDataProvider, releaseName, n
 	return nil
 }
 
-func (h *helm3UnifiedReleaser) AddRepositoryIfNotExists(repository helm.Repository) error {
-	repos, err := h.helmService.ListRepositories(context.Background(), platformOrgID)
-	if err != nil {
-		return err
-	}
-	foundRepo := helm.Repository{}
-	for _, r := range repos {
-		if r.Name == repository.Name {
-			foundRepo = r
-			break
-		}
-	}
-
-	if (foundRepo == helm.Repository{}) {
-		// the repository is not added
-		return h.helmService.AddRepository(context.Background(), platformOrgID, repository)
-	}
-
-	if foundRepo.URL != repository.URL {
-		// the url is changed
-		return h.helmService.ModifyRepository(context.Background(), platformOrgID, repository)
-	}
-
-	return nil
-}
-
 func (h *helm3UnifiedReleaser) GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error) {
 	return h.helmService.GetRelease(context.TODO(), platformOrgID, c.GetID(), releaseName, helm.Options{
 		Namespace: namespace,
