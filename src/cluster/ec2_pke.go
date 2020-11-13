@@ -353,6 +353,8 @@ func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.
 			Count:        count,
 			Autoscaling:  nodePool.Autoscaling,
 			InstanceType: nodePool.InstanceType,
+			ImageID:      nodePool.Image,
+			VolumeSize:   nodePool.VolumeSize,
 			SpotPrice:    nodePool.SpotPrice,
 		}
 		for _, subnet := range nodePool.Subnets {

@@ -19821,6 +19821,13 @@ components:
             the initial node count in the node pool.
           example: 1
           type: integer
+        image:
+          example: ami-06d1667f
+          type: string
+        volumeSize:
+          description: Size of the EBS volume in GBs of the nodes in the pool.
+          example: 50
+          type: integer
         subnets:
           description: The subnet to create the node pool into. If this field is omitted
             than the subnet from the cluster level network configuration is used.

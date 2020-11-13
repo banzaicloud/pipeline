@@ -5451,6 +5451,8 @@ components:
                         #         $ref: '#/components/schemas/CreateUpdateOKEProperties'
                         #     -
                         #         $ref: '#/components/schemas/UpdateACKProperties'
+                        #     -
+                        #         $ref: '#/components/schemas/UpdatePKEProperties'
                     example:
                         google:
                             master:
@@ -5611,6 +5613,13 @@ components:
                     type: integer
                     example: 1
                     description: If cluster autoscaler is not enabled this specifies the desired node count in the node pool. If cluster autoscaler is enabled this specifies the initial node count in the node pool.
+                image:
+                    type: string
+                    example: "ami-06d1667f"
+                volumeSize:
+                    description: Size of the EBS volume in GBs of the nodes in the pool.
+                    example: 50
+                    type: integer
                 subnets:
                     type: array
                     items:

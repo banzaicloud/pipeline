@@ -30,6 +30,11 @@ type UpdateNodePoolsPke struct {
 	// If cluster autoscaler is not enabled this specifies the desired node count in the node pool. If cluster autoscaler is enabled this specifies the initial node count in the node pool.
 	Count int32 `json:"count,omitempty"`
 
+	Image string `json:"image,omitempty"`
+
+	// Size of the EBS volume in GBs of the nodes in the pool.
+	VolumeSize int32 `json:"volumeSize,omitempty"`
+
 	// The subnet to create the node pool into. If this field is omitted than the subnet from the cluster level network configuration is used.
 	Subnets []string `json:"subnets,omitempty"`
 

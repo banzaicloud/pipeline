@@ -57,6 +57,8 @@ type UpdateNodePool struct {
 	MinCount     int               `json:"minCount" yaml:"minCount"`
 	MaxCount     int               `json:"maxCount" yaml:"maxCount"`
 	Count        int               `json:"count" yaml:"count"`
+	Image        string            `json:"image" yaml:"image"`
+	VolumeSize   int               `json:"volumeSize" yaml:"volumeSize"`
 	Subnets      Subnets           `json:"subnets,omitempty" yaml:"subnets,omitempty"`
 	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
