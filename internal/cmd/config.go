@@ -871,6 +871,7 @@ traefik:
 	v.SetDefault("helm::repositories::stable", "https://charts.helm.sh/stable")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
 	v.SetDefault("helm::repositories::loki", "https://grafana.github.io/loki/charts")
+	v.SetDefault("helm::repositories::kubefed-charts", "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts")
 
 	// Cloud configuration
 	v.SetDefault("cloud::amazon::defaultRegion", "us-west-1")

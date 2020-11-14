@@ -28,6 +28,8 @@ import (
 	legacyHelm "github.com/banzaicloud/pipeline/src/helm"
 )
 
+const platformOrgID = 0
+
 // helm3UnifiedReleaser component providing helm3 implementation for integrated services
 type helm3UnifiedReleaser struct {
 	helmService helm.Service
@@ -102,7 +104,8 @@ func (h helm3UnifiedReleaser) applyDeployment(
 		Version:     chartVersion,
 		Values:      valuesMap,
 	}
-	_, err := h.helmService.UpgradeRelease(ctx, 0, clusterID, release, options)
+
+	_, err := h.helmService.UpgradeRelease(ctx, platformOrgID, clusterID, release, options)
 	return err
 }
 
@@ -137,12 +140,12 @@ func (h *helm3UnifiedReleaser) InstallDeployment(
 		Values:      valuesMap,
 	}
 
-	retrievedRelease, err := h.helmService.GetRelease(ctx, 0, clusterID, releaseName, helm.Options{
+	retrievedRelease, err := h.helmService.GetRelease(ctx, platformOrgID, clusterID, releaseName, helm.Options{
 		Namespace: namespace,
 	})
 	if err != nil {
 		if errors.Is(err, driver.ErrReleaseNotFound) {
-			_, err := h.helmService.InstallRelease(ctx, 0, clusterID, release, options)
+			_, err := h.helmService.InstallRelease(ctx, platformOrgID, clusterID, release, options)
 			return err
 		}
 		return errors.WrapIf(err, "failed to retrieve release")
@@ -154,14 +157,14 @@ func (h *helm3UnifiedReleaser) InstallDeployment(
 		if err := h.DeleteDeployment(ctx, clusterID, releaseName, namespace); err != nil {
 			return errors.WrapIf(err, "unable to delete release")
 		}
-		_, err := h.helmService.InstallRelease(ctx, 0, clusterID, release, options)
+		_, err := h.helmService.InstallRelease(ctx, platformOrgID, clusterID, release, options)
 		return err
 	}
 	return errors.Errorf("release is in an invalid state: %s", release.ReleaseInfo.Status)
 }
 
 func (h *helm3UnifiedReleaser) DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error {
-	err := h.helmService.DeleteRelease(ctx, 0, clusterID, releaseName, helm.Options{
+	err := h.helmService.DeleteRelease(ctx, platformOrgID, clusterID, releaseName, helm.Options{
 		Namespace: namespace,
 	})
 	if err != nil {
@@ -174,7 +177,7 @@ func (h *helm3UnifiedReleaser) DeleteDeployment(ctx context.Context, clusterID u
 }
 
 func (h *helm3UnifiedReleaser) GetDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) (*helm2.GetDeploymentResponse, error) {
-	release, err := h.helmService.GetRelease(ctx, 0, clusterID, releaseName, helm.Options{
+	release, err := h.helmService.GetRelease(ctx, platformOrgID, clusterID, releaseName, helm.Options{
 		Namespace: namespace,
 	})
 	if err != nil {
@@ -237,7 +240,7 @@ func (h *helm3UnifiedReleaser) InstallOrUpgrade(
 }
 
 func (h *helm3UnifiedReleaser) Delete(c helm.ClusterDataProvider, releaseName, namespace string) error {
-	if err := h.helmService.DeleteRelease(context.Background(), 0, c.GetID(), releaseName, helm.Options{
+	if err := h.helmService.DeleteRelease(context.Background(), platformOrgID, c.GetID(), releaseName, helm.Options{
 		Namespace: namespace,
 	}); err != nil {
 		if helm.ErrReleaseNotFound(err) {
@@ -248,21 +251,8 @@ func (h *helm3UnifiedReleaser) Delete(c helm.ClusterDataProvider, releaseName, n
 	return nil
 }
 
-func (h *helm3UnifiedReleaser) AddRepositoryIfNotExists(repository helm.Repository) error {
-	repos, err := h.helmService.ListRepositories(context.Background(), 0)
-	if err != nil {
-		return err
-	}
-	for _, r := range repos {
-		if r.URL == repository.URL {
-			return nil
-		}
-	}
-	return h.helmService.AddRepository(context.Background(), 0, repository)
-}
-
 func (h *helm3UnifiedReleaser) GetRelease(c helm.ClusterDataProvider, releaseName, namespace string) (helm.Release, error) {
-	return h.helmService.GetRelease(context.TODO(), 0, c.GetID(), releaseName, helm.Options{
+	return h.helmService.GetRelease(context.TODO(), platformOrgID, c.GetID(), releaseName, helm.Options{
 		Namespace: namespace,
 	})
 }
