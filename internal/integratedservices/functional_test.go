@@ -40,6 +40,7 @@ import (
 // using the same config: testconfig/config.yaml
 //
 // Example how to trigger this using make:
+//
 // make test-integrated-service-up
 // make test-integrated-service-worker &
 // pid=$!

@@ -213,6 +213,8 @@ test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
 
 .PHONY: test-integrated-service-up
 test-integrated-service-up: ## Run integrated service functional tests
+	@echo "Stopping pipeline development stack if it's already running"
+	docker-compose stop
 	if ! kind get kubeconfig --name pipeline-is-test 1>/dev/null; then kind create cluster --name pipeline-is-test --kubeconfig $(HOME)/.kube/kind-pipeline-is-test; fi
 	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
 	uid=$(shell id -u) gid=$(shell id -g) docker-compose -p pipeline-is-test --project-directory $(PWD) -f $(PWD)/internal/integratedservices/testconfig/docker-compose.yml up -d
