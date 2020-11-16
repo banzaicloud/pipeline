@@ -26,11 +26,17 @@ type ServiceInstanceSpec struct {
 	Config  string `json:"config,omitempty"`
 }
 
+type Status string
+
+const (
+	StatusUnmanaged Status = "Unmanaged"
+	StatusManaged   Status = "Managed"
+	StatusInvalid   Status = "Invalid"
+)
+
 type Phase string
 
 const (
-	Unmanaged         Phase = "Unmanaged"
-	Invalid           Phase = "Invalid"
 	Installing        Phase = "Installing"
 	InstallSuccess    Phase = "InstallSuccess"
 	InstallFailed     Phase = "InstallFailed"
@@ -49,7 +55,11 @@ const (
 type ServiceInstanceStatus struct {
 	AvailableVersions map[string][]string `json:"availableVersions,omitempty"`
 	Version           string              `json:"version,omitempty"`
-	Phase             Phase               `json:"phase,omitempty"`
+	Status            Status              `json:"status,omitempty"`
+	// Phase represents the internal state of the resource
+	Phase Phase `json:"phase,omitempty"`
+	// NextVersion represents the next version that the resource is converging to
+	NextVersion string `json:"nextVersion,omitempty"`
 }
 
 // +kubebuilder:object:root=true

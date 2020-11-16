@@ -54,7 +54,14 @@ spec:
                   type: string
                 type: array
               type: object
+            nextVersion:
+              description: NextVersion represents the next version that the resource
+                is converging to
+              type: string
             phase:
+              description: Phase represents the internal state of the resource
+              type: string
+            status:
               type: string
             version:
               type: string
