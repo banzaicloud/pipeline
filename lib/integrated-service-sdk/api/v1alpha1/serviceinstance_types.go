@@ -37,25 +37,40 @@ const (
 type Phase string
 
 const (
-	Installing        Phase = "Installing"
-	InstallSuccess    Phase = "InstallSuccess"
-	InstallFailed     Phase = "InstallFailed"
-	Installed         Phase = "Installed"
-	Uninstalling      Phase = "Uninstalling"
-	UninstallFailed   Phase = "UninstallFailed"
-	Uninstalled       Phase = "Uninstalled"
-	PreInstalling     Phase = "Preinstalling"
-	PreInstallFailed  Phase = "PreinstallFailed"
+	PreInstalling    Phase = "Preinstalling"
+	PreInstallFailed Phase = "PreinstallFailed"
+
+	// Internal state for transitioning from PreInstalling to Installing
 	PreInstallSuccess Phase = "Preinstalling"
+
+	Installing    Phase = "Installing"
+	InstallFailed Phase = "InstallFailed"
+
+	// Internal state for transitioning from Installing to PostInstall
+	InstallSuccess Phase = "InstallSuccess"
+
 	PostInstall       Phase = "Postinstall"
 	PostInstallFailed Phase = "PostinstallFailed"
+
+	Uninstalling    Phase = "Uninstalling"
+	UninstallFailed Phase = "UninstallFailed"
+
+	// Final, stable phases
+	Uninstalled Phase = "Uninstalled"
+	Installed   Phase = "Installed"
 )
 
 // ServiceInstanceStatus defines the observed state of ServiceInstance.
 type ServiceInstanceStatus struct {
+	// AvailableVersions defines the upgrade steps that need to be taken to reach a certain version
 	AvailableVersions map[string][]string `json:"availableVersions,omitempty"`
-	Version           string              `json:"version,omitempty"`
-	Status            Status              `json:"status,omitempty"`
+	// Version is the last version that has successfully been installed
+	Version string `json:"version,omitempty"`
+	// Status represents the management state of the service
+	// - Unmanaged if the service is not configured actively
+	// - Managed if the service is actively configured and there are no problems found
+	// - Invalid if reconciliation is blocked due to misconfiguration
+	Status Status `json:"status,omitempty"`
 	// Phase represents the internal state of the resource
 	Phase Phase `json:"phase,omitempty"`
 	// NextVersion represents the next version that the resource is converging to

@@ -53,6 +53,8 @@ spec:
                 items:
                   type: string
                 type: array
+              description: AvailableVersions defines the upgrade steps that need to
+                be taken to reach a certain version
               type: object
             nextVersion:
               description: NextVersion represents the next version that the resource
@@ -62,8 +64,14 @@ spec:
               description: Phase represents the internal state of the resource
               type: string
             status:
+              description: Status represents the management state of the service -
+                Unmanaged if the service is not configured actively - Managed if the
+                service is actively configured and there are no problems found - Invalid
+                if reconciliation is blocked due to misconfiguration
               type: string
             version:
+              description: Version is the last version that has successfully been
+                installed
               type: string
           type: object
       type: object
