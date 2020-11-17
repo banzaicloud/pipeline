@@ -11,8 +11,8 @@ Metadata:
         Parameters:
           - ClusterName
           - ClusterControlPlaneSecurityGroup
+          - CustomNodeSecurityGroups
           - NodeSecurityGroup
-          - SecurityGroups
       -
         Label:
           default: "Worker Node Configuration"
@@ -375,7 +375,7 @@ Parameters:
       Description: Security group for all nodes in the cluster.
       Type: AWS::EC2::SecurityGroup::Id
 
-  SecurityGroups:
+  CustomNodeSecurityGroups:
       Description: Comma separated list of security groups for all nodes in the pool.
       Type: String
       Default: ""
@@ -393,7 +393,7 @@ Conditions:
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
   HasKeyName: !Not [ !Equals [ !Ref KeyName, "" ] ]
   NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
-  NoCustomSecurityGroups: !Equals [ !Ref SecurityGroups, "" ]
+  NoCustomNodeSecurityGroups: !Equals [ !Ref CustomNodeSecurityGroups, "" ]
 
 Resources:
   NodeInstanceProfile:
@@ -478,7 +478,7 @@ Resources:
               InstanceType: !Ref NodeInstanceType
               KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
               SecurityGroupIds:
-                  !If [NoCustomSecurityGroups, [!Ref NodeSecurityGroup], !Split [ ",",  !Join [ ",", [ !Ref NodeSecurityGroup, !Ref SecurityGroups ] ]  ] ]
+                  !If [NoCustomNodeSecurityGroups, [!Ref NodeSecurityGroup], !Split [ ",",  !Join [ ",", [ !Ref NodeSecurityGroup, !Ref CustomNodeSecurityGroups ] ]  ] ]
               UserData: !Base64
                   "Fn::Sub": |
                       #!/bin/bash
