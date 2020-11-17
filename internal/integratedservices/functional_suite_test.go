@@ -21,6 +21,9 @@ import (
 	"regexp"
 
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+	"github.com/stretchr/testify/suite"
+	zaplog "logur.dev/integration/zap"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
@@ -35,8 +38,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/types"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/stretchr/testify/suite"
-	zaplog "logur.dev/integration/zap"
 )
 
 type Suite struct {

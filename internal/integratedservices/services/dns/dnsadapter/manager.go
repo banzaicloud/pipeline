@@ -43,7 +43,7 @@ func (g ClusterPropertyGetter) GetClusterOrgID(ctx context.Context, clusterID ui
 }
 
 // GetClusterUID returns the specified cluster's UID
-func (g ClusterPropertyGetter) xGetClusterUID(ctx context.Context, clusterID uint) (string, error) {
+func (g ClusterPropertyGetter) GetClusterUID(ctx context.Context, clusterID uint) (string, error) {
 	cluster, err := g.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to get cluster")

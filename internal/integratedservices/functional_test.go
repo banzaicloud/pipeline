@@ -21,11 +21,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/stretchr/testify/suite"
 )
 
 // These tests aim to verify that Integrated Service API specifications are met.

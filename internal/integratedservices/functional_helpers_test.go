@@ -22,6 +22,9 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
 	pkgCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -30,8 +33,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/hook"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 type importedCluster struct {
@@ -51,7 +52,7 @@ func importCluster(kubeconfigContent, name string, orgID, userID uint) (*cluster
 		Name: fmt.Sprintf("%s-kubeconfig", name),
 		Type: secrettype.Kubernetes,
 		Values: map[string]string{
-			secrettype.K8SConfig: string(kubeconfigContent),
+			secrettype.K8SConfig: kubeconfigContent,
 		},
 		Tags: []string{
 			secret.TagKubeConfig,
@@ -73,7 +74,10 @@ func importCluster(kubeconfigContent, name string, orgID, userID uint) (*cluster
 				Metadata: map[string]string{},
 			},
 		},
-	}, uint(orgID), uint(userID))
+	}, orgID, userID)
+	if err != nil {
+		return nil, err
+	}
 
 	err = cluster.SetStatus(pkgCluster.Running, "just fine")
 	if err != nil {
