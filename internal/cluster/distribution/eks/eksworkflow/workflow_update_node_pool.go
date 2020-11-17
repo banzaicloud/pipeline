@@ -68,6 +68,7 @@ type UpdateNodePoolWorkflowInput struct {
 
 	NodeVolumeSize int
 	NodeImage      string
+	SecurityGroups []string
 
 	Options eks.NodePoolUpdateOptions
 
@@ -227,6 +228,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodePoolVersion:       nodePoolVersion,
 			NodeVolumeSize:        volumeSize,
 			NodeImage:             input.NodeImage,
+			SecurityGroups:        input.SecurityGroups,
 			MaxBatchSize:          input.Options.MaxBatchSize,
 			MinInstancesInService: input.Options.MaxSurge,
 			ClusterTags:           input.ClusterTags,
