@@ -23,7 +23,6 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	qorauth "github.com/qor/auth"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -142,7 +141,7 @@ func TestAuthorizationMiddleware(t *testing.T) {
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(test.method, test.path, nil)
 
-			req = req.WithContext(context.WithValue(context.Background(), qorauth.CurrentUser, test.user))
+			req = req.WithContext(context.WithValue(context.Background(), auth.CurrentUser, test.user))
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, test.expectedCode, w.Code)

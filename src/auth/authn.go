@@ -30,11 +30,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/session"
-	"github.com/qor/session/gorilla"
 	"gopkg.in/square/go-jose.v2"
 
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
@@ -65,7 +60,7 @@ const BanzaiCLIClient = "banzai-cli"
 // Init authorization
 // nolint: gochecknoglobals
 var (
-	Auth *auth.Auth
+	Auth *AuthHandler
 
 	// CookieDomain is the domain field for cookies
 	CookieDomain string
@@ -76,8 +71,8 @@ var (
 	// InternalHandler is the Gin authentication middleware for internal clients
 	InternalHandler gin.HandlerFunc
 
-	// SessionManager is responsible for handling browser session Cookies
-	SessionManager session.ManagerInterface
+	// sessionManager is responsible for handling browser session Cookies
+	sessionManager SessionManagerInterface
 
 	oidcProvider *OIDCProvider
 )
@@ -123,12 +118,12 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 		cookieStore.Options.Domain = CookieDomain
 	}
 
-	SessionManager = gorilla.New(PipelineSessionCookie, cookieStore)
+	sessionManager = NewSessionManager(PipelineSessionCookie, cookieStore)
 
 	sessionStorer := &BanzaiSessionStorer{
-		SessionStorer: auth.SessionStorer{
+		SessionStorer: SessionStorer{
 			SessionName:    "_auth_session",
-			SessionManager: SessionManager,
+			SessionManager: sessionManager,
 			SigningMethod:  jose.HS256,
 			SignedString:   base32.StdEncoding.EncodeToString(signingKeyBytes),
 		},
@@ -136,16 +131,13 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 	}
 
 	// Initialize Auth with configuration
-	Auth = auth.New(&auth.Config{
+	Auth = New(&AuthHandlerConfig{
 		DB: db,
 		Redirector: redirector{
 			loginUrl:  config.RedirectURL.Login,
 			signupUrl: config.RedirectURL.Signup,
 		},
-		AuthIdentityModel: AuthIdentity{},
-		UserModel:         User{},
-		ViewPaths:         []string{"views"},
-		SessionStorer:     sessionStorer,
+		SessionStorer: sessionStorer,
 		UserStorer: BanzaiUserStorer{
 			db:        db,
 			orgSyncer: orgSyncer,
@@ -153,17 +145,15 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 		LoginHandler:      banzaiLoginHandler,
 		LogoutHandler:     banzaiLogoutHandler,
 		RegisterHandler:   banzaiRegisterHandler,
-		DeregisterHandler: NewBanzaiDeregisterHandler(tokenStore),
+		DeregisterHandler: NewBanzaiDeregisterHandler(db, tokenStore),
+		provider: newOIDCProvider(&OIDCProviderConfig{
+			PublicClientID:     config.CLI.ClientID,
+			ClientID:           config.OIDC.ClientID,
+			ClientSecret:       config.OIDC.ClientSecret,
+			IssuerURL:          config.OIDC.Issuer,
+			InsecureSkipVerify: config.OIDC.Insecure,
+		}, db, NewRefreshTokenStore(tokenStore)),
 	})
-
-	oidcProvider = newOIDCProvider(&OIDCProviderConfig{
-		PublicClientID:     config.CLI.ClientID,
-		ClientID:           config.OIDC.ClientID,
-		ClientSecret:       config.OIDC.ClientSecret,
-		IssuerURL:          config.OIDC.Issuer,
-		InsecureSkipVerify: config.OIDC.Insecure,
-	}, NewRefreshTokenStore(tokenStore))
-	Auth.RegisterProvider(oidcProvider)
 
 	Handler = ginauth.JWTAuthHandler(
 		signingKey,
@@ -177,10 +167,10 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 			}
 		},
 		func(ctx context.Context, value interface{}) context.Context {
-			return context.WithValue(ctx, auth.CurrentUser, value)
+			return context.WithValue(ctx, CurrentUser, value)
 		},
 		func(ctx context.Context) interface{} {
-			return ctx.Value(auth.CurrentUser)
+			return ctx.Value(CurrentUser)
 		},
 		ginauth.TokenStoreOption(tokenStore),
 		ginauth.TokenExtractorOption(cookieExtractor{sessionStorer}),
@@ -194,7 +184,7 @@ func newInternalHandler(serviceAccountService ServiceAccountService) gin.Handler
 	return func(c *gin.Context) {
 		user := serviceAccountService.ExtractServiceAccount(c.Request)
 		if user != nil {
-			newContext := context.WithValue(c.Request.Context(), auth.CurrentUser, user)
+			newContext := context.WithValue(c.Request.Context(), CurrentUser, user)
 			c.Request = c.Request.WithContext(newContext)
 		}
 	}
@@ -215,7 +205,7 @@ func SyncOrgsForUser(
 		return errors.WrapIf(err, "no refresh token, please login again")
 	}
 
-	authContext := auth.Context{Auth: Auth, Request: request}
+	authContext := Context{Auth: Auth, Request: request}
 	idTokenClaims, token, err := oidcProvider.RedeemRefreshToken(&authContext, refreshToken)
 	if err != nil {
 		return errors.WrapIf(err, "failed to redeem user refresh token")
@@ -248,7 +238,7 @@ func StartTokenStoreGC(tokenStore bauth.TokenStore) {
 func Install(engine *gin.Engine) {
 	// We have to make the raw net/http handlers a bit Gin-ish
 	authHandler := gin.WrapH(Auth.NewServeMux())
-	engine.Use(gin.WrapH(SessionManager.Middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))))
+	engine.Use(gin.WrapH(sessionManager.Middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))))
 
 	authGroup := engine.Group("/auth/")
 	{
@@ -266,22 +256,22 @@ func Install(engine *gin.Engine) {
 
 // BanzaiSessionStorer stores the banzai session
 type BanzaiSessionStorer struct {
-	auth.SessionStorer
+	SessionStorer
 
 	tokenManager TokenManager
 }
 
 // Update updates the BanzaiSessionStorer
-func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *http.Request, claims *claims.Claims) error {
+func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *http.Request, claims *Claims) error {
 	// Get the current user object, in this early stage this is how to get it
-	context := &auth.Context{Auth: Auth, Claims: claims, Request: req}
+	context := &Context{Auth: Auth, Claims: claims, Request: req}
 	user, err := Auth.UserStorer.Get(claims, context)
 	if err != nil {
 		return err
 	}
 	currentUser := user.(*User)
 	if currentUser == nil {
-		return fmt.Errorf("Can't get current user")
+		return fmt.Errorf("failed to get current user")
 	}
 
 	// These tokens are GCd after they expire
@@ -315,7 +305,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	return nil
 }
 
-func respondAfterLogin(claims *claims.Claims, context *auth.Context) {
+func respondAfterLogin(claims *Claims, context *Context) {
 	err := context.Auth.Login(context.Writer, context.Request, claims)
 	if err != nil {
 		httpJSONError(context.Writer, err, http.StatusUnauthorized)
@@ -325,7 +315,7 @@ func respondAfterLogin(claims *claims.Claims, context *auth.Context) {
 	context.Auth.Redirector.Redirect(context.Writer, context.Request, "login")
 }
 
-func banzaiLoginHandler(context *auth.Context, authorize func(*auth.Context) (*claims.Claims, error)) {
+func banzaiLoginHandler(context *Context, authorize func(*Context) (*Claims, error)) {
 	claims, err := authorize(context)
 	if err == nil && claims != nil {
 		respondAfterLogin(claims, context)
@@ -335,12 +325,11 @@ func banzaiLoginHandler(context *auth.Context, authorize func(*auth.Context) (*c
 	httpJSONError(context.Writer, err, http.StatusUnauthorized)
 }
 
-// BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behavior
-func banzaiLogoutHandler(context *auth.Context) {
+func banzaiLogoutHandler(context *Context) {
 	DelCookie(context.Writer, context.Request, PipelineSessionCookie)
 }
 
-func banzaiRegisterHandler(context *auth.Context, register func(*auth.Context) (*claims.Claims, error)) {
+func banzaiRegisterHandler(context *Context, register func(*Context) (*Claims, error)) {
 	claims, err := register(context)
 	if err == nil && claims != nil {
 		respondAfterLogin(claims, context)
@@ -351,12 +340,14 @@ func banzaiRegisterHandler(context *auth.Context, register func(*auth.Context) (
 }
 
 type banzaiDeregisterHandler struct {
+	db         *gorm.DB
 	tokenStore bauth.TokenStore
 }
 
 // NewBanzaiDeregisterHandler returns a handler that deletes the user and all his/her tokens from the database
-func NewBanzaiDeregisterHandler(tokenStore bauth.TokenStore) func(*auth.Context) {
+func NewBanzaiDeregisterHandler(db *gorm.DB, tokenStore bauth.TokenStore) func(*Context) {
 	handler := &banzaiDeregisterHandler{
+		db:         db,
 		tokenStore: tokenStore,
 	}
 
@@ -364,10 +355,10 @@ func NewBanzaiDeregisterHandler(tokenStore bauth.TokenStore) func(*auth.Context)
 }
 
 // BanzaiDeregisterHandler deletes the user and all his/her tokens from the database
-func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
+func (h *banzaiDeregisterHandler) handler(context *Context) {
 	user := GetCurrentUser(context.Request)
 
-	db := context.GetDB(context.Request)
+	db := h.db
 
 	// Remove organization memberships
 	if err := db.Model(user).Association("Organizations").Clear().Error; err != nil {
@@ -382,7 +373,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 		return
 	}
 
-	authIdentity := &AuthIdentity{Basic: auth_identity.Basic{UserID: user.IDString()}}
+	authIdentity := &AuthIdentity{BasicIdentity: BasicIdentity{UserID: user.IDString()}}
 	if err := db.Delete(authIdentity).Error; err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed delete user's auth_identity from DB"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)

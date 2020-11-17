@@ -20,15 +20,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc"
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/qor/utils"
+	"github.com/jinzhu/gorm"
 	"golang.org/x/oauth2"
 )
 
@@ -40,7 +36,7 @@ type OIDCProvider struct {
 	verifier   *oidc.IDTokenVerifier
 }
 
-type AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
+type AuthorizeHandler func(*Context) (*Claims, error)
 
 // OIDCProviderConfig holds the oidc configuration parameters
 type OIDCProviderConfig struct {
@@ -64,7 +60,7 @@ type IDTokenClaims struct {
 	FederatedClaims   map[string]string `json:"federated_claims"`
 }
 
-func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenStore) *OIDCProvider {
+func newOIDCProvider(config *OIDCProviderConfig, db *gorm.DB, refreshTokenStore RefreshTokenStore) *OIDCProvider {
 	if config == nil {
 		config = &OIDCProviderConfig{}
 	}
@@ -106,16 +102,16 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 	provider.verifier = oidcProvider.Verifier(&oidc.Config{ClientID: config.ClientID})
 
 	if config.AuthorizeHandler == nil {
-		config.AuthorizeHandler = func(context *auth.Context) (*claims.Claims, error) {
+		config.AuthorizeHandler = func(context *Context) (*Claims, error) {
 			var (
-				schema       auth.Schema
-				authInfo     auth_identity.Basic
+				schema       Schema
 				err          error
 				rawIDToken   string
 				token        *oauth2.Token
-				authIdentity = reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
+				authInfo     BasicIdentity
+				authIdentity = &AuthIdentity{}
 				req          = context.Request
-				tx           = context.Auth.GetDB(req)
+				tx           = db
 				ok           bool
 			)
 
@@ -138,7 +134,7 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 				}
 				state := req.FormValue("state")
 
-				var claims *claims.Claims
+				var claims *Claims
 
 				claims, err = context.Auth.SessionStorer.ValidateClaims(state)
 				if err != nil {
@@ -279,17 +275,8 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 	return provider
 }
 
-// GetName return provider name
-func (OIDCProvider) GetName() string {
-	return "dex"
-}
-
-// ConfigAuth config auth
-func (provider OIDCProvider) ConfigAuth(*auth.Auth) {
-}
-
 // OAuthConfig return oauth config based on configuration
-func (provider OIDCProvider) OAuthConfig(context *auth.Context) *oauth2.Config {
+func (provider OIDCProvider) OAuthConfig(context *Context) *oauth2.Config {
 	var (
 		config = provider.OIDCProviderConfig
 		req    = context.Request
@@ -314,8 +301,8 @@ func (provider OIDCProvider) OAuthConfig(context *auth.Context) *oauth2.Config {
 }
 
 // Login implemented login with dex provider
-func (provider OIDCProvider) Login(context *auth.Context) {
-	claims := claims.Claims{}
+func (provider OIDCProvider) Login(context *Context) {
+	claims := Claims{}
 	claims.Subject = "state"
 	signedToken, err := context.Auth.SessionStorer.SignedToken(&claims)
 	if err != nil {
@@ -329,7 +316,7 @@ func (provider OIDCProvider) Login(context *auth.Context) {
 
 // RedeemRefreshToken plays an OAuth redeem refresh token flow
 // https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
-func (provider OIDCProvider) RedeemRefreshToken(context *auth.Context, refreshToken string) (*IDTokenClaims, *oauth2.Token, error) {
+func (provider OIDCProvider) RedeemRefreshToken(context *Context, refreshToken string) (*IDTokenClaims, *oauth2.Token, error) {
 	ctx := oidc.ClientContext(gocontext.Background(), provider.httpClient)
 
 	token, err := provider.OAuthConfig(context).TokenSource(ctx, &oauth2.Token{RefreshToken: refreshToken}).Token()
@@ -357,26 +344,27 @@ func (provider OIDCProvider) RedeemRefreshToken(context *auth.Context, refreshTo
 }
 
 // Logout implemented logout with dex provider
-func (OIDCProvider) Logout(context *auth.Context) {
+func (OIDCProvider) Logout(context *Context) {
+	context.Auth.LogoutHandler(context)
 }
 
 // Register implemented register with dex provider
-func (provider OIDCProvider) Register(context *auth.Context) {
+func (provider OIDCProvider) Register(context *Context) {
 	provider.Login(context)
 }
 
 // Deregister implemented deregister with dex provider
-func (provider OIDCProvider) Deregister(context *auth.Context) {
+func (provider OIDCProvider) Deregister(context *Context) {
 	context.Auth.DeregisterHandler(context)
 }
 
 // Callback implement Callback with dex provider
-func (provider OIDCProvider) Callback(context *auth.Context) {
+func (provider OIDCProvider) Callback(context *Context) {
 	context.Auth.LoginHandler(context, provider.AuthorizeHandler)
 }
 
 // ServeHTTP implement ServeHTTP with dex provider
-func (OIDCProvider) ServeHTTP(*auth.Context) {
+func (OIDCProvider) ServeHTTP(*Context) {
 }
 
 // +testify:mock:testOnly=true
