@@ -19339,6 +19339,15 @@ components:
           type: string
         subnet:
           $ref: '#/components/schemas/EKSSubnet'
+        securityGroups:
+          description: List of additional custom security groups for all nodes in
+            the pool.
+          example:
+          - sg-00000xxxx0000xxx1
+          - sg-00000xxxx0000xxx2
+          items:
+            type: string
+          type: array
       required:
       - instanceType
       - maxCount
@@ -23614,6 +23623,15 @@ components:
         subnetId:
           example: subnet-xxxxxxxxxxxxxx
           type: string
+        securityGroups:
+          description: List of additional custom security groups for all nodes in
+            the pool.
+          example:
+          - sg-00000xxxx0000xxx1
+          - sg-00000xxxx0000xxx2
+          items:
+            type: string
+          type: array
       required:
       - instanceType
     EksUpdateNodePoolRequest_allOf:
@@ -23641,6 +23659,15 @@ components:
             field is empty or 0 on-demand instances are used instead of spot instances.
           example: "0.2"
           type: string
+        securityGroups:
+          description: List of additional custom security groups for all nodes in
+            the pool.
+          example:
+          - sg-00000xxxx0000xxx1
+          - sg-00000xxxx0000xxx2
+          items:
+            type: string
+          type: array
         options:
           $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
     PkeAwsUpdateNodePoolRequest_allOf:
