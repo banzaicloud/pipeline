@@ -52,9 +52,10 @@ type EKSUpdateClusterstructureWorkflowInput struct {
 	Subnets          []eksWorkflow.Subnet
 	ASGSubnetMapping map[string][]eksWorkflow.Subnet
 
-	NodeInstanceRoleID string
-	AsgList            []eksWorkflow.AutoscaleGroup
-	NodePoolLabels     map[string]map[string]string
+	NodeInstanceRoleID     string
+	AsgList                []eksWorkflow.AutoscaleGroup
+	DeletableNodePoolNames []string
+	NodePoolLabels         map[string]map[string]string
 
 	UseGeneratedSSHKey bool
 }
@@ -154,39 +155,35 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 
 	nodePoolsToCreate := make(map[string]eksWorkflow.AutoscaleGroup, 0)
 	nodePoolsToUpdate := make(map[string]eksWorkflow.AutoscaleGroup, 0)
-	nodePoolsToDelete := make(map[string]eksWorkflow.AutoscaleGroup, 0)
 
 	// first delete node pools
-	asgFutures := make([]workflow.Future, 0)
-	for _, nodePool := range input.AsgList {
-		log := logger.With("nodePool", nodePool.Name)
+	deleteNodePoolFutures := make([]workflow.Future, 0, len(input.DeletableNodePoolNames))
+	for _, nodePoolName := range input.DeletableNodePoolNames {
+		log := logger.With("nodePool", nodePoolName)
 
-		if nodePool.Delete {
-			log.Info("node pool will be deleted")
-			nodePoolsToDelete[nodePool.Name] = nodePool
+		log.Info("node pool will be deleted")
 
-			activityInput := eksWorkflow.DeleteNodePoolWorkflowInput{
-				ClusterID:                 input.ClusterID,
-				ClusterName:               input.ClusterName,
-				NodePoolName:              nodePool.Name,
-				OrganizationID:            input.OrganizationID,
-				Region:                    input.Region,
-				SecretID:                  input.SecretID,
-				ShouldUpdateClusterStatus: false,
-			}
-			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
-			f := workflow.ExecuteChildWorkflow(ctx, eksWorkflow.DeleteNodePoolWorkflowName, activityInput)
-			asgFutures = append(asgFutures, f)
+		activityInput := eksWorkflow.DeleteNodePoolWorkflowInput{
+			ClusterID:                 input.ClusterID,
+			ClusterName:               input.ClusterName,
+			NodePoolName:              nodePoolName,
+			OrganizationID:            input.OrganizationID,
+			Region:                    input.Region,
+			SecretID:                  input.SecretID,
+			ShouldUpdateClusterStatus: false,
 		}
+		ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
+		deleteNodePoolFuture := workflow.ExecuteChildWorkflow(ctx, eksWorkflow.DeleteNodePoolWorkflowName, activityInput)
+		deleteNodePoolFutures = append(deleteNodePoolFutures, deleteNodePoolFuture)
 	}
 
 	// wait for AutoScalingGroups to be deleted
-	err := waitForActivities(asgFutures, ctx, input.ClusterID)
+	err := waitForActivities(deleteNodePoolFutures, ctx, input.ClusterID)
 	if err != nil {
 		return err
 	}
 
-	asgFutures = make([]workflow.Future, 0)
+	asgFutures := make([]workflow.Future, 0)
 	for _, nodePool := range input.AsgList {
 		log := logger.With("nodePool", nodePool.Name)
 
@@ -206,13 +203,11 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				}
 			}
 
-			// Note: we need to add the node pools created to the database, so the stack ID can be set at creation.
+			// Note: we need to add the node pools created to the database, so
+			// the stack ID can be set at creation.
 			{
-				// Note: deleted and updated node pools are saved later to the database.
-				nodePoolsToKeep := make(map[string]bool, len(nodePoolsToDelete)+len(nodePoolsToUpdate))
-				for _, nodePoolToDelete := range nodePoolsToDelete {
-					nodePoolsToKeep[nodePoolToDelete.Name] = true
-				}
+				// Note: updated node pools are saved later to the database.
+				nodePoolsToKeep := make(map[string]bool, len(nodePoolsToUpdate))
 				for _, nodePoolToUpdate := range nodePoolsToUpdate {
 					nodePoolsToKeep[nodePoolToUpdate.Name] = true
 				}
@@ -451,10 +446,11 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 		return err
 	}
 
-	// delete, update, create node pools
+	// Update node pools
 	{
-		// Note: created node pools are saved earlier to the database to be able
-		// to set the stack ID at creation.
+		// Note: created and deleted  node pools are saved earlier to the
+		// database to be able to set the stack ID at creation and because the
+		// new node pool workflows are designed to do the complete processes.
 		nodePoolsToKeep := make(map[string]bool, len(nodePoolsToCreate))
 		for _, nodePoolToCreate := range nodePoolsToCreate {
 			nodePoolsToKeep[nodePoolToCreate.Name] = true
@@ -464,7 +460,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			ClusterID:         input.ClusterID,
 			NodePoolsToCreate: nil,
 			NodePoolsToUpdate: nodePoolsToUpdate,
-			NodePoolsToDelete: nodePoolsToDelete,
+			NodePoolsToDelete: nil,
 			NodePoolsToKeep:   nodePoolsToKeep,
 		}
 
