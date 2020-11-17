@@ -19,8 +19,6 @@ import (
 )
 
 type HelmService interface {
-	AddRepositoryIfNotExists(repository internalHelm.Repository) error
-
 	InstallOrUpgrade(
 		orgID uint,
 		c internalHelm.ClusterDataProvider,

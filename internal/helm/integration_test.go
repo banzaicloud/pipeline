@@ -56,41 +56,12 @@ func TestIntegration(t *testing.T) {
 	// cluster setup and posthook style use cases
 	t.Run("helmInstall", testIntegrationInstall)
 
-	// covers the federation use case for adding a custom platform repository on the fly
-	t.Run("addPlatformRepository", testAddPlatformRepository)
-
 	// Env resolver
 	t.Run("platformEnvResolver", testPlatformEnvResolver)
 	t.Run("orgEnvResolver", testOrgEnvResolver)
 
 	// Releaser
 	t.Run("testReleaserHelm", testReleaserHelm)
-}
-
-func testAddPlatformRepository(t *testing.T) {
-	home := helmtesting.HelmHome(t)
-	db := helmtesting.SetupDatabase(t)
-	secretStore := helmtesting.SetupSecretStore()
-	_, clusterService := helmtesting.ClusterKubeConfig(t, clusterId)
-	config := helm.Config{
-		Home: home,
-		Repositories: map[string]string{
-			"stable": "https://charts.helm.sh/stable",
-		},
-	}
-
-	logger := common.NoopLogger{}
-	helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
-
-	for i := 0; i < 2; i++ {
-		err := helmService.AddRepositoryIfNotExists(helm.Repository{
-			Name: "kubefed",
-			URL:  "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts",
-		})
-		if err != nil {
-			t.Fatalf("%+v", err)
-		}
-	}
 }
 
 func testIntegration(t *testing.T) {
