@@ -37,12 +37,13 @@ import (
 
 func TestCreateNodePool(t *testing.T) {
 	type inputType struct {
-		clusterID                 uint
-		creatorUserID             uint
-		nodePool                  eks.NewNodePool
-		nodePoolSubnetIDs         []string
-		shouldStoreNodePool       bool
-		shouldUpdateClusterStatus bool
+		clusterID                    uint
+		creatorUserID                uint
+		nodePool                     eks.NewNodePool
+		nodePoolSubnetIDs            []string
+		shouldCreateNodePoolLabelSet bool
+		shouldStoreNodePool          bool
+		shouldUpdateClusterStatus    bool
 	}
 
 	testCases := []struct {
@@ -54,24 +55,26 @@ func TestCreateNodePool(t *testing.T) {
 			caseDescription: "success",
 			expectedError:   nil,
 			input: inputType{
-				clusterID:                 1,
-				creatorUserID:             2,
-				nodePool:                  eks.NewNodePool{},
-				nodePoolSubnetIDs:         []string{},
-				shouldStoreNodePool:       true,
-				shouldUpdateClusterStatus: true,
+				clusterID:                    1,
+				creatorUserID:                2,
+				nodePool:                     eks.NewNodePool{},
+				nodePoolSubnetIDs:            []string{},
+				shouldCreateNodePoolLabelSet: true,
+				shouldStoreNodePool:          true,
+				shouldUpdateClusterStatus:    true,
 			},
 		},
 		{
 			caseDescription: "error",
 			expectedError:   errors.New("test error"),
 			input: inputType{
-				clusterID:                 1,
-				creatorUserID:             2,
-				nodePool:                  eks.NewNodePool{},
-				nodePoolSubnetIDs:         []string{},
-				shouldStoreNodePool:       true,
-				shouldUpdateClusterStatus: true,
+				clusterID:                    1,
+				creatorUserID:                2,
+				nodePool:                     eks.NewNodePool{},
+				nodePoolSubnetIDs:            []string{},
+				shouldCreateNodePoolLabelSet: true,
+				shouldStoreNodePool:          true,
+				shouldUpdateClusterStatus:    true,
 			},
 		},
 	}
@@ -103,6 +106,7 @@ func TestCreateNodePool(t *testing.T) {
 					testCase.input.creatorUserID,
 					testCase.input.nodePool,
 					testCase.input.nodePoolSubnetIDs,
+					testCase.input.shouldCreateNodePoolLabelSet,
 					testCase.input.shouldStoreNodePool,
 					testCase.input.shouldUpdateClusterStatus,
 				)
@@ -121,12 +125,13 @@ func TestCreateNodePool(t *testing.T) {
 
 func TestCreateNodePoolAsync(t *testing.T) {
 	type inputType struct {
-		clusterID                 uint
-		creatorUserID             uint
-		nodePool                  eks.NewNodePool
-		nodePoolSubnetIDs         []string
-		shouldStoreNodePool       bool
-		shouldUpdateClusterStatus bool
+		clusterID                    uint
+		creatorUserID                uint
+		nodePool                     eks.NewNodePool
+		nodePoolSubnetIDs            []string
+		shouldCreateNodePoolLabelSet bool
+		shouldStoreNodePool          bool
+		shouldUpdateClusterStatus    bool
 	}
 
 	testCases := []struct {
@@ -138,24 +143,26 @@ func TestCreateNodePoolAsync(t *testing.T) {
 			caseDescription: "success",
 			expectedError:   nil,
 			input: inputType{
-				clusterID:                 1,
-				creatorUserID:             2,
-				nodePool:                  eks.NewNodePool{},
-				nodePoolSubnetIDs:         []string{},
-				shouldStoreNodePool:       true,
-				shouldUpdateClusterStatus: true,
+				clusterID:                    1,
+				creatorUserID:                2,
+				nodePool:                     eks.NewNodePool{},
+				nodePoolSubnetIDs:            []string{},
+				shouldCreateNodePoolLabelSet: true,
+				shouldStoreNodePool:          true,
+				shouldUpdateClusterStatus:    true,
 			},
 		},
 		{
 			caseDescription: "error",
 			expectedError:   errors.New("test error"),
 			input: inputType{
-				clusterID:                 1,
-				creatorUserID:             2,
-				nodePool:                  eks.NewNodePool{},
-				nodePoolSubnetIDs:         []string{},
-				shouldStoreNodePool:       true,
-				shouldUpdateClusterStatus: true,
+				clusterID:                    1,
+				creatorUserID:                2,
+				nodePool:                     eks.NewNodePool{},
+				nodePoolSubnetIDs:            []string{},
+				shouldCreateNodePoolLabelSet: true,
+				shouldStoreNodePool:          true,
+				shouldUpdateClusterStatus:    true,
 			},
 		},
 	}
@@ -187,6 +194,7 @@ func TestCreateNodePoolAsync(t *testing.T) {
 					testCase.input.creatorUserID,
 					testCase.input.nodePool,
 					testCase.input.nodePoolSubnetIDs,
+					testCase.input.shouldCreateNodePoolLabelSet,
 					testCase.input.shouldStoreNodePool,
 					testCase.input.shouldUpdateClusterStatus,
 				)

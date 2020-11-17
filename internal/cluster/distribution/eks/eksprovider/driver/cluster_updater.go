@@ -298,29 +298,34 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 	input.Subnets = subnets
 	input.ASGSubnetMapping = subnetMapping
 
-	asgList := make([]workflow.AutoscaleGroup, 0)
+	asgList := make([]workflow.AutoscaleGroup, 0, len(modelNodePools))
+	deletableNodePoolNames := make([]string, 0, len(modelNodePools))
 	for _, np := range modelNodePools {
-		asg := workflow.AutoscaleGroup{
-			Name:             np.Name,
-			NodeSpotPrice:    np.NodeSpotPrice,
-			Autoscaling:      np.Autoscaling,
-			NodeMinCount:     np.NodeMinCount,
-			NodeMaxCount:     np.NodeMaxCount,
-			Count:            np.Count,
-			NodeVolumeSize:   np.NodeVolumeSize,
-			NodeImage:        np.NodeImage,
-			NodeInstanceType: np.NodeInstanceType,
-			Labels:           np.Labels,
-			Delete:           np.Delete,
-			CreatedBy:        np.CreatedBy,
+		if np.Delete {
+			deletableNodePoolNames = append(deletableNodePoolNames, np.Name)
+		} else {
+			asg := workflow.AutoscaleGroup{
+				Name:             np.Name,
+				NodeSpotPrice:    np.NodeSpotPrice,
+				Autoscaling:      np.Autoscaling,
+				NodeMinCount:     np.NodeMinCount,
+				NodeMaxCount:     np.NodeMaxCount,
+				Count:            np.Count,
+				NodeVolumeSize:   np.NodeVolumeSize,
+				NodeImage:        np.NodeImage,
+				NodeInstanceType: np.NodeInstanceType,
+				Labels:           np.Labels,
+				Delete:           false,
+				CreatedBy:        np.CreatedBy,
+			}
+			if np.ID == 0 {
+				asg.Create = true
+			}
+			asgList = append(asgList, asg)
 		}
-		if np.ID == 0 {
-			asg.Create = true
-		}
-		asgList = append(asgList, asg)
 	}
-
 	input.AsgList = asgList
+	input.DeletableNodePoolNames = deletableNodePoolNames
 
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",

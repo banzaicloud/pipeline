@@ -333,8 +333,9 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	}
 
 	{ // Note: create node pools.
-		shouldStoreNodePool := false       // Note: stored at LegacyClusterAPI.CreateCluster request parsing.
-		shouldUpdateClusterStatus := false // Note: parent workflow handles status updates.
+		shouldCreateNodePoolLabelSet := false // Note: node pool label set operator is created and synced later.
+		shouldStoreNodePool := false          // Note: stored at LegacyClusterAPI.CreateCluster request parsing.
+		shouldUpdateClusterStatus := false    // Note: parent workflow handles status updates.
 
 		createNodePoolFutures := make([]workflow.Future, 0, len(input.NodePools))
 		createNodePoolErrors := make([]error, 0, len(input.NodePools))
@@ -379,6 +380,7 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 					input.CreatorUserID,
 					nodePool,
 					nodePoolSubnetIDs,
+					shouldCreateNodePoolLabelSet,
 					shouldStoreNodePool,
 					shouldUpdateClusterStatus,
 				))
