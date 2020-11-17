@@ -262,6 +262,7 @@ func createNodePool(
 	creatorUserID uint,
 	nodePool eks.NewNodePool,
 	nodePoolSubnetIDs []string,
+	shouldCreateNodePoolLabelSet bool,
 	shouldStoreNodePool bool,
 	shouldUpdateClusterStatus bool,
 ) error {
@@ -271,6 +272,7 @@ func createNodePool(
 		creatorUserID,
 		nodePool,
 		nodePoolSubnetIDs,
+		shouldCreateNodePoolLabelSet,
 		shouldStoreNodePool,
 		shouldUpdateClusterStatus,
 	).Get(ctx, nil)
@@ -285,15 +287,17 @@ func createNodePoolAsync(
 	creatorUserID uint,
 	nodePool eks.NewNodePool,
 	nodePoolSubnetIDs []string,
+	shouldCreateNodePoolLabelSet bool,
 	shouldStoreNodePool bool,
 	shouldUpdateClusterStatus bool,
 ) workflow.Future {
 	return workflow.ExecuteChildWorkflow(ctx, CreateNodePoolWorkflowName, CreateNodePoolWorkflowInput{
-		ClusterID:                 clusterID,
-		NodePool:                  nodePool,
-		NodePoolSubnetIDs:         nodePoolSubnetIDs,
-		ShouldStoreNodePool:       shouldStoreNodePool,
-		ShouldUpdateClusterStatus: shouldUpdateClusterStatus,
-		CreatorUserID:             creatorUserID,
+		ClusterID:                    clusterID,
+		NodePool:                     nodePool,
+		NodePoolSubnetIDs:            nodePoolSubnetIDs,
+		ShouldCreateNodePoolLabelSet: shouldCreateNodePoolLabelSet,
+		ShouldStoreNodePool:          shouldStoreNodePool,
+		ShouldUpdateClusterStatus:    shouldUpdateClusterStatus,
+		CreatorUserID:                creatorUserID,
 	})
 }
