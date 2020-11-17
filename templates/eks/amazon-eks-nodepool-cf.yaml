@@ -12,7 +12,7 @@ Metadata:
           - ClusterName
           - ClusterControlPlaneSecurityGroup
           - NodeSecurityGroup
-          - CustomSecurityGroup
+          - SecurityGroups
       -
         Label:
           default: "Worker Node Configuration"
