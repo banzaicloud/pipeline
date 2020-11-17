@@ -375,8 +375,8 @@ Parameters:
       Description: Security group for all nodes in the cluster.
       Type: AWS::EC2::SecurityGroup::Id
 
-  CustomNodeSecurityGroupIds:
-      Description: Comma separated list of custom security groups for all nodes in the pool.
+  SecurityGroups:
+      Description: Comma separated list of security groups for all nodes in the pool.
       Type: String
       Default: ""
 
@@ -393,7 +393,7 @@ Conditions:
   AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
   HasKeyName: !Not [ !Equals [ !Ref KeyName, "" ] ]
   NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
-  NoCustomSecurityGroups: !Equals [ !Ref CustomNodeSecurityGroupIds, "" ]
+  NoCustomSecurityGroups: !Equals [ !Ref SecurityGroups, "" ]
 
 Resources:
   NodeInstanceProfile:
@@ -478,7 +478,7 @@ Resources:
               InstanceType: !Ref NodeInstanceType
               KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
               SecurityGroupIds:
-                  !If [NoCustomSecurityGroups, [!Ref NodeSecurityGroup], !Split [ ",",  !Join [ ",", [ !Ref NodeSecurityGroup, !Ref CustomNodeSecurityGroupIds ] ]  ] ]
+                  !If [NoCustomSecurityGroups, [!Ref NodeSecurityGroup], !Split [ ",",  !Join [ ",", [ !Ref NodeSecurityGroup, !Ref SecurityGroups ] ]  ] ]
               UserData: !Base64
                   "Fn::Sub": |
                       #!/bin/bash
