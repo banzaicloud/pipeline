@@ -17,11 +17,13 @@ package dns
 import (
 	"context"
 	"reflect"
+	"sort"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/banzaicloud/operator-tools/pkg/utils"
+	"golang.org/x/mod/semver"
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -106,8 +108,11 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 	if lookupSI.Spec.Enabled == nil {
 		si.Spec.Enabled = utils.BoolPointer(true)
 		// TODO the latest version is wired here
-		idx := len(lookupSI.Status.AvailableVersions)
-		si.Spec.Version = lookupSI.Status.AvailableVersions[idx-1]
+		latestVersion, err := is.getLatestVersion(*lookupSI)
+		if err != nil {
+			return errors.Wrap(err, "failed to get the  latest version")
+		}
+		si.Spec.Version = latestVersion
 	}
 
 	// TODO should we care of disabled services here? (lookupIS.Spec.Enabled == false case)
@@ -116,4 +121,38 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 	}
 
 	return nil
+}
+
+func (is isvcReconciler) getLatestVersion(instance v1alpha1.ServiceInstance) (string, error) {
+	if len(instance.Status.AvailableVersions) == 0 {
+		return "", errors.New("no versions available")
+	}
+
+	availableVersions := make(AvailableVersions, 0, len(instance.Status.AvailableVersions))
+	for version := range instance.Status.AvailableVersions {
+		availableVersions = append(availableVersions, version)
+	}
+
+	sort.Sort(availableVersions)
+
+	return availableVersions[len(availableVersions)-1], nil
+}
+
+// AvailableVersions slice of semver version strings to facilitate sorting
+type AvailableVersions []string
+
+func (a AvailableVersions) Len() int {
+	return len(a)
+}
+
+func (a AvailableVersions) Less(i, j int) bool {
+	if semver.Compare(a[i], a[j]) < 0 {
+		return true
+	}
+
+	return false
+}
+
+func (a AvailableVersions) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
 }
