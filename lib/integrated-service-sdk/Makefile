@@ -75,7 +75,7 @@ license-cache: bin/licensei ## Generate license cache
 
 # Generate code
 generate: bin/controller-gen ## Generate code
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	$(CONTROLLER_GEN) object paths="./..."
 
 .PHONY: bin/controller-gen
 bin/controller-gen:
