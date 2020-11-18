@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
 	"time"
 
 	"emperror.dev/errors"
@@ -63,95 +64,6 @@ func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Clien
 		logger:         logger,
 		workflowClient: workflowClient,
 	}
-}
-
-func createNodePoolsFromUpdateRequest(eksCluster *cluster.EKSCluster, requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*eksmodel.AmazonNodePoolsModel, error) {
-	currentNodePoolMap := make(map[string]*eksmodel.AmazonNodePoolsModel, len(eksCluster.GetModel().NodePools))
-	for _, nodePool := range eksCluster.GetModel().NodePools {
-		currentNodePoolMap[nodePool.Name] = nodePool
-	}
-
-	updatedNodePools := make([]*eksmodel.AmazonNodePoolsModel, 0, len(requestedNodePools))
-
-	for nodePoolName, nodePool := range requestedNodePools {
-		if currentNodePoolMap[nodePoolName] != nil {
-			// update existing node pool
-			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
-				ID:               currentNodePoolMap[nodePoolName].ID,
-				CreatedBy:        currentNodePoolMap[nodePoolName].CreatedBy,
-				CreatedAt:        currentNodePoolMap[nodePoolName].CreatedAt,
-				ClusterID:        currentNodePoolMap[nodePoolName].ClusterID,
-				Name:             nodePoolName,
-				StackID:          currentNodePoolMap[nodePoolName].StackID,
-				NodeInstanceType: currentNodePoolMap[nodePoolName].NodeInstanceType,
-				NodeImage:        currentNodePoolMap[nodePoolName].NodeImage,
-				NodeSpotPrice:    currentNodePoolMap[nodePoolName].NodeSpotPrice,
-				Status:           currentNodePoolMap[nodePoolName].Status,
-				StatusMessage:    currentNodePoolMap[nodePoolName].StatusMessage,
-				Autoscaling:      nodePool.Autoscaling,
-				NodeMinCount:     nodePool.MinCount,
-				NodeMaxCount:     nodePool.MaxCount,
-				Count:            nodePool.Count,
-				NodeVolumeSize:   nodePool.VolumeSize,
-				Labels:           nodePool.Labels,
-				Delete:           false,
-			})
-		} else {
-			// new node pool
-
-			// ---- [ Node instanceType check ] ---- //
-			if len(nodePool.InstanceType) == 0 {
-				// c.log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
-				return nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
-			}
-
-			// ---- [ Node image check ] ---- //
-			if len(nodePool.Image) == 0 {
-				// c.log.Errorf("image is missing for nodePool %v", nodePoolName)
-				return nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
-			}
-
-			// ---- [ Node spot price ] ---- //
-			if len(nodePool.SpotPrice) == 0 {
-				nodePool.SpotPrice = eks.DefaultSpotPrice
-			}
-
-			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
-				CreatedBy:        userId,
-				Name:             nodePoolName,
-				StackID:          "",
-				NodeInstanceType: nodePool.InstanceType,
-				NodeImage:        nodePool.Image,
-				NodeSpotPrice:    nodePool.SpotPrice,
-				Status:           eks.NodePoolStatusCreating,
-				StatusMessage:    "",
-				Autoscaling:      nodePool.Autoscaling,
-				NodeMinCount:     nodePool.MinCount,
-				NodeMaxCount:     nodePool.MaxCount,
-				Count:            nodePool.Count,
-				NodeVolumeSize:   nodePool.VolumeSize,
-				Delete:           false,
-				Labels:           nodePool.Labels,
-			})
-		}
-	}
-
-	for _, nodePool := range eksCluster.GetModel().NodePools {
-		if requestedNodePools[nodePool.Name] == nil {
-			updatedNodePools = append(updatedNodePools, &eksmodel.AmazonNodePoolsModel{
-				ID:            nodePool.ID,
-				ClusterID:     nodePool.ClusterID,
-				Name:          nodePool.Name,
-				StackID:       nodePool.StackID,
-				Status:        eks.NodePoolStatusDeleting,
-				StatusMessage: "",
-				Labels:        nodePool.Labels,
-				CreatedAt:     nodePool.CreatedAt,
-				Delete:        true,
-			})
-		}
-	}
-	return updatedNodePools, nil
 }
 
 // isDifferent compares x and y interfaces with deep equal
@@ -222,110 +134,56 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		return errors.WrapIf(err, "could not update cluster status")
 	}
 
-	modelNodePools, err := createNodePoolsFromUpdateRequest(eksCluster, request.EKS.NodePools, userID)
+	modelCluster := eksCluster.GetModel()
+
+	requestedDeletedNodePools, requestedNewNodePools, requestedUpdatedNodePools, err :=
+		newNodePoolsFromUpdateRequest(modelCluster.NodePools, request.EKS.NodePools)
 	if err != nil {
 		return err
 	}
 
-	var nodePoolLabelMap map[string]map[string]string
-	{
-		nodePoolLabels := make([]cluster.NodePoolLabels, 0)
-		for _, np := range modelNodePools {
-			nodePoolLabels = append(nodePoolLabels, cluster.NodePoolLabels{
-				NodePoolName: np.Name,
-				Existing:     np.ID != 0,
-				InstanceType: np.NodeInstanceType,
-				CustomLabels: np.Labels,
-				SpotPrice:    np.NodeSpotPrice,
-			})
-		}
-
-		nodePoolLabelMap, err = cluster.GetDesiredLabelsForCluster(ctx, eksCluster, nodePoolLabels)
-		if err != nil {
-			return errors.WrapIf(err, "failed to get desired labels for cluster")
-		}
+	clusterSubnets, err := newClusterUpdateSubnetsFromModels(modelCluster.Subnets)
+	if err != nil {
+		return err
 	}
 
-	modelCluster := eksCluster.GetModel()
-
-	subnets := make([]workflow.Subnet, 0)
-	for _, subnet := range modelCluster.Subnets {
-		subnets = append(subnets, workflow.Subnet{
-			SubnetID:         aws.StringValue(subnet.SubnetId),
-			Cidr:             aws.StringValue(subnet.Cidr),
-			AvailabilityZone: aws.StringValue(subnet.AvailabilityZone),
-		})
+	newNodePoolSubnetIDs, err := newNodePoolSubnetIDsFromRequestedNewNodePools(requestedNewNodePools, clusterSubnets)
+	if err != nil {
+		return err
 	}
 
-	subnetMapping := make(map[string][]workflow.Subnet)
-	for _, nodePool := range modelNodePools {
-		// set subnets only for node pools to be updated
-		if nodePool.Delete || nodePool.ID != 0 {
-			continue
-		}
-		for reqNodePoolName, reqNodePool := range request.EKS.NodePools {
-			if reqNodePoolName == nodePool.Name {
-				if reqNodePool.Subnet == nil {
-					logger.WithField("nodePool", nodePool.Name).Info("no subnet specified for node pool in the update Request")
-					subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnets[0])
-				} else {
-					for _, subnet := range subnets {
-						if (reqNodePool.Subnet.SubnetId != "" && subnet.SubnetID == reqNodePool.Subnet.SubnetId) ||
-							(reqNodePool.Subnet.Cidr != "" && subnet.Cidr == reqNodePool.Subnet.Cidr) {
-							subnetMapping[nodePool.Name] = append(subnetMapping[nodePool.Name], subnet)
-						}
-					}
-				}
-			}
-		}
+	nodePoolLabels, err := newNodePoolLabels(
+		ctx,
+		eksCluster,
+		requestedDeletedNodePools,
+		requestedNewNodePools,
+		requestedUpdatedNodePools,
+	)
+	if err != nil {
+		return err
+	}
+
+	newNodePools, err := newNodePoolsFromRequestedNewNodePools(requestedNewNodePools, newNodePoolSubnetIDs)
+	if err != nil {
+		return err
 	}
 
 	input := cluster.EKSUpdateClusterstructureWorkflowInput{
-		Region:             eksCluster.GetLocation(),
-		OrganizationID:     eksCluster.GetOrganizationId(),
-		SecretID:           eksCluster.GetSecretId(),
-		ConfigSecretID:     eksCluster.GetConfigSecretId(),
-		ClusterID:          eksCluster.GetID(),
-		ClusterUID:         eksCluster.GetUID(),
-		ClusterName:        eksCluster.GetName(),
-		ScaleEnabled:       eksCluster.GetScaleOptions() != nil && eksCluster.GetScaleOptions().Enabled,
-		NodeInstanceRoleID: modelCluster.NodeInstanceRoleId,
-		NodePoolLabels:     nodePoolLabelMap,
-		UseGeneratedSSHKey: eksCluster.IsSSHGenerated(),
-		Tags:               modelCluster.Cluster.Tags,
+		Region:                 eksCluster.GetLocation(),
+		OrganizationID:         eksCluster.GetOrganizationId(),
+		SecretID:               eksCluster.GetSecretId(),
+		ConfigSecretID:         eksCluster.GetConfigSecretId(),
+		ClusterID:              eksCluster.GetID(),
+		ClusterName:            eksCluster.GetName(),
+		ScaleEnabled:           eksCluster.GetScaleOptions() != nil && eksCluster.GetScaleOptions().Enabled,
+		Tags:                   modelCluster.Cluster.Tags,
+		UpdaterUserID:          userID,
+		DeletableNodePoolNames: newNodePoolNamesFromRequestedDeletedNodePools(requestedDeletedNodePools),
+		NewNodePools:           newNodePools,
+		NewNodePoolSubnetIDs:   newNodePoolSubnetIDs,
+		NodePoolLabels:         nodePoolLabels,
+		UpdatedNodePools:       newASGsFromRequestedUpdatedNodePools(requestedUpdatedNodePools, modelCluster.NodePools),
 	}
-
-	input.Subnets = subnets
-	input.ASGSubnetMapping = subnetMapping
-
-	asgList := make([]workflow.AutoscaleGroup, 0, len(modelNodePools))
-	deletableNodePoolNames := make([]string, 0, len(modelNodePools))
-	for _, np := range modelNodePools {
-		if np.Delete {
-			deletableNodePoolNames = append(deletableNodePoolNames, np.Name)
-		} else {
-			asg := workflow.AutoscaleGroup{
-				Name:             np.Name,
-				NodeSpotPrice:    np.NodeSpotPrice,
-				Autoscaling:      np.Autoscaling,
-				NodeMinCount:     np.NodeMinCount,
-				NodeMaxCount:     np.NodeMaxCount,
-				Count:            np.Count,
-				NodeVolumeSize:   np.NodeVolumeSize,
-				NodeImage:        np.NodeImage,
-				NodeInstanceType: np.NodeInstanceType,
-				Labels:           np.Labels,
-				Delete:           false,
-				CreatedBy:        np.CreatedBy,
-			}
-			if np.ID == 0 {
-				asg.Create = true
-			}
-			asgList = append(asgList, asg)
-		}
-	}
-	input.AsgList = asgList
-	input.DeletableNodePoolNames = deletableNodePoolNames
 
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
@@ -374,4 +232,304 @@ func (c *EksClusterUpdater) UpdateCluster(ctx context.Context,
 	}
 
 	return nil
+}
+
+func newASGsFromRequestedUpdatedNodePools(
+	requestedUpdatedNodePools map[string]*pkgEks.NodePool,
+	currentNodePools []*eksmodel.AmazonNodePoolsModel,
+) []workflow.AutoscaleGroup {
+	updatedNodePools := make([]workflow.AutoscaleGroup, 0, len(requestedUpdatedNodePools))
+
+	creators := make(map[string]uint, len(requestedUpdatedNodePools))
+	for _, currentNodePool := range currentNodePools {
+		creators[currentNodePool.Name] = currentNodePool.CreatedBy
+	}
+
+	for nodePoolName, nodePool := range requestedUpdatedNodePools {
+		updatedNodePools = append(updatedNodePools, workflow.AutoscaleGroup{
+			Name:             nodePoolName,
+			NodeSpotPrice:    nodePool.SpotPrice,
+			Autoscaling:      nodePool.Autoscaling,
+			NodeMinCount:     nodePool.MinCount,
+			NodeMaxCount:     nodePool.MaxCount,
+			Count:            nodePool.Count,
+			NodeVolumeSize:   nodePool.VolumeSize,
+			NodeImage:        nodePool.Image,
+			NodeInstanceType: nodePool.InstanceType,
+			Labels:           nodePool.Labels,
+			Delete:           false,
+			Create:           false,
+			CreatedBy:        creators[nodePoolName],
+		})
+	}
+
+	sort.Slice(updatedNodePools, func(first, second int) (isLessThan bool) {
+		return updatedNodePools[first].Name < updatedNodePools[second].Name
+	})
+
+	return updatedNodePools
+}
+
+// newClusterUpdateSubnetsFromModels returns the collection of clusters subnets
+// transformed from the specified subnet models or alternatively the occurring
+// error.
+func newClusterUpdateSubnetsFromModels(clusterSubnetModels []*eksmodel.EKSSubnetModel) ([]workflow.Subnet, error) {
+	clusterSubnets := make([]workflow.Subnet, 0, len(clusterSubnetModels))
+	clusterSubnetErrors := make([]error, 0, len(clusterSubnetModels))
+
+	for _, subnet := range clusterSubnetModels {
+		if aws.StringValue(subnet.SubnetId) == "" {
+			clusterSubnetErrors = append(
+				clusterSubnetErrors,
+				errors.Errorf(
+					"cluster subnet CIDR %s lacks an ID and subnet creation is not supported during cluster update",
+					aws.StringValue(subnet.Cidr),
+				),
+			)
+
+			continue
+		}
+
+		clusterSubnets = append(clusterSubnets, workflow.Subnet{
+			SubnetID:         aws.StringValue(subnet.SubnetId),
+			Cidr:             aws.StringValue(subnet.Cidr),
+			AvailabilityZone: aws.StringValue(subnet.AvailabilityZone),
+		})
+	}
+
+	if len(clusterSubnetErrors) != 0 {
+		return nil, errors.Combine(clusterSubnetErrors...)
+	}
+
+	if len(clusterSubnets) == 0 {
+		return nil, errors.Errorf("no cluster subnet is available")
+	}
+
+	return clusterSubnets, nil
+}
+
+// newNodePoolNamesFromRequestedDeletedNodePools returns the collection of the
+// names of the specified node pools requested to be deleted.
+func newNodePoolNamesFromRequestedDeletedNodePools(nodePoolModels map[string]*eksmodel.AmazonNodePoolsModel) []string {
+	nodePoolNames := make([]string, 0, len(nodePoolModels))
+	for nodePoolName := range nodePoolModels {
+		nodePoolNames = append(nodePoolNames, nodePoolName)
+	}
+
+	sort.Slice(nodePoolNames, func(first, second int) (isLessThan bool) {
+		return nodePoolNames[first] < nodePoolNames[second]
+	})
+
+	return nodePoolNames
+}
+
+// newNodePoolLabels returns the determined node pool labels for all the node
+// pools being updated by the cluster update.
+//
+// TODO: remove when UpdateNodePoolWorkflow is refactored and node pool labels
+// are passed and synced implicitly in the
+// Create-/Delete-/UpdateNodePoolWorkflow operations.
+func newNodePoolLabels(
+	ctx context.Context,
+	eksCluster cluster.CommonCluster,
+	requestedDeletedNodePools map[string]*eksmodel.AmazonNodePoolsModel,
+	requestedNewNodePools map[string]*pkgEks.NodePool,
+	requestedUpdatedNodePools map[string]*pkgEks.NodePool,
+) (map[string]map[string]string, error) {
+	combinedModifiedNodePoolCount := len(requestedDeletedNodePools) +
+		len(requestedNewNodePools) +
+		len(requestedUpdatedNodePools)
+
+	clusterNodePoolLabels := make([]cluster.NodePoolLabels, 0, combinedModifiedNodePoolCount)
+
+	for nodePoolName, nodePool := range requestedDeletedNodePools {
+		clusterNodePoolLabels = append(clusterNodePoolLabels, cluster.NodePoolLabels{
+			NodePoolName: nodePoolName,
+			Existing:     true,
+			InstanceType: nodePool.NodeInstanceType,
+			SpotPrice:    nodePool.NodeSpotPrice,
+			// Preemptible:  , // Note: parsed from SpotPrice if specified, defaulted 0.0.
+			CustomLabels: nodePool.Labels,
+		})
+	}
+
+	for nodePoolName, nodePool := range requestedNewNodePools {
+		clusterNodePoolLabels = append(clusterNodePoolLabels, cluster.NodePoolLabels{
+			NodePoolName: nodePoolName,
+			Existing:     false,
+			InstanceType: nodePool.InstanceType,
+			SpotPrice:    nodePool.SpotPrice,
+			// Preemptible:  , // Note: parsed from SpotPrice if specified, defaulted 0.0.
+			CustomLabels: nodePool.Labels,
+		})
+	}
+
+	for nodePoolName, nodePool := range requestedUpdatedNodePools {
+		clusterNodePoolLabels = append(clusterNodePoolLabels, cluster.NodePoolLabels{
+			NodePoolName: nodePoolName,
+			Existing:     true,
+			InstanceType: nodePool.InstanceType,
+			SpotPrice:    nodePool.SpotPrice,
+			// Preemptible:  , // Note: parsed from SpotPrice if specified, defaulted 0.0.
+			CustomLabels: nodePool.Labels,
+		})
+	}
+
+	nodePoolLabels, err := cluster.GetDesiredLabelsForCluster(ctx, eksCluster, clusterNodePoolLabels)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get desired labels for cluster")
+	}
+
+	return nodePoolLabels, nil
+}
+
+// newNodePoolsFromRequest returns the requested node pool deletions, creations,
+// updates based on the current and requested node pools.
+func newNodePoolsFromUpdateRequest(
+	currentNodePools []*eksmodel.AmazonNodePoolsModel,
+	requestedNodePools map[string]*pkgEks.NodePool,
+) (
+	requestedDeletedNodePools map[string]*eksmodel.AmazonNodePoolsModel,
+	requestedNewNodePools map[string]*pkgEks.NodePool,
+	requestedUpdatedNodePools map[string]*pkgEks.NodePool,
+	err error,
+) {
+	existingNodePools := make(map[string]bool, len(currentNodePools))
+	requestedDeletedNodePools = make(map[string]*eksmodel.AmazonNodePoolsModel, len(currentNodePools))
+	for _, currentNodePool := range currentNodePools {
+		existingNodePools[currentNodePool.Name] = true
+
+		if _, isExisting := requestedNodePools[currentNodePool.Name]; !isExisting {
+			requestedDeletedNodePools[currentNodePool.Name] = currentNodePool
+		}
+	}
+
+	requestedNewNodePools = make(map[string]*pkgEks.NodePool, len(requestedNodePools))
+	requestedUpdatedNodePools = make(map[string]*pkgEks.NodePool, len(requestedNodePools))
+	for nodePoolName, nodePool := range requestedNodePools {
+		if existingNodePools[nodePoolName] {
+			requestedUpdatedNodePools[nodePoolName] = nodePool
+		} else {
+			if len(nodePool.InstanceType) == 0 {
+				return nil, nil, nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
+			}
+
+			if len(nodePool.Image) == 0 {
+				return nil, nil, nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
+			}
+
+			if len(nodePool.SpotPrice) == 0 {
+				nodePool.SpotPrice = eks.DefaultSpotPrice
+			}
+
+			requestedNewNodePools[nodePoolName] = nodePool
+		}
+	}
+
+	return requestedDeletedNodePools, requestedNewNodePools, requestedUpdatedNodePools, nil
+}
+
+// newNodePoolsFromRequestedNewNodePools returns a collection of new node pool
+// descriptors for node pool creation based on the specified requested new node
+// pools.
+func newNodePoolsFromRequestedNewNodePools(
+	requestedNewNodePools map[string]*pkgEks.NodePool,
+	newNodePoolSubnetIDs map[string][]string,
+) ([]eks.NewNodePool, error) {
+	if newNodePoolSubnetIDs == nil {
+		return nil, errors.New("nil new subnet ID map")
+	}
+
+	newNodePools := make([]eks.NewNodePool, 0, len(requestedNewNodePools))
+	newNodePoolErrors := make([]error, 0, len(requestedNewNodePools))
+
+	for nodePoolName, nodePool := range requestedNewNodePools {
+		if len(newNodePoolSubnetIDs[nodePoolName]) == 0 {
+			newNodePoolErrors = append(
+				newNodePoolErrors,
+				errors.Errorf("no subnet ID specified for node pool %s", nodePoolName),
+			)
+
+			continue
+		}
+
+		newNodePools = append(newNodePools, eks.NewNodePool{
+			Name:   nodePoolName,
+			Labels: nodePool.Labels,
+			Size:   nodePool.Count,
+			Autoscaling: eks.Autoscaling{
+				Enabled: nodePool.Autoscaling,
+				MinSize: nodePool.MinCount,
+				MaxSize: nodePool.MaxCount,
+			},
+			VolumeSize:   nodePool.VolumeSize,
+			InstanceType: nodePool.InstanceType,
+			Image:        nodePool.Image,
+			SpotPrice:    nodePool.SpotPrice,
+			SubnetID:     newNodePoolSubnetIDs[nodePoolName][0],
+		})
+	}
+
+	if len(newNodePoolErrors) != 0 {
+		return nil, errors.Combine(newNodePoolErrors...)
+	}
+
+	sort.Slice(newNodePools, func(first, second int) (isLessThan bool) {
+		return newNodePools[first].Name < newNodePools[second].Name
+	})
+
+	return newNodePools, nil
+}
+
+// newNodePoolSubnetIDsFromRequestedNewNodePools returns the matched cluster
+// subnet IDs for the requested new node pools subnet request based on ID or
+// CIDR match or alternatively the occurring error.
+func newNodePoolSubnetIDsFromRequestedNewNodePools(
+	requestedNewNodePools map[string]*pkgEks.NodePool,
+	clusterSubnets []workflow.Subnet,
+) (map[string][]string, error) {
+	if len(clusterSubnets) == 0 {
+		return nil, errors.New("empty cluster subnet list")
+	}
+
+	nodePoolSubnetIDs := make(map[string][]string, len(requestedNewNodePools))
+	nodePoolSubnetErrors := make([]error, 0, len(requestedNewNodePools))
+
+	for nodePoolName, nodePool := range requestedNewNodePools {
+		if nodePool.Subnet == nil {
+			nodePoolSubnetIDs[nodePoolName] = append(nodePoolSubnetIDs[nodePoolName], clusterSubnets[0].SubnetID)
+		} else if nodePool.Subnet.SubnetId != "" ||
+			nodePool.Subnet.Cidr != "" {
+			for _, clusterSubnet := range clusterSubnets {
+				if clusterSubnet.SubnetID == nodePool.Subnet.SubnetId ||
+					(nodePool.Subnet.SubnetId == "" && clusterSubnet.Cidr == nodePool.Subnet.Cidr) {
+					// Note: new cluster subnets won't be created at cluster update.
+					nodePoolSubnetIDs[nodePoolName] = append(nodePoolSubnetIDs[nodePoolName], clusterSubnet.SubnetID)
+				}
+			}
+		} else {
+			nodePoolSubnetErrors = append(
+				nodePoolSubnetErrors,
+				errors.Errorf("node pool %s is missing both subnet ID and CIDR: %+v", nodePoolName, nodePool.Subnet),
+			)
+
+			continue
+		}
+
+		if len(nodePoolSubnetIDs[nodePoolName]) == 0 ||
+			nodePoolSubnetIDs[nodePoolName][0] == "" { // Note: new cluster subnets won't be created at cluster update.
+			nodePoolSubnetErrors = append(
+				nodePoolSubnetErrors,
+				errors.Errorf("subnet ID not found for node pool %s with subnet %+v", nodePoolName, nodePool.Subnet),
+			)
+
+			continue
+		}
+	}
+
+	if len(nodePoolSubnetErrors) != 0 {
+		return nil, errors.Combine(nodePoolSubnetErrors...)
+	}
+
+	return nodePoolSubnetIDs, nil
 }
