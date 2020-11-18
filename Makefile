@@ -40,6 +40,8 @@ MGA_VERSION = 0.4.2
 
 GOLANG_VERSION = 1.15
 
+export PIPELINE_CONFIG_DIR ?= $(PWD)/config
+
 .PHONY: up
 up: etc/config/dex.yml config/ui/feature-set.json start config/config.yaml ## Set up the development environment
 
@@ -83,22 +85,22 @@ etc/config/dex.yml:
 .PHONY: run
 run: GOTAGS += dev
 run: build-pipeline ## Build and execute a binary
-	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
+	PIPELINE_CONFIG_DIR=$(PIPELINE_CONFIG_DIR) VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
 
 .PHONY: debug
 debug: GOTAGS += dev
 debug: builddebug-pipeline
-	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/pipeline -- $(ARGS)
+	PIPELINE_CONFIG_DIR=$(PIPELINE_CONFIG_DIR) VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/pipeline -- $(ARGS)
 
 .PHONY: debug-worker
 debug-worker: GOTAGS += dev
 debug-worker: builddebug-worker
-	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/worker -- $(ARGS)
+	PIPELINE_CONFIG_DIR=$(PIPELINE_CONFIG_DIR) VAULT_ADDR="http://127.0.0.1:8200" dlv --listen=:40000 --log --headless=true --api-version=2 exec build/debug/worker -- $(ARGS)
 
 .PHONY: run-worker
 run-worker: GOTAGS += dev
 run-worker: build-worker ## Build and execute a binary
-	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker ${ARGS}
+	PIPELINE_CONFIG_DIR=$(PIPELINE_CONFIG_DIR) VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker ${ARGS}
 
 .PHONY: runall ## Run worker and pipeline in foreground. Use with make -j.
 runall: run run-worker
@@ -208,6 +210,34 @@ test-all: ## Run all tests
 .PHONY: test-integration
 test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
 	@${MAKE} TEST_ASSET_KUBE_APISERVER=$(abspath bin/test/kube-apiserver) TEST_ASSET_ETCD=$(abspath bin/test/etcd) GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
+
+.PHONY: test-integrated-service-up
+test-integrated-service-up: ## Run integrated service functional tests
+	@echo "Stopping pipeline development stack if it's already running"
+	docker-compose stop
+	if ! kind get kubeconfig --name pipeline-is-test 1>/dev/null; then kind create cluster --name pipeline-is-test --kubeconfig $(HOME)/.kube/kind-pipeline-is-test; fi
+	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
+	uid=$(shell id -u) gid=$(shell id -g) docker-compose -p pipeline-is-test --project-directory $(PWD) -f $(PWD)/internal/integratedservices/testconfig/docker-compose.yml up -d
+	@while ! test -f $(HOME)/.vault-token; do echo "waiting for vault root token"; docker ps; docker-compose logs --tail 10; sleep 3; done
+	ls -alh $(HOME)/.vault-token
+
+.PHONY: test-integrated-service
+test-integrated-service: ## Run integrated service functional tests
+	cd internal/integratedservices; \
+		PIPELINE_CONFIG_DIR=$(PWD)/internal/integratedservices/testconfig \
+		KUBECONFIG=<(kind get kubeconfig --name pipeline-is-test) \
+		VAULT_ADDR="http://127.0.0.1:8200" \
+		go test -v -run ^TestFunctional
+
+.PHONY: test-integrated-service-worker
+test-integrated-service-worker: GOTAGS += dev
+test-integrated-service-worker: build-worker
+	VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker --config $(PWD)/internal/integratedservices/testconfig/config.yaml ${ARGS}
+
+.PHONY: test-integrated-service-down
+test-integrated-service-down:
+	docker-compose -p pipeline-is-test --project-directory $(PWD) -f $(PWD)/internal/integratedservices/testconfig/docker-compose.yml down
+	kind delete clusters pipeline-is-test
 
 bin/test/kube-apiserver:
 	@mkdir -p bin/test

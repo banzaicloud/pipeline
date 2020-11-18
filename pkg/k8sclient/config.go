@@ -36,7 +36,7 @@ func NewClientConfig(kubeConfig []byte) (*rest.Config, error) {
 }
 
 func NewRawKubeConfigLoader(kubeConfig []byte, overrides *clientcmd.ConfigOverrides) (clientcmd.ClientConfig, error) {
-	if kubeConfig == nil {
+	if len(kubeConfig) == 0 {
 		return nil, errors.New("kube config is empty")
 	}
 

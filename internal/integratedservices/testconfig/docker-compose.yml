@@ -1,0 +1,93 @@
+version: "3.1"
+
+services:
+
+    mysql:
+        image: mysql:5.7
+        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        environment:
+            MYSQL_ROOT_PASSWORD: example
+            MYSQL_DATABASE: pipeline
+            MYSQL_USER: sparky
+            MYSQL_PASSWORD: sparky123
+        volumes:
+            - ./.docker/volumes/mysql:/var/lib/mysql
+            - ./database/docker-init-mysql.sql:/docker-entrypoint-initdb.d/docker-init.sql
+        user: "${uid}:${gid}"
+        ports:
+            - 127.0.0.1:3306:3306
+
+    vault:
+        image: vault:1.4.2
+        command: server
+        cap_add:
+            - IPC_LOCK
+        volumes:
+            - $HOME:/home/vault
+            - ./etc/config/vault.hcl:/vault/config/vault.hcl
+            - ./.docker/volumes/vault/file:/vault/file
+        ports:
+            - 127.0.0.1:8200:8200
+
+    vault-unsealer:
+        user: "${uid}:${gid}"
+        image: banzaicloud/bank-vaults:1.7.0
+        depends_on:
+            - vault
+        restart: on-failure
+        command: unseal --init --mode file --file-path /vault/keys
+        environment:
+            VAULT_ADDR: http://vault:8200
+        volumes:
+            - ./etc/config/vault-config.yml:/vault-config.yml
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    vault-configurer:
+        user: "${uid}:${gid}"
+        image: banzaicloud/bank-vaults:1.7.0
+        depends_on:
+            - vault
+            - vault-unsealer
+        restart: on-failure
+        command: configure --mode file --file-path /vault/keys
+        environment:
+            VAULT_ADDR: http://vault:8200
+        volumes:
+            - ./etc/config/vault-config.yml:/vault-config.yml
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    vault-token-helper:
+        # needed for Linux users
+        user: "${uid}:${gid}"
+        image: alpine
+        depends_on:
+            - vault-configurer
+        restart: on-failure
+        command: sh -c "cp /vault/keys/vault-root /root/.vault-token && chown ${uid}:${gid} /root/.vault-token"
+        volumes:
+            - $HOME:/root
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    cadence:
+        image: ubercadence/server:0.13.0-auto-setup
+        environment:
+            LOG_LEVEL: debug,info
+            DB: mysql
+            MYSQL_SEEDS: mysql
+            MYSQL_USER: sparky
+            MYSQL_PWD: sparky123
+        depends_on:
+            - mysql
+        ports:
+            - 127.0.0.1:7933:7933
+            - 127.0.0.1:7934:7934
+            - 127.0.0.1:7935:7935
+
+#    cadence-web:
+#        image: ubercadence/web:3.18.1
+#        environment:
+#            CADENCE_TCHANNEL_PEERS: cadence:7933
+#        depends_on:
+#            - cadence
+#        ports:
+#            - 127.0.0.1:8088:8088
