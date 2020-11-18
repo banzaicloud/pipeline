@@ -16,7 +16,6 @@ package dns
 
 import (
 	"context"
-	"encoding/json"
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
@@ -38,6 +37,7 @@ type Operator struct {
 	secretStore      services.SecretStore
 	config           Config
 	reconciler       Reconciler
+	specWrapper      integratedservices.SpecWrapper
 	logger           common.Logger
 }
 
@@ -47,6 +47,8 @@ func NewDNSISOperator(
 	orgDomainService OrgDomainService,
 	secretStore services.SecretStore,
 	config Config,
+	wrapper integratedservices.SpecWrapper,
+
 	logger common.Logger,
 ) Operator {
 	return Operator{
@@ -56,6 +58,7 @@ func NewDNSISOperator(
 		secretStore:      secretStore,
 		config:           config,
 		reconciler:       NewISReconciler(), // TODO inject this?
+		specWrapper:      wrapper,
 		logger:           logger,
 	}
 }
@@ -104,7 +107,7 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 		return errors.WrapIf(err, "failed to retrieve the k8s config")
 	}
 
-	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, o.config, chartValues, nil); err != nil {
+	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, o.config, chartValues, spec); err != nil {
 		return errors.Wrap(rErr, "failed to reconcile the integrated service resource")
 	}
 
@@ -202,7 +205,13 @@ func (o Operator) getChartValues(ctx context.Context, clusterID uint, spec dnsIn
 	default:
 	}
 
-	rawValues, err := json.Marshal(chartValues)
+	// wrap the original specification into the values byte slice (temporary solution for backwards compatibility)
+	var origSpec integratedservices.IntegratedServiceSpec
+	if err := mapstructure.Decode(spec, &origSpec); err != nil {
+		return nil, errors.WrapIf(err, "failed to decode originalspec ")
+	}
+
+	rawValues, err := o.specWrapper.Wrap(ctx, chartValues, origSpec)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to marshal chart values")
 	}

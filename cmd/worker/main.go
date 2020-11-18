@@ -71,6 +71,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/externaldns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
 	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
@@ -638,6 +639,7 @@ func main() {
 					orgDomainService,
 					commonSecretStore,
 					config.Cluster.DNS.Config,
+					externaldns.NewSpecWrapper(),
 					logger,
 				)
 			} else {
