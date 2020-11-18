@@ -21,26 +21,3 @@ spec:
   selector:
     app.kubernetes.io/name: {{ include "pipeline.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "pipeline.fullname" . }}-internal
-  labels:
-    {{ include "pipeline.labels" . | nindent 4 }}
-spec:
-  type: {{ .Values.serviceInternal.type }}
-  ports:
-  - port: {{ .Values.serviceInternal.externalPort }}
-    targetPort: {{ .Values.serviceInternal.internalPort }}
-    protocol: TCP
-  {{- if .Values.serviceInternal.tls  }}
-  # https://github.com/containous/traefik/issues/3806
-    name: "https-{{ .Values.serviceInternal.name }}"
-  {{- else }}
-    name: "{{ .Values.serviceInternal.name }}"
-  {{ end }}
-  selector:
-    app.kubernetes.io/name: {{ include "pipeline.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}

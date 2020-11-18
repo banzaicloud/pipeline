@@ -86,13 +86,6 @@ service:
     # client/server key pair for authentication and the CA certificate.
     secretName: ""
 
-serviceInternal:
-  name: pipeline-internal
-  type: ClusterIP
-  externalPort:  9091
-  internalPort: 9091
-  tls: true
-
 serviceMonitor:
   enabled: false
   labels: {}
