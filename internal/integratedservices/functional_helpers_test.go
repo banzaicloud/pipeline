@@ -89,10 +89,6 @@ func importCluster(kubeconfigContent, name string, orgID, userID uint) (*cluster
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	err = cluster.Persist()
 	if err != nil {
 		return nil, err
