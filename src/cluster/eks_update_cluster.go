@@ -15,8 +15,6 @@
 package cluster
 
 import (
-	"context"
-	"fmt"
 	"time"
 
 	"emperror.dev/errors"
@@ -43,21 +41,17 @@ type EKSUpdateClusterstructureWorkflowInput struct {
 	SecretID       string
 	ConfigSecretID string
 
-	ClusterID    uint
-	ClusterUID   string
-	ClusterName  string
-	ScaleEnabled bool
-	Tags         map[string]string
+	ClusterID     uint
+	ClusterName   string
+	ScaleEnabled  bool
+	Tags          map[string]string
+	UpdaterUserID uint
 
-	Subnets          []eksWorkflow.Subnet
-	ASGSubnetMapping map[string][]eksWorkflow.Subnet
-
-	NodeInstanceRoleID     string
-	AsgList                []eksWorkflow.AutoscaleGroup
 	DeletableNodePoolNames []string
-	NodePoolLabels         map[string]map[string]string
-
-	UseGeneratedSSHKey bool
+	NewNodePools           []eks.NewNodePool
+	NewNodePoolSubnetIDs   map[string][]string
+	NodePoolLabels         map[string]map[string]string // TODO: remove when UpdateNodePoolWorkflow is refactored.
+	UpdatedNodePools       []eksWorkflow.AutoscaleGroup
 }
 
 type EKSUpdateClusterWorkflow struct {
@@ -70,9 +64,9 @@ func NewEKSUpdateClusterWorkflow(nodePoolStore eks.NodePoolStore) (eksUpdateClus
 	}
 }
 
-func waitForActivities(asgFutures []workflow.Future, ctx workflow.Context, clusterID uint) error {
-	errs := make([]error, len(asgFutures))
-	for i, future := range asgFutures {
+func waitForActivities(futures []workflow.Future, ctx workflow.Context, clusterID uint) error {
+	errs := make([]error, len(futures))
+	for i, future := range futures {
 		errs[i] = pkgCadence.UnwrapError(future.Get(ctx, nil))
 	}
 	if err := errors.Combine(errs...); err != nil {
@@ -127,6 +121,11 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// set up node pool labels set
+	//
+	// TODO: update when UpdateNodePoolWorkflow is refactored. The plan is to
+	// update the node pool labels as part of the UpdateNodePoolWorkflow (as it
+	// is with CreateNodePoolWorkflow) and thus this becomes obsolete (requires
+	// field update at CreateNodePoolWorkflow call as well).
 	{
 		activityInput := clustersetup.ConfigureNodePoolLabelsActivityInput{
 			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, input.ConfigSecretID).String(),
@@ -139,22 +138,6 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			return err
 		}
 	}
-
-	var vpcActivityOutput eksWorkflow.GetVpcConfigActivityOutput
-	{
-		activityInput := &eksWorkflow.GetVpcConfigActivityInput{
-			EKSActivityInput: commonActivityInput,
-			StackName:        eksWorkflow.GenerateStackNameForCluster(input.ClusterName),
-		}
-		err := workflow.ExecuteActivity(ctx, eksWorkflow.GetVpcConfigActivityName, activityInput).Get(ctx, &vpcActivityOutput)
-		if err != nil {
-			eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
-			return err
-		}
-	}
-
-	nodePoolsToCreate := make(map[string]eksWorkflow.AutoscaleGroup, 0)
-	nodePoolsToUpdate := make(map[string]eksWorkflow.AutoscaleGroup, 0)
 
 	// first delete node pools
 	deleteNodePoolFutures := make([]workflow.Future, 0, len(input.DeletableNodePoolNames))
@@ -183,147 +166,46 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 		return err
 	}
 
-	asgFutures := make([]workflow.Future, 0)
-	for _, nodePool := range input.AsgList {
-		log := logger.With("nodePool", nodePool.Name)
+	createNodePoolFutures := make([]workflow.Future, 0, len(input.NewNodePools))
+	for _, newNodePool := range input.NewNodePools {
+		log.Info("node pool will be created")
 
-		if nodePool.Create {
-			log.Info("node pool will be created")
-			nodePoolsToCreate[nodePool.Name] = nodePool
+		activityInput := eksWorkflow.CreateNodePoolWorkflowInput{
+			ClusterID:                    input.ClusterID,
+			CreatorUserID:                input.UpdaterUserID,
+			NodePool:                     newNodePool,
+			NodePoolSubnetIDs:            input.NewNodePoolSubnetIDs[newNodePool.Name],
+			ShouldCreateNodePoolLabelSet: false, // TODO: update when UpdateNodePoolWorkflow is refactored.
+			ShouldStoreNodePool:          true,
+			ShouldUpdateClusterStatus:    false,
+		}
+		ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 
-			asgSubnets := input.ASGSubnetMapping[nodePool.Name]
-			for i := range asgSubnets {
-				for _, sn := range input.Subnets {
-					if (asgSubnets[i].SubnetID == "" && sn.Cidr == asgSubnets[i].Cidr) ||
-						(asgSubnets[i].SubnetID != "" && sn.SubnetID == asgSubnets[i].SubnetID) {
-						asgSubnets[i].SubnetID = sn.SubnetID
-						asgSubnets[i].Cidr = sn.Cidr
-						asgSubnets[i].AvailabilityZone = sn.AvailabilityZone
-					}
-				}
-			}
+		createNodePoolFuture := workflow.ExecuteChildWorkflow(
+			ctx,
+			eksWorkflow.CreateNodePoolWorkflowName,
+			activityInput,
+		)
+		createNodePoolFutures = append(createNodePoolFutures, createNodePoolFuture)
+	}
 
-			// Note: we need to add the node pools created to the database, so
-			// the stack ID can be set at creation.
-			{
-				// Note: updated node pools are saved later to the database.
-				nodePoolsToKeep := make(map[string]bool, len(nodePoolsToUpdate))
-				for _, nodePoolToUpdate := range nodePoolsToUpdate {
-					nodePoolsToKeep[nodePoolToUpdate.Name] = true
-				}
+	nodePoolsToUpdate := make(map[string]eksWorkflow.AutoscaleGroup, len(input.UpdatedNodePools))
+	updateNodePoolFutures := make([]workflow.Future, 0, len(input.UpdatedNodePools))
+	for _, updatedNodePool := range input.UpdatedNodePools {
+		log := logger.With("nodePool", updatedNodePool.Name)
 
-				activityInput := eksWorkflow.SaveNodePoolsActivityInput{
-					ClusterID:         input.ClusterID,
-					NodePoolsToCreate: nodePoolsToCreate,
-					NodePoolsToUpdate: nil,
-					NodePoolsToDelete: nil,
-					NodePoolsToKeep:   nodePoolsToKeep,
-				}
-
-				err := workflow.ExecuteActivity(ctx, eksWorkflow.SaveNodePoolsActivityName, activityInput).Get(ctx, nil)
-				if err != nil {
-					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
-					return err
-				}
-			}
-
-			var amiSize int
-			{
-				activityInput := eksWorkflow.GetAMISizeActivityInput{
-					EKSActivityInput: commonActivityInput,
-					ImageID:          nodePool.NodeImage,
-				}
-				var activityOutput eksWorkflow.GetAMISizeActivityOutput
-				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetAMISizeActivityName, activityInput).Get(ctx, &activityOutput)
-				if err != nil {
-					_ = w.nodePoolStore.UpdateNodePoolStatus(
-						context.Background(),
-						input.OrganizationID,
-						input.ClusterID,
-						input.ClusterName,
-						nodePool.Name,
-						eks.NodePoolStatusError,
-						fmt.Sprintf("Validation failed: retrieving AMI size failed: %s", err),
-					)
-					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
-
-					return err
-				}
-
-				amiSize = activityOutput.AMISize
-			}
-
-			var volumeSize int
-			{
-				activityInput := eksWorkflow.SelectVolumeSizeActivityInput{
-					AMISize:            amiSize,
-					OptionalVolumeSize: nodePool.NodeVolumeSize,
-				}
-				var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
-				err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
-				if err != nil {
-					_ = w.nodePoolStore.UpdateNodePoolStatus(
-						context.Background(),
-						input.OrganizationID,
-						input.ClusterID,
-						input.ClusterName,
-						nodePool.Name,
-						eks.NodePoolStatusError,
-						fmt.Sprintf("Validation failed: selecting volume size failed: %s", err),
-					)
-					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
-
-					return err
-				}
-
-				volumeSize = activityOutput.VolumeSize
-			}
-
-			activityInput := eksWorkflow.CreateAsgActivityInput{
-				EKSActivityInput: commonActivityInput,
-				ClusterID:        input.ClusterID,
-				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
-
-				ScaleEnabled: input.ScaleEnabled,
-
-				Subnets: asgSubnets,
-
-				VpcID:               vpcActivityOutput.VpcID,
-				SecurityGroupID:     vpcActivityOutput.SecurityGroupID,
-				NodeSecurityGroupID: vpcActivityOutput.NodeSecurityGroupID,
-				NodeInstanceRoleID:  input.NodeInstanceRoleID,
-
-				Name:             nodePool.Name,
-				NodeSpotPrice:    nodePool.NodeSpotPrice,
-				Autoscaling:      nodePool.Autoscaling,
-				NodeMinCount:     nodePool.NodeMinCount,
-				NodeMaxCount:     nodePool.NodeMaxCount,
-				Count:            nodePool.Count,
-				NodeVolumeSize:   volumeSize,
-				NodeImage:        nodePool.NodeImage,
-				NodeInstanceType: nodePool.NodeInstanceType,
-				Labels:           nodePool.Labels,
-				Tags:             input.Tags,
-			}
-			if input.UseGeneratedSSHKey {
-				activityInput.SSHKeyName = eksWorkflow.GenerateSSHKeyNameForCluster(input.ClusterName)
-			}
-
-			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
-			f := workflow.ExecuteActivity(ctx, eksWorkflow.CreateAsgActivityName, activityInput)
-			asgFutures = append(asgFutures, f)
-		} else if !nodePool.Delete {
+		if !updatedNodePool.Create && !updatedNodePool.Delete {
 			// update nodePool
 			log.Info("node pool will be updated")
-			nodePoolsToUpdate[nodePool.Name] = nodePool
+			nodePoolsToUpdate[updatedNodePool.Name] = updatedNodePool
 
-			effectiveImage := nodePool.NodeImage
-			effectiveVolumeSize := nodePool.NodeVolumeSize
+			effectiveImage := updatedNodePool.NodeImage
+			effectiveVolumeSize := updatedNodePool.NodeVolumeSize
 			if effectiveImage == "" ||
 				effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
 				getCFStackInput := eksWorkflow.GetCFStackActivityInput{
 					EKSActivityInput: commonActivityInput,
-					StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
+					StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, updatedNodePool.Name),
 				}
 				var getCFStackOutput eksWorkflow.GetCFStackActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetCFStackActivityName, getCFStackInput).Get(ctx, &getCFStackOutput)
@@ -352,7 +234,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			}
 
 			var volumeSize int
-			if nodePool.NodeVolumeSize > 0 {
+			if updatedNodePool.NodeVolumeSize > 0 {
 				var amiSize int
 				{
 					activityInput := eksWorkflow.GetAMISizeActivityInput{
@@ -372,7 +254,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				{
 					activityInput := eksWorkflow.SelectVolumeSizeActivityInput{
 						AMISize:            amiSize,
-						OptionalVolumeSize: nodePool.NodeVolumeSize,
+						OptionalVolumeSize: updatedNodePool.NodeVolumeSize,
 					}
 					var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
 					err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
@@ -419,29 +301,29 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 
 			activityInput := eksWorkflow.UpdateAsgActivityInput{
 				EKSActivityInput: commonActivityInput,
-				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, nodePool.Name),
+				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, updatedNodePool.Name),
 				ScaleEnabled:     input.ScaleEnabled,
-				Name:             nodePool.Name,
+				Name:             updatedNodePool.Name,
 				Version:          nodePoolVersion,
-				NodeSpotPrice:    nodePool.NodeSpotPrice,
-				Autoscaling:      nodePool.Autoscaling,
-				NodeMinCount:     nodePool.NodeMinCount,
-				NodeMaxCount:     nodePool.NodeMaxCount,
-				Count:            nodePool.Count,
+				NodeSpotPrice:    updatedNodePool.NodeSpotPrice,
+				Autoscaling:      updatedNodePool.Autoscaling,
+				NodeMinCount:     updatedNodePool.NodeMinCount,
+				NodeMaxCount:     updatedNodePool.NodeMaxCount,
+				Count:            updatedNodePool.Count,
 				NodeVolumeSize:   volumeSize,
-				NodeImage:        nodePool.NodeImage,
-				NodeInstanceType: nodePool.NodeInstanceType,
-				Labels:           nodePool.Labels,
+				NodeImage:        updatedNodePool.NodeImage,
+				NodeInstanceType: updatedNodePool.NodeInstanceType,
+				Labels:           updatedNodePool.Labels,
 				Tags:             input.Tags,
 			}
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.UpdateAsgActivityName, activityInput)
-			asgFutures = append(asgFutures, f)
+			updateNodePoolFutures = append(updateNodePoolFutures, f)
 		}
 	}
 
 	// wait for AutoScalingGroups to be created & updated
-	err = waitForActivities(asgFutures, ctx, input.ClusterID)
+	err = waitForActivities(append(createNodePoolFutures, updateNodePoolFutures...), ctx, input.ClusterID)
 	if err != nil {
 		return err
 	}
@@ -451,9 +333,9 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 		// Note: created and deleted  node pools are saved earlier to the
 		// database to be able to set the stack ID at creation and because the
 		// new node pool workflows are designed to do the complete processes.
-		nodePoolsToKeep := make(map[string]bool, len(nodePoolsToCreate))
-		for _, nodePoolToCreate := range nodePoolsToCreate {
-			nodePoolsToKeep[nodePoolToCreate.Name] = true
+		nodePoolsToKeep := make(map[string]bool, len(input.NewNodePools))
+		for _, newNodePool := range input.NewNodePools {
+			nodePoolsToKeep[newNodePool.Name] = true
 		}
 
 		activityInput := eksWorkflow.SaveNodePoolsActivityInput{
