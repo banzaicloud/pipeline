@@ -413,21 +413,3 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 func GetOrgNameFromVirtualUser(virtualUser string) string {
 	return strings.Split(virtualUser, "/")[0]
 }
-
-const (
-	internalUserLogin = "internal"
-	internalUserEmail = "internal@pipeline.banzaicloud.com"
-	internalUserID    = 99999
-	internalUserName  = "Internal user"
-)
-
-func InternalUserHandler(ctx *gin.Context) {
-	user := &User{
-		ID:    internalUserID,
-		Name:  internalUserName,
-		Email: internalUserEmail,
-		Login: internalUserLogin,
-	}
-	newContext := context.WithValue(ctx.Request.Context(), auth.CurrentUser, user)
-	ctx.Request = ctx.Request.WithContext(newContext)
-}

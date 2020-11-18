@@ -27,7 +27,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 	v1 "k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	clusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
@@ -37,7 +36,6 @@ import (
 	azureDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	vsphereDriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
-	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -303,131 +301,6 @@ func describePods(ctx context.Context, commonCluster cluster.CommonCluster) (ite
 	}
 
 	return
-}
-
-type InternalClusterAPI struct {
-	cloudinfoClient *cloudinfo.Client
-}
-
-func NewInternalClusterAPI(cloudinfoClient *cloudinfo.Client) InternalClusterAPI {
-	return InternalClusterAPI{
-		cloudinfoClient: cloudinfoClient,
-	}
-}
-
-// GetNodePools fetch node pool info for a cluster
-func (a InternalClusterAPI) GetNodePools(c *gin.Context) {
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-
-	clusterStatus, err := commonCluster.GetStatus()
-	if err != nil {
-		err = errors.WrapIf(err, "could not get cluster status")
-		errorHandler.Handle(err)
-		c.JSON(http.StatusServiceUnavailable, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "could not get cluster status",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	nodePoolStatus := make(map[string]*pkgCluster.ActualNodePoolStatus)
-	clusterDesiredResources := make(map[string]float64)
-	clusterTotalResources := make(map[string]float64)
-
-	autoScaleEnabled := commonCluster.GetScaleOptions() != nil && commonCluster.GetScaleOptions().Enabled
-	if autoScaleEnabled {
-		nodePoolCounts, err := getActualNodeCounts(c.Request.Context(), commonCluster)
-		if err != nil {
-			err = errors.WrapIf(err, "could not get actual node count for node pool info")
-			errorHandler.Handle(err)
-			c.JSON(http.StatusServiceUnavailable, pkgCommon.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "could not get actual node count for node pool info",
-				Error:   err.Error(),
-			})
-			return
-		}
-
-		for nodePoolName, nodePool := range clusterStatus.NodePools {
-			nodePoolStatus[nodePoolName] = &pkgCluster.ActualNodePoolStatus{
-				NodePoolStatus: *nodePool,
-				ActualCount:    nodePoolCounts[nodePoolName],
-			}
-
-			machineDetails, err := a.cloudinfoClient.GetProductDetails(
-				c.Request.Context(),
-				clusterStatus.Cloud,
-				clusterStatus.Distribution,
-				clusterStatus.Region,
-				nodePool.InstanceType)
-			if err != nil {
-				errorHandler.Handle(err)
-			} else {
-				clusterTotalResources["cpu"] += float64(nodePool.Count) * machineDetails.CpusPerVm
-				clusterTotalResources["gpu"] += float64(nodePool.Count) * machineDetails.GpusPerVm
-				clusterTotalResources["mem"] += float64(nodePool.Count) * machineDetails.MemPerVm
-			}
-		}
-
-		clusterDesiredResources["cpu"] += commonCluster.GetScaleOptions().DesiredCpu
-		clusterDesiredResources["gpu"] += float64(commonCluster.GetScaleOptions().DesiredGpu)
-		clusterDesiredResources["mem"] += commonCluster.GetScaleOptions().DesiredMem
-		clusterDesiredResources["onDemandPct"] += float64(commonCluster.GetScaleOptions().OnDemandPct)
-	}
-
-	response := pkgCluster.GetNodePoolsResponse{
-		ScaleEnabled:            autoScaleEnabled,
-		NodePools:               nodePoolStatus,
-		ClusterDesiredResources: clusterDesiredResources,
-		ClusterTotalResources:   clusterTotalResources,
-		ClusterStatus:           clusterStatus.Status,
-		Cloud:                   clusterStatus.Cloud,
-		Distribution:            clusterStatus.Distribution,
-		Location:                clusterStatus.Location,
-	}
-
-	c.JSON(http.StatusOK, response)
-}
-
-func getActualNodeCounts(ctx context.Context, commonCluster cluster.CommonCluster) (map[string]int, error) {
-	nodePoolCounts := make(map[string]int)
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		return nil, errors.WrapIf(err, "could not get k8s config")
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return nil, errors.WrapIf(err, "could not create new k8s client")
-	}
-
-	nodes, err := client.CoreV1().Nodes().List(ctx, meta_v1.ListOptions{})
-	if err != nil {
-		return nil, errors.WrapIf(err, "could not get nodes list from cluster")
-	}
-
-nodesloop:
-	for _, node := range nodes.Items {
-		// don't count cordoned nodes (Unschedulable and tainted with node.banzaicloud.io/draining)
-		if node.Spec.Unschedulable {
-			continue
-		}
-		for _, taint := range node.Spec.Taints {
-			if taint.Key == "node.banzaicloud.io/draining" {
-				continue nodesloop
-			}
-		}
-		nodePoolName := node.Labels[pkgCommon.LabelKey]
-		if len(nodePoolName) > 0 {
-			nodePoolCounts[nodePoolName] += 1
-		}
-	}
-
-	return nodePoolCounts, nil
 }
 
 // InstallSecretsToClusterRequest describes an InstallSecretToCluster request

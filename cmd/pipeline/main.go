@@ -56,7 +56,6 @@ import (
 	kitxtransport "github.com/sagikazarmark/kitx/transport"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 	"github.com/sagikazarmark/ocmux"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/.gen/go/shared"
@@ -1261,23 +1260,6 @@ func main() {
 	base.GET("api", api.MetaHandler(engine, basePath+"/api"))
 
 	{
-		logger := logur.WithField(logger, "server", "internal")
-
-		server := &http.Server{
-			Handler:  createInternalAPIRouter(basePath, clusterAPI, cloudinfoClient, logrusLogger),
-			ErrorLog: log.NewErrorStandardLogger(logger),
-		}
-		defer server.Close()
-
-		logger.Info("listening on address", map[string]interface{}{"address": config.Pipeline.InternalAddr})
-
-		ln, err := net.Listen("tcp", config.Pipeline.InternalAddr)
-		emperror.Panic(err)
-
-		group.Add(appkitrun.LogServe(logger)(appkitrun.HTTPServe(server, ln, 5*time.Second)))
-	}
-
-	{
 		logger := logur.WithField(logger, "server", "app")
 
 		server := &http.Server{
@@ -1319,23 +1301,4 @@ func main() {
 
 	err = group.Run()
 	emperror.WithFilter(errorHandler, match.As(&run.SignalError{}).MatchError).Handle(err)
-}
-
-func createInternalAPIRouter(
-	basePath string,
-	clusterAPI *api.ClusterAPI,
-	cloudinfoClient *cloudinfo.Client,
-	logrusLogger logrus.FieldLogger,
-) *gin.Engine {
-	// Initialise Gin router for Internal API
-	internalRouter := gin.New()
-	internalRouter.Use(correlationid.Middleware())
-	internalRouter.Use(ginlog.Middleware(logrusLogger, []string{"/auth/dex/callback", "/pipeline/api"}...))
-	internalRouter.Use(gin.Recovery())
-	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
-	internalGroup.Use(auth.InternalUserHandler)
-	internalGroup.Use(api.OrganizationMiddleware)
-	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.NewInternalClusterAPI(cloudinfoClient).GetNodePools)
-	internalGroup.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
-	return internalRouter
 }

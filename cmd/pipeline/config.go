@@ -74,15 +74,14 @@ func (c *configuration) Process() error {
 }
 
 type PipelineConfig struct {
-	Addr         string
-	InternalAddr string
-	BasePath     string
-	CACertFile   string
-	CertFile     string
-	KeyFile      string
-	UUID         string
-	Enterprise   bool
-	External     struct {
+	Addr       string
+	BasePath   string
+	CACertFile string
+	CertFile   string
+	KeyFile    string
+	UUID       string
+	Enterprise bool
+	External   struct {
 		URL      string
 		Insecure bool
 	}
@@ -93,10 +92,6 @@ func (c PipelineConfig) Validate() error {
 
 	if c.Addr == "" {
 		err = errors.Append(err, errors.New("pipeline address is required"))
-	}
-
-	if c.InternalAddr == "" {
-		err = errors.Append(err, errors.New("pipeline internal address is required"))
 	}
 
 	return err
@@ -142,7 +137,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.String("addr", "127.0.0.1:9090", "Pipeline HTTP server address")
 	_ = v.BindPFlag("pipeline::addr", p.Lookup("addr"))
 	v.SetDefault("pipeline::addr", "127.0.0.1:9090")
-	v.SetDefault("pipeline::internalAddr", "127.0.0.1:9091")
 	v.SetDefault("pipeline::basePath", "")
 	v.SetDefault("pipeline::caCertFile", "")
 	v.SetDefault("pipeline::certFile", "")
