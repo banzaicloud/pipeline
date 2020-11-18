@@ -19,9 +19,6 @@ pipeline:
 
 #    addr: "127.0.0.1:9090"
 
-    # Bind address for Internal API
-#    internalAddr: "127.0.0.1:9091"
-
     # URL base path
 #    basePath: ""
 
