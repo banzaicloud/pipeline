@@ -16,19 +16,16 @@ package integratedservices
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
 	"emperror.dev/errors"
-	"github.com/mitchellh/mapstructure"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 )
 
 // NewInMemoryIntegratedServiceRepository returns a new in-memory integrated service repository.
@@ -238,10 +235,11 @@ func (c ClusterKubeConfigFunc) GetKubeConfig(ctx context.Context, clusterID uint
 type clusterRepository struct {
 	scheme       *runtime.Scheme
 	kubeConfigFn ClusterKubeConfigFunc
+	specWrapper  SpecWrapper
 }
 
 // Creates a new cluster repository to access Integrated services in a k8s cluster
-func NewClusterRepository(kubeConfigFn ClusterKubeConfigFunc) IntegratedServiceRepository {
+func NewClusterRepository(kubeConfigFn ClusterKubeConfigFunc, wrapper SpecWrapper) IntegratedServiceRepository {
 	scheme := runtime.NewScheme()
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = v1alpha1.AddToScheme(scheme)
@@ -249,6 +247,7 @@ func NewClusterRepository(kubeConfigFn ClusterKubeConfigFunc) IntegratedServiceR
 	return clusterRepository{
 		scheme:       scheme,
 		kubeConfigFn: kubeConfigFn,
+		specWrapper:  wrapper,
 	}
 }
 
@@ -265,7 +264,11 @@ func (c clusterRepository) GetIntegratedServices(ctx context.Context, clusterID 
 
 	iSvcs := make([]IntegratedService, 0, len(lookupISvcs.Items))
 	for _, si := range lookupISvcs.Items {
-		iSvcs = append(iSvcs, c.transform(si))
+		transformed, err := c.transform(si)
+		if err != nil {
+			continue
+		}
+		iSvcs = append(iSvcs, transformed)
 	}
 
 	return iSvcs, nil
@@ -295,7 +298,7 @@ func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID u
 		return emptyIS, errors.Wrap(err, "failed to look up service instance")
 	}
 
-	return c.transform(*lookupSI), nil
+	return c.transform(*lookupSI)
 }
 
 func (c clusterRepository) SaveIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec, status string) error {
@@ -321,7 +324,6 @@ func (c clusterRepository) DeleteIntegratedService(ctx context.Context, clusterI
 // k8sClientForCluster builds a client that accesses the cluster
 // TODO the built client should be a caching one? (revise this)
 func (c clusterRepository) k8sClientForCluster(ctx context.Context, clusterID uint) (client.Client, error) {
-
 	kubeConfig, err := c.kubeConfigFn.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve the k8s config")
@@ -340,24 +342,23 @@ func (c clusterRepository) k8sClientForCluster(ctx context.Context, clusterID ui
 	return cli, nil
 }
 
-func (c clusterRepository) transform(instance v1alpha1.ServiceInstance) IntegratedService {
+func (c clusterRepository) transform(instance v1alpha1.ServiceInstance) (IntegratedService, error) {
 	transformedIS := IntegratedService{}
 	transformedIS.Name = instance.Name
 
-	// unmarshal the config string into json
-	cfgJSON := make(map[string]interface{})
-	json.Unmarshal([]byte(instance.Spec.Config), &cfgJSON)
-
-	cfgJsonMap := map[string]interface{}{
-		"externalDns": cfgJSON,
+	apiSpec, err := c.specWrapper.Unwrap(context.Background(), []byte(instance.Spec.Config))
+	if err != nil {
+		return IntegratedService{}, errors.Wrap(err, "failed to unwarap configuration from custom resource")
 	}
 
-	mapstructure.Decode(cfgJsonMap, &transformedIS.Spec)
-	//mapstructure.Decode(instance.Status, &transformedIS.Output)
+	//cfgJsonMap := map[string]interface{}{
+	//	"externalDns": cfgJSON,
+	//}
+	transformedIS.Spec = apiSpec
 
 	transformedIS.Status = c.getISStatus(instance)
 
-	return transformedIS
+	return transformedIS, nil
 }
 
 func (c clusterRepository) getISStatus(instance v1alpha1.ServiceInstance) IntegratedServiceStatus {
