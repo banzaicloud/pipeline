@@ -36,4 +36,7 @@ type NodePool struct {
 	SpotPrice string `json:"spotPrice,omitempty"`
 
 	SubnetId string `json:"subnetId,omitempty"`
+
+	// List of additional custom security groups for all nodes in the pool.
+	SecurityGroups []string `json:"securityGroups,omitempty"`
 }
