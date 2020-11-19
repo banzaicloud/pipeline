@@ -1,3 +1,17 @@
+// Copyright © 2020 Banzai Cloud
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package auth
 
 import (
@@ -24,22 +38,15 @@ type Provider interface {
 
 // Context context
 type Context struct {
-	Auth     *AuthHandler
-	Claims   *Claims
-	Provider Provider
-	Request  *http.Request
-	Writer   http.ResponseWriter
-}
-
-// FormValue get form value with name
-func (context Context) FormValue(name string) string {
-	return context.Request.Form.Get(name)
+	Auth    *AuthHandler
+	Claims  *Claims
+	Request *http.Request
+	Writer  http.ResponseWriter
 }
 
 // AuthHandler auth struct
 type AuthHandler struct {
 	*AuthHandlerConfig
-	// Embed SessionStorer to match Authority's AuthInterface
 	SessionStorer *BanzaiSessionStorer
 	provider      Provider
 }
@@ -48,10 +55,7 @@ type AuthHandler struct {
 type AuthHandlerConfig struct {
 	// Default Database, which will be used in Auth when do CRUD, you can change a request's DB isntance by setting request Context's value
 	DB *gorm.DB
-	// AuthIdentityModel a model used to save auth info, like email/password, OAuth token, linked user's ID
-	AuthIdentityModel interface{}
-	// UserModel should be point of user struct's instance, it could be nil, then Auth will assume there is no user linked to auth info, and will return current auth info when get current user
-	UserModel interface{}
+
 	// Mount Auth into router with URLPrefix's value as prefix, default value is `/auth`.
 	URLPrefix string
 
@@ -77,7 +81,7 @@ type AuthHandlerConfig struct {
 // New initialize Auth
 func New(config *AuthHandlerConfig) *AuthHandler {
 	if config == nil {
-		config = &AuthHandlerConfig{}
+		panic("config should be set")
 	}
 
 	if config.URLPrefix == "" {
@@ -86,9 +90,11 @@ func New(config *AuthHandlerConfig) *AuthHandler {
 		config.URLPrefix = fmt.Sprintf("/%v/", strings.Trim(config.URLPrefix, "/"))
 	}
 
-	auth := &AuthHandler{AuthHandlerConfig: config, SessionStorer: config.SessionStorer, provider: config.provider}
-
-	return auth
+	return &AuthHandler{
+		AuthHandlerConfig: config,
+		SessionStorer:     config.SessionStorer,
+		provider:          config.provider,
+	}
 }
 
 // GetCurrentUser get current user from request
@@ -136,11 +142,6 @@ type SessionManagerInterface interface {
 
 	// Middleware returns a new session manager middleware instance.
 	Middleware(http.Handler) http.Handler
-}
-
-// Message message struct
-type Message struct {
-	Type string
 }
 
 // SessionStorerInterface session storer interface for Auth
@@ -242,7 +243,6 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	)
 
 	provider := serveMux.auth.provider
-	context.Provider = provider
 
 	if len(paths) >= 2 {
 		path = paths[1]
