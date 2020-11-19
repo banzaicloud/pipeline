@@ -86,10 +86,9 @@ func (claims *Claims) ToClaims() *Claims {
 
 // AuthIdentity auth identity session model
 type AuthIdentity struct {
-	ID        uint       `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
-	DeletedAt *time.Time `sql:"index"`
+	ID        uint      `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 	BasicIdentity
 }
 

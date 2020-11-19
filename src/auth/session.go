@@ -16,7 +16,6 @@ package auth
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -52,7 +51,7 @@ func (sm SessionManager) saveSession(w http.ResponseWriter, req *http.Request) {
 }
 
 // Add value to session data, if value is not string, will marshal it into JSON encoding and save it into session data.
-func (sm SessionManager) Add(w http.ResponseWriter, req *http.Request, key string, value interface{}) error {
+func (sm SessionManager) Add(w http.ResponseWriter, req *http.Request, key string, value string) error {
 	defer sm.saveSession(w, req)
 
 	session, err := sm.getSession(req)
@@ -60,12 +59,7 @@ func (sm SessionManager) Add(w http.ResponseWriter, req *http.Request, key strin
 		return err
 	}
 
-	if str, ok := value.(string); ok {
-		session.Values[key] = str
-	} else {
-		result, _ := json.Marshal(value)
-		session.Values[key] = string(result)
-	}
+	session.Values[key] = value
 
 	return nil
 }
@@ -91,24 +85,6 @@ func (sm SessionManager) Get(req *http.Request, key string) string {
 		}
 	}
 	return ""
-}
-
-// Load get value from session data and unmarshal it into result
-func (sm SessionManager) Load(req *http.Request, key string, result interface{}) error {
-	value := sm.Get(req, key)
-	if value != "" {
-		return json.Unmarshal([]byte(value), result)
-	}
-	return nil
-}
-
-// PopLoad pop value from session data and unmarshal it into result
-func (sm SessionManager) PopLoad(w http.ResponseWriter, req *http.Request, key string, result interface{}) error {
-	value := sm.Pop(w, req, key)
-	if value != "" {
-		return json.Unmarshal([]byte(value), result)
-	}
-	return nil
 }
 
 // Middleware returns a new session manager middleware instance
