@@ -16,6 +16,8 @@ package eksworkflow
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"go.uber.org/cadence"
@@ -130,6 +132,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 	effectiveImage := input.NodeImage
 	effectiveVolumeSize := input.NodeVolumeSize
+	var effectiveSecurityGroups []string
 	if effectiveImage == "" ||
 		effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
 		getCFStackInput := eksWorkflow.GetCFStackActivityInput{
@@ -147,6 +150,8 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		var parameters struct {
 			NodeImageID    string `mapstructure:"NodeImageId"`
 			NodeVolumeSize int    `mapstructure:"NodeVolumeSize"`
+			// Note: CustomNodeSecurityGroups is from template version 2.0.0
+			CustomNodeSecurityGroups string `mapstructure:"CustomNodeSecurityGroups,omitempty"`
 		}
 		err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 		if err != nil {
@@ -159,6 +164,13 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 		if effectiveVolumeSize == 0 {
 			effectiveVolumeSize = parameters.NodeVolumeSize
+		}
+
+		securityGroups := parameters.CustomNodeSecurityGroups
+		if effectiveSecurityGroups == nil &&
+			securityGroups != "" {
+			effectiveSecurityGroups = strings.Split(securityGroups, ",")
+			sort.Strings(effectiveSecurityGroups)
 		}
 	}
 
@@ -202,8 +214,9 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 	var nodePoolVersion string
 	{
 		activityInput := CalculateNodePoolVersionActivityInput{
-			Image:      effectiveImage,
-			VolumeSize: effectiveVolumeSize,
+			Image:                effectiveImage,
+			VolumeSize:           effectiveVolumeSize,
+			CustomSecurityGroups: effectiveSecurityGroups,
 		}
 
 		var output CalculateNodePoolVersionActivityOutput

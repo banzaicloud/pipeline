@@ -17,6 +17,7 @@ package eksworkflow
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"go.uber.org/cadence/activity"
 
@@ -30,8 +31,9 @@ const CalculateNodePoolVersionActivityName = "eks-calculate-node-pool-version"
 type CalculateNodePoolVersionActivity struct{}
 
 type CalculateNodePoolVersionActivityInput struct {
-	Image      string
-	VolumeSize int
+	Image                string
+	VolumeSize           int
+	CustomSecurityGroups []string
 }
 
 type CalculateNodePoolVersionActivityOutput struct {
@@ -57,6 +59,7 @@ func (a CalculateNodePoolVersionActivity) Execute(
 		Version: eks.CalculateNodePoolVersion(
 			input.Image,
 			fmt.Sprintf("%d", input.VolumeSize),
+			strings.Join(input.CustomSecurityGroups, ","),
 		),
 	}, nil
 }
