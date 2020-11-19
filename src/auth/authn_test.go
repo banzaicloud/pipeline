@@ -21,13 +21,12 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/qor/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func helloHandler(c *gin.Context) {
-	user := c.Request.Context().Value(auth.CurrentUser)
+	user := c.Request.Context().Value(CurrentUser)
 	if user != nil {
 		c.String(http.StatusOK, "hello user")
 	} else {

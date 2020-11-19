@@ -23,7 +23,6 @@ import (
 
 	//  SQLite driver used for integration test
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/qor/auth"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -106,12 +105,12 @@ func TestBanzaiUserStorer_Update(t *testing.T) {
 
 		assert.Equal(t, user2FromDB.Login, user2.Login, "user is expected to be user2")
 
-		authCtx := auth.Context{Request: &http.Request{}}
+		authCtx := Context{Request: &http.Request{}}
 		tokenClaims := IDTokenClaims{}
 
 		orgSyncer.On("SyncOrganizations", authCtx.Request.Context(), user2FromDB, &tokenClaims).Return(nil)
 
-		err = userStorer.Update(&auth.Schema{UID: user2ID, RawInfo: &tokenClaims}, &authCtx)
+		err = userStorer.Update(&Schema{UID: user2ID, RawInfo: &tokenClaims}, &authCtx)
 		require.NoError(t, err)
 	})
 }

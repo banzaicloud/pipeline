@@ -47,7 +47,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
-	auth2 "github.com/qor/auth"
 	appkitendpoint "github.com/sagikazarmark/appkit/endpoint"
 	appkiterrors "github.com/sagikazarmark/appkit/errors"
 	appkitrun "github.com/sagikazarmark/appkit/run"
@@ -859,7 +858,7 @@ func main() {
 									dynamicClientFactory,
 									config.Pipeline.Enterprise,
 									func(ctx context.Context) uint {
-										if currentUser := ctx.Value(auth2.CurrentUser); currentUser != nil {
+										if currentUser := ctx.Value(auth.CurrentUser); currentUser != nil {
 											return currentUser.(*auth.User).ID
 										}
 

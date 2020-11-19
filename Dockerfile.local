@@ -25,7 +25,6 @@ COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY build/release/pipeline /
 COPY build/release/worker /
 COPY build/release/pipelinectl /
-COPY views /views/
 COPY templates/ /templates/
 COPY config/anchore/policies/ /policies/
 

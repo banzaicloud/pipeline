@@ -60,7 +60,6 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=iamauth /tmp/aws-iam-authenticator /usr/bin/
 COPY --from=migrate /tmp/migrate /usr/bin/
 COPY --from=builder /build/database/migrations /migrations/
-COPY --from=builder /build/views /views/
 COPY --from=builder /build/templates /templates/
 COPY --from=builder /build/build/release/pipeline /
 COPY --from=builder /build/build/release/worker /
