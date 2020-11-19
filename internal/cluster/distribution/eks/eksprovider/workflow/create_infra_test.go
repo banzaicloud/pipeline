@@ -152,7 +152,11 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 				InstanceType: "vm-type2-test",
 				Image:        "ami-test2",
 				SpotPrice:    "0.0",
-				SubnetID:     "subnet3",
+				SecurityGroups: []string{
+					"security-group-2",
+					"security-group-22",
+				},
+				SubnetID: "subnet3",
 			},
 		},
 		NodePoolSubnets: map[string][]Subnet{
@@ -353,7 +357,11 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 			InstanceType: "vm-type2-test",
 			Image:        "ami-test2",
 			SpotPrice:    "0.0",
-			SubnetID:     "subnet3",
+			SecurityGroups: []string{
+				"security-group-2",
+				"security-group-22",
+			},
+			SubnetID: "subnet3",
 		},
 		NodePoolSubnetIDs: []string{
 			"subnet3",
@@ -452,7 +460,11 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 				Image:        "ami-test2",
 				InstanceType: "vm-type2-test",
 				SpotPrice:    "0.0",
-				SubnetID:     "subnet3",
+				SecurityGroups: []string{
+					"security-group-2",
+					"security-group-22",
+				},
+				SubnetID: "subnet3",
 			},
 		},
 		NodePoolSubnets: map[string][]Subnet{
