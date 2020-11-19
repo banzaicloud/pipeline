@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
@@ -205,44 +206,44 @@ func (sessionStorer *SessionStorer) ValidateClaims(tokenString string) (*Claims,
 	return &claims, claims.Validate(jwt.Expected{Time: time.Now()})
 }
 
-// NewServeMux generate http.Handler for auth
-func (auth *AuthHandler) NewServeMux() http.Handler {
-	return &serveMux{auth: auth}
-}
+// HandlerFunc generate gin.HandlerFunc for auth
+func (auth *AuthHandler) HandlerFunc() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var (
+			w       = c.Writer
+			req     = c.Request
+			claims  *Claims
+			reqPath = strings.TrimPrefix(req.URL.Path, auth.URLPrefix)
+			paths   = strings.Split(reqPath, "/")
+			context = &Context{
+				Auth:    auth,
+				Claims:  claims,
+				Request: req,
+				Writer:  w,
+			}
+			path string
+		)
 
-type serveMux struct {
-	auth *AuthHandler
-}
+		provider := auth.Provider
 
-// ServeHTTP dispatches the handler registered in the matched route
-func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var (
-		claims  *Claims
-		reqPath = strings.TrimPrefix(req.URL.Path, serveMux.auth.URLPrefix)
-		paths   = strings.Split(reqPath, "/")
-		context = &Context{Auth: serveMux.auth, Claims: claims, Request: req, Writer: w}
-		path    string
-	)
+		if len(paths) >= 2 {
+			path = paths[1]
+		} else if len(paths) == 1 {
+			path = paths[0]
+		}
 
-	provider := serveMux.auth.Provider
-
-	if len(paths) >= 2 {
-		path = paths[1]
-	} else if len(paths) == 1 {
-		path = paths[0]
-	}
-
-	switch path {
-	case "login":
-		provider.Login(context)
-	case "logout":
-		provider.Logout(context)
-	case "register":
-		provider.Register(context)
-	case "callback":
-		provider.Callback(context)
-	default:
-		http.NotFound(w, req)
+		switch path {
+		case "login":
+			provider.Login(context)
+		case "logout":
+			provider.Logout(context)
+		case "register":
+			provider.Register(context)
+		case "callback":
+			provider.Callback(context)
+		default:
+			http.NotFound(w, req)
+		}
 	}
 }
 
