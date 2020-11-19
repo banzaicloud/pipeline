@@ -510,7 +510,11 @@ func TestServiceCreateNodePool(t *testing.T) {
 					Name:         "node-pool-name",
 					InstanceType: "instance-type",
 					Size:         1,
-					SubnetID:     "subnet-id",
+					SecurityGroups: []string{
+						"security-group-1",
+						"security-group-2",
+					},
+					SubnetID: "subnet-id",
 				},
 			},
 		},
