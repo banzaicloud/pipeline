@@ -169,10 +169,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:     aws.String("NodeSecurityGroup"),
 			UsePreviousValue: aws.Bool(true),
 		},
-		{
-			ParameterKey:   aws.String("CustomNodeSecurityGroups"),
-			ParameterValue: aws.String(strings.Join(input.SecurityGroups, ",")),
-		},
+		sdkCloudFormation.NewOptionalStackParameter(
+			"CustomNodeSecurityGroups",
+			input.SecurityGroups != nil,
+			strings.Join(input.SecurityGroups, ","),
+		),
 		{
 			ParameterKey:     aws.String("VpcId"),
 			UsePreviousValue: aws.Bool(true),
