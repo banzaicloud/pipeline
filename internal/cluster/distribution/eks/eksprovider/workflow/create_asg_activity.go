@@ -74,8 +74,13 @@ type CreateAsgActivityInput struct {
 	VpcID               string
 	SecurityGroupID     string
 	NodeSecurityGroupID string
-	NodeInstanceRoleID  string
-	Tags                map[string]string
+
+	// SecurityGroups collects the user specified custom node security group
+	// IDs.
+	SecurityGroups []string
+
+	NodeInstanceRoleID string
+	Tags               map[string]string
 }
 
 // CreateAsgActivityOutput holds the output data of the CreateAsgActivityOutput
@@ -205,6 +210,10 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		{
 			ParameterKey:   aws.String("NodeSecurityGroup"),
 			ParameterValue: aws.String(input.NodeSecurityGroupID),
+		},
+		{
+			ParameterKey:   aws.String("CustomNodeSecurityGroups"),
+			ParameterValue: aws.String(strings.Join(input.SecurityGroups, ",")),
 		},
 		{
 			ParameterKey:   aws.String("VpcId"),
@@ -366,6 +375,7 @@ func createASGAsync(
 		VpcID:               vpcConfig.VpcID,
 		SecurityGroupID:     vpcConfig.SecurityGroupID,
 		NodeSecurityGroupID: vpcConfig.NodeSecurityGroupID,
+		SecurityGroups:      nodePool.SecurityGroups,
 		NodeInstanceRoleID:  path.Base(eksCluster.NodeInstanceRoleId),
 		Tags:                eksCluster.Cluster.Tags,
 	}
