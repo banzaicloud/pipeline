@@ -31,11 +31,6 @@ type Context struct {
 	Writer   http.ResponseWriter
 }
 
-// Flashes get flash messages
-func (context Context) Flashes() ([]Message, error) {
-	return context.Auth.SessionStorer.Flashes(context.Writer, context.Request)
-}
-
 // FormValue get form value with name
 func (context Context) FormValue(name string) string {
 	return context.Request.Form.Get(name)
@@ -51,9 +46,9 @@ type AuthHandler struct {
 
 // AuthHandlerConfig auth config
 type AuthHandlerConfig struct {
-	// Default Database, which will be used in Auth when do CRUD, you can change a request's DB isntance by setting request Context's value, refer https://github.com/qor/auth/blob/master/utils.go#L32
+	// Default Database, which will be used in Auth when do CRUD, you can change a request's DB isntance by setting request Context's value
 	DB *gorm.DB
-	// AuthIdentityModel a model used to save auth info, like email/password, OAuth token, linked user's ID, https://github.com/qor/auth/blob/master/auth_identity/auth_identity.go is the default implemention
+	// AuthIdentityModel a model used to save auth info, like email/password, OAuth token, linked user's ID
 	AuthIdentityModel interface{}
 	// UserModel should be point of user struct's instance, it could be nil, then Auth will assume there is no user linked to auth info, and will return current auth info when get current user
 	UserModel interface{}
@@ -62,18 +57,18 @@ type AuthHandlerConfig struct {
 
 	// UserStorer is an interface that defined how to get/save user, Auth provides a default one based on AuthIdentityModel, UserModel's definition
 	UserStorer BanzaiUserStorer
-	// SessionStorer is an interface that defined how to encode/validate/save/destroy session data and flash messages between requests, Auth provides a default method do the job, to use the default value, don't forgot to mount SessionManager's middleware into your router to save session data correctly. refer [session](https://github.com/qor/session) for more details
+	// SessionStorer is an interface that defined how to encode/validate/save/destroy session data between requests, Auth provides a default method do the job, to use the default value, don't forgot to mount SessionManager's middleware into your router to save session data correctly.
 	SessionStorer *BanzaiSessionStorer
 	// Redirector redirect user to a new page after registered, logged, confirmed...
 	Redirector RedirectorInterface
 
-	// LoginHandler defined behaviour when request `{Auth Prefix}/login`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
+	// LoginHandler defined behaviour when request `{Auth Prefix}/login`
 	LoginHandler func(*Context, func(*Context) (*Claims, error))
-	// RegisterHandler defined behaviour when request `{Auth Prefix}/register`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
+	// RegisterHandler defined behaviour when request `{Auth Prefix}/register`
 	RegisterHandler func(*Context, func(*Context) (*Claims, error))
-	// LogoutHandler defined behaviour when request `{Auth Prefix}/logout`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
+	// LogoutHandler defined behaviour when request `{Auth Prefix}/logout`
 	LogoutHandler func(*Context)
-	// DeregisterHandler defined behaviour when request `{Auth Prefix}/deregister`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
+	// DeregisterHandler defined behaviour when request `{Auth Prefix}/deregister`
 	DeregisterHandler func(*Context)
 
 	provider Provider
@@ -134,11 +129,6 @@ type SessionManagerInterface interface {
 	// Pop value from session data
 	Pop(w http.ResponseWriter, req *http.Request, key string) string
 
-	// Flash add flash message to session data
-	Flash(w http.ResponseWriter, req *http.Request, message Message) error
-	// Flashes returns a slice of flash messages from session data
-	Flashes(w http.ResponseWriter, req *http.Request) ([]Message, error)
-
 	// Load get value from session data and unmarshal it into result
 	Load(req *http.Request, key string, result interface{}) error
 	// PopLoad pop value from session data and unmarshal it into result
@@ -161,11 +151,6 @@ type SessionStorerInterface interface {
 	Update(w http.ResponseWriter, req *http.Request, claims *Claims) error
 	// Delete delete session
 	Delete(w http.ResponseWriter, req *http.Request) error
-
-	// Flash add flash message to session data
-	Flash(w http.ResponseWriter, req *http.Request, message Message) error
-	// Flashes returns a slice of flash messages from session data
-	Flashes(w http.ResponseWriter, req *http.Request) []Message
 
 	// SignedToken generate signed token with Claims
 	SignedToken(claims *Claims) (string, error)
@@ -206,16 +191,6 @@ func (sessionStorer *SessionStorer) Update(w http.ResponseWriter, req *http.Requ
 func (sessionStorer *SessionStorer) Delete(w http.ResponseWriter, req *http.Request) error {
 	sessionStorer.SessionManager.Pop(w, req, sessionStorer.SessionName)
 	return nil
-}
-
-// Flash add flash message to session data
-func (sessionStorer *SessionStorer) Flash(w http.ResponseWriter, req *http.Request, message Message) error {
-	return sessionStorer.SessionManager.Flash(w, req, message)
-}
-
-// Flashes returns a slice of flash messages from session data
-func (sessionStorer *SessionStorer) Flashes(w http.ResponseWriter, req *http.Request) ([]Message, error) {
-	return sessionStorer.SessionManager.Flashes(w, req)
 }
 
 // SignedToken generate signed token with Claims

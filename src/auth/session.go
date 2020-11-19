@@ -79,23 +79,6 @@ func (sm SessionManager) Get(req *http.Request, key string) string {
 	return ""
 }
 
-// Flash add flash message to session data
-func (sm SessionManager) Flash(w http.ResponseWriter, req *http.Request, message Message) error {
-	var messages []Message
-	if err := sm.Load(req, "_flashes", &messages); err != nil {
-		return err
-	}
-	messages = append(messages, message)
-	return sm.Add(w, req, "_flashes", messages)
-}
-
-// Flashes returns a slice of flash messages from session data
-func (sm SessionManager) Flashes(w http.ResponseWriter, req *http.Request) ([]Message, error) {
-	var messages []Message
-	err := sm.PopLoad(w, req, "_flashes", &messages)
-	return messages, err
-}
-
 // Load get value from session data and unmarshal it into result
 func (sm SessionManager) Load(req *http.Request, key string, result interface{}) error {
 	value := sm.Get(req, key)
