@@ -313,6 +313,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				NodeVolumeSize:   volumeSize,
 				NodeImage:        updatedNodePool.NodeImage,
 				NodeInstanceType: updatedNodePool.NodeInstanceType,
+				SecurityGroups:   updatedNodePool.SecurityGroups,
 				Labels:           updatedNodePool.Labels,
 				Tags:             input.Tags,
 			}
