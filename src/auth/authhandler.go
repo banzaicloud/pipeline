@@ -47,8 +47,8 @@ type Context struct {
 // AuthHandler auth struct
 type AuthHandler struct {
 	*AuthHandlerConfig
-	SessionStorer *BanzaiSessionStorer
-	provider      Provider
+	SessionStorer SessionStorerInterface
+	Provider      Provider
 }
 
 // AuthHandlerConfig auth config
@@ -62,9 +62,9 @@ type AuthHandlerConfig struct {
 	// UserStorer is an interface that defined how to get/save user, Auth provides a default one based on AuthIdentityModel, UserModel's definition
 	UserStorer BanzaiUserStorer
 	// SessionStorer is an interface that defined how to encode/validate/save/destroy session data between requests, Auth provides a default method do the job, to use the default value, don't forgot to mount SessionManager's middleware into your router to save session data correctly.
-	SessionStorer *BanzaiSessionStorer
+	SessionStorer SessionStorerInterface
 	// Redirector redirect user to a new page after registered, logged, confirmed...
-	Redirector RedirectorInterface
+	Redirector Redirector
 
 	// LoginHandler defined behaviour when request `{Auth Prefix}/login`
 	LoginHandler func(*Context, func(*Context) (*Claims, error))
@@ -75,7 +75,7 @@ type AuthHandlerConfig struct {
 	// DeregisterHandler defined behaviour when request `{Auth Prefix}/deregister`
 	DeregisterHandler func(*Context)
 
-	provider Provider
+	Provider Provider
 }
 
 // New initialize Auth
@@ -93,7 +93,7 @@ func New(config *AuthHandlerConfig) *AuthHandler {
 	return &AuthHandler{
 		AuthHandlerConfig: config,
 		SessionStorer:     config.SessionStorer,
-		provider:          config.provider,
+		Provider:          config.Provider,
 	}
 }
 
@@ -122,7 +122,7 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, req *http.Request, claims 
 	return auth.SessionStorer.Update(w, req, claims)
 }
 
-type RedirectorInterface interface {
+type Redirector interface {
 	Redirect(http.ResponseWriter, *http.Request, string)
 }
 
@@ -134,9 +134,6 @@ type SessionManagerInterface interface {
 	Get(req *http.Request, key string) string
 	// Pop value from session data
 	Pop(w http.ResponseWriter, req *http.Request, key string) string
-
-	// Middleware returns a new session manager middleware instance.
-	Middleware(http.Handler) http.Handler
 }
 
 // SessionStorerInterface session storer interface for Auth
@@ -237,7 +234,7 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		path    string
 	)
 
-	provider := serveMux.auth.provider
+	provider := serveMux.auth.Provider
 
 	if len(paths) >= 2 {
 		path = paths[1]

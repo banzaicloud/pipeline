@@ -146,7 +146,7 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 		LogoutHandler:     banzaiLogoutHandler,
 		RegisterHandler:   banzaiRegisterHandler,
 		DeregisterHandler: NewBanzaiDeregisterHandler(db, tokenStore),
-		provider: newOIDCProvider(&OIDCProviderConfig{
+		Provider: newOIDCProvider(&OIDCProviderConfig{
 			PublicClientID:     config.CLI.ClientID,
 			ClientID:           config.OIDC.ClientID,
 			ClientSecret:       config.OIDC.ClientSecret,
@@ -238,7 +238,6 @@ func StartTokenStoreGC(tokenStore bauth.TokenStore) {
 func Install(engine *gin.Engine) {
 	// We have to make the raw net/http handlers a bit Gin-ish
 	authHandler := gin.WrapH(Auth.NewServeMux())
-	engine.Use(gin.WrapH(sessionManager.Middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))))
 
 	authGroup := engine.Group("/auth/")
 	{

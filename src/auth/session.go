@@ -15,7 +15,6 @@
 package auth
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -33,12 +32,7 @@ type SessionManager struct {
 	Store       sessions.Store
 }
 
-const reader ContextKey = "gorilla_reader"
-
 func (sm SessionManager) getSession(req *http.Request) (*sessions.Session, error) {
-	if r, ok := req.Context().Value(reader).(*http.Request); ok {
-		return sm.Store.Get(r, sm.SessionName)
-	}
 	return sm.Store.Get(req, sm.SessionName)
 }
 
@@ -85,12 +79,4 @@ func (sm SessionManager) Get(req *http.Request, key string) string {
 		}
 	}
 	return ""
-}
-
-// Middleware returns a new session manager middleware instance
-func (sm SessionManager) Middleware(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		ctx := context.WithValue(req.Context(), reader, req)
-		handler.ServeHTTP(w, req.WithContext(ctx))
-	})
 }
