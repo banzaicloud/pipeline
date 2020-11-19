@@ -66,8 +66,13 @@ type UpdateAsgActivityInput struct {
 	NodeVolumeSize   int
 	NodeImage        string
 	NodeInstanceType string
-	Labels           map[string]string
-	Tags             map[string]string
+
+	// SecurityGroups collects the user specified custom node security group
+	// IDs.
+	SecurityGroups []string
+
+	Labels map[string]string
+	Tags   map[string]string
 }
 
 // UpdateAsgActivityOutput holds the output data of the UpdateAsgActivityOutput
@@ -237,6 +242,10 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		{
 			ParameterKey:     aws.String("NodeSecurityGroup"),
 			UsePreviousValue: aws.Bool(true),
+		},
+		{
+			ParameterKey:   aws.String("CustomNodeSecurityGroups"),
+			ParameterValue: aws.String(strings.Join(input.SecurityGroups, ",")),
 		},
 		{
 			ParameterKey:     aws.String("VpcId"),

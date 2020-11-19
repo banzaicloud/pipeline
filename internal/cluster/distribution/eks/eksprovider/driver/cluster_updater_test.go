@@ -56,6 +56,10 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						Labels: map[string]string{
 							"label-1": "value-1",
 						},
+						SecurityGroups: []string{
+							"security-group-1",
+							"security-group-11",
+						},
 						Subnet: &ekscluster.Subnet{
 							SubnetId:         "subnet-id-1",
 							Cidr:             "cidr-1",
@@ -74,6 +78,10 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						Labels: map[string]string{
 							"label-2": "value-2",
 						},
+						SecurityGroups: []string{
+							"security-group-2",
+							"security-group-22",
+						},
 						Subnet: &ekscluster.Subnet{
 							SubnetId:         "subnet-id-2",
 							Cidr:             "cidr-2",
@@ -91,6 +99,10 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						Image:        "image-3",
 						Labels: map[string]string{
 							"label-3": "value-3",
+						},
+						SecurityGroups: []string{
+							"security-group-3",
+							"security-group-33",
 						},
 						Subnet: &ekscluster.Subnet{
 							SubnetId:         "subnet-id-3",
@@ -125,6 +137,10 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 					NodeVolumeSize:   1,
 					NodeImage:        "image-1",
 					NodeInstanceType: "instance-type-1",
+					SecurityGroups: []string{
+						"security-group-1",
+						"security-group-11",
+					},
 					Labels: map[string]string{
 						"label-1": "value-1",
 					},
@@ -142,6 +158,10 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 					NodeVolumeSize:   2,
 					NodeImage:        "image-2",
 					NodeInstanceType: "instance-type-2",
+					SecurityGroups: []string{
+						"security-group-2",
+						"security-group-22",
+					},
 					Labels: map[string]string{
 						"label-2": "value-2",
 					},
@@ -159,6 +179,10 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 					NodeVolumeSize:   3,
 					NodeImage:        "image-3",
 					NodeInstanceType: "instance-type-3",
+					SecurityGroups: []string{
+						"security-group-3",
+						"security-group-33",
+					},
 					Labels: map[string]string{
 						"label-3": "value-3",
 					},
@@ -210,6 +234,10 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						Labels: map[string]string{
 							"label-1": "value-1",
 						},
+						SecurityGroups: []string{
+							"security-group-1",
+							"security-group-11",
+						},
 						Subnet: &ekscluster.Subnet{
 							SubnetId:         "subnet-id-1",
 							Cidr:             "cidr-1",
@@ -230,6 +258,10 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 					NodeVolumeSize:   1,
 					NodeImage:        "image-1",
 					NodeInstanceType: "instance-type-1",
+					SecurityGroups: []string{
+						"security-group-1",
+						"security-group-11",
+					},
 					Labels: map[string]string{
 						"label-1": "value-1",
 					},
@@ -684,6 +716,10 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 						Labels: map[string]string{
 							"label-1": "value-1",
 						},
+						SecurityGroups: []string{
+							"security-group-1",
+							"security-group-11",
+						},
 						Subnet: &ekscluster.Subnet{
 							SubnetId:         "subnet-id-1",
 							Cidr:             "cidr-1",
@@ -744,7 +780,11 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 						InstanceType: "instance-type-1",
 						Image:        "image-1",
 						SpotPrice:    "0.1",
-						SubnetID:     "subnet-id-1",
+						SecurityGroups: []string{
+							"security-group-1",
+							"security-group-11",
+						},
+						SubnetID: "subnet-id-1",
 					},
 					{
 						Name: "pool-2",
