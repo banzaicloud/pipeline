@@ -67,7 +67,7 @@ type NodePoolUpdate struct {
 	VolumeSize int `mapstructure:"volumeSize"`
 
 	Image          string   `mapstructure:"image"`
-	SecurityGroups []string `securityGroups:"image"`
+	SecurityGroups []string `mapstructure:"securityGroups"`
 
 	Options NodePoolUpdateOptions `mapstructure:"options"`
 }
