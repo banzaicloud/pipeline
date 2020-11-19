@@ -122,6 +122,11 @@ type NodePool struct {
 	VolumeSize   int               `json:"volumeSize" yaml:"volumeSize"`
 	Image        string            `json:"image" yaml:"image"`
 	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+
+	// SecurityGroups collects the user provided node security group IDs for the
+	// node pool.
+	SecurityGroups []string `json:"securityGroups,omitempty" yaml:"securityGroups,omitempty"`
+
 	// Subnet for worker nodes of this node pool. If not specified than worker nodes
 	// are launched in the same subnet in one of the subnets from the list of subnets of the EKS cluster
 	Subnet *Subnet `json:"subnet,omitempty" yaml:"subnet,omitempty"`

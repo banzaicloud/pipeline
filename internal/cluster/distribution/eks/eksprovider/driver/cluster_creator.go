@@ -226,11 +226,12 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 				MinSize: requestedNodePool.MinCount,
 				MaxSize: requestedNodePool.MaxCount,
 			},
-			VolumeSize:   requestedNodePool.VolumeSize,
-			InstanceType: requestedNodePool.InstanceType,
-			Image:        requestedNodePool.Image,
-			SpotPrice:    requestedNodePool.SpotPrice,
-			SubnetID:     subnetID,
+			VolumeSize:     requestedNodePool.VolumeSize,
+			InstanceType:   requestedNodePool.InstanceType,
+			Image:          requestedNodePool.Image,
+			SpotPrice:      requestedNodePool.SpotPrice,
+			SecurityGroups: requestedNodePool.SecurityGroups,
+			SubnetID:       subnetID,
 		}
 
 		nodePools = append(nodePools, nodePool)
