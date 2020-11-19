@@ -58,19 +58,6 @@ func (sm SessionManager) Add(w http.ResponseWriter, req *http.Request, key strin
 	return nil
 }
 
-// Pop value from session data
-func (sm SessionManager) Pop(w http.ResponseWriter, req *http.Request, key string) string {
-	defer sm.saveSession(w, req)
-
-	if session, err := sm.getSession(req); err == nil {
-		if value, ok := session.Values[key]; ok {
-			delete(session.Values, key)
-			return fmt.Sprint(value)
-		}
-	}
-	return ""
-}
-
 // Get value from session data
 func (sm SessionManager) Get(req *http.Request, key string) string {
 	if session, err := sm.getSession(req); err == nil {

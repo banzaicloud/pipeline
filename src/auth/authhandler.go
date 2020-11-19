@@ -132,8 +132,6 @@ type SessionManagerInterface interface {
 	Add(w http.ResponseWriter, req *http.Request, key, value string) error
 	// Get value from session data
 	Get(req *http.Request, key string) string
-	// Pop value from session data
-	Pop(w http.ResponseWriter, req *http.Request, key string) string
 }
 
 // SessionStorerInterface session storer interface for Auth
@@ -142,8 +140,6 @@ type SessionStorerInterface interface {
 	Get(req *http.Request) (*Claims, error)
 	// Update update claims with session manager
 	Update(w http.ResponseWriter, req *http.Request, claims *Claims) error
-	// Delete delete session
-	Delete(w http.ResponseWriter, req *http.Request) error
 
 	// SignedToken generate signed token with Claims
 	SignedToken(claims *Claims) (string, error)
@@ -178,12 +174,6 @@ func (sessionStorer *SessionStorer) Update(w http.ResponseWriter, req *http.Requ
 		return err
 	}
 	return sessionStorer.SessionManager.Add(w, req, sessionStorer.SessionName, token)
-}
-
-// Delete delete claims from session manager
-func (sessionStorer *SessionStorer) Delete(w http.ResponseWriter, req *http.Request) error {
-	sessionStorer.SessionManager.Pop(w, req, sessionStorer.SessionName)
-	return nil
 }
 
 // SignedToken generate signed token with Claims
