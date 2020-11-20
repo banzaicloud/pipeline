@@ -132,9 +132,10 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 	effectiveImage := input.NodeImage
 	effectiveVolumeSize := input.NodeVolumeSize
-	var effectiveSecurityGroups []string
+	effectiveSecurityGroups := input.SecurityGroups
 	if effectiveImage == "" ||
-		effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
+		effectiveVolumeSize == 0 ||
+		effectiveSecurityGroups == nil { // Note: needing CF stack for original information for version.
 		getCFStackInput := eksWorkflow.GetCFStackActivityInput{
 			EKSActivityInput: eksActivityInput,
 			StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
@@ -166,10 +167,9 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			effectiveVolumeSize = parameters.NodeVolumeSize
 		}
 
-		securityGroups := parameters.CustomNodeSecurityGroups
 		if effectiveSecurityGroups == nil &&
-			securityGroups != "" {
-			effectiveSecurityGroups = strings.Split(securityGroups, ",")
+			parameters.CustomNodeSecurityGroups != "" {
+			effectiveSecurityGroups = strings.Split(parameters.CustomNodeSecurityGroups, ",")
 			sort.Strings(effectiveSecurityGroups)
 		}
 	}
