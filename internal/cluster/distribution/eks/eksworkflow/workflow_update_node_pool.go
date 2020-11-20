@@ -130,6 +130,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
 	}
 
+	var templateVersion string
 	effectiveImage := input.NodeImage
 	effectiveVolumeSize := input.NodeVolumeSize
 	effectiveSecurityGroups := input.SecurityGroups
@@ -147,6 +148,8 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		if err != nil {
 			return err
 		}
+
+		templateVersion = eksWorkflow.GetStackTemplateVersion(getCFStackOutput.Stack)
 
 		var parameters struct {
 			NodeImageID    string `mapstructure:"NodeImageId"`
@@ -245,6 +248,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			MaxBatchSize:          input.Options.MaxBatchSize,
 			MinInstancesInService: input.Options.MaxSurge,
 			ClusterTags:           input.ClusterTags,
+			TemplateVersion:       templateVersion,
 		}
 
 		activityOptions := activityOptions

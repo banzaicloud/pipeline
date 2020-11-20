@@ -68,6 +68,8 @@ type UpdateNodeGroupActivityInput struct {
 	MinInstancesInService int
 
 	ClusterTags map[string]string
+
+	TemplateVersion string
 }
 
 type UpdateNodeGroupActivityOutput struct {
@@ -169,11 +171,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:     aws.String("NodeSecurityGroup"),
 			UsePreviousValue: aws.Bool(true),
 		},
-		sdkCloudFormation.NewOptionalStackParameter(
-			"CustomNodeSecurityGroups",
-			input.SecurityGroups != nil,
-			strings.Join(input.SecurityGroups, ","),
-		),
 		{
 			ParameterKey:     aws.String("VpcId"),
 			UsePreviousValue: aws.Bool(true),
@@ -198,6 +195,14 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:   aws.String("BootstrapArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
 		},
+	}
+
+	if input.TemplateVersion != "1.0.0" {
+		stackParams = append(stackParams, sdkCloudFormation.NewOptionalStackParameter(
+			"CustomNodeSecurityGroups",
+			input.SecurityGroups != nil,
+			strings.Join(input.SecurityGroups, ","),
+		))
 	}
 
 	// we don't reuse the creation time template, since it may have changed
