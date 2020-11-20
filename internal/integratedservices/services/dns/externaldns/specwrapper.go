@@ -45,6 +45,9 @@ func (c valuesSpecWrapper) Wrap(ctx context.Context, values interface{}, spec in
 }
 
 func (c valuesSpecWrapper) Unwrap(ctx context.Context, instanceConfig []byte) (integratedservices.IntegratedServiceSpec, error) {
+	if len(instanceConfig) == 0 {
+		return nil, nil
+	}
 	var wrapped valuesSpecWrapper
 	if err := json.Unmarshal(instanceConfig, &wrapped); err != nil {
 		return nil, errors.WrapIf(err, "failed to decode values")

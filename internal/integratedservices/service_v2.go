@@ -130,8 +130,25 @@ func (i ISServiceV2) Deactivate(ctx context.Context, clusterID uint, serviceName
 }
 
 func (i ISServiceV2) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
-	// TODO implement me!
-	return errors.NewWithDetails("Operation not, yet implemented!", "clusterID", clusterID)
+	integratedServiceManager, err := i.managerRegistry.GetIntegratedServiceManager(serviceName)
+	if err != nil {
+		return errors.WrapIf(err, "failed to retrieve integrated service manager")
+	}
+
+	if err := integratedServiceManager.ValidateSpec(ctx, spec); err != nil {
+		return InvalidIntegratedServiceSpecError{IntegratedServiceName: serviceName, Problem: err.Error()}
+	}
+
+	preparedSpec, err := integratedServiceManager.PrepareSpec(ctx, clusterID, spec)
+	if err != nil {
+		return errors.WrapIf(err, "failed to prepare integrated service specification")
+	}
+
+	if err := i.dispatcher.DispatchApply(ctx, clusterID, serviceName, preparedSpec); err != nil {
+		return errors.WrapIf(err, "failed to start integrated service update")
+	}
+
+	return nil
 }
 
 // mapServiceName acy service names to v2 service names where appropriate
