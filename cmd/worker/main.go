@@ -583,7 +583,13 @@ func main() {
 			orgGetter := authdriver.NewOrganizationGetter(db)
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
-			featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
+
+			var featureRepository integratedservices.IntegratedServiceRepository
+			featureRepository = integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
+			if config.IntegratedService.V2 {
+				featureRepository = integratedservices.NewClusterRepository(clusterManager.KubeConfigFunc(), externaldns.NewSpecWrapper())
+			}
+
 			kubernetesService := kubernetes.NewService(
 				kubernetesadapter.NewConfigSecretGetter(clusteradapter.NewClusters(db)),
 				kubernetes.NewConfigFactory(commonSecretStore),

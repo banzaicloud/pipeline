@@ -112,8 +112,20 @@ func (i ISServiceV2) Details(ctx context.Context, clusterID uint, serviceName st
 }
 
 func (i ISServiceV2) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {
-	// TODO implement me!
-	return errors.NewWithDetails("Operation not, yet implemented!", "clusterID", clusterID)
+	if _, err := i.managerRegistry.GetIntegratedServiceManager(serviceName); err != nil {
+		return errors.WrapIf(err, "failed to retrieve integrated service manager")
+	}
+
+	f, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
+	if err != nil {
+		return errors.WrapIf(err, "failed to retrieve integrated service details")
+	}
+
+	if err := i.dispatcher.DispatchDeactivate(ctx, clusterID, serviceName, f.Spec); err != nil {
+		return errors.WrapIf(err, "failed to start integrated service deactivation")
+	}
+
+	return nil
 }
 
 func (i ISServiceV2) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
