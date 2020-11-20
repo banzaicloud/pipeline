@@ -88,7 +88,6 @@ func (o Operator) Deactivate(ctx context.Context, clusterID uint, spec integrate
 	}
 
 	return nil
-
 }
 
 func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
