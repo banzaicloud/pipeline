@@ -17,6 +17,7 @@ package eks
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -95,17 +96,18 @@ type NodePoolUpdateDrainOptions struct {
 
 // NodePool encapsulates information about a cluster node pool.
 type NodePool struct {
-	Name          string            `mapstructure:"name"`
-	Labels        map[string]string `mapstructure:"labels"`
-	Size          int               `mapstructure:"size"`
-	Autoscaling   Autoscaling       `mapstructure:"autoscaling"`
-	VolumeSize    int               `mapstructure:"volumeSize"`
-	InstanceType  string            `mapstructure:"instanceType"`
-	Image         string            `mapstructure:"image"`
-	SpotPrice     string            `mapstructure:"spotPrice"`
-	SubnetID      string            `mapstructure:"subnetId"`
-	Status        NodePoolStatus    `mapstructure:"status"`
-	StatusMessage string            `mapstructure:"statusMessage"`
+	Name           string            `mapstructure:"name"`
+	Labels         map[string]string `mapstructure:"labels"`
+	Size           int               `mapstructure:"size"`
+	Autoscaling    Autoscaling       `mapstructure:"autoscaling"`
+	VolumeSize     int               `mapstructure:"volumeSize"`
+	InstanceType   string            `mapstructure:"instanceType"`
+	Image          string            `mapstructure:"image"`
+	SpotPrice      string            `mapstructure:"spotPrice"`
+	SecurityGroups []string          `mapstructure:"securityGroups,omitempty"`
+	SubnetID       string            `mapstructure:"subnetId"`
+	Status         NodePoolStatus    `mapstructure:"status"`
+	StatusMessage  string            `mapstructure:"statusMessage"`
 }
 
 // NewNodePoolFromCFStack initializes a node pool object from a CloudFormation
@@ -120,6 +122,7 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 		NodeInstanceType            string `mapstructure:"NodeInstanceType"`
 		NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
 		NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
+		CustomNodeSecurityGroups    string `mapstructure:"CustomNodeSecurityGroups,omitempty"`
 		Subnets                     string `mapstructure:"Subnets"`
 	}
 
@@ -140,6 +143,12 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 	nodePool.InstanceType = nodePoolParameters.NodeInstanceType
 	nodePool.Image = nodePoolParameters.NodeImageID
 	nodePool.SpotPrice = nodePoolParameters.NodeSpotPrice
+
+	if nodePoolParameters.CustomNodeSecurityGroups != "" {
+		nodePool.SecurityGroups = strings.Split(nodePoolParameters.CustomNodeSecurityGroups, ",")
+		sort.Strings(nodePool.SecurityGroups)
+	}
+
 	nodePool.SubnetID = nodePoolParameters.Subnets // Note: currently we ensure a single value at creation.
 	nodePool.Status = NewNodePoolStatusFromCFStackStatus(aws.StringValue(stack.StackStatus))
 	nodePool.StatusMessage = aws.StringValue(stack.StackStatusReason)

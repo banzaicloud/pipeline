@@ -214,7 +214,11 @@ func TestEksServiceListNodePools(t *testing.T) {
 			VolumeSize:   40,
 			InstanceType: "instance-type",
 			Image:        "image",
-			SpotPrice:    "5",
+			SecurityGroups: []string{
+				"security-group-1",
+				"security-group-2",
+			},
+			SpotPrice: "5",
 		},
 		{
 			Name: "cluster-node-pool-name-3",

@@ -239,6 +239,10 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 							ParameterValue: aws.String("20"),
 						},
 						{
+							ParameterKey:   aws.String("CustomNodeSecurityGroups"),
+							ParameterValue: aws.String("security-group-1,security-group-2"),
+						},
+						{
 							ParameterKey:   aws.String("Subnets"),
 							ParameterValue: aws.String("subnet-0123456789"),
 						},
@@ -259,10 +263,14 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 						MinSize: 1,
 						MaxSize: 2,
 					},
-					VolumeSize:    20,
-					InstanceType:  "t2.small",
-					Image:         "ami-0123456789",
-					SpotPrice:     "0.02",
+					VolumeSize:   20,
+					InstanceType: "t2.small",
+					Image:        "ami-0123456789",
+					SpotPrice:    "0.02",
+					SecurityGroups: []string{
+						"security-group-1",
+						"security-group-2",
+					},
 					SubnetID:      "subnet-0123456789",
 					Status:        NodePoolStatusReady,
 					StatusMessage: "this is a test",
@@ -896,10 +904,11 @@ func TestServiceListNodePools(t *testing.T) {
 				MinSize: 1,
 				MaxSize: 2,
 			},
-			VolumeSize:   50,
-			InstanceType: "instance-type",
-			Image:        "image",
-			SpotPrice:    "5",
+			VolumeSize:     50,
+			InstanceType:   "instance-type",
+			Image:          "image",
+			SpotPrice:      "5",
+			SecurityGroups: nil,
 		},
 		{
 			Name: "cluster-node-pool-name-3",
@@ -915,6 +924,10 @@ func TestServiceListNodePools(t *testing.T) {
 			InstanceType: "instance-type",
 			Image:        "image",
 			SpotPrice:    "7",
+			SecurityGroups: []string{
+				"security-group-1",
+				"security-group-2",
+			},
 		},
 	}
 
