@@ -63,6 +63,10 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 			Namespace: "default",      // todo get this from the  spec (or input arg)
 			Name:      "external-dns", // todo  get this from spec (or input arg)
 		},
+		Spec: v1alpha1.ServiceInstanceSpec{
+			Service: "external-dns", // TODO get the name from the spec (possibly transform it)
+			Config:  string(values),
+		},
 	}
 
 	restCfg, err := clientcmd.RESTConfigFromKubeConfig(kubeConfig)
@@ -79,6 +83,7 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 	if okErr != nil {
 		return errors.Wrap(err, "failed to get object key for lookup")
 	}
+
 	lookupSI := &v1alpha1.ServiceInstance{}
 	if err := cli.Get(ctx, key, lookupSI); err != nil {
 		if !errors2.IsNotFound(err) {
@@ -92,12 +97,6 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 		if delete {
 			// do nothing as the instance doesn't exist
 			return nil
-		}
-
-		// the service instance is not found, should be created
-		si.Spec = v1alpha1.ServiceInstanceSpec{
-			Service: "external-dns", // TODO get the name from the spec (possibly transform it)
-			Config:  string(values),
 		}
 
 		_, _, err := resourceReconciler.CreateIfNotExist(si, reconciler.StateCreated)
@@ -132,7 +131,7 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 		return nil
 	}
 
-	// TODO should we care of disabled services here? (lookupIS.Spec.Enabled == false case)
+	// TODO this is the update case- is the spec OK?
 	if _, err := resourceReconciler.ReconcileResource(si, reconciler.StatePresent); err != nil {
 		return errors.Wrap(err, "failed to reconcile the integrated service")
 	}

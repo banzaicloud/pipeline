@@ -284,18 +284,18 @@ func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID u
 		return emptyIS, errors.Wrap(err, "failed to build cluster client")
 	}
 
-	lookupSI := &v1alpha1.ServiceInstance{
+	lookupSI := v1alpha1.ServiceInstance{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
 			Namespace: c.namespace,
 		},
 	}
-	key, okErr := client.ObjectKeyFromObject(lookupSI)
+	key, okErr := client.ObjectKeyFromObject(&lookupSI)
 	if okErr != nil {
 		return emptyIS, errors.Wrap(err, "failed to get object key for lookup")
 	}
 
-	if err := clusterClient.Get(ctx, key, lookupSI); err != nil {
+	if err := clusterClient.Get(ctx, key, &lookupSI); err != nil {
 		if apiErrors.IsNotFound(err) {
 			return emptyIS, integratedServiceNotFoundError{
 				clusterID:             clusterID,
@@ -306,7 +306,7 @@ func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID u
 		return emptyIS, errors.Wrap(err, "failed to look up service instance")
 	}
 
-	return c.transform(*lookupSI)
+	return c.transform(lookupSI)
 }
 
 func (c clusterRepository) SaveIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec, status string) error {
