@@ -64,7 +64,31 @@ func NewDNSISOperator(
 }
 
 func (o Operator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
-	return errors.NewWithDetails("not yet implemented!", "service", o.Name())
+	ctx, err := o.ensureOrgIDInContext(ctx, clusterID)
+	if err != nil {
+		return err
+	}
+
+	if err := o.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
+		return err
+	}
+
+	cl, err := o.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to retrieve the cluster")
+	}
+
+	k8sConfig, err := cl.GetK8sConfig()
+	if err != nil {
+		return errors.WrapIf(err, "failed to retrieve the k8s config")
+	}
+
+	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, o.config, nil, spec, true); err != nil {
+		return errors.Wrap(rErr, "failed to reconcile the integrated service resource")
+	}
+
+	return nil
+
 }
 
 func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
@@ -107,7 +131,7 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 		return errors.WrapIf(err, "failed to retrieve the k8s config")
 	}
 
-	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, o.config, chartValues, spec); err != nil {
+	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, o.config, chartValues, spec, false); err != nil {
 		return errors.Wrap(rErr, "failed to reconcile the integrated service resource")
 	}
 

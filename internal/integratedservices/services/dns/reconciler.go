@@ -20,7 +20,6 @@ import (
 	"sort"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/banzaicloud/operator-tools/pkg/utils"
 	"golang.org/x/mod/semver"
@@ -31,18 +30,23 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
+
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-// Reconciler decouples creation of kubernetes resources (IS Cr-s
+// Reconciler decouples handling of custom resources on a kubernetes cluster
 type Reconciler interface {
 	// Reconcile creates and applies CRs to a cluster
-	Reconcile(ctx context.Context, kubeConfig []byte, config Config, values []byte, spec integratedservices.IntegratedServiceSpec) error
+	Reconcile(ctx context.Context, kubeConfig []byte, config Config, values []byte, spec integratedservices.IntegratedServiceSpec, delete bool) error
 }
+
+var emptySI = v1alpha1.ServiceInstance{} // for better  readability
 
 // isvcReconciler components struct in charge for assembling the CR manifest  and applying it to a cluster (by delegating to a cluster client)
 type isvcReconciler struct {
 	scheme *runtime.Scheme
+	// todo infer a logger (for debugging purposes)
 }
 
 // NewISReconciler builds an integrated service reconciler
@@ -56,15 +60,11 @@ func NewISReconciler() Reconciler {
 	}
 }
 
-func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, config Config, values []byte, spec integratedservices.IntegratedServiceSpec) error {
+func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, config Config, values []byte, spec integratedservices.IntegratedServiceSpec, delete bool) error {
 	si := &v1alpha1.ServiceInstance{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "default",
-			Name:      "external-dns",
-		},
-		Spec: v1alpha1.ServiceInstanceSpec{
-			Service: "external-dns",
-			Config:  string(values), // TODO to be verified (is it properly encoded)
+			Namespace: "default",      // todo get this from the  spec (or input arg)
+			Name:      "external-dns", // todo  get this from spec (or input arg)
 		},
 	}
 
@@ -90,8 +90,18 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 	}
 
 	resourceReconciler := reconciler.NewReconcilerWith(cli)
-	if reflect.DeepEqual(lookupSI, &v1alpha1.ServiceInstance{}) {
+	if reflect.DeepEqual(lookupSI, &emptySI) {
+		if delete {
+			// do nothing as the instance doesn't exist
+			return nil
+		}
+
 		// the service instance is not found, should be created
+		si.Spec = v1alpha1.ServiceInstanceSpec{
+			Service: "external-dns", // TODO get the name from the spec (possibly transform it)
+			Config:  string(values),
+		}
+
 		_, _, err := resourceReconciler.CreateIfNotExist(si, reconciler.StateCreated)
 		if err != nil {
 			return errors.Wrap(err, "failed to create the service instance resource")
@@ -107,12 +117,21 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 	// at this point we have the CR created and retrieved
 	if lookupSI.Spec.Enabled == nil {
 		si.Spec.Enabled = utils.BoolPointer(true)
-		// TODO the latest version is wired here
-		latestVersion, err := is.getLatestVersion(*lookupSI)
-		if err != nil {
-			return errors.Wrap(err, "failed to get the  latest version")
+		if si.Spec.Version == "" {
+			// If version is not provided proceed with the latest available version
+			latestVersion, err := is.getLatestVersion(*lookupSI)
+			if err != nil {
+				return errors.Wrap(err, "failed to get the  latest version")
+			}
+			si.Spec.Version = latestVersion
 		}
-		si.Spec.Version = latestVersion
+	}
+
+	if delete {
+		if _, err := resourceReconciler.ReconcileResource(si, reconciler.StateAbsent); err != nil {
+			return errors.Wrap(err, "failed to reconcile the integrated service")
+		}
+		return nil
 	}
 
 	// TODO should we care of disabled services here? (lookupIS.Spec.Enabled == false case)
@@ -133,8 +152,10 @@ func (is isvcReconciler) getLatestVersion(instance v1alpha1.ServiceInstance) (st
 		availableVersions = append(availableVersions, version)
 	}
 
+	// sort the available versions
 	sort.Sort(availableVersions)
 
+	// get the highest version available
 	return availableVersions[len(availableVersions)-1], nil
 }
 
