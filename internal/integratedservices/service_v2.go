@@ -75,9 +75,10 @@ func (i ISServiceV2) List(ctx context.Context, clusterID uint) ([]IntegratedServ
 	}
 
 	// only keep integrated service name and status
-	for i := range integratedServices {
-		integratedServices[i].Spec = nil
-		integratedServices[i].Output = nil
+	for j := range integratedServices {
+		integratedServices[j].Name = i.mapServiceName(integratedServices[j].Name)
+		integratedServices[j].Spec = nil
+		integratedServices[j].Output = nil
 	}
 
 	return integratedServices, nil
@@ -89,7 +90,7 @@ func (i ISServiceV2) Details(ctx context.Context, clusterID uint, serviceName st
 		return IntegratedService{}, errors.WrapIf(err, "failed to get integrated service manager")
 	}
 
-	integratedService, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
+	integratedService, err := i.repository.GetIntegratedService(ctx, clusterID, i.mapServiceName(serviceName))
 	if err != nil {
 		if IsIntegratedServiceNotFoundError(err) {
 			return IntegratedService{
@@ -116,7 +117,7 @@ func (i ISServiceV2) Deactivate(ctx context.Context, clusterID uint, serviceName
 		return errors.WrapIf(err, "failed to retrieve integrated service manager")
 	}
 
-	f, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
+	f, err := i.repository.GetIntegratedService(ctx, clusterID, i.mapServiceName(serviceName))
 	if err != nil {
 		return errors.WrapIf(err, "failed to retrieve integrated service details")
 	}
@@ -131,4 +132,20 @@ func (i ISServiceV2) Deactivate(ctx context.Context, clusterID uint, serviceName
 func (i ISServiceV2) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
 	// TODO implement me!
 	return errors.NewWithDetails("Operation not, yet implemented!", "clusterID", clusterID)
+}
+
+// mapServiceName acy service names to v2 service names where appropriate
+// TODO normalize service names and remove  this method
+func (i ISServiceV2) mapServiceName(svcName string) string {
+	// todo -hack -map between legacy and current service names
+	serviceNameMap := map[string]string{
+		"dns":          "external-dns",
+		"external-dns": "dns",
+	}
+
+	if mappedName, ok := serviceNameMap[svcName]; ok {
+		return mappedName
+	}
+
+	return svcName
 }

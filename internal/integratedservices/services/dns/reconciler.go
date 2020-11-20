@@ -20,6 +20,7 @@ import (
 	"sort"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/banzaicloud/operator-tools/pkg/utils"
 	"golang.org/x/mod/semver"
@@ -30,8 +31,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
-
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
@@ -40,8 +39,6 @@ type Reconciler interface {
 	// Reconcile creates and applies CRs to a cluster
 	Reconcile(ctx context.Context, kubeConfig []byte, config Config, values []byte, spec integratedservices.IntegratedServiceSpec, delete bool) error
 }
-
-var emptySI = v1alpha1.ServiceInstance{} // for better  readability
 
 // isvcReconciler components struct in charge for assembling the CR manifest  and applying it to a cluster (by delegating to a cluster client)
 type isvcReconciler struct {
@@ -90,6 +87,7 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, confi
 	}
 
 	resourceReconciler := reconciler.NewReconcilerWith(cli)
+	emptySI := v1alpha1.ServiceInstance{} // for better  readability
 	if reflect.DeepEqual(lookupSI, &emptySI) {
 		if delete {
 			// do nothing as the instance doesn't exist

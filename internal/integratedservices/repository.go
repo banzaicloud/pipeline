@@ -237,6 +237,7 @@ type clusterRepository struct {
 	scheme       *runtime.Scheme
 	kubeConfigFn ClusterKubeConfigFunc
 	specWrapper  SpecWrapper
+	namespace    string
 }
 
 // Creates a new cluster repository to access Integrated services in a k8s cluster
@@ -249,6 +250,7 @@ func NewClusterRepository(kubeConfigFn ClusterKubeConfigFunc, wrapper SpecWrappe
 		scheme:       scheme,
 		kubeConfigFn: kubeConfigFn,
 		specWrapper:  wrapper,
+		namespace:    "default", // TODO make the namespace dynamic (integrated services ara always deployed to pipeline-system ?!)
 	}
 }
 
@@ -275,9 +277,8 @@ func (c clusterRepository) GetIntegratedServices(ctx context.Context, clusterID 
 	return iSvcs, nil
 }
 
-func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) (IntegratedService, error) {
+func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
 	emptyIS := IntegratedService{}
-
 	clusterClient, err := c.k8sClientForCluster(ctx, clusterID)
 	if err != nil {
 		return emptyIS, errors.Wrap(err, "failed to build cluster client")
@@ -285,9 +286,8 @@ func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID u
 
 	lookupSI := &v1alpha1.ServiceInstance{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "external-dns",
-			Namespace: "default", // TODO infer the proper namespace
-
+			Name:      serviceName,
+			Namespace: c.namespace,
 		},
 	}
 	key, okErr := client.ObjectKeyFromObject(lookupSI)
@@ -299,7 +299,7 @@ func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID u
 		if apiErrors.IsNotFound(err) {
 			return emptyIS, integratedServiceNotFoundError{
 				clusterID:             clusterID,
-				integratedServiceName: integratedServiceName,
+				integratedServiceName: serviceName,
 			}
 		}
 
@@ -359,21 +359,22 @@ func (c clusterRepository) transform(instance v1alpha1.ServiceInstance) (Integra
 		return IntegratedService{}, errors.Wrap(err, "failed to unwarap configuration from custom resource")
 	}
 
-	//cfgJsonMap := map[string]interface{}{
-	//	"externalDns": cfgJSON,
-	//}
 	transformedIS.Spec = apiSpec
-
 	transformedIS.Status = c.getISStatus(instance)
 
 	return transformedIS, nil
 }
 
 func (c clusterRepository) getISStatus(instance v1alpha1.ServiceInstance) IntegratedServiceStatus {
-	// TODO transform all phases
+	// TODO refine the status mapping
 	switch instance.Status.Phase {
 	case v1alpha1.Installed:
 		return IntegratedServiceStatusActive
+	case v1alpha1.InstallFailed:
+		return IntegratedServiceStatusError
+	case "":
+		return IntegratedServiceStatusInactive
 	}
-	return IntegratedServiceStatusError
+
+	return IntegratedServiceStatusPending
 }
