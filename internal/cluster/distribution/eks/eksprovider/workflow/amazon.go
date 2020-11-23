@@ -219,6 +219,8 @@ func NewSubnetsFromEKSSubnets(
 	return matchedSubnets, nil
 }
 
+// TODO: remove when UpdateNodePoolWorkflow is refactored and this is not needed
+// anymore.
 type AutoscaleGroup struct {
 	Name             string
 	NodeSpotPrice    string
@@ -229,10 +231,15 @@ type AutoscaleGroup struct {
 	NodeVolumeSize   int
 	NodeImage        string
 	NodeInstanceType string
-	Labels           map[string]string
-	Delete           bool
-	Create           bool
-	CreatedBy        uint
+
+	// SecurityGroups collects the user specified custom node security group
+	// IDs.
+	SecurityGroups []string
+
+	Labels    map[string]string
+	Delete    bool
+	Create    bool
+	CreatedBy uint
 }
 
 type Clusters interface {
