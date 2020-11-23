@@ -18,7 +18,10 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
+	"github.com/banzaicloud/operator-tools/pkg/utils"
 	"github.com/mitchellh/mapstructure"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -57,7 +60,7 @@ func NewDNSISOperator(
 		orgDomainService: orgDomainService,
 		secretStore:      secretStore,
 		config:           config,
-		reconciler:       NewISReconciler(), // TODO inject this?
+		reconciler:       NewISReconciler(logger),
 		specWrapper:      wrapper,
 		logger:           logger,
 	}
@@ -83,7 +86,18 @@ func (o Operator) Deactivate(ctx context.Context, clusterID uint, spec integrate
 		return errors.WrapIf(err, "failed to retrieve the k8s config")
 	}
 
-	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, o.config, nil, spec, true); err != nil {
+	si := v1alpha1.ServiceInstance{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: o.config.Namespace,
+			Name:      IntegratedServiceName,
+		},
+		Spec: v1alpha1.ServiceInstanceSpec{
+			Service: IntegratedServiceName,
+			// this signals the deactivation for the backend!
+			Enabled: utils.BoolPointer(false),
+		},
+	}
+	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, si); err != nil {
 		return errors.Wrap(rErr, "failed to reconcile the integrated service resource")
 	}
 
@@ -130,7 +144,18 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 		return errors.WrapIf(err, "failed to retrieve the k8s config")
 	}
 
-	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, o.config, chartValues, spec, false); err != nil {
+	si := v1alpha1.ServiceInstance{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: o.config.Namespace,
+			Name:      IntegratedServiceName,
+		},
+		Spec: v1alpha1.ServiceInstanceSpec{
+			Service: IntegratedServiceName,
+			Config:  string(chartValues),
+		},
+	}
+
+	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, si); err != nil {
 		return errors.Wrap(rErr, "failed to reconcile the integrated service resource")
 	}
 
