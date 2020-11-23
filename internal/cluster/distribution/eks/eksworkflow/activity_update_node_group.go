@@ -120,6 +120,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			input.NodeImage != "",
 			input.NodeImage,
 		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"CustomNodeSecurityGroups",
+			input.SecurityGroups != nil || input.TemplateVersion == "1.0.0",
+			strings.Join(input.SecurityGroups, ","),
+		),
 		{
 			ParameterKey:     aws.String("NodeInstanceType"),
 			UsePreviousValue: aws.Bool(true),
@@ -195,14 +200,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:   aws.String("BootstrapArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
 		},
-	}
-
-	if input.TemplateVersion != "1.0.0" {
-		stackParams = append(stackParams, sdkCloudFormation.NewOptionalStackParameter(
-			"CustomNodeSecurityGroups",
-			input.SecurityGroups != nil,
-			strings.Join(input.SecurityGroups, ","),
-		))
 	}
 
 	// we don't reuse the creation time template, since it may have changed
