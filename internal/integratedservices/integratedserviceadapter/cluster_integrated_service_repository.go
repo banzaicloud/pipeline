@@ -38,7 +38,7 @@ type clusterRepository struct {
 }
 
 // Creates a new cluster repository to access Integrated services in a k8s cluster
-func NewClusterRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc, wrapper integratedservices.SpecWrapper) integratedservices.IntegratedServiceRepository {
+func NewClusterRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc, wrapper integratedservices.SpecWrapper, namespace string) integratedservices.IntegratedServiceRepository {
 	scheme := runtime.NewScheme()
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = v1alpha1.AddToScheme(scheme)
@@ -47,7 +47,7 @@ func NewClusterRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc,
 		scheme:       scheme,
 		kubeConfigFn: kubeConfigFn,
 		specWrapper:  wrapper,
-		namespace:    "default", // TODO make the namespace dynamic (integrated services ara always deployed to pipeline-system ?!)
+		namespace:    namespace,
 	}
 }
 
