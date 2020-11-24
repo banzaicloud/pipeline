@@ -16,6 +16,8 @@ package eksworkflow
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"go.uber.org/cadence"
@@ -68,6 +70,7 @@ type UpdateNodePoolWorkflowInput struct {
 
 	NodeVolumeSize int
 	NodeImage      string
+	SecurityGroups []string
 
 	Options eks.NodePoolUpdateOptions
 
@@ -127,10 +130,13 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
 	}
 
+	var templateVersion string
 	effectiveImage := input.NodeImage
 	effectiveVolumeSize := input.NodeVolumeSize
+	effectiveSecurityGroups := input.SecurityGroups
 	if effectiveImage == "" ||
-		effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
+		effectiveVolumeSize == 0 ||
+		effectiveSecurityGroups == nil { // Note: needing CF stack for original information for version.
 		getCFStackInput := eksWorkflow.GetCFStackActivityInput{
 			EKSActivityInput: eksActivityInput,
 			StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
@@ -143,9 +149,13 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			return err
 		}
 
+		templateVersion = eksWorkflow.GetStackTemplateVersion(getCFStackOutput.Stack)
+
 		var parameters struct {
 			NodeImageID    string `mapstructure:"NodeImageId"`
 			NodeVolumeSize int    `mapstructure:"NodeVolumeSize"`
+			// Note: CustomNodeSecurityGroups is from template version 2.0.0
+			CustomNodeSecurityGroups string `mapstructure:"CustomNodeSecurityGroups,omitempty"`
 		}
 		err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 		if err != nil {
@@ -158,6 +168,12 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 		if effectiveVolumeSize == 0 {
 			effectiveVolumeSize = parameters.NodeVolumeSize
+		}
+
+		if effectiveSecurityGroups == nil &&
+			parameters.CustomNodeSecurityGroups != "" {
+			effectiveSecurityGroups = strings.Split(parameters.CustomNodeSecurityGroups, ",")
+			sort.Strings(effectiveSecurityGroups)
 		}
 	}
 
@@ -201,8 +217,9 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 	var nodePoolVersion string
 	{
 		activityInput := CalculateNodePoolVersionActivityInput{
-			Image:      effectiveImage,
-			VolumeSize: effectiveVolumeSize,
+			Image:                effectiveImage,
+			VolumeSize:           effectiveVolumeSize,
+			CustomSecurityGroups: effectiveSecurityGroups,
 		}
 
 		var output CalculateNodePoolVersionActivityOutput
@@ -227,9 +244,11 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodePoolVersion:       nodePoolVersion,
 			NodeVolumeSize:        volumeSize,
 			NodeImage:             input.NodeImage,
+			SecurityGroups:        input.SecurityGroups,
 			MaxBatchSize:          input.Options.MaxBatchSize,
 			MinInstancesInService: input.Options.MaxSurge,
 			ClusterTags:           input.ClusterTags,
+			TemplateVersion:       templateVersion,
 		}
 
 		activityOptions := activityOptions

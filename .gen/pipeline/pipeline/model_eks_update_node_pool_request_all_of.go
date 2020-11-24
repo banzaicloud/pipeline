@@ -30,7 +30,7 @@ type EksUpdateNodePoolRequestAllOf struct {
 	SpotPrice string `json:"spotPrice,omitempty"`
 
 	// List of additional custom security groups for all nodes in the pool.
-	SecurityGroups []string `json:"securityGroups,omitempty"`
+	SecurityGroups *[]string `json:"securityGroups,omitempty"`
 
 	Options BaseUpdateNodePoolOptions `json:"options,omitempty"`
 }

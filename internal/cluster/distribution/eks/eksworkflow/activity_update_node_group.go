@@ -62,11 +62,14 @@ type UpdateNodeGroupActivityInput struct {
 	NodeVolumeSize  int
 	NodeImage       string
 	DesiredCapacity int64
+	SecurityGroups  []string
 
 	MaxBatchSize          int
 	MinInstancesInService int
 
 	ClusterTags map[string]string
+
+	TemplateVersion string
 }
 
 type UpdateNodeGroupActivityOutput struct {
@@ -116,6 +119,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			"NodeImageId",
 			input.NodeImage != "",
 			input.NodeImage,
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"CustomNodeSecurityGroups",
+			input.SecurityGroups != nil || input.TemplateVersion == "1.0.0",
+			strings.Join(input.SecurityGroups, ","),
 		),
 		{
 			ParameterKey:     aws.String("NodeInstanceType"),

@@ -23667,6 +23667,7 @@ components:
           - sg-00000xxxx0000xxx2
           items:
             type: string
+          nullable: true
           type: array
         options:
           $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
