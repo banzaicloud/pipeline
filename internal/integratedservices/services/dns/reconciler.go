@@ -17,6 +17,7 @@ package dns
 import (
 	"context"
 	"sort"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
@@ -72,29 +73,41 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 	}
 
 	resourceReconciler := reconciler.NewReconcilerWith(cli)
-	isNew, object, err := resourceReconciler.CreateIfNotExist(&incomingSI, reconciler.StateCreated)
-	if err != nil {
-		return errors.Wrap(err, "failed to create the service instance resource")
-	}
-	existingSI, ok := object.(*v1alpha1.ServiceInstance)
-	if !ok {
+	isNew, object, rcErr := resourceReconciler.CreateIfNotExist(&incomingSI, reconciler.StateCreated)
+	if rcErr != nil {
 		return errors.Wrap(err, "failed to create the service instance resource")
 	}
 
+	existingSI := &v1alpha1.ServiceInstance{}
 	if isNew {
 		// retrieve the resource for the status data
-		// todo is it guaranteed that status is filled (the cr is reconciled so far?)
-		key, okErr := client.ObjectKeyFromObject(existingSI)
+		key, okErr := client.ObjectKeyFromObject(&incomingSI)
 		if okErr != nil {
 			return errors.Wrap(err, "failed to get object key for lookup")
 		}
 
-		if err := cli.Get(ctx, key, existingSI); err != nil {
-			if errors2.IsNotFound(err) {
-				// resource is not found
-				return nil
+		for { // wait for the  created resource status
+			if getErr := cli.Get(ctx, key, existingSI); err != nil {
+				if errors2.IsNotFound(getErr) {
+					// resource is not found
+					return nil
+				}
+				return errors.Wrap(getErr, "failed to look up service instance")
 			}
-			return errors.Wrap(err, "failed to look up service instance")
+
+			if existingSI != nil && len(existingSI.Status.AvailableVersions) > 0 {
+				// step forward
+				break
+			}
+			// TODO add limit to this? otherwise it'll wait till the worker times out
+			// sleep a bit for the reconcile to proceed
+			time.Sleep(2 * time.Second)
+		}
+	} else {
+		var ok bool
+		existingSI, ok = object.(*v1alpha1.ServiceInstance)
+		if !ok {
+			return errors.Wrap(err, "failed to create the service instance resource")
 		}
 	}
 
@@ -115,8 +128,11 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 		existingSI.Spec.Version = latestVersion
 	}
 
-	if _, err := resourceReconciler.ReconcileResource(existingSI, reconciler.StatePresent); err != nil {
-		return errors.Wrap(err, "failed to reconcile the integrated service")
+	// set the (possibly changed) config
+	existingSI.Spec.Config = incomingSI.Spec.Config
+
+	if _, recErr := resourceReconciler.ReconcileResource(existingSI, reconciler.StatePresent); err != nil {
+		return errors.Wrap(recErr, "failed to reconcile the integrated service")
 	}
 
 	return nil
