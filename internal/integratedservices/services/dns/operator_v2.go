@@ -33,14 +33,15 @@ import (
 )
 
 type Operator struct {
-	clusterGetter    integratedserviceadapter.ClusterGetter
-	clusterService   integratedservices.ClusterService
-	orgDomainService OrgDomainService
-	secretStore      services.SecretStore
-	config           Config
-	reconciler       Reconciler
-	specWrapper      integratedservices.SpecWrapper
-	logger           common.Logger
+	clusterGetter     integratedserviceadapter.ClusterGetter
+	clusterService    integratedservices.ClusterService
+	orgDomainService  OrgDomainService
+	secretStore       services.SecretStore
+	config            Config
+	reconciler        Reconciler
+	specWrapper       integratedservices.SpecWrapper
+	serviceNameMapper services.ServiceNameMapper
+	logger            common.Logger
 }
 
 func NewDNSISOperator(
@@ -54,14 +55,15 @@ func NewDNSISOperator(
 	logger common.Logger,
 ) Operator {
 	return Operator{
-		clusterGetter:    clusterGetter,
-		clusterService:   clusterService,
-		orgDomainService: orgDomainService,
-		secretStore:      secretStore,
-		config:           config,
-		reconciler:       NewISReconciler(logger),
-		specWrapper:      wrapper,
-		logger:           logger,
+		clusterGetter:     clusterGetter,
+		clusterService:    clusterService,
+		orgDomainService:  orgDomainService,
+		secretStore:       secretStore,
+		config:            config,
+		reconciler:        NewISReconciler(logger),
+		specWrapper:       wrapper,
+		serviceNameMapper: services.NewServiceNameMapper(),
+		logger:            logger,
 	}
 }
 
@@ -88,7 +90,7 @@ func (o Operator) Deactivate(ctx context.Context, clusterID uint, _ integratedse
 	si := v1alpha1.ServiceInstance{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: o.config.Namespace,
-			Name:      IntegratedServiceName,
+			Name:      o.serviceNameMapper.MapServiceName(IntegratedServiceName),
 		},
 	}
 	if rErr := o.reconciler.Disable(ctx, k8sConfig, si); rErr != nil {
@@ -141,10 +143,10 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 	si := v1alpha1.ServiceInstance{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: o.config.Namespace,
-			Name:      IntegratedServiceName,
+			Name:      o.serviceNameMapper.MapServiceName(IntegratedServiceName),
 		},
 		Spec: v1alpha1.ServiceInstanceSpec{
-			Service: IntegratedServiceName,
+			Service: o.serviceNameMapper.MapServiceName(IntegratedServiceName),
 			Config:  string(chartValues),
 		},
 	}

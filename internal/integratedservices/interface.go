@@ -210,3 +210,8 @@ func (e ClusterIsNotReadyError) Details() []interface{} {
 func (e ClusterIsNotReadyError) ShouldRetry() bool {
 	return true
 }
+
+// ServiceNameMapper maps integrated service names that are different in external / legacy systems
+type ServiceNameMapper interface {
+	MapServiceName(serviceName string) string
+}
