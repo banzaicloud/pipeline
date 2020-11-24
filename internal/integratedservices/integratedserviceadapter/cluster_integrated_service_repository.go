@@ -19,6 +19,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
+
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
 // clusterRepository repository implementation that directly accesses a cluster for resource operations
@@ -34,6 +36,7 @@ type clusterRepository struct {
 	scheme       *runtime.Scheme
 	kubeConfigFn integratedservices.ClusterKubeConfigFunc
 	specWrapper  integratedservices.SpecWrapper
+	statusMapper services.StatusMapper
 	namespace    string
 }
 
@@ -48,17 +51,18 @@ func NewClusterRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc,
 		kubeConfigFn: kubeConfigFn,
 		specWrapper:  wrapper,
 		namespace:    namespace,
+		statusMapper: services.NewServiceStatusMapper(),
 	}
 }
 
 func (c clusterRepository) GetIntegratedServices(ctx context.Context, clusterID uint) ([]integratedservices.IntegratedService, error) {
-	client, err := c.k8sClientForCluster(ctx, clusterID)
+	clusterClient, err := c.k8sClientForCluster(ctx, clusterID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build cluster client")
 	}
 
 	lookupISvcs := &v1alpha1.ServiceInstanceList{}
-	if err := client.List(ctx, lookupISvcs); err != nil {
+	if err := clusterClient.List(ctx, lookupISvcs); err != nil {
 		return nil, errors.Wrap(err, "failed to retrieve integrated service list")
 	}
 
@@ -106,22 +110,22 @@ func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID u
 	return c.transform(lookupSI)
 }
 
-func (c clusterRepository) SaveIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec, status string) error {
+func (c clusterRepository) SaveIntegratedService(_ context.Context, _ uint, _ string, _ integratedservices.IntegratedServiceSpec, _ string) error {
 	// NO op
 	return nil
 }
 
-func (c clusterRepository) UpdateIntegratedServiceStatus(ctx context.Context, clusterID uint, integratedServiceName string, status string) error {
+func (c clusterRepository) UpdateIntegratedServiceStatus(_ context.Context, _ uint, _ string, _ string) error {
 	// NO op
 	return nil
 }
 
-func (c clusterRepository) UpdateIntegratedServiceSpec(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
+func (c clusterRepository) UpdateIntegratedServiceSpec(_ context.Context, _ uint, _ string, _ integratedservices.IntegratedServiceSpec) error {
 	// NO op
 	return nil
 }
 
-func (c clusterRepository) DeleteIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) error {
+func (c clusterRepository) DeleteIntegratedService(_ context.Context, _ uint, _ string) error {
 	// NO op
 	return nil
 }
@@ -157,21 +161,7 @@ func (c clusterRepository) transform(instance v1alpha1.ServiceInstance) (integra
 	}
 
 	transformedIS.Spec = apiSpec
-	transformedIS.Status = c.getISStatus(instance)
+	transformedIS.Status = c.statusMapper.MapStatus(instance)
 
 	return transformedIS, nil
-}
-
-func (c clusterRepository) getISStatus(instance v1alpha1.ServiceInstance) integratedservices.IntegratedServiceStatus {
-	// TODO refine the status mapping
-	switch instance.Status.Phase {
-	case v1alpha1.Installed:
-		return integratedservices.IntegratedServiceStatusActive
-	case v1alpha1.InstallFailed:
-		return integratedservices.IntegratedServiceStatusError
-	case "":
-		return integratedservices.IntegratedServiceStatusInactive
-	}
-
-	return integratedservices.IntegratedServiceStatusPending
 }

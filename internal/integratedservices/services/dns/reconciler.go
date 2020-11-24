@@ -83,7 +83,7 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 
 	if isNew {
 		// retrieve the resource for the status data
-		// todo is it guaranteed that staus is filled (the cr is reconciled so  far? )
+		// todo is it guaranteed that status is filled (the cr is reconciled so far?)
 		key, okErr := client.ObjectKeyFromObject(existingSI)
 		if okErr != nil {
 			return errors.Wrap(err, "failed to get object key for lookup")
