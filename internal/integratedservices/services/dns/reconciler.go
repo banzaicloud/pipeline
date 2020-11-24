@@ -86,20 +86,20 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 			return errors.Wrap(err, "failed to get object key for lookup")
 		}
 
-		for { // wait for the  created resource status
+		// wait (endlessly) for the status of the newly created resource
+		// in he edge case the status never gets populated, the routine wil be ended by the cadence worker!
+		for {
+			is.logger.Debug("Waiting for the service instance status ...")
 			if getErr := cli.Get(ctx, key, existingSI); err != nil {
-				if errors2.IsNotFound(getErr) {
-					// resource is not found
-					return nil
-				}
 				return errors.Wrap(getErr, "failed to look up service instance")
 			}
 
 			if existingSI != nil && len(existingSI.Status.AvailableVersions) > 0 {
+				is.logger.Debug("Service instance status populated.")
 				// step forward
 				break
 			}
-			// TODO add limit to this? otherwise it'll wait till the worker times out
+
 			// sleep a bit for the reconcile to proceed
 			time.Sleep(2 * time.Second)
 		}
