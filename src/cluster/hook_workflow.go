@@ -22,6 +22,7 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/client"
 	"go.uber.org/cadence/workflow"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -40,7 +41,17 @@ type RunPostHooksWorkflowInputPostHook struct {
 	Param interface{}
 }
 
-func RunPostHooksWorkflow(ctx workflow.Context, input RunPostHooksWorkflowInput) error {
+type RunPostHooksWorkflow struct {
+	WorkflowClient client.Client
+}
+
+func NewRunPostHooksWorkflow(client client.Client) *RunPostHooksWorkflow {
+	return &RunPostHooksWorkflow{
+		WorkflowClient: client,
+	}
+}
+
+func (w *RunPostHooksWorkflow) Execute(ctx workflow.Context, input RunPostHooksWorkflowInput) error {
 	retryPolicy := &cadence.RetryPolicy{
 		InitialInterval:    time.Second * 3,
 		BackoffCoefficient: 2,
@@ -66,6 +77,21 @@ func RunPostHooksWorkflow(ctx workflow.Context, input RunPostHooksWorkflowInput)
 		err := workflow.ExecuteActivity(ctx, RunPostHookActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
+		}
+	}
+
+	// Update integrated service operator
+	{
+		workflowOptions := client.StartWorkflowOptions{
+			TaskList:                     "pipeline",
+			ExecutionStartToCloseTimeout: 5 * time.Minute,
+		}
+		_, err := w.WorkflowClient.StartWorkflow(context.Background(), workflowOptions,
+			IntServiceOperatorUpdaterActivityName, IntServiceOperatorUpdaterActivityInput{
+				ClusterID: input.ClusterID,
+			})
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to start workflow", "workflow", IntServiceOperatorUpdaterActivityName)
 		}
 	}
 

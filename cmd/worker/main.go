@@ -352,13 +352,17 @@ func main() {
 		labelNodesWithNodepoolNameActivity := cluster.NewLabelNodesWithNodepoolNameActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
 		worker.RegisterActivityWithOptions(labelNodesWithNodepoolNameActivity.Execute, activity.RegisterOptions{Name: cluster.LabelNodesWithNodepoolNameActivityName})
 
-		worker.RegisterWorkflowWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
+		posthookWorkflow := cluster.NewRunPostHooksWorkflow(workflowClient)
+		worker.RegisterWorkflowWithOptions(posthookWorkflow.Execute, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
 		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, unifiedHelmReleaser)
 		worker.RegisterActivityWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
 		worker.RegisterActivityWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
+
+		intServiceOperatorUpdater := cluster.NewIntServiceOperatorUpdaterWorkflow(clusterManager)
+		worker.RegisterWorkflowWithOptions(intServiceOperatorUpdater.Execute, workflow.RegisterOptions{Name: cluster.IntServiceOperatorUpdaterActivityName})
 
 		cloudinfoClient := cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
 			BasePath:      config.Cloudinfo.Endpoint,
