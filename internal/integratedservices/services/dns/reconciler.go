@@ -19,6 +19,7 @@ import (
 	"sort"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/banzaicloud/operator-tools/pkg/utils"
 	"golang.org/x/mod/semver"
@@ -27,8 +28,6 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 )
@@ -73,14 +72,30 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 	}
 
 	resourceReconciler := reconciler.NewReconcilerWith(cli)
-	_, object, err := resourceReconciler.CreateIfNotExist(&incomingSI, reconciler.StateCreated)
+	isNew, object, err := resourceReconciler.CreateIfNotExist(&incomingSI, reconciler.StateCreated)
 	if err != nil {
 		return errors.Wrap(err, "failed to create the service instance resource")
 	}
-
 	existingSI, ok := object.(*v1alpha1.ServiceInstance)
 	if !ok {
 		return errors.Wrap(err, "failed to create the service instance resource")
+	}
+
+	if isNew {
+		// retrieve the resource for the status data
+		// todo is it guaranteed that staus is filled (the cr is reconciled so  far? )
+		key, okErr := client.ObjectKeyFromObject(existingSI)
+		if okErr != nil {
+			return errors.Wrap(err, "failed to get object key for lookup")
+		}
+
+		if err := cli.Get(ctx, key, existingSI); err != nil {
+			if errors2.IsNotFound(err) {
+				// resource is not found
+				return nil
+			}
+			return errors.Wrap(err, "failed to look up service instance")
+		}
 	}
 
 	// at this point the incoming changes need to be applied to the existing instance - that'll be updated
