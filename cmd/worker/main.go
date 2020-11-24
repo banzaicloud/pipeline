@@ -236,7 +236,7 @@ func main() {
 
 		workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 		if err != nil {
-			errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
+			emperror.Panic(errors.WrapIf(err, "Failed to configure Cadence client"))
 		}
 
 		commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))

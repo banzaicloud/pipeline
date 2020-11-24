@@ -181,4 +181,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	v.SetDefault("spotmetrics::enabled", false)
 	v.SetDefault("spotmetrics::collectionInterval", 30*time.Second)
+
+	// Cadence configuration
+	v.SetDefault("cadence::createNonexistentDomain", false)
+	v.SetDefault("cadence::workflowExecutionRetentionPeriodInDays", 3)
 }
