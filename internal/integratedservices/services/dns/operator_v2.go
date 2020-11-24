@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
-	"github.com/banzaicloud/operator-tools/pkg/utils"
 	"github.com/mitchellh/mapstructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -66,7 +65,7 @@ func NewDNSISOperator(
 	}
 }
 
-func (o Operator) Deactivate(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
+func (o Operator) Deactivate(ctx context.Context, clusterID uint, _ integratedservices.IntegratedServiceSpec) error {
 	ctx, err := o.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 		return err
@@ -91,13 +90,8 @@ func (o Operator) Deactivate(ctx context.Context, clusterID uint, spec integrate
 			Namespace: o.config.Namespace,
 			Name:      IntegratedServiceName,
 		},
-		Spec: v1alpha1.ServiceInstanceSpec{
-			Service: IntegratedServiceName,
-			// this signals the deactivation for the backend!
-			Enabled: utils.BoolPointer(false),
-		},
 	}
-	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, si); err != nil {
+	if rErr := o.reconciler.Disable(ctx, k8sConfig, si); rErr != nil {
 		return errors.Wrap(rErr, "failed to reconcile the integrated service resource")
 	}
 
@@ -155,7 +149,7 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 		},
 	}
 
-	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, si); err != nil {
+	if rErr := o.reconciler.Reconcile(ctx, k8sConfig, si); rErr != nil {
 		return errors.Wrap(rErr, "failed to reconcile the integrated service resource")
 	}
 
