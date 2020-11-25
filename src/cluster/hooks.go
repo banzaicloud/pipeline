@@ -364,6 +364,7 @@ func (hpa *HorizontalPodAutoscalerPostHook) Do(cluster CommonCluster) error {
 
 		metricsServerValues := make(map[string]interface{}, 0)
 		metricsServerValues["enabled"] = true
+		metricsServerValues["apiService"] = map[string]interface{}{"create": true}
 
 		// use InternalIP on VSphere
 		if cluster.GetCloud() == pkgCluster.Vsphere {
