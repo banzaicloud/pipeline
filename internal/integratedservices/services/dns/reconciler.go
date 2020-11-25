@@ -87,13 +87,14 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 		}
 
 		// wait (endlessly) for the status of the newly created resource
-		// in he edge case the status never gets populated, the routine wil be ended by the cadence worker!
+		// in the edge case the status never gets populated, the routine wil be ended by the cadence worker!
 		for {
 			is.logger.Debug("Waiting for the service instance status ...")
 			if getErr := cli.Get(ctx, key, existingSI); err != nil {
 				return errors.Wrap(getErr, "failed to look up service instance")
 			}
 
+			// TODO use a specific error to signal shouldRetry
 			if existingSI != nil && len(existingSI.Status.AvailableVersions) > 0 {
 				is.logger.Debug("Service instance status populated.")
 				// step forward
@@ -166,6 +167,35 @@ func (is isvcReconciler) Disable(ctx context.Context, kubeConfig []byte, incomin
 	}
 
 	existingSI.Spec.Enabled = utils.BoolPointer(false) // effectively disable the service instance
+	if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&existingSI, reconciler.StatePresent); err != nil {
+		return errors.Wrap(err, "failed to reconcile the integrated service")
+	}
+
+	// wait till the status becomes uninstalled or uninstallFailed
+	for {
+		inactiveSI := v1alpha1.ServiceInstance{}
+		if err := cli.Get(ctx, key, &inactiveSI); err != nil {
+			if errors2.IsNotFound(err) {
+				// resource is not found
+				return nil
+			}
+			return errors.Wrap(err, "failed to look up service instance")
+		}
+
+		if inactiveSI.Status.Phase == v1alpha1.UninstallFailed {
+			return errors.Wrap(err, "failed to uninstall integrated service")
+		}
+
+		if inactiveSI.Status.Phase == v1alpha1.Uninstalled {
+			break
+		}
+
+		// sleep a bit for the reconcile to proceed
+		time.Sleep(2 * time.Second)
+	}
+
+	// delete the configuration
+	existingSI.Spec.Config = ""
 	if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&existingSI, reconciler.StatePresent); err != nil {
 		return errors.Wrap(err, "failed to reconcile the integrated service")
 	}

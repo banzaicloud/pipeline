@@ -68,7 +68,7 @@ func NewServiceStatusMapper() StatusMapper {
 			v1alpha1.Uninstalling:      integratedservices.IntegratedServiceStatusPending,
 
 			// failed final statuses
-			v1alpha1.InstallFailed:   integratedservices.IntegratedServiceStatusPending,
+			v1alpha1.InstallFailed:   integratedservices.IntegratedServiceStatusError,
 			v1alpha1.UninstallFailed: integratedservices.IntegratedServiceStatusError,
 
 			// Final, stable phases
