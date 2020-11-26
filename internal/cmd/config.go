@@ -718,7 +718,7 @@ rbac:
 	})
 
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::chart", "banzaicloud-stable/hpa-operator")
-	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.2.2")
+	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.3.0")
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::securityScan::enabled", true)
