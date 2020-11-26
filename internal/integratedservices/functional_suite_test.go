@@ -30,6 +30,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/externaldns"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
@@ -43,10 +45,13 @@ import (
 type Suite struct {
 	suite.Suite
 
+	v2 bool
+
 	kubeconfig string
 	config     *cmd.Config
 
-	integratedServiceServiceCreater func(...integratedservices.IntegratedServiceManager) (*integratedservices.IntegratedServiceService, error)
+	integratedServiceServiceCreater   func(...integratedservices.IntegratedServiceManager) (integratedservices.Service, error)
+	integratedServiceServiceCreaterV2 func(integratedservices.ClusterKubeConfigFunc, ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error)
 }
 
 func (s *Suite) SetupSuite() {
@@ -105,11 +110,19 @@ func (s *Suite) SetupSuite() {
 	workflowClient, err := cadence.NewClient(s.config.Cadence, zaplog)
 	s.Require().NoError(err)
 
-	s.integratedServiceServiceCreater = func(managers ...integratedservices.IntegratedServiceManager) (*integratedservices.IntegratedServiceService, error) {
+	s.integratedServiceServiceCreater = func(managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
 		featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
 		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
 		serviceFacade := integratedservices.MakeIntegratedServiceService(dispatcher, registry, featureRepository, commonLogger)
 		return &serviceFacade, nil
+	}
+
+	s.integratedServiceServiceCreaterV2 = func(kubeConfigFunc integratedservices.ClusterKubeConfigFunc, managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
+		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
+		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+		clusterRepository := integratedserviceadapter.NewCRRepository(kubeConfigFunc, externaldns.NewSpecWrapper(), s.config.Cluster.Namespace)
+		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger)
+		return serviceFacade, nil
 	}
 }
