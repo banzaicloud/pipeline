@@ -19,12 +19,12 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"go.uber.org/cadence/workflow"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
