@@ -30,8 +30,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
-// clusterRepository repository implementation that directly accesses a cluster for resource operations
-type clusterRepository struct {
+// crRepository repository implementation that directly accesses a custom resources in a kubernetes cluster
+type crRepository struct {
 	scheme       *runtime.Scheme
 	kubeConfigFn integratedservices.ClusterKubeConfigFunc
 	specWrapper  integratedservices.SpecWrapper
@@ -39,13 +39,13 @@ type clusterRepository struct {
 	namespace    string
 }
 
-// Creates a new cluster repository to access Integrated services in a k8s cluster
-func NewClusterRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc, wrapper integratedservices.SpecWrapper, namespace string) integratedservices.IntegratedServiceRepository {
+// Creates a new CR repository instance to access integrated services in a k8s cluster
+func NewCRRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc, wrapper integratedservices.SpecWrapper, namespace string) integratedservices.IntegratedServiceRepository {
 	scheme := runtime.NewScheme()
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = v1alpha1.AddToScheme(scheme)
 
-	return clusterRepository{
+	return crRepository{
 		scheme:       scheme,
 		kubeConfigFn: kubeConfigFn,
 		specWrapper:  wrapper,
@@ -54,7 +54,7 @@ func NewClusterRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc,
 	}
 }
 
-func (c clusterRepository) GetIntegratedServices(ctx context.Context, clusterID uint) ([]integratedservices.IntegratedService, error) {
+func (c crRepository) GetIntegratedServices(ctx context.Context, clusterID uint) ([]integratedservices.IntegratedService, error) {
 	clusterClient, err := c.k8sClientForCluster(ctx, clusterID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build cluster client")
@@ -77,7 +77,7 @@ func (c clusterRepository) GetIntegratedServices(ctx context.Context, clusterID 
 	return iSvcs, nil
 }
 
-func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID uint, serviceName string) (integratedservices.IntegratedService, error) {
+func (c crRepository) GetIntegratedService(ctx context.Context, clusterID uint, serviceName string) (integratedservices.IntegratedService, error) {
 	emptyIS := integratedservices.IntegratedService{}
 	clusterClient, err := c.k8sClientForCluster(ctx, clusterID)
 	if err != nil {
@@ -109,29 +109,29 @@ func (c clusterRepository) GetIntegratedService(ctx context.Context, clusterID u
 	return c.transform(lookupSI)
 }
 
-func (c clusterRepository) SaveIntegratedService(_ context.Context, _ uint, _ string, _ integratedservices.IntegratedServiceSpec, _ string) error {
+func (c crRepository) SaveIntegratedService(_ context.Context, _ uint, _ string, _ integratedservices.IntegratedServiceSpec, _ string) error {
 	// NO op
 	return nil
 }
 
-func (c clusterRepository) UpdateIntegratedServiceStatus(_ context.Context, _ uint, _ string, _ string) error {
+func (c crRepository) UpdateIntegratedServiceStatus(_ context.Context, _ uint, _ string, _ string) error {
 	// NO op
 	return nil
 }
 
-func (c clusterRepository) UpdateIntegratedServiceSpec(_ context.Context, _ uint, _ string, _ integratedservices.IntegratedServiceSpec) error {
+func (c crRepository) UpdateIntegratedServiceSpec(_ context.Context, _ uint, _ string, _ integratedservices.IntegratedServiceSpec) error {
 	// NO op
 	return nil
 }
 
-func (c clusterRepository) DeleteIntegratedService(_ context.Context, _ uint, _ string) error {
+func (c crRepository) DeleteIntegratedService(_ context.Context, _ uint, _ string) error {
 	// NO op
 	return nil
 }
 
 // k8sClientForCluster builds a client that accesses the cluster
 // TODO the built client should be a caching one? (revise this)
-func (c clusterRepository) k8sClientForCluster(ctx context.Context, clusterID uint) (client.Client, error) {
+func (c crRepository) k8sClientForCluster(ctx context.Context, clusterID uint) (client.Client, error) {
 	kubeConfig, err := c.kubeConfigFn.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve the k8s config")
@@ -150,13 +150,13 @@ func (c clusterRepository) k8sClientForCluster(ctx context.Context, clusterID ui
 	return cli, nil
 }
 
-func (c clusterRepository) transform(instance v1alpha1.ServiceInstance) (integratedservices.IntegratedService, error) {
+func (c crRepository) transform(instance v1alpha1.ServiceInstance) (integratedservices.IntegratedService, error) {
 	transformedIS := integratedservices.IntegratedService{}
 	transformedIS.Name = instance.Name
 
 	apiSpec, err := c.specWrapper.Unwrap(context.Background(), []byte(instance.Spec.Config))
 	if err != nil {
-		return integratedservices.IntegratedService{}, errors.Wrap(err, "failed to unwarap configuration from custom resource")
+		return integratedservices.IntegratedService{}, errors.Wrap(err, "failed to unwrap configuration from custom resource")
 	}
 
 	transformedIS.Spec = apiSpec
