@@ -42,12 +42,14 @@ type RunPostHooksWorkflowInputPostHook struct {
 }
 
 type RunPostHooksWorkflow struct {
-	WorkflowClient client.Client
+	RunOperatorChecker bool
+	WorkflowClient     client.Client
 }
 
-func NewRunPostHooksWorkflow(client client.Client) *RunPostHooksWorkflow {
+func NewRunPostHooksWorkflow(client client.Client, runOperatorChecker bool) *RunPostHooksWorkflow {
 	return &RunPostHooksWorkflow{
-		WorkflowClient: client,
+		RunOperatorChecker: runOperatorChecker,
+		WorkflowClient:     client,
 	}
 }
 
@@ -82,16 +84,18 @@ func (w *RunPostHooksWorkflow) Execute(ctx workflow.Context, input RunPostHooksW
 
 	// Update integrated service operator
 	{
-		workflowOptions := client.StartWorkflowOptions{
-			TaskList:                     "pipeline",
-			ExecutionStartToCloseTimeout: 5 * time.Minute,
-		}
-		_, err := w.WorkflowClient.StartWorkflow(context.Background(), workflowOptions,
-			IntServiceOperatorUpdaterActivityName, IntServiceOperatorUpdaterActivityInput{
-				ClusterID: input.ClusterID,
-			})
-		if err != nil {
-			return errors.WrapWithDetails(err, "failed to start workflow", "workflow", IntServiceOperatorUpdaterActivityName)
+		if w.RunOperatorChecker {
+			workflowOptions := client.StartWorkflowOptions{
+				TaskList:                     "pipeline",
+				ExecutionStartToCloseTimeout: 5 * time.Minute,
+			}
+			_, err := w.WorkflowClient.StartWorkflow(context.Background(), workflowOptions,
+				IntServiceOperatorUpdaterActivityName, IntServiceOperatorUpdaterActivityInput{
+					ClusterID: input.ClusterID,
+				})
+			if err != nil {
+				return errors.WrapWithDetails(err, "failed to start workflow", "workflow", IntServiceOperatorUpdaterActivityName)
+			}
 		}
 	}
 

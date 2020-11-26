@@ -352,7 +352,7 @@ func main() {
 		labelNodesWithNodepoolNameActivity := cluster.NewLabelNodesWithNodepoolNameActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
 		worker.RegisterActivityWithOptions(labelNodesWithNodepoolNameActivity.Execute, activity.RegisterOptions{Name: cluster.LabelNodesWithNodepoolNameActivityName})
 
-		posthookWorkflow := cluster.NewRunPostHooksWorkflow(workflowClient)
+		posthookWorkflow := cluster.NewRunPostHooksWorkflow(workflowClient, config.IntegratedService.RunOperatorChecker)
 		worker.RegisterWorkflowWithOptions(posthookWorkflow.Execute, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
 		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager, unifiedHelmReleaser)

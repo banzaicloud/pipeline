@@ -108,9 +108,12 @@ type Config struct {
 	Telemetry TelemetryConfig
 
 	// temporary switch to control the integrated service implementation
-	IntegratedService struct {
-		V2 bool
-	}
+	IntegratedService IntegratedServiceConfig
+}
+
+type IntegratedServiceConfig struct {
+	RunOperatorChecker bool
+	V2                 bool
 }
 
 func (c Config) Validate() error {
@@ -898,5 +901,6 @@ traefik:
 	v.SetDefault("telemetry::addr", "127.0.0.1:9900")
 	v.SetDefault("telemetry::debug", true)
 
+	v.SetDefault("integratedservice::runOperatorChecker", true)
 	v.SetDefault("integratedservice::v2", false)
 }
