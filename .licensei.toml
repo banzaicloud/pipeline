@@ -33,6 +33,7 @@ ignored = [
 
   # Temporary, until the package can be used without replacing
   "github.com/banzaicloud/cadence-aws-sdk",
+  "github.com/banzaicloud/integrated-service-sdk",
 ]
 
 [header]
