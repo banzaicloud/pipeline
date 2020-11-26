@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"go.uber.org/cadence/workflow"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,29 +56,32 @@ func (w IntServiceOperatorUpdaterWorkflow) Execute(ctx workflow.Context, input I
 	commonCluster, err := w.manager.GetClusterByIDOnly(context.Background(), input.ClusterID)
 	if err != nil {
 		logger.Errorf("failed to get cluster from database: %s", err.Error())
-		return err
-	}
-
-	status, err := commonCluster.GetStatus()
-	if err != nil {
-		logger.Errorf("failed to get cluster status: %s", err.Error())
-	} else {
-		if status.Status == cluster.Deleting {
+		if clusteradapter.IsClusterNotFoundError(err) {
 			// stop workflow
 			return nil
 		}
-
-		err = checkIntegratedServiceOperator(commonCluster)
+	} else {
+		status, err := commonCluster.GetStatus()
 		if err != nil {
-			logger.Errorf("failed to check integrated service operator: %s", err.Error())
+			logger.Errorf("failed to get cluster status: %s", err.Error())
 		} else {
-			logger.Info("integrated service operator CRD installed")
+			if status.Status == cluster.Deleting {
+				// stop workflow
+				return nil
+			}
+
+			err = checkIntegratedServiceOperator(commonCluster)
+			if err != nil {
+				logger.Errorf("failed to check integrated service operator: %s", err.Error())
+			} else {
+				logger.Info("integrated service operator CRD installed")
+			}
 		}
 	}
 
 	err = workflow.Sleep(ctx, 1*time.Minute)
 	if err != nil {
-		return errors.WrapIf(err, "sleep cancelled")
+		logger.Errorf("sleep cancelled: %s", err.Error())
 	}
 
 	return workflow.NewContinueAsNewError(ctx, w.Execute, input)
