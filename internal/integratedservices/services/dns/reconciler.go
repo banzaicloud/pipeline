@@ -73,16 +73,16 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 	}
 
 	resourceReconciler := reconciler.NewReconcilerWith(cli)
-	isNew, object, rcErr := resourceReconciler.CreateIfNotExist(&incomingSI, reconciler.StateCreated)
-	if rcErr != nil {
+	isNew, object, err := resourceReconciler.CreateIfNotExist(&incomingSI, reconciler.StateCreated)
+	if err != nil {
 		return errors.Wrap(err, "failed to create the service instance resource")
 	}
 
 	existingSI := &v1alpha1.ServiceInstance{}
 	if isNew {
 		// retrieve the resource for the status data
-		key, okErr := client.ObjectKeyFromObject(&incomingSI)
-		if okErr != nil {
+		key, err := client.ObjectKeyFromObject(&incomingSI)
+		if err != nil {
 			return errors.Wrap(err, "failed to get object key for lookup")
 		}
 
@@ -90,8 +90,8 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 		// in the edge case the status never gets populated, the routine wil be ended by the cadence worker!
 		for {
 			is.logger.Debug("Waiting for the service instance status ...")
-			if getErr := cli.Get(ctx, key, existingSI); err != nil {
-				return errors.Wrap(getErr, "failed to look up service instance")
+			if err := cli.Get(ctx, key, existingSI); err != nil {
+				return errors.Wrap(err, "failed to look up service instance")
 			}
 
 			// TODO use a specific error to signal shouldRetry
@@ -108,7 +108,7 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 		var ok bool
 		existingSI, ok = object.(*v1alpha1.ServiceInstance)
 		if !ok {
-			return errors.Wrap(err, "failed to create the service instance resource")
+			return errors.Errorf("service instance object conversion error %+v", object)
 		}
 	}
 
@@ -132,8 +132,8 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 	// set the (possibly changed) config
 	existingSI.Spec.Config = incomingSI.Spec.Config
 
-	if _, recErr := resourceReconciler.ReconcileResource(existingSI, reconciler.StatePresent); err != nil {
-		return errors.Wrap(recErr, "failed to reconcile the integrated service")
+	if _, err := resourceReconciler.ReconcileResource(existingSI, reconciler.StatePresent); err != nil {
+		return errors.Wrap(err, "failed to reconcile the integrated service")
 	}
 
 	return nil
@@ -152,8 +152,8 @@ func (is isvcReconciler) Disable(ctx context.Context, kubeConfig []byte, incomin
 		return errors.Wrap(err, "failed to create the client from rest configuration")
 	}
 
-	key, okErr := client.ObjectKeyFromObject(&incomingSI)
-	if okErr != nil {
+	key, err := client.ObjectKeyFromObject(&incomingSI)
+	if err != nil {
 		return errors.Wrap(err, "failed to get object key for lookup")
 	}
 
