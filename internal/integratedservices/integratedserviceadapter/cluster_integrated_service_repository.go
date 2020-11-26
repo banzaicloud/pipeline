@@ -19,7 +19,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
-	errors2 "k8s.io/apimachinery/pkg/api/errors"
+	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -96,7 +96,7 @@ func (c crRepository) GetIntegratedService(ctx context.Context, clusterID uint, 
 	}
 
 	if err := clusterClient.Get(ctx, key, &lookupSI); err != nil {
-		if errors2.IsNotFound(err) {
+		if apiErrors.IsNotFound(err) {
 			return emptyIS, integratedServiceNotFoundError{
 				ClusterID:             clusterID,
 				IntegratedServiceName: serviceName,
