@@ -47,6 +47,10 @@ func (i importedCluster) GetClusterOrgID(_ context.Context, _ uint) (uint, error
 	return i.GetOrganizationId(), nil
 }
 
+func (i importedCluster) KubeConfig(_ context.Context, _ uint) ([]byte, error) {
+	return i.GetK8sConfig()
+}
+
 func importCluster(kubeconfigContent, name string, orgID, userID uint) (*cluster.KubeCluster, error) {
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("%s-kubeconfig", name),
