@@ -24,7 +24,7 @@ import (
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/banzaicloud/operator-tools/pkg/utils"
 	"golang.org/x/mod/semver"
-	errors2 "k8s.io/apimachinery/pkg/api/errors"
+	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
@@ -159,7 +159,7 @@ func (is isvcReconciler) Disable(ctx context.Context, kubeConfig []byte, incomin
 
 	existingSI := v1alpha1.ServiceInstance{}
 	if err := cli.Get(ctx, key, &existingSI); err != nil {
-		if errors2.IsNotFound(err) {
+		if apiErrors.IsNotFound(err) {
 			// resource is not found
 			return nil
 		}
@@ -175,7 +175,7 @@ func (is isvcReconciler) Disable(ctx context.Context, kubeConfig []byte, incomin
 	for {
 		inactiveSI := v1alpha1.ServiceInstance{}
 		if err := cli.Get(ctx, key, &inactiveSI); err != nil {
-			if errors2.IsNotFound(err) {
+			if apiErrors.IsNotFound(err) {
 				// resource is not found
 				return nil
 			}
