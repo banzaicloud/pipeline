@@ -151,16 +151,14 @@ func (c crRepository) k8sClientForCluster(ctx context.Context, clusterID uint) (
 }
 
 func (c crRepository) transform(instance v1alpha1.ServiceInstance) (integratedservices.IntegratedService, error) {
-	transformedIS := integratedservices.IntegratedService{}
-	transformedIS.Name = instance.Name
-
 	apiSpec, err := c.specWrapper.Unwrap(context.Background(), []byte(instance.Spec.Config))
 	if err != nil {
 		return integratedservices.IntegratedService{}, errors.Wrap(err, "failed to unwrap configuration from custom resource")
 	}
 
-	transformedIS.Spec = apiSpec
-	transformedIS.Status = c.statusMapper.MapStatus(instance)
-
-	return transformedIS, nil
+	return integratedservices.IntegratedService{
+		Name:   instance.Name,
+		Spec:   apiSpec,
+		Status: c.statusMapper.MapStatus(instance),
+	}, nil
 }
