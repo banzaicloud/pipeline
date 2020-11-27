@@ -26,6 +26,7 @@ import (
 type dnsIntegratedServiceSpec struct {
 	ClusterDomain clusterDomainSpec `json:"clusterDomain" mapstructure:"clusterDomain"`
 	ExternalDNS   externalDNSSpec   `json:"externalDns" mapstructure:"externalDns"`
+	RBACEnabled   bool              `json:"rbacEnabled,omitempty"`
 }
 
 func (s dnsIntegratedServiceSpec) Validate() error {

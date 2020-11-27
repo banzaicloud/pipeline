@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dns
+package integratedserviceadapter
 
 import (
 	"context"
@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
 
 // Reconciler decouples handling of custom resources on a kubernetes cluster
@@ -72,6 +73,8 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 		return errors.Wrap(err, "failed to create the client from rest configuration")
 	}
 
+	services.SetManagedByPipeline(&incomingSI.ObjectMeta)
+
 	resourceReconciler := reconciler.NewReconcilerWith(cli)
 	isNew, object, err := resourceReconciler.CreateIfNotExist(&incomingSI, reconciler.StateCreated)
 	if err != nil {
@@ -112,6 +115,10 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 		}
 	}
 
+	if !services.IsManagedByPipeline(existingSI.ObjectMeta) {
+		return errors.New("service instance is managed externally")
+	}
+
 	// at this point the incoming changes need to be applied to the existing instance - that'll be updated
 	existingSI.Spec.Enabled = incomingSI.Spec.Enabled
 	// make sure the flag is populated / enable it by default
@@ -124,13 +131,10 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 	if incomingSI.Spec.Version == "" {
 		latestVersion, err := is.getLatestVersion(*existingSI)
 		if err != nil {
-			return errors.Wrap(err, "failed to get the  latest version")
+			return errors.Wrap(err, "failed to get the latest version")
 		}
 		existingSI.Spec.Version = latestVersion
 	}
-
-	// set the (possibly changed) config
-	existingSI.Spec.Config = incomingSI.Spec.Config
 
 	if _, err := resourceReconciler.ReconcileResource(existingSI, reconciler.StatePresent); err != nil {
 		return errors.Wrap(err, "failed to reconcile the integrated service")
@@ -166,6 +170,10 @@ func (is isvcReconciler) Disable(ctx context.Context, kubeConfig []byte, incomin
 		return errors.Wrap(err, "failed to look up service instance")
 	}
 
+	if !services.IsManagedByPipeline(existingSI.ObjectMeta) {
+		return errors.New("service instance is managed externally")
+	}
+
 	existingSI.Spec.Enabled = utils.BoolPointer(false) // effectively disable the service instance
 	if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&existingSI, reconciler.StatePresent); err != nil {
 		return errors.Wrap(err, "failed to reconcile the integrated service")
@@ -194,8 +202,6 @@ func (is isvcReconciler) Disable(ctx context.Context, kubeConfig []byte, incomin
 		time.Sleep(2 * time.Second)
 	}
 
-	// delete the configuration
-	existingSI.Spec.Config = ""
 	if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&existingSI, reconciler.StatePresent); err != nil {
 		return errors.Wrap(err, "failed to reconcile the integrated service")
 	}

@@ -71,7 +71,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/externaldns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
 	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
@@ -585,9 +584,14 @@ func main() {
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 
 			var featureRepository integratedservices.IntegratedServiceRepository
-			featureRepository = integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
 			if config.IntegratedService.V2 {
-				featureRepository = integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), externaldns.NewSpecWrapper(), config.Cluster.Namespace)
+				secretMappers := map[string]integratedservices.SpecMapper{
+					integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
+				}
+				specTransformation := integratedserviceadapter.NewSpecTransformation(services.NewServiceStatusMapper(), secretMappers)
+				featureRepository = integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), commonLogger, specTransformation, config.Cluster.Namespace)
+			} else {
+				featureRepository = integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
 			}
 
 			kubernetesService := kubernetes.NewService(
@@ -645,7 +649,6 @@ func main() {
 					orgDomainService,
 					commonSecretStore,
 					config.Cluster.DNS.Config,
-					externaldns.NewSpecWrapper(),
 					logger,
 				)
 			} else {
