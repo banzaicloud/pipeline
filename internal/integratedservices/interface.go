@@ -215,3 +215,8 @@ func (e ClusterIsNotReadyError) ShouldRetry() bool {
 type ServiceNameMapper interface {
 	MapServiceName(serviceName string) string
 }
+
+type SpecMapper interface {
+	// MapSpec maps certain values in integrated spec while keeping it's original type structure
+	MapSpec(ctx context.Context, spec IntegratedServiceSpec) (IntegratedServiceSpec, error)
+}

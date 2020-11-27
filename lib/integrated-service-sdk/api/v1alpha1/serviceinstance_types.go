@@ -20,10 +20,12 @@ import (
 
 // ServiceInstanceSpec defines the desired state of ServiceInstance.
 type ServiceInstanceSpec struct {
-	Service string `json:"service,omitempty"`
-	Version string `json:"version,omitempty"`
-	Enabled *bool  `json:"enabled,omitempty"`
-	Config  string `json:"config,omitempty"`
+	Service   string `json:"service,omitempty"`
+	Version   string `json:"version,omitempty"`
+	Enabled   *bool  `json:"enabled,omitempty"`
+	Overrides string `json:"overrides,omitempty"`
+	// ServiceSpec Service specification
+	ServiceSpec string `json:"serviceSpec,omitempty"`
 }
 
 type Status string

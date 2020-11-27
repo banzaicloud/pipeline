@@ -16,6 +16,7 @@ package dns
 
 import (
 	"context"
+	"encoding/json"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
@@ -27,7 +28,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/externaldns"
-	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/dns/route53"
 )
@@ -38,8 +38,7 @@ type Operator struct {
 	orgDomainService  OrgDomainService
 	secretStore       services.SecretStore
 	config            Config
-	reconciler        Reconciler
-	specWrapper       integratedservices.SpecWrapper
+	reconciler        integratedserviceadapter.Reconciler
 	serviceNameMapper services.ServiceNameMapper
 	logger            common.Logger
 }
@@ -50,8 +49,6 @@ func NewDNSISOperator(
 	orgDomainService OrgDomainService,
 	secretStore services.SecretStore,
 	config Config,
-	wrapper integratedservices.SpecWrapper,
-
 	logger common.Logger,
 ) Operator {
 	return Operator{
@@ -60,8 +57,7 @@ func NewDNSISOperator(
 		orgDomainService:  orgDomainService,
 		secretStore:       secretStore,
 		config:            config,
-		reconciler:        NewISReconciler(logger),
-		specWrapper:       wrapper,
+		reconciler:        integratedserviceadapter.NewISReconciler(logger),
 		serviceNameMapper: services.NewServiceNameMapper(),
 		logger:            logger,
 	}
@@ -123,12 +119,21 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 		if err := o.orgDomainService.EnsureOrgDomain(ctx, clusterID); err != nil {
 			return errors.WrapIf(err, "failed to ensure org domain")
 		}
+		boundSpec.ExternalDNS.Provider.SecretID = route53.IAMUserAccessKeySecretID
 	}
 
-	chartValues, err := o.getChartValues(ctx, clusterID, boundSpec)
+	secretName, err := o.secretStore.GetNameByID(ctx, boundSpec.ExternalDNS.Provider.SecretID)
 	if err != nil {
-		return errors.WrapIf(err, "failed to get chart values")
+		return errors.WrapIf(err, "failed to get secret name by id")
 	}
+
+	if err = o.installSecret(ctx, clusterID, secretName, boundSpec); err != nil {
+		return errors.WrapIf(err, "failed to install secret")
+	}
+
+	// Update the secretID here so that it contains the actual K8s secret reference on the cluster
+	// This will need to be reverted when converting the spec back to clients
+	boundSpec.ExternalDNS.Provider.SecretID = secretName
 
 	cl, err := o.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -140,14 +145,22 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 		return errors.WrapIf(err, "failed to retrieve the k8s config")
 	}
 
+	// decorate the input with cluster data
+	boundSpec.RBACEnabled = cl.RbacEnabled()
+	serviceSpec, err := json.Marshal(boundSpec)
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal the api spec")
+	}
+
 	si := v1alpha1.ServiceInstance{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: o.config.Namespace,
 			Name:      o.serviceNameMapper.MapServiceName(IntegratedServiceName),
 		},
 		Spec: v1alpha1.ServiceInstanceSpec{
-			Service: o.serviceNameMapper.MapServiceName(IntegratedServiceName),
-			Config:  string(chartValues),
+			Service:     o.serviceNameMapper.MapServiceName(IntegratedServiceName),
+			Enabled:     nil,
+			ServiceSpec: string(serviceSpec),
 		},
 	}
 
@@ -162,52 +175,25 @@ func (o Operator) Name() string {
 	return IntegratedServiceName
 }
 
-func (o Operator) getChartValues(ctx context.Context, clusterID uint, spec dnsIntegratedServiceSpec) ([]byte, error) {
+// installSecret installs secret to the cluster (from the vault secret store) and returns the name
+func (o Operator) installSecret(ctx context.Context, clusterID uint, secretName string, spec dnsIntegratedServiceSpec) error {
 	cl, err := o.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get cluster")
+		return errors.WrapIf(err, "failed to get cluster")
 	}
 
-	chartValues := externaldns.ChartValues{
-		Sources: spec.ExternalDNS.Sources,
-		RBAC: &externaldns.RBACSettings{
-			Create: cl.RbacEnabled(),
-		},
-		Image: &externaldns.ImageSettings{
-			Repository: o.config.Charts.ExternalDNS.Values.Image.Repository,
-			Tag:        o.config.Charts.ExternalDNS.Values.Image.Tag,
-		},
-		DomainFilters: spec.ExternalDNS.DomainFilters,
-		Policy:        string(spec.ExternalDNS.Policy),
-		TXTOwnerID:    string(spec.ExternalDNS.TXTOwnerID),
-		TXTPrefix:     string(spec.ExternalDNS.TXTPrefix),
-		Provider:      getProviderNameForChart(spec.ExternalDNS.Provider.Name),
-	}
-
-	if spec.ExternalDNS.Provider.Name == dnsBanzai {
-		spec.ExternalDNS.Provider.SecretID = route53.IAMUserAccessKeySecretID
-	}
-
+	// the secretID is always populated here!
 	secretValues, err := o.secretStore.GetSecretValues(ctx, spec.ExternalDNS.Provider.SecretID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get secret")
+		return errors.WrapIf(err, "failed to get secret")
 	}
 
 	switch spec.ExternalDNS.Provider.Name {
 	case dnsBanzai, dnsRoute53:
-		chartValues.AWS = &externaldns.AWSSettings{
-			Region: secretValues[secrettype.AwsRegion],
-			Credentials: &externaldns.AWSCredentials{
-				AccessKey: secretValues[secrettype.AwsAccessKeyId],
-				SecretKey: secretValues[secrettype.AwsSecretAccessKey],
-			},
+		_, err := installSecret(cl, o.config.Namespace, secretName, externaldns.AwsSecretDataKey, secretValues)
+		if err != nil {
+			return errors.WrapIf(err, "failed to install aws secret")
 		}
-
-		if options := spec.ExternalDNS.Provider.Options; options != nil {
-			chartValues.AWS.BatchChangeSize = options.BatchChangeSize
-			chartValues.AWS.Region = options.Region
-		}
-
 	case dnsAzure:
 		type azureSecret struct {
 			ClientID       string `json:"aadClientId" mapstructure:"AZURE_CLIENT_ID"`
@@ -218,49 +204,22 @@ func (o Operator) getChartValues(ctx context.Context, clusterID uint, spec dnsIn
 
 		var secret azureSecret
 		if err := mapstructure.Decode(secretValues, &secret); err != nil {
-			return nil, errors.WrapIf(err, "failed to decode secret values")
+			return errors.WrapIf(err, "failed to decode secret values")
 		}
 
-		secretName, err := installSecret(cl, o.config.Namespace, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
+		_, err := installSecret(cl, o.config.Namespace, secretName, externaldns.AzureSecretDataKey, secret)
 		if err != nil {
-			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
+			return errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
-
-		chartValues.Azure = &externaldns.AzureSettings{
-			SecretName:    secretName,
-			ResourceGroup: spec.ExternalDNS.Provider.Options.AzureResourceGroup,
-		}
-
 	case dnsGoogle:
-		secretName, err := installSecret(cl, o.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
+		_, err := installSecret(cl, o.config.Namespace, secretName, externaldns.GoogleSecretDataKey, secretValues)
 		if err != nil {
-			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
+			return errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
-
-		chartValues.Google = &externaldns.GoogleSettings{
-			Project:              secretValues[secrettype.ProjectId],
-			ServiceAccountSecret: secretName,
-		}
-
-		if options := spec.ExternalDNS.Provider.Options; options != nil {
-			chartValues.Google.Project = options.GoogleProject
-		}
-
 	default:
 	}
 
-	// wrap the original specification into the values byte slice (temporary solution for backwards compatibility)
-	var origSpec integratedservices.IntegratedServiceSpec
-	if err := mapstructure.Decode(spec, &origSpec); err != nil {
-		return nil, errors.WrapIf(err, "failed to decode originalspec ")
-	}
-
-	rawValues, err := o.specWrapper.Wrap(ctx, chartValues, origSpec)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to marshal chart values")
-	}
-
-	return rawValues, nil
+	return nil
 }
 
 func (o Operator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
