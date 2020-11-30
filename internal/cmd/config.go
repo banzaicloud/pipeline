@@ -728,7 +728,7 @@ rbac:
 	v.SetDefault("cluster::securityScan::anchore::password", "")
 	v.SetDefault("cluster::securityScan::anchore::insecure", false)
 	v.SetDefault("cluster::securityScan::webhook::chart", "banzaicloud-stable/anchore-policy-validator")
-	v.SetDefault("cluster::securityScan::webhook::version", "0.6.0")
+	v.SetDefault("cluster::securityScan::webhook::version", "0.6.1")
 	v.SetDefault("cluster::securityScan::webhook::release", "anchore")
 	v.SetDefault("cluster::securityScan::webhook::namespace", "pipeline-system")
 	// v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
