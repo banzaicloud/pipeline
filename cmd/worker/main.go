@@ -587,7 +587,7 @@ func main() {
 			var featureRepository integratedservices.IntegratedServiceRepository
 			featureRepository = integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
 			if config.IntegratedService.V2 {
-				featureRepository = integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), externaldns.NewSpecWrapper(), config.Cluster.Namespace)
+				featureRepository = integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), externaldns.NewSpecWrapper(), commonLogger, config.Cluster.Namespace)
 			}
 
 			kubernetesService := kubernetes.NewService(

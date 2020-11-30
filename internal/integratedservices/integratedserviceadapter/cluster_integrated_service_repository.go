@@ -26,6 +26,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 )
@@ -36,11 +37,12 @@ type crRepository struct {
 	kubeConfigFn integratedservices.ClusterKubeConfigFunc
 	specWrapper  integratedservices.SpecWrapper
 	statusMapper services.StatusMapper
+	logger       common.Logger
 	namespace    string
 }
 
 // Creates a new CR repository instance to access integrated services in a k8s cluster
-func NewCRRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc, wrapper integratedservices.SpecWrapper, namespace string) integratedservices.IntegratedServiceRepository {
+func NewCRRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc, wrapper integratedservices.SpecWrapper, logger common.Logger, namespace string) integratedservices.IntegratedServiceRepository {
 	scheme := runtime.NewScheme()
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = v1alpha1.AddToScheme(scheme)
@@ -49,8 +51,9 @@ func NewCRRepository(kubeConfigFn integratedservices.ClusterKubeConfigFunc, wrap
 		scheme:       scheme,
 		kubeConfigFn: kubeConfigFn,
 		specWrapper:  wrapper,
-		namespace:    namespace,
 		statusMapper: services.NewServiceStatusMapper(),
+		namespace:    namespace,
+		logger:       logger,
 	}
 }
 
@@ -69,6 +72,10 @@ func (c crRepository) GetIntegratedServices(ctx context.Context, clusterID uint)
 	for _, si := range lookupISvcs.Items {
 		transformed, err := c.transform(si)
 		if err != nil {
+			c.logger.Error("service transformation", map[string]interface{}{
+				"service": si.Spec.Service,
+				"err":     err,
+			})
 			continue
 		}
 		iSvcs = append(iSvcs, transformed)
