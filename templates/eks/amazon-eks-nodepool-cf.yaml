@@ -60,7 +60,7 @@ Parameters:
     Description: Comma separated list of security groups for all nodes in the pool.
 
   KeyName:
-    Type: "AWS::EC2::KeyPair::KeyName"
+    Type: String # Note: not using "AWS::EC2::KeyPair::KeyName", because it implicitly validates the value to existing keys and we want to allow using the empty value as well, see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html .
     Description: The EC2 Key Pair to allow SSH access to the instances
 
   # NodeAutoScalingGroupDesiredCapacity:
