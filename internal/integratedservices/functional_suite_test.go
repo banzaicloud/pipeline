@@ -26,6 +26,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/cmd"
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -47,8 +48,9 @@ type Suite struct {
 
 	v2 bool
 
-	kubeconfig string
-	config     *cmd.Config
+	kubeconfig   string
+	config       *cmd.Config
+	commonLogger common.Logger
 
 	integratedServiceServiceCreater   func(...integratedservices.IntegratedServiceManager) (integratedservices.Service, error)
 	integratedServiceServiceCreaterV2 func(integratedservices.ClusterKubeConfigFunc, ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error)
@@ -105,6 +107,7 @@ func (s *Suite) SetupSuite() {
 
 	logurLogger := log.NewLogger(s.config.Log)
 	commonLogger := commonadapter.NewLogger(logurLogger)
+	s.commonLogger = commonLogger
 
 	zaplog := zaplog.New(logurLogger)
 	workflowClient, err := cadence.NewClient(s.config.Cadence, zaplog)
@@ -121,7 +124,7 @@ func (s *Suite) SetupSuite() {
 	s.integratedServiceServiceCreaterV2 = func(kubeConfigFunc integratedservices.ClusterKubeConfigFunc, managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
 		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
 		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-		clusterRepository := integratedserviceadapter.NewCRRepository(kubeConfigFunc, externaldns.NewSpecWrapper(), s.config.Cluster.Namespace)
+		clusterRepository := integratedserviceadapter.NewCRRepository(kubeConfigFunc, externaldns.NewSpecWrapper(), commonLogger, s.config.Cluster.Namespace)
 		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger)
 		return serviceFacade, nil
 	}

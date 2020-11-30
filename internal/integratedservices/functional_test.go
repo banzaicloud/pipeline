@@ -22,11 +22,18 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	"k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/src/secret"
+)
+
+const (
+	externalDNSDeploymentName = "external-dns"
 )
 
 // These tests aim to verify that Integrated Service API specifications are met.
@@ -169,9 +176,12 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, map[string]interface{}{
 		"clusterDomain": "asd",
 		"externalDns": map[string]interface{}{
-			"provider": map[string]string{
-				"name":     "fake",
+			"provider": map[string]interface{}{
+				"name":     "google",
 				"secretId": fakeSecretId,
+				"options": map[string]string{
+					"project": "google",
+				},
 			},
 		},
 	})
@@ -195,6 +205,38 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 		}
 		return false
 	}, time.Second*30, time.Second*2)
+
+	kubeConfig, err := importedFakeCluster.GetK8sConfig()
+	s.Require().NoError(err)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	s.Require().NoError(err)
+
+	s.Require().Eventually(func() bool {
+		_, err = client.AppsV1().Deployments(s.config.Cluster.Namespace).
+			Get(context.TODO(), externalDNSDeploymentName, v1.GetOptions{})
+		if err != nil {
+			if !errors.IsNotFound(err) {
+				s.FailNow(err.Error())
+			}
+			return false
+		}
+		return true
+	}, time.Second*30, time.Second*2, "external-dns deployment created")
+
+	err = integratedServicesService.Deactivate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
+	s.Require().NoError(err)
+
+	s.Require().Eventually(func() bool {
+		_, err = client.AppsV1().Deployments(s.config.Cluster.Namespace).
+			Get(context.TODO(), externalDNSDeploymentName, v1.GetOptions{})
+		if err != nil {
+			if !errors.IsNotFound(err) {
+				s.Error(err)
+			}
+			return true
+		}
+		return false
+	}, time.Second*30, time.Second*2, "external-dns deployment created")
 }
 
 func TestV1(t *testing.T) {
