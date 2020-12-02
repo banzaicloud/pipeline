@@ -14,6 +14,8 @@ type EksUpdateNodePoolRequestAllOf struct {
 
 	Autoscaling NodePoolAutoScaling `json:"autoscaling,omitempty"`
 
+	VolumeEncryption *EksNodePoolVolumeEncryption `json:"volumeEncryption,omitempty"`
+
 	// Size of the EBS volume in GBs of the nodes in the pool.
 	VolumeSize int32 `json:"volumeSize,omitempty"`
 
