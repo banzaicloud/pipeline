@@ -183,8 +183,7 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 				expectedNodePool: NodePool{
 					Name:   "node-pool",
 					Status: NodePoolStatusError,
-					StatusMessage: "parsing values failed" +
-						": parsing ClusterAutoscalerEnabled value not-a-bool failed" +
+					StatusMessage: "1 error(s) decoding:\n\n* error decoding 'ClusterAutoscalerEnabled'" +
 						": strconv.ParseBool: parsing \"not-a-bool\": invalid syntax",
 				},
 			},

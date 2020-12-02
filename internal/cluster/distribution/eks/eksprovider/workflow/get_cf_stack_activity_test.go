@@ -557,12 +557,11 @@ func TestGetCFStackOutputs(t *testing.T) {
 			output: outputType{
 				expectedError: errors.New(
 					"parsing stack outputs failed" +
-						": parsing values failed" +
-						": missing requested value Bool" +
-						"; missing requested value Float" +
-						"; missing requested value Int" +
-						"; missing requested value String" +
-						"; missing requested value Uint",
+						": missing expected key Bool" +
+						"; missing expected key Float" +
+						"; missing expected key Int" +
+						"; missing expected key String" +
+						"; missing expected key Uint",
 				),
 				expectedOutputs: &expectedOutputsType{},
 			},
@@ -761,12 +760,11 @@ func TestGetCFStackParameters(t *testing.T) {
 			output: outputType{
 				expectedError: errors.New(
 					"parsing stack parameters failed" +
-						": parsing values failed" +
-						": missing requested value Bool" +
-						"; missing requested value Float" +
-						"; missing requested value Int" +
-						"; missing requested value String" +
-						"; missing requested value Uint",
+						": missing expected key Bool" +
+						"; missing expected key Float" +
+						"; missing expected key Int" +
+						"; missing expected key String" +
+						"; missing expected key Uint",
 				),
 				expectedParameters: &expectedParametersType{},
 			},
