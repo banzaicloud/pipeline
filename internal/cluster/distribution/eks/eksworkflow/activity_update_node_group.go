@@ -28,7 +28,6 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -107,10 +106,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 	}
 
 	stackParams := []*cloudformation.Parameter{
-		{
-			ParameterKey:   aws.String(workflow.GetStackTemplateVersionKey()),
-			ParameterValue: aws.String("2.0.0"),
-		},
 		{
 			ParameterKey:     aws.String("KeyName"),
 			UsePreviousValue: aws.Bool(true),

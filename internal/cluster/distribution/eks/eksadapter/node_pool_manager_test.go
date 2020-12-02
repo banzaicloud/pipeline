@@ -673,10 +673,6 @@ func TestListNodePools(t *testing.T) {
 							{
 								Parameters: []*cloudformation.Parameter{
 									{
-										ParameterKey:   aws.String("TemplateVersion"),
-										ParameterValue: aws.String("2.0.0"),
-									},
-									{
 										ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
 										ParameterValue: aws.String("true"),
 									},
@@ -725,10 +721,6 @@ func TestListNodePools(t *testing.T) {
 						Stacks: []*cloudformation.Stack{
 							{
 								Parameters: []*cloudformation.Parameter{
-									{
-										ParameterKey:   aws.String("TemplateVersion"),
-										ParameterValue: aws.String("2.0.0"),
-									},
 									{
 										ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
 										ParameterValue: aws.String("false"),
