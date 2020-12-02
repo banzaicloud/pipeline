@@ -17,6 +17,7 @@ package integratedservices
 import (
 	"context"
 	"testing"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
@@ -91,7 +92,7 @@ func TestIntegratedServiceService_List(t *testing.T) {
 		},
 	}
 	logger := NoopLogger{}
-	service := MakeIntegratedServiceService(nil, registry, repository, logger)
+	service := MakeIntegratedServiceService(nil, registry, repository, logger, &NoopApiMetrics{})
 
 	integratedServices, err := service.List(context.Background(), clusterID)
 	require.NoError(t, err)
@@ -126,7 +127,7 @@ func TestIntegratedServiceService_Details(t *testing.T) {
 		},
 	})
 	logger := NoopLogger{}
-	service := MakeIntegratedServiceService(nil, registry, repository, logger)
+	service := MakeIntegratedServiceService(nil, registry, repository, logger, &NoopApiMetrics{})
 
 	cases := map[string]struct {
 		IntegratedServiceName string
@@ -241,7 +242,7 @@ func TestIntegratedServiceService_Activate(t *testing.T) {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			repository := NewInMemoryIntegratedServiceRepository(tc.InitialServices)
-			service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
+			service := MakeIntegratedServiceService(dispatcher, registry, repository, logger, &NoopApiMetrics{})
 			dispatcher.ApplyError = tc.ApplyError
 			integratedServiceManager.ValidationError = tc.ValidationError
 
@@ -289,7 +290,7 @@ func TestIntegratedServiceService_Deactivate(t *testing.T) {
 	})
 	snapshot := repository.Snapshot()
 	logger := NoopLogger{}
-	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
+	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger, &NoopApiMetrics{})
 
 	cases := map[string]struct {
 		IntegratedServiceName string
@@ -360,7 +361,7 @@ func TestIntegratedServiceService_Update(t *testing.T) {
 	})
 	snapshot := repository.Snapshot()
 	logger := NoopLogger{}
-	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger)
+	service := MakeIntegratedServiceService(dispatcher, registry, repository, logger, &NoopApiMetrics{})
 
 	cases := map[string]struct {
 		IntegratedServiceName string
@@ -429,4 +430,22 @@ func (d dummyIntegratedServiceOperationDispatcher) DispatchApply(ctx context.Con
 
 func (d dummyIntegratedServiceOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error {
 	return d.DeactivateError
+}
+
+type NoopApiMetrics struct {
+}
+
+func (n NoopApiMetrics) Increment(_ string) {
+}
+
+func (n NoopApiMetrics) ObserveDuration() time.Duration {
+	return time.Second
+}
+
+func (n NoopApiMetrics) RequestTimer(clusterID uint, service, action string) DurationObserver {
+	return n
+}
+
+func (n NoopApiMetrics) ErrorCounter(clusterID uint, service, action string) ErrorCounter {
+	return n
 }

@@ -50,12 +50,14 @@ func MakeIntegratedServiceService(
 	integratedServiceManagerRegistry IntegratedServiceManagerRegistry,
 	integratedServiceRepository IntegratedServiceRepository,
 	logger common.Logger,
+	metrics ApiMetrics,
 ) IntegratedServiceService {
 	return IntegratedServiceService{
 		integratedServiceOperationDispatcher: integratedServiceOperationDispatcher,
 		integratedServiceManagerRegistry:     integratedServiceManagerRegistry,
 		integratedServiceRepository:          integratedServiceRepository,
 		logger:                               logger,
+		metrics:                              metrics,
 	}
 }
 
@@ -65,6 +67,7 @@ type IntegratedServiceService struct {
 	integratedServiceManagerRegistry     IntegratedServiceManagerRegistry
 	integratedServiceRepository          IntegratedServiceRepository
 	logger                               common.Logger
+	metrics                              ApiMetrics
 }
 
 // List returns non-inactive integrated services and their status.
@@ -72,8 +75,14 @@ func (s IntegratedServiceService) List(ctx context.Context, clusterID uint) ([]I
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID})
 	logger.Info("listing integrated services")
 
+	timer := s.metrics.RequestTimer(clusterID, "", "list")
+	defer timer.ObserveDuration()
+
+	errorCounter := s.metrics.ErrorCounter(clusterID, "", "list")
+
 	integratedServices, err := s.integratedServiceRepository.GetIntegratedServices(ctx, clusterID)
 	if err != nil {
+		errorCounter.Increment("repository_list")
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve integrated services", "clusterId", clusterID)
 	}
 
@@ -93,11 +102,17 @@ func (s IntegratedServiceService) Details(ctx context.Context, clusterID uint, i
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceName})
 	logger.Info("processing integrated service details request")
 
+	timer := s.metrics.RequestTimer(clusterID, integratedServiceName, "details")
+	defer timer.ObserveDuration()
+
+	errorCounter := s.metrics.ErrorCounter(clusterID, integratedServiceName, "details")
+
 	// TODO: check cluster ID?
 
 	logger.Debug("retrieving integrated service manager")
 	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName)
 	if err != nil {
+		errorCounter.Increment("unsupported")
 		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
 		return IntegratedService{}, errors.WrapIf(err, msg)
@@ -107,12 +122,14 @@ func (s IntegratedServiceService) Details(ctx context.Context, clusterID uint, i
 	integratedService, err := s.integratedServiceRepository.GetIntegratedService(ctx, clusterID, integratedServiceName)
 	if err != nil {
 		if IsIntegratedServiceNotFoundError(err) {
+			errorCounter.Increment("notfound")
 			return IntegratedService{
 				Name:   integratedServiceName,
 				Status: IntegratedServiceStatusInactive,
 			}, nil
 		}
 
+		errorCounter.Increment("repo_get")
 		const msg = "failed to retrieve integrated service from repository"
 		logger.Debug(msg)
 		return integratedService, errors.WrapIf(err, msg)
@@ -121,6 +138,7 @@ func (s IntegratedServiceService) Details(ctx context.Context, clusterID uint, i
 	logger.Debug("retrieving integrated service output")
 	output, err := integratedServiceManager.GetOutput(ctx, clusterID, integratedService.Spec)
 	if err != nil {
+		errorCounter.Increment("output")
 		const msg = "failed to retrieve integrated service output"
 		logger.Debug(msg)
 		return integratedService, errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
@@ -138,21 +156,29 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceName})
 	logger.Info("processing integrated service activation request")
 
+	timer := s.metrics.RequestTimer(clusterID, integratedServiceName, "activate")
+	defer timer.ObserveDuration()
+
+	errorCounter := s.metrics.ErrorCounter(clusterID, integratedServiceName, "activate")
+
 	// TODO: check cluster ID?
 
 	logger.Debug("retrieving integrated service manager")
 	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName)
 	if err != nil {
+		errorCounter.Increment("unsupported")
 		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
 
 	if _, err := s.integratedServiceRepository.GetIntegratedService(ctx, clusterID, integratedServiceName); err == nil {
+		errorCounter.Increment("already_active")
 		return errors.WithStackIf(serviceAlreadyActiveError{
 			ServiceName: integratedServiceName,
 		})
 	} else if !IsIntegratedServiceNotFoundError(err) { // unexpected error
+		errorCounter.Increment("notfound")
 		const msg = "failed to get integrated service from repository"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
@@ -160,6 +186,7 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 
 	logger.Debug("validating integrated service specification")
 	if err := integratedServiceManager.ValidateSpec(ctx, spec); err != nil {
+		errorCounter.Increment("validate_spec")
 		logger.Debug("integrated service specification validation failed")
 		return InvalidIntegratedServiceSpecError{IntegratedServiceName: integratedServiceName, Problem: err.Error()}
 	}
@@ -167,6 +194,7 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 	logger.Debug("preparing integrated service specification")
 	preparedSpec, err := integratedServiceManager.PrepareSpec(ctx, clusterID, spec)
 	if err != nil {
+		errorCounter.Increment("prepare_spec")
 		const msg = "failed to prepare integrated service specification"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
@@ -174,6 +202,7 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 
 	logger.Debug("starting integrated service activation")
 	if err := s.integratedServiceOperationDispatcher.DispatchApply(ctx, clusterID, integratedServiceName, preparedSpec); err != nil {
+		errorCounter.Increment("apply")
 		const msg = "failed to start integrated service activation"
 		logger.Debug(msg)
 		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
@@ -181,6 +210,7 @@ func (s IntegratedServiceService) Activate(ctx context.Context, clusterID uint, 
 
 	logger.Debug("persisting integrated service")
 	if err := s.integratedServiceRepository.SaveIntegratedService(ctx, clusterID, integratedServiceName, spec, IntegratedServiceStatusPending); err != nil {
+		errorCounter.Increment("persist")
 		const msg = "failed to persist integrated service"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
@@ -196,10 +226,16 @@ func (s IntegratedServiceService) Deactivate(ctx context.Context, clusterID uint
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "integrated service": integratedServiceName})
 	logger.Info("processing integrated service deactivation request")
 
+	timer := s.metrics.RequestTimer(clusterID, integratedServiceName, "deactivate")
+	defer timer.ObserveDuration()
+
+	errorCounter := s.metrics.ErrorCounter(clusterID, integratedServiceName, "deactivate")
+
 	// TODO: check cluster ID?
 
 	logger.Debug("checking integrated service name")
 	if _, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName); err != nil {
+		errorCounter.Increment("unsupported")
 		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
@@ -208,6 +244,7 @@ func (s IntegratedServiceService) Deactivate(ctx context.Context, clusterID uint
 	logger.Debug("get integrated service details")
 	f, err := s.integratedServiceRepository.GetIntegratedService(ctx, clusterID, integratedServiceName)
 	if err != nil {
+		errorCounter.Increment("notfound")
 		const msg = "failed to retrieve integrated service details"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
@@ -215,6 +252,7 @@ func (s IntegratedServiceService) Deactivate(ctx context.Context, clusterID uint
 
 	logger.Debug("starting integrated service deactivation")
 	if err := s.integratedServiceOperationDispatcher.DispatchDeactivate(ctx, clusterID, integratedServiceName, f.Spec); err != nil {
+		errorCounter.Increment("deactivate")
 		const msg = "failed to start integrated service deactivation"
 		logger.Debug(msg)
 		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
@@ -223,6 +261,7 @@ func (s IntegratedServiceService) Deactivate(ctx context.Context, clusterID uint
 	logger.Debug("updating integrated service status")
 	if err := s.integratedServiceRepository.UpdateIntegratedServiceStatus(ctx, clusterID, integratedServiceName, IntegratedServiceStatusPending); err != nil {
 		if !IsIntegratedServiceNotFoundError(err) {
+			errorCounter.Increment("update_status")
 			const msg = "failed to update integrated service status"
 			logger.Debug(msg)
 			return errors.WrapIf(err, msg)
@@ -241,11 +280,17 @@ func (s IntegratedServiceService) Update(ctx context.Context, clusterID uint, in
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterID": clusterID, "integrated service": integratedServiceName})
 	logger.Info("processing integrated service update request")
 
+	timer := s.metrics.RequestTimer(clusterID, integratedServiceName, "update")
+	defer timer.ObserveDuration()
+
+	errorCounter := s.metrics.ErrorCounter(clusterID, integratedServiceName, "update")
+
 	// TODO: check cluster ID?
 
 	logger.Debug("retieving integrated service manager")
 	integratedServiceManager, err := s.integratedServiceManagerRegistry.GetIntegratedServiceManager(integratedServiceName)
 	if err != nil {
+		errorCounter.Increment("unsupported")
 		const msg = "failed to retrieve integrated service manager"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
@@ -253,6 +298,7 @@ func (s IntegratedServiceService) Update(ctx context.Context, clusterID uint, in
 
 	logger.Debug("validating integrated service specification")
 	if err := integratedServiceManager.ValidateSpec(ctx, spec); err != nil {
+		errorCounter.Increment("validate_spec")
 		logger.Debug("integrated service specification validation failed")
 		return InvalidIntegratedServiceSpecError{IntegratedServiceName: integratedServiceName, Problem: err.Error()}
 	}
@@ -260,6 +306,7 @@ func (s IntegratedServiceService) Update(ctx context.Context, clusterID uint, in
 	logger.Debug("preparing integrated service specification")
 	preparedSpec, err := integratedServiceManager.PrepareSpec(ctx, clusterID, spec)
 	if err != nil {
+		errorCounter.Increment("prepare_spec")
 		const msg = "failed to prepare integrated service specification"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
@@ -267,6 +314,7 @@ func (s IntegratedServiceService) Update(ctx context.Context, clusterID uint, in
 
 	logger.Debug("starting integrated service update")
 	if err := s.integratedServiceOperationDispatcher.DispatchApply(ctx, clusterID, integratedServiceName, preparedSpec); err != nil {
+		errorCounter.Increment("apply")
 		const msg = "failed to start integrated service update"
 		logger.Debug(msg)
 		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "integrated service", integratedServiceName)
@@ -274,6 +322,7 @@ func (s IntegratedServiceService) Update(ctx context.Context, clusterID uint, in
 
 	logger.Debug("persisting integrated service")
 	if err := s.integratedServiceRepository.SaveIntegratedService(ctx, clusterID, integratedServiceName, spec, IntegratedServiceStatusPending); err != nil {
+		errorCounter.Increment("persist")
 		const msg = "failed to persist integrated service"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)

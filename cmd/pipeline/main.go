@@ -108,6 +108,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm/helmdriver"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/metrics"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
@@ -927,7 +928,7 @@ func main() {
 					integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
 					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 					clusterRepository := integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), externaldns.NewSpecWrapper(), commonLogger, config.Cluster.Namespace)
-					integratedServicesService = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger)
+					integratedServicesService = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger, metrics.NewApiMetrics("v2"))
 				} else {
 					// legacy setup
 					featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
@@ -1013,7 +1014,7 @@ func main() {
 
 					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 					integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-					integratedServicesService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
+					integratedServicesService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger, metrics.NewApiMetrics("v1"))
 				}
 				endpoints := integratedservicesdriver.MakeEndpoints(
 					integratedServicesService,

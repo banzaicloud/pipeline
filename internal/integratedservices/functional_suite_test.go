@@ -31,6 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/metrics"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/externaldns"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
@@ -113,11 +114,13 @@ func (s *Suite) SetupSuite() {
 	workflowClient, err := cadence.NewClient(s.config.Cadence, zaplog)
 	s.Require().NoError(err)
 
+	apiMetrics := metrics.NewApiMetrics("test")
+
 	s.integratedServiceServiceCreater = func(managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
 		featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
 		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-		serviceFacade := integratedservices.MakeIntegratedServiceService(dispatcher, registry, featureRepository, commonLogger)
+		serviceFacade := integratedservices.MakeIntegratedServiceService(dispatcher, registry, featureRepository, commonLogger, apiMetrics)
 		return &serviceFacade, nil
 	}
 
@@ -125,7 +128,7 @@ func (s *Suite) SetupSuite() {
 		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
 		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
 		clusterRepository := integratedserviceadapter.NewCRRepository(kubeConfigFunc, externaldns.NewSpecWrapper(), commonLogger, s.config.Cluster.Namespace)
-		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger)
+		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger, apiMetrics)
 		return serviceFacade, nil
 	}
 }

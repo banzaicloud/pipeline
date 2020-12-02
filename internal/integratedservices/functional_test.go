@@ -32,10 +32,6 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const (
-	externalDNSDeploymentName = "external-dns"
-)
-
 // These tests aim to verify that Integrated Service API specifications are met.
 // Considering efficiency as a key aspect, tests are executed against the highest logical, but still internal layer of the
 // Pipeline Integrated Service API, which means that the http machinery is completely bypassed.
@@ -211,9 +207,16 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	s.Require().NoError(err)
 
+	var deploymentName string
+	if s.v2 {
+		deploymentName = "external-dns"
+	} else {
+		deploymentName = "dns-external-dns"
+	}
+
 	s.Require().Eventually(func() bool {
 		_, err = client.AppsV1().Deployments(s.config.Cluster.Namespace).
-			Get(context.TODO(), externalDNSDeploymentName, v1.GetOptions{})
+			Get(context.TODO(), deploymentName, v1.GetOptions{})
 		if err != nil {
 			if !errors.IsNotFound(err) {
 				s.FailNow(err.Error())
@@ -228,7 +231,7 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 
 	s.Require().Eventually(func() bool {
 		_, err = client.AppsV1().Deployments(s.config.Cluster.Namespace).
-			Get(context.TODO(), externalDNSDeploymentName, v1.GetOptions{})
+			Get(context.TODO(), deploymentName, v1.GetOptions{})
 		if err != nil {
 			if !errors.IsNotFound(err) {
 				s.Error(err)
