@@ -59,6 +59,13 @@ Parameters:
     Default: ""
     Description: Comma separated list of security groups for all nodes in the pool.
 
+  DisableIMDSv1:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "false"
+      - "true"
+
   KeyName:
     Type: String # Note: not using "AWS::EC2::KeyPair::KeyName", because it implicitly validates the value to existing keys and we want to allow using the empty value as well, see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html .
     Description: The EC2 Key Pair to allow SSH access to the instances
@@ -109,13 +116,6 @@ Parameters:
   NodeInstanceRoleId:
     Type: String
     Description: The role for node IAM profile
-
-  DisableIMDSv1:
-    Type: String
-    Default: "false"
-    AllowedValues:
-      - "false"
-      - "true"
 
   NodeInstanceType:
     Type: String
