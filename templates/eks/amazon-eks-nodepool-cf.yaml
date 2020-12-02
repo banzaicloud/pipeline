@@ -25,6 +25,8 @@ Metadata:
           # - NodeImageIdSSMParam
           - NodeImageId
           - NodeSpotPrice
+          - NodeVolumeEncryptionEnabled
+          - NodeVolumeEncryptionKeyARN
           - NodeVolumeSize
           - KeyName
           - BootstrapArguments
@@ -447,6 +449,20 @@ Parameters:
     Type: String
     Description: The spot price for this ASG
 
+  NodeVolumeEncryptionEnabled:
+    Type: String
+    Default: ""
+    Description: Enable node pool node volume encryption (""/"false"/"true").
+    AllowedValues:
+      - "" # Note: unspecified, use default AWS behavior.
+      - "false"
+      - "true"
+
+  NodeVolumeEncryptionKeyARN:
+    Type: String
+    Default: ""
+    Description: KMS encryption key ARN to use for node pool node volume encryption. In case of empty key value, the default AWS EBS encryption key is used.
+
   NodeVolumeSize:
     Type: Number
     Default: 0
@@ -458,7 +474,7 @@ Parameters:
 
   TemplateVersion:
     Type: String
-    Default: "2.0.1"
+    Default: "2.1.0"
     Description: Current version of the template structure as metainformation for created stacks.
 
   TerminationDetachEnabled:
@@ -496,6 +512,10 @@ Conditions:
       - !Ref DisableIMDSv1
       - "true"
 
+  IsNodeVolumeEncryptionSpecified: !Not [ !Equals [ !Ref NodeVolumeEncryptionEnabled, "" ] ]
+  IsNodeVolumeEncryptionKeyARNSpecified: !And
+    - !Equals [ !Ref NodeVolumeEncryptionEnabled, "true" ]
+    - !Not [ !Equals [ !Ref NodeVolumeEncryptionKeyARN, "" ] ]
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   NoCustomNodeSecurityGroups: !Equals [ !Ref CustomNodeSecurityGroups, "" ]
   NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
@@ -636,6 +656,8 @@ Resources:
           - DeviceName: /dev/xvda
             Ebs:
               DeleteOnTermination: true
+              Encrypted: !If [ IsNodeVolumeEncryptionSpecified, !Ref NodeVolumeEncryptionEnabled , !Ref "AWS::NoValue" ]
+              KmsKeyId: !If [ IsNodeVolumeEncryptionKeyARNSpecified, !Ref NodeVolumeEncryptionKeyARN, !Ref "AWS::NoValue" ]
               VolumeSize: !If [ NodeVolumeSizeAuto, !Ref "AWS::NoValue", !Ref NodeVolumeSize ]
               VolumeType: gp2
         IamInstanceProfile:
