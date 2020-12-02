@@ -19199,6 +19199,26 @@ components:
       - $ref: '#/components/schemas/EksNodePool_allOf'
       description: Node pool object for an EKS cluster.
       type: object
+    EKSNodePoolVolumeEncryption:
+      description: Encryption details of the node volumes in an EKS node pool.
+      example: |
+        {
+            "enabled": true,
+            "encryptionKeyARN": "arn:aws:kms:<REGION>:000000000000:key/00000000-0000-0000-0000-000000000000"
+        }
+      nullable: true
+      properties:
+        enabled:
+          description: Indicator of encrypted node pool node volumes.
+          example: true
+          type: boolean
+        encryptionKeyARN:
+          description: KMS key ARN to use for node volume encryption.
+          example: arn:aws:kms:<REGION>:000000000000:key/00000000-0000-0000-0000-000000000000
+          type: string
+      required:
+      - enabled
+      type: object
     UpdateNodePoolRequest:
       oneOf:
       - $ref: '#/components/schemas/EksUpdateNodePoolRequest'
@@ -19330,6 +19350,8 @@ components:
             example: '{"example.io/label1":"value1"}'
             type: string
           type: object
+        volumeEncryption:
+          $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
         volumeSize:
           description: Size of the EBS volume in GBs of the nodes in the pool.
           example: 50
@@ -23608,6 +23630,8 @@ components:
       properties:
         autoscaling:
           $ref: '#/components/schemas/NodePoolAutoScaling'
+        volumeEncryption:
+          $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
         volumeSize:
           description: Size of the EBS volume in GBs of the nodes in the pool.
           example: 50
@@ -23644,6 +23668,8 @@ components:
       properties:
         autoscaling:
           $ref: '#/components/schemas/NodePoolAutoScaling'
+        volumeEncryption:
+          $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
         volumeSize:
           description: Size of the EBS volume in GBs of the nodes in the pool.
           example: 50
