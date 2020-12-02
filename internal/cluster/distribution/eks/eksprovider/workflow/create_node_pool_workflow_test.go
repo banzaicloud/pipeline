@@ -307,9 +307,8 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 			caseDescription: "parse subnet stack parameters error -> error",
 			expectedError: errors.New(
 				"parsing subnet stack parameters failed" +
-					": parsing values failed" +
-					": missing requested value AvailabilityZoneName" +
-					"; missing requested value SubnetBlock",
+					": missing expected key AvailabilityZoneName" +
+					"; missing expected key SubnetBlock",
 			),
 			input: inputType{
 				workflow: NewCreateNodePoolWorkflow(),
