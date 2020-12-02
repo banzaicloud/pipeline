@@ -64,7 +64,11 @@ type Config struct {
 
 	Distribution struct {
 		EKS struct {
-			TemplateLocation      string
+			TemplateLocation            string
+			DefaultNodeVolumeEncryption *struct {
+				Enabled          bool
+				EncryptionKeyARN string
+			}
 			DefaultNodeVolumeSize int
 			ExposeAdminKubeconfig bool
 			SSH                   struct {
