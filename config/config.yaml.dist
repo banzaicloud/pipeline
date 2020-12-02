@@ -439,6 +439,10 @@ dex:
 #        # EKS Cloud Formation template location
 #        templateLocation: ./templates/eks
 #
+#        defaultNodeVolumeEncryption:
+#            enabled: false
+#            encryptionKeyARN: ""
+#
 #        defaultNodeVolumeSize: 0 # GB, 0/fallback: max(50, AMISize)
 #
 #        # Expose admin kubeconfig over the API by default.
