@@ -191,10 +191,6 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 
 	stackParams := []*cloudformation.Parameter{
 		{
-			ParameterKey:   aws.String(eksStackTemplateVersionParameterKey),
-			ParameterValue: aws.String("2.0.0"),
-		},
-		{
 			ParameterKey:     aws.String("KeyName"),
 			UsePreviousValue: aws.Bool(true),
 		},
