@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"sort"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -30,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
 
 const EKSUpdateClusterWorkflowName = "eks-update-cluster"
@@ -199,10 +202,11 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			log.Info("node pool will be updated")
 			nodePoolsToUpdate[updatedNodePool.Name] = updatedNodePool
 
+			var currentTemplateVersion semver.Version
 			effectiveImage := updatedNodePool.NodeImage
 			effectiveVolumeSize := updatedNodePool.NodeVolumeSize
-			if effectiveImage == "" ||
-				effectiveVolumeSize == 0 { // Note: needing CF stack for original information for version.
+			effectiveSecurityGroups := updatedNodePool.SecurityGroups
+			{ // Note: needing CF stack for template version and possibly node pool version.
 				getCFStackInput := eksWorkflow.GetCFStackActivityInput{
 					EKSActivityInput: commonActivityInput,
 					StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, updatedNodePool.Name),
@@ -210,13 +214,14 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				var getCFStackOutput eksWorkflow.GetCFStackActivityOutput
 				err = workflow.ExecuteActivity(ctx, eksWorkflow.GetCFStackActivityName, getCFStackInput).Get(ctx, &getCFStackOutput)
 				if err != nil {
-					eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error()) // nolint: errcheck
 					return err
 				}
 
 				var parameters struct {
-					NodeImageID    string `mapstructure:"NodeImageId"`
-					NodeVolumeSize int    `mapstructure:"NodeVolumeSize"`
+					CustomNodeSecurityGroups string         `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
+					NodeImageID              string         `mapstructure:"NodeImageId"`
+					NodeVolumeSize           int            `mapstructure:"NodeVolumeSize"`
+					TemplateVersion          semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
 				}
 				err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 				if err != nil {
@@ -224,12 +229,20 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 					return err
 				}
 
+				currentTemplateVersion = parameters.TemplateVersion
+
 				if effectiveImage == "" {
 					effectiveImage = parameters.NodeImageID
 				}
 
 				if effectiveVolumeSize == 0 {
 					effectiveVolumeSize = parameters.NodeVolumeSize
+				}
+
+				if effectiveSecurityGroups == nil &&
+					parameters.CustomNodeSecurityGroups != "" {
+					effectiveSecurityGroups = strings.Split(parameters.CustomNodeSecurityGroups, ",")
+					sort.Strings(effectiveSecurityGroups)
 				}
 			}
 
@@ -271,8 +284,9 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			var nodePoolVersion string
 			{
 				activityInput := eksworkflow.CalculateNodePoolVersionActivityInput{
-					Image:      effectiveImage,
-					VolumeSize: effectiveVolumeSize,
+					Image:                effectiveImage,
+					VolumeSize:           effectiveVolumeSize,
+					CustomSecurityGroups: effectiveSecurityGroups,
 				}
 
 				activityOptions := ao
@@ -300,22 +314,23 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			}
 
 			activityInput := eksWorkflow.UpdateAsgActivityInput{
-				EKSActivityInput: commonActivityInput,
-				StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, updatedNodePool.Name),
-				ScaleEnabled:     input.ScaleEnabled,
-				Name:             updatedNodePool.Name,
-				Version:          nodePoolVersion,
-				NodeSpotPrice:    updatedNodePool.NodeSpotPrice,
-				Autoscaling:      updatedNodePool.Autoscaling,
-				NodeMinCount:     updatedNodePool.NodeMinCount,
-				NodeMaxCount:     updatedNodePool.NodeMaxCount,
-				Count:            updatedNodePool.Count,
-				NodeVolumeSize:   volumeSize,
-				NodeImage:        updatedNodePool.NodeImage,
-				NodeInstanceType: updatedNodePool.NodeInstanceType,
-				SecurityGroups:   updatedNodePool.SecurityGroups,
-				Labels:           updatedNodePool.Labels,
-				Tags:             input.Tags,
+				EKSActivityInput:       commonActivityInput,
+				StackName:              eksWorkflow.GenerateNodePoolStackName(input.ClusterName, updatedNodePool.Name),
+				ScaleEnabled:           input.ScaleEnabled,
+				Name:                   updatedNodePool.Name,
+				Version:                nodePoolVersion,
+				NodeSpotPrice:          updatedNodePool.NodeSpotPrice,
+				Autoscaling:            updatedNodePool.Autoscaling,
+				NodeMinCount:           updatedNodePool.NodeMinCount,
+				NodeMaxCount:           updatedNodePool.NodeMaxCount,
+				Count:                  updatedNodePool.Count,
+				NodeVolumeSize:         volumeSize,
+				NodeImage:              updatedNodePool.NodeImage,
+				NodeInstanceType:       updatedNodePool.NodeInstanceType,
+				SecurityGroups:         updatedNodePool.SecurityGroups,
+				Labels:                 updatedNodePool.Labels,
+				Tags:                   input.Tags,
+				CurrentTemplateVersion: currentTemplateVersion,
 			}
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.UpdateAsgActivityName, activityInput)

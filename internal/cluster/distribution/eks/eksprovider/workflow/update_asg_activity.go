@@ -34,6 +34,7 @@ import (
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudformation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
 
 const UpdateAsgActivityName = "eks-update-asg"
@@ -73,6 +74,8 @@ type UpdateAsgActivityInput struct {
 
 	Labels map[string]string
 	Tags   map[string]string
+
+	CurrentTemplateVersion semver.Version
 }
 
 // UpdateAsgActivityOutput holds the output data of the UpdateAsgActivityOutput
