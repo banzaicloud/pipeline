@@ -113,7 +113,7 @@ func registerEKSWorkflows(
 		}
 	}
 
-	eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate, nodePoolStore).Register(worker)
+	eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate, defaultNodeVolumeEncryption, nodePoolStore).Register(worker)
 
 	updateAsgActivity := eksworkflow.NewUpdateAsgActivity(awsSessionFactory, nodePoolTemplate)
 	worker.RegisterActivityWithOptions(updateAsgActivity.Execute, activity.RegisterOptions{Name: eksworkflow.UpdateAsgActivityName})

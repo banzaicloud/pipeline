@@ -44,7 +44,8 @@ type CreateAsgActivity struct {
 	// body of the cloud formation template for setting up the VPC
 	cloudFormationTemplate string
 
-	nodePoolStore eks.NodePoolStore
+	defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption
+	nodePoolStore               eks.NodePoolStore
 }
 
 // CreateAsgActivityInput holds data needed for setting up IAM roles
@@ -59,16 +60,17 @@ type CreateAsgActivityInput struct {
 	ScaleEnabled bool
 	SSHKeyName   string
 
-	Name             string
-	NodeSpotPrice    string
-	Autoscaling      bool
-	NodeMinCount     int
-	NodeMaxCount     int
-	Count            int
-	NodeVolumeSize   int
-	NodeImage        string
-	NodeInstanceType string
-	Labels           map[string]string
+	Name                 string
+	NodeSpotPrice        string
+	Autoscaling          bool
+	NodeMinCount         int
+	NodeMaxCount         int
+	Count                int
+	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
+	NodeVolumeSize       int
+	NodeImage            string
+	NodeInstanceType     string
+	Labels               map[string]string
 
 	Subnets             []Subnet
 	VpcID               string
@@ -91,12 +93,14 @@ type CreateAsgActivityOutput struct {
 func NewCreateAsgActivity(
 	awsSessionFactory awsworkflow.AWSFactory,
 	cloudFormationTemplate string,
+	defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption,
 	nodePoolStore eks.NodePoolStore,
 ) *CreateAsgActivity {
 	return &CreateAsgActivity{
-		awsSessionFactory:      awsSessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
-		nodePoolStore:          nodePoolStore,
+		awsSessionFactory:           awsSessionFactory,
+		cloudFormationTemplate:      cloudFormationTemplate,
+		defaultNodeVolumeEncryption: defaultNodeVolumeEncryption,
+		nodePoolStore:               nodePoolStore,
 	}
 }
 
@@ -140,14 +144,39 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
 	var stackParams []*cloudformation.Parameter
 
+	nodeVolumeEncryption := "<nil>"
+	if input.NodeVolumeEncryption != nil {
+		nodeVolumeEncryption = fmt.Sprintf("%v", *input.NodeVolumeEncryption)
+	}
+
 	// do not update node labels via kubelet boostrap params as that induces node reboot or replacement
 	// we only add node pool name here, all other labels will be added by NodePoolLabelSet operator
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
 		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, eks.CalculateNodePoolVersion(
 			input.NodeImage,
+			nodeVolumeEncryption,
 			fmt.Sprintf("%d", input.NodeVolumeSize),
+			strings.Join(input.SecurityGroups, ","),
 		)),
+	}
+
+	nodeVolumeEncryptionEnabled := "" // Note: defaulting to AWS account default encryption settings.
+	if input.NodeVolumeEncryption != nil {
+		nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumeEncryption.Enabled)
+	} else if a.defaultNodeVolumeEncryption != nil {
+		nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
+	}
+
+	nodeVolumeEncryptionKeyARN := ""
+	if nodeVolumeEncryptionEnabled == "true" &&
+		input.NodeVolumeEncryption != nil &&
+		input.NodeVolumeEncryption.EncryptionKeyARN != "" {
+		nodeVolumeEncryptionKeyARN = input.NodeVolumeEncryption.EncryptionKeyARN
+	} else if nodeVolumeEncryptionEnabled == "true" &&
+		a.defaultNodeVolumeEncryption != nil &&
+		a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
+		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
 	var subnetIDs []string
@@ -186,6 +215,14 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		{
 			ParameterKey:   aws.String("NodeAutoScalingInitSize"),
 			ParameterValue: aws.String(fmt.Sprintf("%d", input.Count)),
+		},
+		{
+			ParameterKey:   aws.String("NodeVolumeEncryptionEnabled"),
+			ParameterValue: aws.String(nodeVolumeEncryptionEnabled),
+		},
+		{
+			ParameterKey:   aws.String("NodeVolumeEncryptionKeyARN"),
+			ParameterValue: aws.String(nodeVolumeEncryptionKeyARN),
 		},
 		{
 			ParameterKey:   aws.String("NodeVolumeSize"),
@@ -356,16 +393,17 @@ func createASGAsync(
 		ScaleEnabled: eksCluster.Cluster.ScaleOptions.Enabled,
 		SSHKeyName:   sshKeyName,
 
-		Name:             nodePool.Name,
-		NodeSpotPrice:    nodePool.SpotPrice,
-		Autoscaling:      nodePool.Autoscaling.Enabled,
-		NodeMinCount:     minSize,
-		NodeMaxCount:     maxSize,
-		Count:            nodePool.Size,
-		NodeVolumeSize:   selectedVolumeSize,
-		NodeImage:        nodePool.Image,
-		NodeInstanceType: nodePool.InstanceType,
-		Labels:           nodePool.Labels,
+		Name:                 nodePool.Name,
+		NodeSpotPrice:        nodePool.SpotPrice,
+		Autoscaling:          nodePool.Autoscaling.Enabled,
+		NodeMinCount:         minSize,
+		NodeMaxCount:         maxSize,
+		Count:                nodePool.Size,
+		NodeVolumeEncryption: nodePool.VolumeEncryption,
+		NodeVolumeSize:       selectedVolumeSize,
+		NodeImage:            nodePool.Image,
+		NodeInstanceType:     nodePool.InstanceType,
+		Labels:               nodePool.Labels,
 
 		Subnets:             subnets,
 		VpcID:               vpcConfig.VpcID,

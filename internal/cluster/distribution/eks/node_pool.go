@@ -32,12 +32,13 @@ type NewNodePool struct {
 		MinSize int  `mapstructure:"minSize"`
 		MaxSize int  `mapstructure:"maxSize"`
 	} `mapstructure:"autoscaling"`
-	VolumeSize     int      `mapstructure:"volumeSize"`
-	InstanceType   string   `mapstructure:"instanceType"`
-	Image          string   `mapstructure:"image"`
-	SpotPrice      string   `mapstructure:"spotPrice"`
-	SecurityGroups []string `mapstructure:"securityGroups"`
-	SubnetID       string   `mapstructure:"subnetId"`
+	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
+	VolumeSize       int                       `mapstructure:"volumeSize"`
+	InstanceType     string                    `mapstructure:"instanceType"`
+	Image            string                    `mapstructure:"image"`
+	SpotPrice        string                    `mapstructure:"spotPrice"`
+	SecurityGroups   []string                  `mapstructure:"securityGroups"`
+	SubnetID         string                    `mapstructure:"subnetId"`
 }
 
 // Validate semantically validates the new node pool.

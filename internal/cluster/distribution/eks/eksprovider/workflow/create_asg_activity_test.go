@@ -33,9 +33,10 @@ import (
 
 func TestNewCreateASGActivity(t *testing.T) {
 	type inputType struct {
-		awsSessionFactory      awsworkflow.AWSFactory
-		cloudFormationTemplate string
-		nodePoolStore          eks.NodePoolStore
+		awsSessionFactory           awsworkflow.AWSFactory
+		cloudFormationTemplate      string
+		defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption
+		nodePoolStore               eks.NodePoolStore
 	}
 
 	testCases := []struct {
@@ -53,12 +54,20 @@ func TestNewCreateASGActivity(t *testing.T) {
 			expectedActivity: &CreateAsgActivity{
 				awsSessionFactory:      &awsworkflow.MockAWSFactory{},
 				cloudFormationTemplate: "cloudformation-template",
-				nodePoolStore:          &eks.MockNodePoolStore{},
+				defaultNodeVolumeEncryption: &eks.NodePoolVolumeEncryption{
+					Enabled:          true,
+					EncryptionKeyARN: "encryption-key",
+				},
+				nodePoolStore: &eks.MockNodePoolStore{},
 			},
 			input: inputType{
 				awsSessionFactory:      &awsworkflow.MockAWSFactory{},
 				cloudFormationTemplate: "cloudformation-template",
-				nodePoolStore:          &eks.MockNodePoolStore{},
+				defaultNodeVolumeEncryption: &eks.NodePoolVolumeEncryption{
+					Enabled:          true,
+					EncryptionKeyARN: "encryption-key",
+				},
+				nodePoolStore: &eks.MockNodePoolStore{},
 			},
 		},
 	}
@@ -70,6 +79,7 @@ func TestNewCreateASGActivity(t *testing.T) {
 			actualActivity := NewCreateAsgActivity(
 				testCase.input.awsSessionFactory,
 				testCase.input.cloudFormationTemplate,
+				testCase.input.defaultNodeVolumeEncryption,
 				testCase.input.nodePoolStore,
 			)
 

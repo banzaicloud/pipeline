@@ -234,6 +234,13 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			SubnetID:       subnetID,
 		}
 
+		if requestedNodePool.VolumeEncryption != nil {
+			nodePool.VolumeEncryption = &eks.NodePoolVolumeEncryption{
+				Enabled:          requestedNodePool.VolumeEncryption.Enabled,
+				EncryptionKeyARN: requestedNodePool.VolumeEncryption.EncryptionKeyARN,
+			}
+		}
+
 		nodePools = append(nodePools, nodePool)
 	}
 	input.NodePools = nodePools
