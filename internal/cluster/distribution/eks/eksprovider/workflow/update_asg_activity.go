@@ -17,6 +17,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -30,6 +31,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -45,9 +47,10 @@ const awsNoUpdatesError = "No updates are to be performed."
 type UpdateAsgActivity struct {
 	awsSessionFactory *awsworkflow.AWSSessionFactory
 	// body of the cloud formation template for setting up the VPC
-	cloudFormationTemplate     string
-	asgFulfillmentWaitAttempts int
-	asgFulfillmentWaitInterval time.Duration
+	cloudFormationTemplate      string
+	defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption
+	asgFulfillmentWaitAttempts  int
+	asgFulfillmentWaitInterval  time.Duration
 }
 
 // UpdateAsgActivityInput holds data needed for setting up IAM roles
@@ -55,18 +58,19 @@ type UpdateAsgActivityInput struct {
 	EKSActivityInput
 
 	// name of the cloud formation template stack
-	StackName        string
-	ScaleEnabled     bool
-	Name             string
-	Version          string
-	NodeSpotPrice    string
-	Autoscaling      bool
-	NodeMinCount     int
-	NodeMaxCount     int
-	Count            int
-	NodeVolumeSize   int
-	NodeImage        string
-	NodeInstanceType string
+	StackName            string
+	ScaleEnabled         bool
+	Name                 string
+	Version              string
+	NodeSpotPrice        string
+	Autoscaling          bool
+	NodeMinCount         int
+	NodeMaxCount         int
+	Count                int
+	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
+	NodeVolumeSize       int
+	NodeImage            string
+	NodeInstanceType     string
 
 	// SecurityGroups collects the user specified custom node security group
 	// IDs.
@@ -83,12 +87,17 @@ type UpdateAsgActivityOutput struct {
 }
 
 // UpdateAsgActivity instantiates a new UpdateAsgActivity
-func NewUpdateAsgActivity(awsSessionFactory *awsworkflow.AWSSessionFactory, cloudFormationTemplate string) *UpdateAsgActivity {
+func NewUpdateAsgActivity(
+	awsSessionFactory *awsworkflow.AWSSessionFactory,
+	cloudFormationTemplate string,
+	defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption,
+) *UpdateAsgActivity {
 	return &UpdateAsgActivity{
-		awsSessionFactory:          awsSessionFactory,
-		cloudFormationTemplate:     cloudFormationTemplate,
-		asgFulfillmentWaitAttempts: int(asgFulfillmentWaitAttempts),
-		asgFulfillmentWaitInterval: asgFulfillmentWaitInterval,
+		awsSessionFactory:           awsSessionFactory,
+		cloudFormationTemplate:      cloudFormationTemplate,
+		defaultNodeVolumeEncryption: defaultNodeVolumeEncryption,
+		asgFulfillmentWaitAttempts:  int(asgFulfillmentWaitAttempts),
+		asgFulfillmentWaitInterval:  asgFulfillmentWaitInterval,
 	}
 }
 
@@ -188,6 +197,24 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
 	}
 
+	nodeVolumeEncryptionEnabled := ""
+	if input.NodeVolumeEncryption != nil {
+		nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumeEncryption.Enabled)
+	} else if a.defaultNodeVolumeEncryption != nil {
+		nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
+	}
+
+	nodeVolumeEncryptionKeyARN := ""
+	if nodeVolumeEncryptionEnabled == "true" &&
+		input.NodeVolumeEncryption != nil &&
+		input.NodeVolumeEncryption.EncryptionKeyARN != "" {
+		nodeVolumeEncryptionKeyARN = input.NodeVolumeEncryption.EncryptionKeyARN
+	} else if nodeVolumeEncryptionEnabled == "true" &&
+		a.defaultNodeVolumeEncryption != nil &&
+		a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
+		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
+	}
+
 	if input.Version != "" {
 		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.Version))
 	}
@@ -220,6 +247,14 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		{
 			ParameterKey:   aws.String("NodeAutoScalingInitSize"),
 			ParameterValue: aws.String(fmt.Sprintf("%d", input.Count)),
+		},
+		{
+			ParameterKey:   aws.String("NodeVolumeEncryptionEnabled"),
+			ParameterValue: aws.String(nodeVolumeEncryptionEnabled),
+		},
+		{
+			ParameterKey:   aws.String("NodeVolumeEncryptionKeyARN"),
+			ParameterValue: aws.String(nodeVolumeEncryptionKeyARN),
 		},
 		sdkCloudformation.NewOptionalStackParameter(
 			"NodeVolumeSize",

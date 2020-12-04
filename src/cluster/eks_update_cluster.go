@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -204,6 +205,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 
 			var currentTemplateVersion semver.Version
 			effectiveImage := updatedNodePool.NodeImage
+			effectiveVolumeEncryption := updatedNodePool.NodeVolumeEncryption
 			effectiveVolumeSize := updatedNodePool.NodeVolumeSize
 			effectiveSecurityGroups := updatedNodePool.SecurityGroups
 			{ // Note: needing CF stack for template version and possibly node pool version.
@@ -218,10 +220,12 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				}
 
 				var parameters struct {
-					CustomNodeSecurityGroups string         `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
-					NodeImageID              string         `mapstructure:"NodeImageId"`
-					NodeVolumeSize           int            `mapstructure:"NodeVolumeSize"`
-					TemplateVersion          semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
+					CustomNodeSecurityGroups    string         `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
+					NodeImageID                 string         `mapstructure:"NodeImageId"`
+					NodeVolumeEncryptionEnabled string         `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: NodeVolumeEncryptionEnabled is only available from template version 2.1.0.
+					NodeVolumeEncryptionKeyARN  string         `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
+					NodeVolumeSize              int            `mapstructure:"NodeVolumeSize"`
+					TemplateVersion             semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
 				}
 				err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 				if err != nil {
@@ -233,6 +237,19 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 
 				if effectiveImage == "" {
 					effectiveImage = parameters.NodeImageID
+				}
+
+				if effectiveVolumeEncryption == nil &&
+					parameters.NodeVolumeEncryptionEnabled != "" {
+					isNodeVolumeEncryptionEnabled, err := strconv.ParseBool(parameters.NodeVolumeEncryptionEnabled)
+					if err != nil {
+						return errors.WrapIf(err, "invalid node volume encryption enabled value")
+					}
+
+					effectiveVolumeEncryption = &eks.NodePoolVolumeEncryption{
+						Enabled:          isNodeVolumeEncryptionEnabled,
+						EncryptionKeyARN: parameters.NodeVolumeEncryptionKeyARN,
+					}
 				}
 
 				if effectiveVolumeSize == 0 {
@@ -285,6 +302,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			{
 				activityInput := eksworkflow.CalculateNodePoolVersionActivityInput{
 					Image:                effectiveImage,
+					VolumeEncryption:     effectiveVolumeEncryption,
 					VolumeSize:           effectiveVolumeSize,
 					CustomSecurityGroups: effectiveSecurityGroups,
 				}
@@ -324,6 +342,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				NodeMinCount:           updatedNodePool.NodeMinCount,
 				NodeMaxCount:           updatedNodePool.NodeMaxCount,
 				Count:                  updatedNodePool.Count,
+				NodeVolumeEncryption:   updatedNodePool.NodeVolumeEncryption,
 				NodeVolumeSize:         volumeSize,
 				NodeImage:              updatedNodePool.NodeImage,
 				NodeInstanceType:       updatedNodePool.NodeInstanceType,

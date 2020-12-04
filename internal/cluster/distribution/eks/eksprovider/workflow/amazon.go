@@ -32,6 +32,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 	zapadapter "logur.dev/adapter/zap"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
@@ -222,15 +223,16 @@ func NewSubnetsFromEKSSubnets(
 // TODO: remove when UpdateNodePoolWorkflow is refactored and this is not needed
 // anymore.
 type AutoscaleGroup struct {
-	Name             string
-	NodeSpotPrice    string
-	Autoscaling      bool
-	NodeMinCount     int
-	NodeMaxCount     int
-	Count            int
-	NodeVolumeSize   int
-	NodeImage        string
-	NodeInstanceType string
+	Name                 string
+	NodeSpotPrice        string
+	Autoscaling          bool
+	NodeMinCount         int
+	NodeMaxCount         int
+	Count                int
+	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
+	NodeVolumeSize       int
+	NodeImage            string
+	NodeInstanceType     string
 
 	// SecurityGroups collects the user specified custom node security group
 	// IDs.
