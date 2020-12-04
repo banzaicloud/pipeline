@@ -71,6 +71,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/externaldns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter"
 	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
@@ -582,7 +583,13 @@ func main() {
 			orgGetter := authdriver.NewOrganizationGetter(db)
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
-			featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
+
+			var featureRepository integratedservices.IntegratedServiceRepository
+			featureRepository = integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
+			if config.IntegratedService.V2 {
+				featureRepository = integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), externaldns.NewSpecWrapper(), config.Cluster.Namespace)
+			}
+
 			kubernetesService := kubernetes.NewService(
 				kubernetesadapter.NewConfigSecretGetter(clusteradapter.NewClusters(db)),
 				kubernetes.NewConfigFactory(commonSecretStore),
@@ -630,8 +637,19 @@ func main() {
 
 			expirerService := adapter.NewAsyncExpiryService(workflowClient, logger)
 
-			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
-				integratedServiceDNS.MakeIntegratedServiceOperator(
+			var dnsISOp integratedservices.IntegratedServiceOperator
+			if config.IntegratedService.V2 {
+				dnsISOp = integratedServiceDNS.NewDNSISOperator(
+					clusterGetter,
+					clusterService,
+					orgDomainService,
+					commonSecretStore,
+					config.Cluster.DNS.Config,
+					externaldns.NewSpecWrapper(),
+					logger,
+				)
+			} else {
+				dnsISOp = integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					unifiedHelmReleaser,
@@ -639,7 +657,11 @@ func main() {
 					orgDomainService,
 					commonSecretStore,
 					config.Cluster.DNS.Config,
-				),
+				)
+			}
+
+			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
+				dnsISOp,
 				securityscan.MakeIntegratedServiceOperator(
 					config.Cluster.SecurityScan.Config,
 					clusterGetter,
@@ -689,7 +711,7 @@ func main() {
 				),
 			})
 
-			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, config.IntegratedService.V2)
 		}
 
 		group.Add(appkitrun.CadenceWorkerRun(worker))

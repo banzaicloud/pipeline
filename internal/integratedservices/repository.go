@@ -215,3 +215,9 @@ func (e integratedServiceNotFoundError) Details() []interface{} {
 func (integratedServiceNotFoundError) IntegratedServiceNotFound() bool {
 	return true
 }
+
+type ClusterKubeConfigFunc func(ctx context.Context, clusterID uint) ([]byte, error)
+
+func (c ClusterKubeConfigFunc) GetKubeConfig(ctx context.Context, clusterID uint) ([]byte, error) {
+	return c(ctx, clusterID)
+}

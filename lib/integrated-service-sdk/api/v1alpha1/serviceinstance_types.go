@@ -41,7 +41,7 @@ const (
 	PreInstallFailed Phase = "PreinstallFailed"
 
 	// Internal state for transitioning from PreInstalling to Installing
-	PreInstallSuccess Phase = "Preinstalling"
+	PreInstallSuccess Phase = "PreinstallSuccess"
 
 	Installing    Phase = "Installing"
 	InstallFailed Phase = "InstallFailed"

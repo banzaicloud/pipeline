@@ -112,6 +112,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/externaldns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
@@ -912,17 +913,26 @@ func main() {
 			// Cluster IntegratedService API
 			var integratedServicesService integratedservices.Service
 			{
+				// common setup (for both legacy and V2 IS)
+				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
+				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
+				endpointManager := endpoints.NewEndpointManager(commonLogger)
+				integratedServiceManagers := make([]integratedservices.IntegratedServiceManager, 0)
 				if config.IntegratedService.V2 {
-					// todo integrated service v2 is under development
-					integratedServicesService = integratedservices.NewISServiceV2(commonLogger)
-				} else {
-					featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
-					clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
-					clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
-					endpointManager := endpoints.NewEndpointManager(commonLogger)
-					integratedServiceManagers := []integratedservices.IntegratedServiceManager{
-						securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config),
+					// v2 setup
+					if config.Cluster.DNS.Enabled {
+						integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 					}
+
+					integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
+					clusterRepository := integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), externaldns.NewSpecWrapper(), config.Cluster.Namespace)
+					integratedServicesService = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger)
+				} else {
+					// legacy setup
+					featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
+
+					integratedServiceManagers = append(integratedServiceManagers, securityscan.MakeIntegratedServiceManager(commonLogger, config.Cluster.SecurityScan.Config))
 
 					if config.Cluster.DNS.Enabled {
 						integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))

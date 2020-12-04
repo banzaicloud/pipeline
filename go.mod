@@ -31,6 +31,7 @@ require (
 	github.com/banzaicloud/cadence-aws-sdk v0.0.0-20201104115745-5238cf77328b
 	github.com/banzaicloud/gin-utilz v0.3.1
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
+	github.com/banzaicloud/integrated-service-sdk v0.0.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.5.0
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
@@ -89,6 +90,7 @@ require (
 	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/mod v0.3.0
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
@@ -115,7 +117,7 @@ require (
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.17.0
 	rsc.io/letsencrypt v0.0.3 // indirect
-	sigs.k8s.io/controller-runtime v0.6.2
+	sigs.k8s.io/controller-runtime v0.6.3
 	sigs.k8s.io/kubefed v0.4.0
 	sigs.k8s.io/testing_frameworks v0.1.2
 	sigs.k8s.io/yaml v1.2.0
@@ -125,6 +127,7 @@ replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
 	github.com/banzaicloud/cadence-aws-sdk => ./lib/cadence-aws-sdk
+	github.com/banzaicloud/integrated-service-sdk => ./lib/integrated-service-sdk
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
