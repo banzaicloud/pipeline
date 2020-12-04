@@ -246,21 +246,30 @@ func newASGsFromRequestedUpdatedNodePools(
 	}
 
 	for nodePoolName, nodePool := range requestedUpdatedNodePools {
+		var volumeEncryption *eks.NodePoolVolumeEncryption
+		if nodePool.VolumeEncryption != nil {
+			volumeEncryption = &eks.NodePoolVolumeEncryption{
+				Enabled:          nodePool.VolumeEncryption.Enabled,
+				EncryptionKeyARN: nodePool.VolumeEncryption.EncryptionKeyARN,
+			}
+		}
+
 		updatedNodePools = append(updatedNodePools, workflow.AutoscaleGroup{
-			Name:             nodePoolName,
-			NodeSpotPrice:    nodePool.SpotPrice,
-			Autoscaling:      nodePool.Autoscaling,
-			NodeMinCount:     nodePool.MinCount,
-			NodeMaxCount:     nodePool.MaxCount,
-			Count:            nodePool.Count,
-			NodeVolumeSize:   nodePool.VolumeSize,
-			NodeImage:        nodePool.Image,
-			NodeInstanceType: nodePool.InstanceType,
-			SecurityGroups:   nodePool.SecurityGroups,
-			Labels:           nodePool.Labels,
-			Delete:           false,
-			Create:           false,
-			CreatedBy:        creators[nodePoolName],
+			Name:                 nodePoolName,
+			NodeSpotPrice:        nodePool.SpotPrice,
+			Autoscaling:          nodePool.Autoscaling,
+			NodeMinCount:         nodePool.MinCount,
+			NodeMaxCount:         nodePool.MaxCount,
+			Count:                nodePool.Count,
+			NodeVolumeEncryption: volumeEncryption,
+			NodeVolumeSize:       nodePool.VolumeSize,
+			NodeImage:            nodePool.Image,
+			NodeInstanceType:     nodePool.InstanceType,
+			SecurityGroups:       nodePool.SecurityGroups,
+			Labels:               nodePool.Labels,
+			Delete:               false,
+			Create:               false,
+			CreatedBy:            creators[nodePoolName],
 		})
 	}
 
@@ -454,6 +463,14 @@ func newNodePoolsFromRequestedNewNodePools(
 			continue
 		}
 
+		var volumeEncryption *eks.NodePoolVolumeEncryption
+		if nodePool.VolumeEncryption != nil {
+			volumeEncryption = &eks.NodePoolVolumeEncryption{
+				Enabled:          nodePool.VolumeEncryption.Enabled,
+				EncryptionKeyARN: nodePool.VolumeEncryption.EncryptionKeyARN,
+			}
+		}
+
 		newNodePools = append(newNodePools, eks.NewNodePool{
 			Name:   nodePoolName,
 			Labels: nodePool.Labels,
@@ -463,12 +480,13 @@ func newNodePoolsFromRequestedNewNodePools(
 				MinSize: nodePool.MinCount,
 				MaxSize: nodePool.MaxCount,
 			},
-			VolumeSize:     nodePool.VolumeSize,
-			InstanceType:   nodePool.InstanceType,
-			Image:          nodePool.Image,
-			SpotPrice:      nodePool.SpotPrice,
-			SecurityGroups: nodePool.SecurityGroups,
-			SubnetID:       newNodePoolSubnetIDs[nodePoolName][0],
+			VolumeEncryption: volumeEncryption,
+			VolumeSize:       nodePool.VolumeSize,
+			InstanceType:     nodePool.InstanceType,
+			Image:            nodePool.Image,
+			SpotPrice:        nodePool.SpotPrice,
+			SecurityGroups:   nodePool.SecurityGroups,
+			SubnetID:         newNodePoolSubnetIDs[nodePoolName][0],
 		})
 	}
 
