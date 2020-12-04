@@ -1,3 +1,6 @@
 [cache]
 dir = .plz-cache
 dircompress = true
+
+[build]
+timeout = 900
