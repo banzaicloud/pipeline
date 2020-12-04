@@ -242,9 +242,10 @@ func (n nodePoolManager) UpdateNodePool(
 		NodePoolName:    nodePoolName,
 		OrganizationID:  c.OrganizationID,
 
-		NodeVolumeSize: nodePoolUpdate.VolumeSize,
-		NodeImage:      nodePoolUpdate.Image,
-		SecurityGroups: nodePoolUpdate.SecurityGroups,
+		NodeVolumeEncryption: nodePoolUpdate.VolumeEncryption,
+		NodeVolumeSize:       nodePoolUpdate.VolumeSize,
+		NodeImage:            nodePoolUpdate.Image,
+		SecurityGroups:       nodePoolUpdate.SecurityGroups,
 
 		Options: eks.NodePoolUpdateOptions{
 			MaxSurge:       nodePoolUpdate.Options.MaxSurge,

@@ -17,6 +17,7 @@ package eksworkflow
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"emperror.dev/errors"
@@ -28,6 +29,7 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -44,7 +46,8 @@ type UpdateNodeGroupActivity struct {
 	sessionFactory AWSSessionFactory
 
 	// body of the cloud formation template
-	cloudFormationTemplate string
+	cloudFormationTemplate      string
+	defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption
 }
 
 // UpdateNodeGroupActivityInput holds the parameters for the node group update.
@@ -59,10 +62,11 @@ type UpdateNodeGroupActivityInput struct {
 	NodePoolName    string
 	NodePoolVersion string
 
-	NodeVolumeSize  int
-	NodeImage       string
-	DesiredCapacity int64
-	SecurityGroups  []string
+	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
+	NodeVolumeSize       int
+	NodeImage            string
+	DesiredCapacity      int64
+	SecurityGroups       []string
 
 	MaxBatchSize          int
 	MinInstancesInService int
@@ -77,10 +81,15 @@ type UpdateNodeGroupActivityOutput struct {
 }
 
 // NewUpdateNodeGroupActivity creates a new UpdateNodeGroupActivity instance.
-func NewUpdateNodeGroupActivity(sessionFactory AWSSessionFactory, cloudFormationTemplate string) UpdateNodeGroupActivity {
+func NewUpdateNodeGroupActivity(
+	sessionFactory AWSSessionFactory,
+	cloudFormationTemplate string,
+	defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption,
+) UpdateNodeGroupActivity {
 	return UpdateNodeGroupActivity{
-		sessionFactory:         sessionFactory,
-		cloudFormationTemplate: cloudFormationTemplate,
+		sessionFactory:              sessionFactory,
+		cloudFormationTemplate:      cloudFormationTemplate,
+		defaultNodeVolumeEncryption: defaultNodeVolumeEncryption,
 	}
 }
 
@@ -104,6 +113,28 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 
 	if input.NodePoolVersion != "" {
 		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.NodePoolVersion))
+	}
+
+	nodeVolumeEncryptionEnabled := ""
+	if input.NodeVolumeEncryption != nil {
+		nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumeEncryption.Enabled)
+	} else if input.CurrentTemplateVersion.IsLessThan("2.1.0") &&
+		a.defaultNodeVolumeEncryption != nil { // Note: old stack, Pipeline default should take precedence over AWS default.
+		nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
+	}
+
+	nodeVolumeEncryptionKeyARN := ""
+	if nodeVolumeEncryptionEnabled == "true" &&
+		input.NodeVolumeEncryption != nil &&
+		input.NodeVolumeEncryption.EncryptionKeyARN != "" {
+		nodeVolumeEncryptionKeyARN = input.NodeVolumeEncryption.EncryptionKeyARN
+	} else if nodeVolumeEncryptionEnabled == "true" &&
+		a.defaultNodeVolumeEncryption != nil &&
+		a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
+		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
+	} else if input.CurrentTemplateVersion.IsLessThan("2.1.0") &&
+		a.defaultNodeVolumeEncryption != nil { // Note: old stack, Pipeline default should take precedence over AWS default.
+		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
 	stackParams := []*cloudformation.Parameter{
@@ -150,6 +181,16 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			"NodeAutoScalingInitSize",
 			input.DesiredCapacity > 0,
 			fmt.Sprintf("%d", input.DesiredCapacity),
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"NodeVolumeEncryptionEnabled",
+			nodeVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.1.0"), // Note: older templates cannot use non-existing previous value.
+			nodeVolumeEncryptionEnabled,
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"NodeVolumeEncryptionKeyARN",
+			nodeVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.1.0"), // Note: when enablement is set, key ARN should be updated. // Note: older templates cannot use non-existing previous value.
+			nodeVolumeEncryptionKeyARN,
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"NodeVolumeSize",

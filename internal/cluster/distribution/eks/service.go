@@ -64,7 +64,8 @@ type ClusterUpdate struct {
 // A node pool update contains a partial representation of the node pool resource,
 // updating only the changed values.
 type NodePoolUpdate struct {
-	VolumeSize int `mapstructure:"volumeSize"`
+	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
+	VolumeSize       int                       `mapstructure:"volumeSize"`
 
 	Image          string   `mapstructure:"image"`
 	SecurityGroups []string `mapstructure:"securityGroups"`

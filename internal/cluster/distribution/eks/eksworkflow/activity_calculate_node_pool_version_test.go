@@ -15,11 +15,15 @@
 package eksworkflow
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/cadence/testsuite"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
 
 func TestCalculateNodePoolVersionActivity(t *testing.T) {
@@ -28,8 +32,16 @@ func TestCalculateNodePoolVersionActivity(t *testing.T) {
 	NewCalculateNodePoolVersionActivity().Register(env)
 
 	input := CalculateNodePoolVersionActivityInput{
-		Image:      "ami-xxxxxxxxxxxxx",
+		Image: "ami-xxxxxxxxxxxxx",
+		VolumeEncryption: &eks.NodePoolVolumeEncryption{
+			Enabled:          true,
+			EncryptionKeyARN: "arn:aws:kms:region:account:key/id",
+		},
 		VolumeSize: 50,
+		CustomSecurityGroups: []string{
+			"sg-1",
+			"sg-2",
+		},
 	}
 
 	v, err := env.ExecuteActivity(CalculateNodePoolVersionActivityName, input)
@@ -43,8 +55,36 @@ func TestCalculateNodePoolVersionActivity(t *testing.T) {
 	assert.Equal(
 		t,
 		CalculateNodePoolVersionActivityOutput{
-			Version: "ded58f7cde1bcf3a39227af824dab18086487c4c",
+			Version: eks.CalculateNodePoolVersion(
+				input.Image,
+				fmt.Sprintf("%v", *input.VolumeEncryption),
+				fmt.Sprintf("%d", input.VolumeSize),
+				strings.Join(input.CustomSecurityGroups, ","),
+			),
 		},
 		output,
+	)
+
+	input2 := CalculateNodePoolVersionActivityInput{}
+
+	v, err = env.ExecuteActivity(CalculateNodePoolVersionActivityName, input2)
+	require.NoError(t, err)
+
+	var output2 CalculateNodePoolVersionActivityOutput
+
+	err = v.Get(&output2)
+	require.NoError(t, err)
+
+	assert.Equal(
+		t,
+		CalculateNodePoolVersionActivityOutput{
+			Version: eks.CalculateNodePoolVersion(
+				input2.Image,
+				"<nil>",
+				fmt.Sprintf("%d", input2.VolumeSize),
+				strings.Join(input2.CustomSecurityGroups, ","),
+			),
+		},
+		output2,
 	)
 }

@@ -17,9 +17,11 @@ package eksworkflow
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
@@ -69,9 +71,10 @@ type UpdateNodePoolWorkflowInput struct {
 	ClusterName     string
 	NodePoolName    string
 
-	NodeVolumeSize int
-	NodeImage      string
-	SecurityGroups []string
+	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
+	NodeVolumeSize       int
+	NodeImage            string
+	SecurityGroups       []string
 
 	Options eks.NodePoolUpdateOptions
 
@@ -133,6 +136,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 	var currentTemplateVersion semver.Version
 	effectiveImage := input.NodeImage
+	effectiveVolumeEncryption := input.NodeVolumeEncryption
 	effectiveVolumeSize := input.NodeVolumeSize
 	effectiveSecurityGroups := input.SecurityGroups
 	{ // Note: needing CF stack for template version and possibly node pool version.
@@ -149,10 +153,12 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		}
 
 		var parameters struct {
-			CustomNodeSecurityGroups string         `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
-			NodeImageID              string         `mapstructure:"NodeImageId"`
-			NodeVolumeSize           int            `mapstructure:"NodeVolumeSize"`
-			TemplateVersion          semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
+			CustomNodeSecurityGroups    string         `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
+			NodeImageID                 string         `mapstructure:"NodeImageId"`
+			NodeVolumeEncryptionEnabled string         `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: NodeVolumeEncryptionEnabled is only available from template version 2.1.0.
+			NodeVolumeEncryptionKeyARN  string         `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
+			NodeVolumeSize              int            `mapstructure:"NodeVolumeSize"`
+			TemplateVersion             semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
 		}
 		err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 		if err != nil {
@@ -163,6 +169,19 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 		if effectiveImage == "" {
 			effectiveImage = parameters.NodeImageID
+		}
+
+		if effectiveVolumeEncryption == nil &&
+			parameters.NodeVolumeEncryptionEnabled != "" {
+			isNodeVolumeEncryptionEnabled, err := strconv.ParseBool(parameters.NodeVolumeEncryptionEnabled)
+			if err != nil {
+				return errors.WrapIf(err, "invalid node volume encryption enabled value")
+			}
+
+			effectiveVolumeEncryption = &eks.NodePoolVolumeEncryption{
+				Enabled:          isNodeVolumeEncryptionEnabled,
+				EncryptionKeyARN: parameters.NodeVolumeEncryptionKeyARN,
+			}
 		}
 
 		if effectiveVolumeSize == 0 {
@@ -217,6 +236,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 	{
 		activityInput := CalculateNodePoolVersionActivityInput{
 			Image:                effectiveImage,
+			VolumeEncryption:     effectiveVolumeEncryption,
 			VolumeSize:           effectiveVolumeSize,
 			CustomSecurityGroups: effectiveSecurityGroups,
 		}
@@ -241,6 +261,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			StackName:              input.StackName,
 			NodePoolName:           input.NodePoolName,
 			NodePoolVersion:        nodePoolVersion,
+			NodeVolumeEncryption:   input.NodeVolumeEncryption,
 			NodeVolumeSize:         volumeSize,
 			NodeImage:              input.NodeImage,
 			SecurityGroups:         input.SecurityGroups,

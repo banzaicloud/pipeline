@@ -184,7 +184,7 @@ func registerEKSWorkflows(
 	eksworkflow2.NewUpdateNodePoolWorkflow(awsSessionFactory, cloudFormationFactory, processlog.New()).Register(worker)
 
 	eksworkflow2.NewCalculateNodePoolVersionActivity().Register(worker)
-	eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate).Register(worker)
+	eksworkflow2.NewUpdateNodeGroupActivity(awsSessionFactory, nodePoolTemplate, defaultNodeVolumeEncryption).Register(worker)
 	eksworkflow2.NewWaitCloudFormationStackUpdateActivity(awsSessionFactory).Register(worker)
 
 	// New cluster update
