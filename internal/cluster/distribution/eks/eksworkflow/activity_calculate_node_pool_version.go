@@ -32,6 +32,7 @@ type CalculateNodePoolVersionActivity struct{}
 
 type CalculateNodePoolVersionActivityInput struct {
 	Image                string
+	VolumeEncryption     *eks.NodePoolVolumeEncryption
 	VolumeSize           int
 	CustomSecurityGroups []string
 }
@@ -55,9 +56,15 @@ func (a CalculateNodePoolVersionActivity) Execute(
 	_ context.Context,
 	input CalculateNodePoolVersionActivityInput,
 ) (CalculateNodePoolVersionActivityOutput, error) {
+	volumeEncryption := "<nil>"
+	if input.VolumeEncryption != nil {
+		volumeEncryption = fmt.Sprintf("%v", *input.VolumeEncryption)
+	}
+
 	return CalculateNodePoolVersionActivityOutput{
 		Version: eks.CalculateNodePoolVersion(
 			input.Image,
+			volumeEncryption,
 			fmt.Sprintf("%d", input.VolumeSize),
 			strings.Join(input.CustomSecurityGroups, ","),
 		),
