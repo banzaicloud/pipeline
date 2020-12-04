@@ -127,6 +127,7 @@ replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
 	github.com/banzaicloud/cadence-aws-sdk => ./lib/cadence-aws-sdk
+	github.com/banzaicloud/integrated-service-sdk => ./lib/integrated-service-sdk
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
@@ -161,5 +162,3 @@ replace (
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.19.3
 	k8s.io/sample-controller => k8s.io/sample-controller v0.19.3
 )
-
-replace github.com/banzaicloud/integrated-service-sdk => ./lib/integrated-service-sdk
