@@ -257,6 +257,12 @@ type Autoscaling struct {
 	MaxSize int  `mapstructure:"maxSize"`
 }
 
+// NodePoolVolumeEncryption describes the EKS node pool encryption details.
+type NodePoolVolumeEncryption struct {
+	Enabled          bool   `mapstructure:"enabled"`
+	EncryptionKeyARN string `mapstructure:"encryptionKeyARN"`
+}
+
 // NewService returns a new Service instance.
 func NewService(
 	genericClusters Store,
