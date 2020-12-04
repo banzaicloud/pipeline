@@ -113,15 +113,16 @@ type UpdateClusterAmazonEKS struct {
 
 // NodePool describes Amazon's node fields of a CreateCluster/Update request
 type NodePool struct {
-	InstanceType string            `json:"instanceType" yaml:"instanceType"`
-	SpotPrice    string            `json:"spotPrice" yaml:"spotPrice"`
-	Autoscaling  bool              `json:"autoscaling" yaml:"autoscaling"`
-	MinCount     int               `json:"minCount" yaml:"minCount"`
-	MaxCount     int               `json:"maxCount" yaml:"maxCount"`
-	Count        int               `json:"count" yaml:"count"`
-	VolumeSize   int               `json:"volumeSize" yaml:"volumeSize"`
-	Image        string            `json:"image" yaml:"image"`
-	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	InstanceType     string                    `json:"instanceType" yaml:"instanceType"`
+	SpotPrice        string                    `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling      bool                      `json:"autoscaling" yaml:"autoscaling"`
+	MinCount         int                       `json:"minCount" yaml:"minCount"`
+	MaxCount         int                       `json:"maxCount" yaml:"maxCount"`
+	Count            int                       `json:"count" yaml:"count"`
+	VolumeEncryption *NodePoolVolumeEncryption `json:"volumeEncryption,omitempty" yaml:"volumeEncryption,omitempty"`
+	VolumeSize       int                       `json:"volumeSize" yaml:"volumeSize"`
+	Image            string                    `json:"image" yaml:"image"`
+	Labels           map[string]string         `json:"labels,omitempty" yaml:"labels,omitempty"`
 
 	// SecurityGroups collects the user provided node security group IDs for the
 	// node pool.
@@ -130,6 +131,12 @@ type NodePool struct {
 	// Subnet for worker nodes of this node pool. If not specified than worker nodes
 	// are launched in the same subnet in one of the subnets from the list of subnets of the EKS cluster
 	Subnet *Subnet `json:"subnet,omitempty" yaml:"subnet,omitempty"`
+}
+
+// NodePoolVolumeEncryption describes the EKS node pool encryption details.
+type NodePoolVolumeEncryption struct {
+	Enabled          bool   `json:"enabled" yaml:"enabled"`
+	EncryptionKeyARN string `json:"encryptionKeyARN" yaml:"encryptionKeyARN"`
 }
 
 // ClusterIAM describes the IAM config for creating an EKS cluster

@@ -105,6 +105,14 @@ func registerEKSWorkflows(
 	saveClusterVersionActivity := eksworkflow.NewSaveClusterVersionActivity(clusterManager)
 	worker.RegisterActivityWithOptions(saveClusterVersionActivity.Execute, activity.RegisterOptions{Name: eksworkflow.SaveClusterVersionActivityName})
 
+	var defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption
+	if config.Distribution.EKS.DefaultNodeVolumeEncryption != nil {
+		defaultNodeVolumeEncryption = &eks.NodePoolVolumeEncryption{
+			Enabled:          config.Distribution.EKS.DefaultNodeVolumeEncryption.Enabled,
+			EncryptionKeyARN: config.Distribution.EKS.DefaultNodeVolumeEncryption.EncryptionKeyARN,
+		}
+	}
+
 	eksworkflow.NewCreateAsgActivity(awsSessionFactory, nodePoolTemplate, nodePoolStore).Register(worker)
 
 	updateAsgActivity := eksworkflow.NewUpdateAsgActivity(awsSessionFactory, nodePoolTemplate)
