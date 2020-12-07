@@ -189,6 +189,72 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 			},
 		},
 		{
+			caseName: "invalid encryption information -> success",
+			input: inputType{
+				labels: nil,
+				name:   "node-pool",
+				stack: &cloudformation.Stack{
+					Parameters: []*cloudformation.Parameter{
+						{
+							ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
+							ParameterValue: aws.String("true"),
+						},
+						{
+							ParameterKey:   aws.String("NodeAutoScalingGroupMaxSize"),
+							ParameterValue: aws.String("2"),
+						},
+						{
+							ParameterKey:   aws.String("NodeAutoScalingGroupMinSize"),
+							ParameterValue: aws.String("1"),
+						},
+						{
+							ParameterKey:   aws.String("NodeAutoScalingInitSize"),
+							ParameterValue: aws.String("1"),
+						},
+						{
+							ParameterKey:   aws.String("NodeImageId"),
+							ParameterValue: aws.String("ami-0123456789"),
+						},
+						{
+							ParameterKey:   aws.String("NodeInstanceType"),
+							ParameterValue: aws.String("t2.small"),
+						},
+						{
+							ParameterKey:   aws.String("NodeSpotPrice"),
+							ParameterValue: aws.String("0.02"),
+						},
+						{
+							ParameterKey:   aws.String("NodeVolumeEncryptionEnabled"),
+							ParameterValue: aws.String("not-a-bool"),
+						},
+						{
+							ParameterKey:   aws.String("NodeVolumeEncryptionKeyARN"),
+							ParameterValue: aws.String("encryption-key-arn"),
+						},
+						{
+							ParameterKey:   aws.String("NodeVolumeSize"),
+							ParameterValue: aws.String("20"),
+						},
+						{
+							ParameterKey:   aws.String("CustomNodeSecurityGroups"),
+							ParameterValue: aws.String("security-group-1,security-group-2"),
+						},
+						{
+							ParameterKey:   aws.String("Subnets"),
+							ParameterValue: aws.String("subnet-0123456789"),
+						},
+					},
+				},
+			},
+			output: outputType{
+				expectedNodePool: NodePool{
+					Name:          "node-pool",
+					Status:        NodePoolStatusError,
+					StatusMessage: "invalid encryption information",
+				},
+			},
+		},
+		{
 			caseName: "parsed success",
 			input: inputType{
 				labels: map[string]string{
@@ -226,6 +292,14 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 							ParameterValue: aws.String("0.02"),
 						},
 						{
+							ParameterKey:   aws.String("NodeVolumeEncryptionEnabled"),
+							ParameterValue: aws.String("true"),
+						},
+						{
+							ParameterKey:   aws.String("NodeVolumeEncryptionKeyARN"),
+							ParameterValue: aws.String("encryption-key-arn"),
+						},
+						{
 							ParameterKey:   aws.String("NodeVolumeSize"),
 							ParameterValue: aws.String("20"),
 						},
@@ -253,6 +327,10 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 						Enabled: true,
 						MinSize: 1,
 						MaxSize: 2,
+					},
+					VolumeEncryption: &NodePoolVolumeEncryption{
+						Enabled:          true,
+						EncryptionKeyARN: "encryption-key-arn",
 					},
 					VolumeSize:   20,
 					InstanceType: "t2.small",
@@ -894,6 +972,10 @@ func TestServiceListNodePools(t *testing.T) {
 				Enabled: true,
 				MinSize: 1,
 				MaxSize: 2,
+			},
+			VolumeEncryption: &NodePoolVolumeEncryption{
+				Enabled:          true,
+				EncryptionKeyARN: "encryption-key-arn",
 			},
 			VolumeSize:     50,
 			InstanceType:   "instance-type",

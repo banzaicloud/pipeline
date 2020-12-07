@@ -211,6 +211,10 @@ func TestEksServiceListNodePools(t *testing.T) {
 				MinSize: 1,
 				MaxSize: 2,
 			},
+			VolumeEncryption: &eks.NodePoolVolumeEncryption{
+				Enabled:          true,
+				EncryptionKeyARN: "encryption-key-arn",
+			},
 			VolumeSize:   40,
 			InstanceType: "instance-type",
 			Image:        "image",

@@ -701,6 +701,14 @@ func TestListNodePools(t *testing.T) {
 										ParameterValue: aws.String("0.02"),
 									},
 									{
+										ParameterKey:   aws.String("NodeVolumeEncryptionEnabled"),
+										ParameterValue: aws.String("true"),
+									},
+									{
+										ParameterKey:   aws.String("NodeVolumeEncryptionKeyARN"),
+										ParameterValue: aws.String("encryption-key-arn"),
+									},
+									{
 										ParameterKey:   aws.String("NodeVolumeSize"),
 										ParameterValue: aws.String("20"),
 									},
@@ -750,6 +758,14 @@ func TestListNodePools(t *testing.T) {
 										ParameterValue: aws.String("0.01"),
 									},
 									{
+										ParameterKey:   aws.String("NodeVolumeEncryptionEnabled"),
+										ParameterValue: aws.String("true"),
+									},
+									{
+										ParameterKey:   aws.String("NodeVolumeEncryptionKeyARN"),
+										ParameterValue: aws.String("encryption-key-arn"),
+									},
+									{
 										ParameterKey:   aws.String("NodeVolumeSize"),
 										ParameterValue: aws.String("25"),
 									},
@@ -783,6 +799,10 @@ func TestListNodePools(t *testing.T) {
 							MinSize: 1,
 							MaxSize: 2,
 						},
+						VolumeEncryption: &eks.NodePoolVolumeEncryption{
+							Enabled:          true,
+							EncryptionKeyARN: "encryption-key-arn",
+						},
 						VolumeSize:     20,
 						InstanceType:   "t2.small",
 						Image:          "ami-0123456789",
@@ -803,6 +823,10 @@ func TestListNodePools(t *testing.T) {
 							Enabled: false,
 							MinSize: 0,
 							MaxSize: 0,
+						},
+						VolumeEncryption: &eks.NodePoolVolumeEncryption{
+							Enabled:          true,
+							EncryptionKeyARN: "encryption-key-arn",
 						},
 						VolumeSize:   25,
 						InstanceType: "t2.medium",
