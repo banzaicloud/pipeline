@@ -930,7 +930,7 @@ func main() {
 					}
 					specTransformation := integratedserviceadapter.NewSpecTransformation(services.NewServiceStatusMapper(), specMappers)
 					clusterRepository := integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), commonLogger, specTransformation, config.Cluster.Namespace)
-					integratedServicesService = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger)
+					integratedServicesService = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, clusterRepository, commonLogger)
 				} else {
 					// legacy setup
 					featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
