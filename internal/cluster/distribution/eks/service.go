@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -98,18 +99,19 @@ type NodePoolUpdateDrainOptions struct {
 
 // NodePool encapsulates information about a cluster node pool.
 type NodePool struct {
-	Name           string            `mapstructure:"name"`
-	Labels         map[string]string `mapstructure:"labels"`
-	Size           int               `mapstructure:"size"`
-	Autoscaling    Autoscaling       `mapstructure:"autoscaling"`
-	VolumeSize     int               `mapstructure:"volumeSize"`
-	InstanceType   string            `mapstructure:"instanceType"`
-	Image          string            `mapstructure:"image"`
-	SpotPrice      string            `mapstructure:"spotPrice"`
-	SecurityGroups []string          `mapstructure:"securityGroups,omitempty"`
-	SubnetID       string            `mapstructure:"subnetId"`
-	Status         NodePoolStatus    `mapstructure:"status"`
-	StatusMessage  string            `mapstructure:"statusMessage"`
+	Name             string                    `mapstructure:"name"`
+	Labels           map[string]string         `mapstructure:"labels"`
+	Size             int                       `mapstructure:"size"`
+	Autoscaling      Autoscaling               `mapstructure:"autoscaling"`
+	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
+	VolumeSize       int                       `mapstructure:"volumeSize"`
+	InstanceType     string                    `mapstructure:"instanceType"`
+	Image            string                    `mapstructure:"image"`
+	SpotPrice        string                    `mapstructure:"spotPrice"`
+	SecurityGroups   []string                  `mapstructure:"securityGroups,omitempty"`
+	SubnetID         string                    `mapstructure:"subnetId"`
+	Status           NodePoolStatus            `mapstructure:"status"`
+	StatusMessage    string                    `mapstructure:"statusMessage"`
 }
 
 // NewNodePoolFromCFStack initializes a node pool object from a CloudFormation
@@ -123,6 +125,8 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 		NodeImageID                 string `mapstructure:"NodeImageId"`
 		NodeInstanceType            string `mapstructure:"NodeInstanceType"`
 		NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
+		NodeVolumeEncryptionEnabled string `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.1.0.
+		NodeVolumeEncryptionKeyARN  string `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: CustomNodeSecurityGroups is only available from template version 2.1.0.
 		NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
 		CustomNodeSecurityGroups    string `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
 		Subnets                     string `mapstructure:"Subnets"`
@@ -141,6 +145,17 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 		MinSize: nodePoolParameters.NodeAutoScalingGroupMinSize,
 		MaxSize: nodePoolParameters.NodeAutoScalingGroupMaxSize,
 	}
+
+	if nodePoolParameters.NodeVolumeEncryptionEnabled != "" {
+		nodePool.VolumeEncryption = &NodePoolVolumeEncryption{}
+		nodePool.VolumeEncryption.Enabled, err = strconv.ParseBool(nodePoolParameters.NodeVolumeEncryptionEnabled)
+		if err != nil {
+			return NewNodePoolWithNoValues(name, NodePoolStatusError, "invalid encryption information")
+		}
+
+		nodePool.VolumeEncryption.EncryptionKeyARN = nodePoolParameters.NodeVolumeEncryptionKeyARN
+	}
+
 	nodePool.VolumeSize = nodePoolParameters.NodeVolumeSize
 	nodePool.InstanceType = nodePoolParameters.NodeInstanceType
 	nodePool.Image = nodePoolParameters.NodeImageID
