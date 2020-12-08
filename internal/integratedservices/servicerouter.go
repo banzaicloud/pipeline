@@ -20,7 +20,9 @@ import (
 	"emperror.dev/errors"
 )
 
-// serviceRouter component that routes api calls to the appropriate integrated service version. It's main roule is to make integrated service versions transparent to clients
+// serviceRouter component that routes api calls to the appropriate integrated service version. It's main role is
+// to make integrated service versions transparent to clients
+// Generally service version 2 is preferred, if not applicable the router falls back to version v1
 type serviceRouter struct {
 	serviceV1 Service
 	serviceV2 Service
@@ -34,6 +36,7 @@ func NewServiceRouter(serviceV1 Service, serviceV2 Service) Service {
 	}
 }
 
+// List calls both service versions and merges results
 func (s serviceRouter) List(ctx context.Context, clusterID uint) ([]IntegratedService, error) {
 	issV1, err := s.serviceV1.List(ctx, clusterID)
 	if err != nil {
@@ -48,6 +51,8 @@ func (s serviceRouter) List(ctx context.Context, clusterID uint) ([]IntegratedSe
 	return append(issV1, issV2...), nil
 }
 
+// Details retrieves the service from the service v2, if not found retrieves it from v1
+// Note: an Integrated Service can only be managed by one of the service versions
 func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
 	var combined error
 	if detailsV2, err := s.serviceV2.Details(ctx, clusterID, serviceName); err == nil {
@@ -64,11 +69,18 @@ func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName 
 	}
 
 	return IntegratedService{}, combined
-
 }
 
-func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
-	panic("implement me")
+// Activate delegates the activation request to the appropriate service version
+// New services are always activated with the version 2 service
+func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName string, spec IntegratedServiceSpec) error {
+	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
+		// if found on service v1 delegate to the service v1
+		return s.serviceV1.Activate(ctx, clusterID, serviceName, spec)
+	}
+
+	// new service
+	return s.serviceV2.Activate(ctx, clusterID, serviceName, spec)
 }
 
 func (s serviceRouter) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {

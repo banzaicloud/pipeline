@@ -190,5 +190,50 @@ func (suite *ServiceRouterSuite) TestDetails_ServiceNotFound() {
 	require.NotNil(suite.T(), err, "router must not return with error")
 	require.True(suite.T(), IsIntegratedServiceNotFoundError(err), "router must return with notfound errors")
 	require.Equal(suite.T(), IntegratedService{}, isDetails, "the details must be empty")
+}
 
+func (suite *ServiceRouterSuite) TestActivate_ISFoundOnLegacy() {
+	// Given
+	ctx := context.Background()
+
+	// the IS is found by the legacy service
+	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS1").
+		Return(IntegratedService{
+			Name:   "IS1",
+			Status: "ACTIVE",
+		}, nil)
+
+	// the activation is delegated to the legacy  service
+	suite.serviceV1.On("Activate", ctx, suite.clusterID, "IS1", IntegratedServiceSpec{}).Return(nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+
+	// When
+	err := routerService.Activate(ctx, suite.clusterID, "IS1", IntegratedServiceSpec{})
+
+	// Then
+	require.Nil(suite.T(), err, "router must not return with error")
+}
+
+func (suite *ServiceRouterSuite) TestActivate_NotFoundOnLegacy() {
+	// Given
+	ctx := context.Background()
+
+	// the IS is found by the legacy service
+	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS2").
+		Return(IntegratedService{}, integratedServiceNotFoundError{
+			clusterID:             suite.clusterID,
+			integratedServiceName: "IS2",
+		})
+
+	// the activation is delegated to the legacy  service
+	suite.serviceV2.On("Activate", ctx, suite.clusterID, "IS2", IntegratedServiceSpec{}).Return(nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+
+	// When
+	err := routerService.Activate(ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
+
+	// Then
+	require.Nil(suite.T(), err, "router must not return with error")
 }
