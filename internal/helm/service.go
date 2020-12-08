@@ -93,6 +93,17 @@ type UnifiedReleaser interface {
 		upgradeschartVersion string,
 	) error
 
+	ApplyDeploymentReuseValues(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+		reuseValues bool,
+	) error
+
 	ApplyDeploymentSkipCRDs(
 		ctx context.Context,
 		clusterID uint,

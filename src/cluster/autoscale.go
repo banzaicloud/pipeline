@@ -380,9 +380,9 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, helmSe
 
 	switch action {
 	case install:
-		err = helmService.ApplyDeployment(context.TODO(), cluster.GetID(), global.Config.Cluster.Namespace, chartName, releaseName, yamlValues, chartVersion)
+		err = helmService.ApplyDeploymentReuseValues(context.TODO(), cluster.GetID(), global.Config.Cluster.Namespace, chartName, releaseName, yamlValues, chartVersion, true)
 	case upgrade:
-		err = helmService.ApplyDeployment(context.TODO(), cluster.GetID(), global.Config.Cluster.Namespace, chartName, releaseName, yamlValues, chartVersion)
+		err = helmService.ApplyDeploymentReuseValues(context.TODO(), cluster.GetID(), global.Config.Cluster.Namespace, chartName, releaseName, yamlValues, chartVersion, true)
 	default:
 		return err
 	}

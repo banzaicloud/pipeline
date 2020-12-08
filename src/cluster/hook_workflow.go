@@ -98,6 +98,17 @@ type HelmService interface {
 		chartVersion string,
 	) error
 
+	ApplyDeploymentReuseValues(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+		reuseValues bool,
+	) error
+
 	InstallDeployment(
 		ctx context.Context,
 		clusterID uint,

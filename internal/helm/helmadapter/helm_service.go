@@ -43,6 +43,26 @@ func NewUnifiedHelm3Releaser(service helm.Service, logger common.Logger) helm.Un
 	}
 }
 
+func (h helm3UnifiedReleaser) ApplyDeploymentReuseValues(
+	ctx context.Context,
+	clusterID uint,
+	namespace string,
+	chartName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+	reuseValues bool,
+) error {
+	options := helm.Options{
+		Namespace:    namespace,
+		DryRun:       false,
+		GenerateName: false,
+		ReuseValues:  reuseValues,
+		Install:      true,
+	}
+	return h.applyDeployment(ctx, clusterID, namespace, chartName, releaseName, values, chartVersion, options)
+}
+
 func (h helm3UnifiedReleaser) ApplyDeployment(
 	ctx context.Context,
 	clusterID uint,
