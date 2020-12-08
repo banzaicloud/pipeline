@@ -100,7 +100,8 @@ func (s *DeploymentsService) GetActiveDeployment() (*ClusterBackupDeploymentsMod
 }
 
 // Deploy deploys ARK with helm configured to use the given bucket and mode
-func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBackupBucketsModel, restoreMode bool, useClusterSecret bool) error {
+func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBackupBucketsModel,
+	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string) error {
 	var deployment *ClusterBackupDeploymentsModel
 	if !restoreMode {
 		_, err := s.GetActiveDeployment()
@@ -148,9 +149,10 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 				ResourceGroup:  bucket.ResourceGroup,
 			},
 		},
-		BucketSecret:     bucketSecret,
-		UseClusterSecret: useClusterSecret,
-		RestoreMode:      restoreMode,
+		BucketSecret:          bucketSecret,
+		UseClusterSecret:      useClusterSecret,
+		ServiceAccountRoleARN: serviceAccountRoleARN,
+		RestoreMode:           restoreMode,
 	})
 	if err != nil {
 		return errors.Wrap(err, "error service getting config")

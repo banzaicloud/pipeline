@@ -40,12 +40,28 @@ type ChartConfig struct {
 
 // ValueOverrides describes values to be overridden in a deployment
 type ValueOverrides struct {
-	Configuration  configuration  `json:"configuration"`
-	Credentials    credentials    `json:"credentials"`
-	Image          image          `json:"image"`
-	RBAC           rbac           `json:"rbac"`
-	InitContainers []v1.Container `json:"initContainers"`
-	CleanUpCRDs    bool           `json:"cleanUpCRDs"`
+	Configuration   configuration   `json:"configuration"`
+	Credentials     credentials     `json:"credentials"`
+	Image           image           `json:"image"`
+	RBAC            rbac            `json:"rbac"`
+	InitContainers  []v1.Container  `json:"initContainers"`
+	CleanUpCRDs     bool            `json:"cleanUpCRDs"`
+	ServiceAccount  serviceAccount  `json:"serviceAccount"`
+	SecurityContext securityContext `json:"securityContext"`
+}
+
+type securityContext struct {
+	FsGroup int `json:"fsGroup"`
+}
+
+type serviceAccount struct {
+	Server server `json:"server"`
+}
+
+type server struct {
+	Create      bool              `json:"create"`
+	Name        string            `json:"name"`
+	Annotations map[string]string `json:"annotations"`
 }
 
 type rbac struct {
@@ -115,8 +131,9 @@ type ConfigRequest struct {
 	Bucket        bucketConfig
 	BucketSecret  *secret.SecretItemResponse
 
-	UseClusterSecret bool
-	RestoreMode      bool
+	UseClusterSecret      bool
+	ServiceAccountRoleARN string
+	RestoreMode           bool
 }
 
 type clusterConfig struct {
@@ -239,7 +256,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		})
 	}
 
-	return ValueOverrides{
+	values = ValueOverrides{
 		Configuration: configuration{
 			Provider:               provider,
 			VolumeSnapshotLocation: vsl,
@@ -258,7 +275,24 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		},
 		InitContainers: initContainers,
 		CleanUpCRDs:    true,
-	}, nil
+	}
+
+	if vsl.Provider == amazon.PersistentVolumeProvider && req.ServiceAccountRoleARN != "" {
+		values.ServiceAccount = serviceAccount{
+			Server: server{
+				Create: true,
+				Name:   "velero-sa",
+				Annotations: map[string]string{
+					"eks.amazonaws.com/role-arn": req.ServiceAccountRoleARN,
+				},
+			},
+		}
+		values.SecurityContext = securityContext{
+			FsGroup: 1337,
+		}
+	}
+
+	return values, nil
 }
 
 func (req ConfigRequest) getVolumeSnapshotLocation() (volumeSnapshotLocation, error) {

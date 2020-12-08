@@ -108,7 +108,7 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 			return
 		}
 
-		err = svc.GetDeploymentsService().Deploy(helmService, bucket, false, request.UseClusterSecret)
+		err = svc.GetDeploymentsService().Deploy(helmService, bucket, false, request.UseClusterSecret, request.ServiceAccountRoleARN)
 		if err != nil {
 			err = errors.WrapIf(err, "could not deploy backup service")
 			common.ErrorHandler.Handle(err)
