@@ -75,18 +75,30 @@ func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName 
 // New services are always activated with the version 2 service
 func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName string, spec IntegratedServiceSpec) error {
 	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
-		// if found on service v1 delegate to the service v1
+		// if found on the legacy service, delegate to it
 		return s.serviceV1.Activate(ctx, clusterID, serviceName, spec)
 	}
 
-	// new service
+	// delegate to the new implementation
 	return s.serviceV2.Activate(ctx, clusterID, serviceName, spec)
 }
 
 func (s serviceRouter) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {
-	panic("implement me")
+	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
+		// if found on the legacy service, delegate to it
+		return s.serviceV1.Deactivate(ctx, clusterID, serviceName)
+	}
+
+	// delegate to the new implementation
+	return s.serviceV2.Deactivate(ctx, clusterID, serviceName)
 }
 
 func (s serviceRouter) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
-	panic("implement me")
+	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
+		// if found on the legacy service, delegate to it
+		return s.serviceV1.Update(ctx, clusterID, serviceName, spec)
+	}
+
+	// delegate to the new implementation
+	return s.serviceV2.Update(ctx, clusterID, serviceName, spec)
 }
