@@ -16,6 +16,7 @@ package integratedservices
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,12 +26,14 @@ import (
 
 type ServiceRouterSuite struct {
 	suite.Suite
+	clusterID uint
 	serviceV1 MockService
 	serviceV2 MockService
 }
 
 // SetupTest common fixture for each test case
 func (suite *ServiceRouterSuite) SetupTest() {
+	suite.clusterID = 1
 	suite.serviceV1 = MockService{}
 	suite.serviceV2 = MockService{}
 }
@@ -43,37 +46,32 @@ func TestServiceRouterSuite(t *testing.T) {
 // TestNoIntegratedServices both service versions return empty slices
 func (suite *ServiceRouterSuite) TestList_NoIntegratedServices() {
 	// Given
-	const clusterID uint = 1
 	ctx := context.Background()
 
 	// serviceV1 and serviceV2  don't return any IS services
-	suite.serviceV1.On("List", ctx, clusterID).Return(make([]IntegratedService, 0, 0), nil)
-	suite.serviceV2.On("List", ctx, clusterID).Return(make([]IntegratedService, 0, 0), nil)
-
+	suite.serviceV1.On("List", ctx, suite.clusterID).Return(make([]IntegratedService, 0, 0), nil)
+	suite.serviceV2.On("List", ctx, suite.clusterID).Return(make([]IntegratedService, 0, 0), nil)
 	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
-	// When
 
-	isSlice, err := routerService.List(ctx, clusterID)
-	require.Nil(suite.T(), err, "router must not return with error")
+	// When
+	isSlice, err := routerService.List(ctx, suite.clusterID)
 
 	// Then
-	// the resulted list must be empty
+	require.Nil(suite.T(), err, "router must not return with error")
 	assert.Empty(suite.T(), isSlice, "the slice of integrated services should be empty")
 }
 
-// TestNoIntegratedServices both service versions return empty slices
 func (suite *ServiceRouterSuite) TestList_MergeV1AndV2IntegratedServices() {
 	// Given
-	const clusterID uint = 1
 	ctx := context.Background()
 
-	suite.serviceV1.On("List", ctx, clusterID).
+	suite.serviceV1.On("List", ctx, suite.clusterID).
 		Return([]IntegratedService{{
 			Name:   "v1 integrated service",
 			Status: "active",
 		}}, nil)
 
-	suite.serviceV2.On("List", ctx, clusterID).
+	suite.serviceV2.On("List", ctx, suite.clusterID).
 		Return(
 			[]IntegratedService{{
 				Name:   "v2 integrated service",
@@ -81,27 +79,24 @@ func (suite *ServiceRouterSuite) TestList_MergeV1AndV2IntegratedServices() {
 			}}, nil)
 
 	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
-	// When
 
-	isSlice, err := routerService.List(ctx, clusterID)
-	require.Nil(suite.T(), err, "router must not return with error")
+	// When
+	isSlice, err := routerService.List(ctx, suite.clusterID)
 
 	// Then
-	// the resulted list must be empty
-	assert.Equal(suite.T(), 2, len(isSlice), "all integrated service v1 and v2 should be returned")
+	require.Nil(suite.T(), err, "router must not return with error")
+	assert.Equal(suite.T(), 2, len(isSlice), "all integrated services (v1 and v2) should be returned")
 }
 
-// TestNoIntegratedServices both service versions return empty slices
 func (suite *ServiceRouterSuite) TestList_V2IntegratedServicesOnly() {
-	// Givens
-	const clusterID uint = 1
+	// Given
 	ctx := context.Background()
 
 	// serviceV1 and serviceV2  don't return any IS services
-	suite.serviceV1.On("List", ctx, clusterID).
+	suite.serviceV1.On("List", ctx, suite.clusterID).
 		Return(make([]IntegratedService, 0, 0), nil)
 
-	suite.serviceV2.On("List", ctx, clusterID).
+	suite.serviceV2.On("List", ctx, suite.clusterID).
 		Return(
 			[]IntegratedService{{
 				Name:   "v2 integrated service",
@@ -109,12 +104,91 @@ func (suite *ServiceRouterSuite) TestList_V2IntegratedServicesOnly() {
 			}}, nil)
 
 	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
-	// When
 
-	isSlice, err := routerService.List(ctx, clusterID)
-	require.Nil(suite.T(), err, "router must not return with error")
+	// When
+	isSlice, err := routerService.List(ctx, suite.clusterID)
 
 	// Then
-	// the resulted list must be empty
-	assert.Equal(suite.T(), 1, len(isSlice), "all integrated service v1 and v2 should be returned")
+	require.Nil(suite.T(), err, "router must not return with error")
+	assert.Equal(suite.T(), 1, len(isSlice), "the v2 IS should be returned")
+}
+
+func (suite *ServiceRouterSuite) TestDetails_ServiceOnV2() {
+	// Given
+	ctx := context.Background()
+
+	// serviceV2 returns the requested IS / serviceV1 doesn't get called
+	suite.serviceV2.On("Details", ctx, suite.clusterID, "IS2").
+		Return(IntegratedService{
+			Name:   "IS2",
+			Status: "ACTIVE",
+		}, nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+
+	// When
+	isDetails, err := routerService.Details(ctx, suite.clusterID, "IS2")
+
+	// Then
+	require.Nil(suite.T(), err, "router must not return with error")
+	require.NotNil(suite.T(), isDetails, "router must return with details")
+	require.Equal(suite.T(), "IS2", isDetails.Name) // this might be  superfluous
+}
+
+func (suite *ServiceRouterSuite) TestDetails_ServiceOnV1() {
+	// Given
+	ctx := context.Background()
+
+	// serviceV2  doesn't return the requested IS
+	suite.serviceV2.On("Details", ctx, suite.clusterID, "IS1").
+		Return(IntegratedService{}, errors.New("service not found on v2"))
+
+	// serviceV1  returns the requested IS
+	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS1").
+		Return(IntegratedService{
+			Name:   "IS1",
+			Spec:   nil,
+			Output: nil,
+			Status: "PENDING",
+		}, nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+
+	// When
+	isDetails, err := routerService.Details(ctx, suite.clusterID, "IS1")
+
+	// Then
+	require.Nil(suite.T(), err, "router must not return with error")
+	require.NotNil(suite.T(), isDetails, "router must not return with error")
+	require.Equal(suite.T(), "IS1", isDetails.Name)
+}
+
+func (suite *ServiceRouterSuite) TestDetails_ServiceNotFound() {
+	// Given
+	ctx := context.Background()
+
+	// serviceV2  doesn't return the requested IS
+	suite.serviceV2.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{}, integratedServiceNotFoundError{
+			clusterID:             suite.clusterID,
+			integratedServiceName: "IS",
+		})
+
+	// serviceV1  returns the requested IS
+	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{}, integratedServiceNotFoundError{
+			clusterID:             suite.clusterID,
+			integratedServiceName: "IS",
+		})
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+
+	// When
+	isDetails, err := routerService.Details(ctx, suite.clusterID, "IS")
+
+	// Then
+	require.NotNil(suite.T(), err, "router must not return with error")
+	require.True(suite.T(), IsIntegratedServiceNotFoundError(err), "router must return with notfound errors")
+	require.Equal(suite.T(), IntegratedService{}, isDetails, "the details must be empty")
+
 }

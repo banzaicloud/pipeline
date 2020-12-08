@@ -48,8 +48,23 @@ func (s serviceRouter) List(ctx context.Context, clusterID uint) ([]IntegratedSe
 	return append(issV1, issV2...), nil
 }
 
-func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName string) (service IntegratedService, err error) {
-	panic("implement me")
+func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
+	var combined error
+	if detailsV2, err := s.serviceV2.Details(ctx, clusterID, serviceName); err == nil {
+		return detailsV2, nil
+	} else {
+		combined = errors.Append(combined, err)
+	}
+
+	// fallback to v1
+	if detailsV1, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
+		return detailsV1, nil
+	} else {
+		combined = errors.Append(combined, err)
+	}
+
+	return IntegratedService{}, combined
+
 }
 
 func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
