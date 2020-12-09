@@ -15,11 +15,13 @@
 package externaldns
 
 const (
+	AwsSecretName    = "aws-secret"
 	AzureSecretName  = "azure-config-file"
 	GoogleSecretName = "google-config-file"
 
 	AzureSecretDataKey  = "azure.json"
 	GoogleSecretDataKey = "credentials.json"
+	AwsSecretDataKey    = "credentials"
 )
 
 // ChartValues describes external-dns helm chart values (https://hub.helm.sh/charts/stable/external-dns)
@@ -60,9 +62,10 @@ type AWSSettings struct {
 }
 
 type AWSCredentials struct {
-	AccessKey string `json:"accessKey,omitempty"`
-	SecretKey string `json:"secretKey,omitempty"`
-	MountPath string `json:"mountPath,omitempty"`
+	AccessKey  string `json:"accessKey,omitempty"`
+	SecretKey  string `json:"secretKey,omitempty"`
+	MountPath  string `json:"mountPath,omitempty"`
+	SecretName string `json:"secretName,omitempty"`
 }
 
 type AzureSettings struct {

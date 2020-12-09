@@ -24,11 +24,10 @@ import (
 
 // ISServiceV2 integrated service service implementation - V2
 type ISServiceV2 struct {
-	managerRegistry   IntegratedServiceManagerRegistry
-	dispatcher        IntegratedServiceOperationDispatcher
-	repository        IntegratedServiceRepository
-	serviceNameMapper ServiceNameMapper
-	logger            common.Logger
+	managerRegistry IntegratedServiceManagerRegistry
+	dispatcher      IntegratedServiceOperationDispatcher
+	repository      IntegratedServiceRepository
+	logger          common.Logger
 }
 
 // NewISServiceV2 creates a new service instance using the provided collaborators
@@ -36,15 +35,13 @@ func NewISServiceV2(
 	integratedServiceManagerRegistry IntegratedServiceManagerRegistry,
 	integratedServiceOperationDispatcher IntegratedServiceOperationDispatcher,
 	repository IntegratedServiceRepository,
-	serviceNameMapper ServiceNameMapper,
 	logger common.Logger,
 ) *ISServiceV2 {
 	return &ISServiceV2{
-		managerRegistry:   integratedServiceManagerRegistry,
-		dispatcher:        integratedServiceOperationDispatcher,
-		repository:        repository,
-		serviceNameMapper: serviceNameMapper,
-		logger:            logger,
+		managerRegistry: integratedServiceManagerRegistry,
+		dispatcher:      integratedServiceOperationDispatcher,
+		repository:      repository,
+		logger:          logger,
 	}
 }
 
@@ -79,7 +76,6 @@ func (i ISServiceV2) List(ctx context.Context, clusterID uint) ([]IntegratedServ
 
 	// only keep integrated service name and status
 	for j := range integratedServices {
-		integratedServices[j].Name = i.serviceNameMapper.MapServiceName(integratedServices[j].Name)
 		integratedServices[j].Spec = nil
 		integratedServices[j].Output = nil
 	}
@@ -93,7 +89,7 @@ func (i ISServiceV2) Details(ctx context.Context, clusterID uint, serviceName st
 		return IntegratedService{}, errors.WrapIf(err, "failed to get integrated service manager")
 	}
 
-	integratedService, err := i.repository.GetIntegratedService(ctx, clusterID, i.serviceNameMapper.MapServiceName(serviceName))
+	integratedService, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
 	if err != nil {
 		if IsIntegratedServiceNotFoundError(err) {
 			return IntegratedService{
@@ -120,7 +116,7 @@ func (i ISServiceV2) Deactivate(ctx context.Context, clusterID uint, serviceName
 		return errors.WrapIf(err, "failed to retrieve integrated service manager")
 	}
 
-	f, err := i.repository.GetIntegratedService(ctx, clusterID, i.serviceNameMapper.MapServiceName(serviceName))
+	f, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
 	if err != nil {
 		return errors.WrapIf(err, "failed to retrieve integrated service details")
 	}

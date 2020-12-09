@@ -17,6 +17,7 @@ package services
 import (
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
@@ -27,4 +28,15 @@ func BindIntegratedServiceSpec(inputSpec integratedservices.IntegratedServiceSpe
 		return errors.WrapIf(err, "failed to decode integrated service specification")
 	}
 	return nil
+}
+
+func SetManagedByPipeline(meta *v1.ObjectMeta) {
+	if meta.Annotations == nil {
+		meta.Annotations = make(map[string]string)
+	}
+	meta.Annotations["app.kubernetes.io/managed-by"] = "banzaicloud.io/pipeline"
+}
+
+func IsManagedByPipeline(meta v1.ObjectMeta) bool {
+	return meta.Annotations["app.kubernetes.io/managed-by"] == "banzaicloud.io/pipeline"
 }

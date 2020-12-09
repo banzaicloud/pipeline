@@ -36,11 +36,14 @@ spec:
         spec:
           description: ServiceInstanceSpec defines the desired state of ServiceInstance.
           properties:
-            config:
-              type: string
             enabled:
               type: boolean
+            overrides:
+              type: string
             service:
+              type: string
+            serviceSpec:
+              description: ServiceSpec Service specification
               type: string
             version:
               type: string
