@@ -109,8 +109,53 @@ func (suite *ServiceRouterSuite) TestList_V2IntegratedServicesOnly() {
 	assert.Equal(suite.T(), 1, len(isSlice), "the v2 IS should be returned")
 }
 
+func (suite *ServiceRouterSuite) TestList_IntegratedServiceOnBothVersions() {
+	// Given
+	suite.serviceV1.On("List", suite.ctx, suite.clusterID).
+		Return([]IntegratedService{
+			{
+				Name:   "v1-is-1", // this is the  duplicate
+				Status: "Pending", // note the status
+			},
+			{
+				Name:   "v1-is-2",
+				Status: "Active",
+			},
+		}, nil)
+
+	suite.serviceV2.On("List", suite.ctx, suite.clusterID).
+		Return(
+			[]IntegratedService{
+				{
+					Name:   "v1-is-1", // this is the  duplicate
+					Status: "Active",
+				},
+				{
+					Name:   "v2-is-2", // this is the  duplicate
+					Status: "Active",
+				},
+			}, nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+
+	// When
+	isSlice, err := routerService.List(suite.ctx, suite.clusterID)
+
+	// Then
+	require.Nil(suite.T(), err, "router must not return with error")
+	assert.Equal(suite.T(), 3, len(isSlice), "the v2 IS should be returned")
+	// make sure the  v1 of the duplicate is returned
+	// todo check if the ordering of elements in the slice is consistent
+	assert.Equal(suite.T(), "v1-is-1", isSlice[0].Name, "the is name is the expected one")
+	assert.Equal(suite.T(), "Pending", isSlice[0].Status, "the is name is the expected one")
+}
+
 func (suite *ServiceRouterSuite) TestDetails_ServiceOnV2() {
 	// Given
+	// the IS is not found by the legacy service
+	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
+		Return(IntegratedService{}, integratedServiceNotFoundError{clusterID: suite.clusterID, integratedServiceName: "IS2"})
+
 	// serviceV2 returns the requested IS / serviceV1 doesn't get called
 	suite.serviceV2.On("Details", suite.ctx, suite.clusterID, "IS2").
 		Return(IntegratedService{
@@ -222,6 +267,21 @@ func (suite *ServiceRouterSuite) TestActivate_NotFoundOnLegacy() {
 
 	// Then
 	require.Nil(suite.T(), err, "router must not return with error")
+}
+
+func (suite *ServiceRouterSuite) TestActivate_IntermittentErrorLegacy() {
+	// Given
+	// the IS is NOT found by the legacy service
+	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
+		Return(IntegratedService{}, errors.New("intermittent error"))
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+
+	// When
+	err := routerService.Activate(suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
+
+	// Then
+	require.NotNil(suite.T(), err, "router must not return with error")
 }
 
 func (suite *ServiceRouterSuite) TestDeactivate_ISFoundOnLegacy() {

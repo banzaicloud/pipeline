@@ -20,9 +20,9 @@ import (
 	"emperror.dev/errors"
 )
 
-// serviceRouter component that routes api calls to the appropriate integrated service version. It's main role is
+// serviceRouter routes api calls to the appropriate integrated service version. Its main role is
 // to make integrated service versions transparent to clients
-// Generally service version 2 is preferred, if not applicable the router falls back to version v1
+// Generally service version 2 is preferred, but if an active service with v1 exists then it must be used until the service gets deactivated. After deactivation v2 is preferred for these service as well.
 type serviceRouter struct {
 	serviceV1 Service
 	serviceV2 Service
@@ -48,27 +48,21 @@ func (s serviceRouter) List(ctx context.Context, clusterID uint) ([]IntegratedSe
 		return nil, errors.WrapIf(err, "failed to retrieve integrated services - V2")
 	}
 
-	return append(issV1, issV2...), nil
+	return s.filterDuplicates(issV1, issV2)
 }
 
-// Details retrieves the service from the service v2, if not found retrieves it from v1
+// Details retrieves the service from the service v1 if not found retrieves it from v2
 // Note: an Integrated Service can only be managed by one of the service versions
 func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
-	var combined error
-	if detailsV2, err := s.serviceV2.Details(ctx, clusterID, serviceName); err == nil {
-		return detailsV2, nil
-	} else {
-		combined = errors.Append(combined, err)
-	}
-
-	// fallback to v1
 	if detailsV1, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
+		// return the legacy integrated service details
 		return detailsV1, nil
-	} else {
-		combined = errors.Append(combined, err)
-	}
+	} else if !IsIntegratedServiceNotFoundError(err) {
+		return IntegratedService{}, errors.Wrapf(err, "failed to retrieve legacy integrated service details")
+	} // ignore the not found error, proceed to the new implementation
 
-	return IntegratedService{}, combined
+	// delegate to the new version of the service
+	return s.serviceV2.Details(ctx, clusterID, serviceName)
 }
 
 // Activate delegates the activation request to the appropriate service version
@@ -77,6 +71,8 @@ func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName
 	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
 		// if found on the legacy service, delegate to it
 		return s.serviceV1.Activate(ctx, clusterID, serviceName, spec)
+	} else if !IsIntegratedServiceNotFoundError(err) {
+		return errors.WrapIf(err, "failed to retrieve integrated service from the legacy service")
 	}
 
 	// delegate to the new implementation
@@ -87,6 +83,8 @@ func (s serviceRouter) Deactivate(ctx context.Context, clusterID uint, serviceNa
 	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
 		// if found on the legacy service, delegate to it
 		return s.serviceV1.Deactivate(ctx, clusterID, serviceName)
+	} else if !IsIntegratedServiceNotFoundError(err) {
+		return errors.WrapIf(err, "failed to retrieve integrated service from the legacy service")
 	}
 
 	// delegate to the new implementation
@@ -97,8 +95,38 @@ func (s serviceRouter) Update(ctx context.Context, clusterID uint, serviceName s
 	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
 		// if found on the legacy service, delegate to it
 		return s.serviceV1.Update(ctx, clusterID, serviceName, spec)
+	} else if !IsIntegratedServiceNotFoundError(err) {
+		return errors.WrapIf(err, "failed to retrieve integrated service from the legacy service")
 	}
 
 	// delegate to the new implementation
 	return s.serviceV2.Update(ctx, clusterID, serviceName, spec)
+}
+
+// filterDuplicates identifies integrated services seen by both the legacy and the new service implementations
+// and only returns adds ti the returned list the service returned by the legacy service
+func (s serviceRouter) filterDuplicates(v1 []IntegratedService, v2 []IntegratedService) ([]IntegratedService, error) {
+	if len(v1) == 0 {
+		return v2, nil
+	}
+
+	if len(v2) == 0 {
+		return v1, nil
+	}
+
+	// create a map keyed by the IS name and valued by the IS
+	isV1Map := make(map[string]IntegratedService)
+	for _, isV1 := range v1 {
+		isV1Map[isV1.Name] = isV1
+	}
+
+	deduped := v1
+	for _, s2 := range v2 {
+		if _, ok := isV1Map[s2.Name]; !ok {
+			// the isv2 doesn't exist on v1
+			deduped = append(deduped, s2)
+		}
+	}
+
+	return deduped, nil
 }
