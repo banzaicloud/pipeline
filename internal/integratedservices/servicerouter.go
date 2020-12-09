@@ -91,7 +91,7 @@ func (s serviceRouter) Deactivate(ctx context.Context, clusterID uint, serviceNa
 	return s.serviceV2.Deactivate(ctx, clusterID, serviceName)
 }
 
-func (s serviceRouter) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
+func (s serviceRouter) Update(ctx context.Context, clusterID uint, serviceName string, spec IntegratedServiceSpec) error {
 	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
 		// if found on the legacy service, delegate to it
 		return s.serviceV1.Update(ctx, clusterID, serviceName, spec)
@@ -105,23 +105,23 @@ func (s serviceRouter) Update(ctx context.Context, clusterID uint, serviceName s
 
 // filterDuplicates identifies integrated services seen by both the legacy and the new service implementations
 // and only returns adds ti the returned list the service returned by the legacy service
-func (s serviceRouter) filterDuplicates(v1 []IntegratedService, v2 []IntegratedService) ([]IntegratedService, error) {
-	if len(v1) == 0 {
-		return v2, nil
+func (s serviceRouter) filterDuplicates(v1Services []IntegratedService, v2Services []IntegratedService) ([]IntegratedService, error) {
+	if len(v1Services) == 0 {
+		return v2Services, nil
 	}
 
-	if len(v2) == 0 {
-		return v1, nil
+	if len(v2Services) == 0 {
+		return v1Services, nil
 	}
 
 	// create a map keyed by the IS name and valued by the IS
 	isV1Map := make(map[string]IntegratedService)
-	for _, isV1 := range v1 {
+	for _, isV1 := range v1Services {
 		isV1Map[isV1.Name] = isV1
 	}
 
-	deduped := v1
-	for _, s2 := range v2 {
+	deduped := v1Services
+	for _, s2 := range v2Services {
 		if _, ok := isV1Map[s2.Name]; !ok {
 			// the isv2 doesn't exist on v1
 			deduped = append(deduped, s2)
