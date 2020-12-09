@@ -30,6 +30,8 @@ type ServiceRouterSuite struct {
 	ctx       context.Context
 	serviceV1 MockService
 	serviceV2 MockService
+
+	logger Logger
 }
 
 // SetupTest common fixture for each test case
@@ -38,6 +40,8 @@ func (suite *ServiceRouterSuite) SetupTest() {
 	suite.ctx = context.Background()
 	suite.serviceV1 = MockService{}
 	suite.serviceV2 = MockService{}
+
+	suite.logger = NoopLogger{}
 }
 
 // TestServiceRouterSuite register test cases to be run
@@ -51,7 +55,7 @@ func (suite *ServiceRouterSuite) TestList_NoIntegratedServices() {
 	// serviceV1 and serviceV2  don't return any IS services
 	suite.serviceV1.On("List", suite.ctx, suite.clusterID).Return(make([]IntegratedService, 0, 0), nil)
 	suite.serviceV2.On("List", suite.ctx, suite.clusterID).Return(make([]IntegratedService, 0, 0), nil)
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	isSlice, err := routerService.List(suite.ctx, suite.clusterID)
@@ -76,7 +80,7 @@ func (suite *ServiceRouterSuite) TestList_MergeV1AndV2IntegratedServices() {
 				Status: "active",
 			}}, nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	isSlice, err := routerService.List(suite.ctx, suite.clusterID)
@@ -99,7 +103,7 @@ func (suite *ServiceRouterSuite) TestList_V2IntegratedServicesOnly() {
 				Status: "active",
 			}}, nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	isSlice, err := routerService.List(suite.ctx, suite.clusterID)
@@ -136,7 +140,7 @@ func (suite *ServiceRouterSuite) TestList_IntegratedServiceOnBothVersions() {
 				},
 			}, nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	isSlice, err := routerService.List(suite.ctx, suite.clusterID)
@@ -163,7 +167,7 @@ func (suite *ServiceRouterSuite) TestDetails_ServiceOnV2() {
 			Status: "ACTIVE",
 		}, nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	isDetails, err := routerService.Details(suite.ctx, suite.clusterID, "IS2")
@@ -189,7 +193,7 @@ func (suite *ServiceRouterSuite) TestDetails_ServiceOnV1() {
 			Status: "PENDING",
 		}, nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	isDetails, err := routerService.Details(suite.ctx, suite.clusterID, "IS1")
@@ -216,7 +220,7 @@ func (suite *ServiceRouterSuite) TestDetails_ServiceNotFound() {
 			integratedServiceName: "IS",
 		})
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	isDetails, err := routerService.Details(suite.ctx, suite.clusterID, "IS")
@@ -239,7 +243,7 @@ func (suite *ServiceRouterSuite) TestActivate_ISFoundOnLegacy() {
 	// the activation is delegated to the legacy  service
 	suite.serviceV1.On("Activate", suite.ctx, suite.clusterID, "IS1", IntegratedServiceSpec{}).Return(nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	err := routerService.Activate(suite.ctx, suite.clusterID, "IS1", IntegratedServiceSpec{})
@@ -260,7 +264,7 @@ func (suite *ServiceRouterSuite) TestActivate_NotFoundOnLegacy() {
 	// the activation is delegated to the new service
 	suite.serviceV2.On("Activate", suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{}).Return(nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	err := routerService.Activate(suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
@@ -275,7 +279,7 @@ func (suite *ServiceRouterSuite) TestActivate_IntermittentErrorLegacy() {
 	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
 		Return(IntegratedService{}, errors.New("intermittent error"))
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	err := routerService.Activate(suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
@@ -298,7 +302,7 @@ func (suite *ServiceRouterSuite) TestDeactivate_ISFoundOnLegacy() {
 	// the activation is delegated to the legacy  service
 	suite.serviceV1.On("Deactivate", ctx, suite.clusterID, "IS1").Return(nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	err := routerService.Deactivate(ctx, suite.clusterID, "IS1")
@@ -321,7 +325,7 @@ func (suite *ServiceRouterSuite) TestDeactivate_NotFoundOnLegacy() {
 	// the activation is delegated to the new service
 	suite.serviceV2.On("Deactivate", ctx, suite.clusterID, "IS2").Return(nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	err := routerService.Deactivate(ctx, suite.clusterID, "IS2")
@@ -344,7 +348,7 @@ func (suite *ServiceRouterSuite) TestUpdate_ISFoundOnLegacy() {
 	// the activation is delegated to the legacy  service
 	suite.serviceV1.On("Update", ctx, suite.clusterID, "IS1", IntegratedServiceSpec{}).Return(nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	err := routerService.Update(ctx, suite.clusterID, "IS1", IntegratedServiceSpec{})
@@ -367,7 +371,7 @@ func (suite *ServiceRouterSuite) TestUpdate_NotFoundOnLegacy() {
 	// the call is delegated to the new service
 	suite.serviceV2.On("Update", ctx, suite.clusterID, "IS2", IntegratedServiceSpec{}).Return(nil)
 
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2)
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
 
 	// When
 	err := routerService.Update(ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})

@@ -26,13 +26,17 @@ import (
 type serviceRouter struct {
 	serviceV1 Service
 	serviceV2 Service
+
+	log Logger
 }
 
 // NewServiceRouter creates a new service router instance with the passed in service implementations
-func NewServiceRouter(serviceV1 Service, serviceV2 Service) Service {
+func NewServiceRouter(serviceV1 Service, serviceV2 Service, log Logger) Service {
 	return serviceRouter{
 		serviceV1: serviceV1,
 		serviceV2: serviceV2,
+
+		log: log,
 	}
 }
 
@@ -125,6 +129,8 @@ func (s serviceRouter) filterDuplicates(v1Services []IntegratedService, v2Servic
 		if _, ok := isV1Map[s2.Name]; !ok {
 			// the isv2 doesn't exist on v1
 			deduped = append(deduped, s2)
+		} else {
+			s.log.Warn("Integrated service exists on both versions. Version 1 will be returned.", map[string]interface{}{"service": s2.Name})
 		}
 	}
 
