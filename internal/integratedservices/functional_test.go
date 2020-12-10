@@ -89,14 +89,16 @@ func (s *Suite) TestActivateBanzaiDNSWithoutSecret() {
 	}
 	s.Require().NoError(err)
 
-	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, map[string]interface{}{
+	spec := map[string]interface{}{
 		"clusterDomain": "asd",
 		"externalDns": map[string]interface{}{
 			"provider": map[string]string{
 				"name": "banzaicloud-dns",
 			},
 		},
-	})
+	}
+
+	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, spec)
 	s.Require().NoError(err)
 
 	s.Require().Eventually(func() bool {
@@ -118,6 +120,12 @@ func (s *Suite) TestActivateBanzaiDNSWithoutSecret() {
 		}
 		return false
 	}, time.Second*30, time.Second*2)
+
+	details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
+	s.Require().NoError(err)
+
+	// Check that details contains the same spec as it was when created
+	s.Require().Equal(spec, details.Spec)
 }
 
 func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
