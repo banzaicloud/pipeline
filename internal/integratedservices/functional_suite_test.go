@@ -21,6 +21,8 @@ import (
 	"regexp"
 
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
+	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/stretchr/testify/suite"
 	zaplog "logur.dev/integration/zap"
 
@@ -32,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/externaldns"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
@@ -121,11 +122,17 @@ func (s *Suite) SetupSuite() {
 		return &serviceFacade, nil
 	}
 
+	commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
 	s.integratedServiceServiceCreaterV2 = func(kubeConfigFunc integratedservices.ClusterKubeConfigFunc, managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
 		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
 		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-		clusterRepository := integratedserviceadapter.NewCRRepository(kubeConfigFunc, externaldns.NewSpecWrapper(), commonLogger, s.config.Cluster.Namespace)
-		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, services.NewServiceNameMapper(), commonLogger)
+		specMappers := map[string]integratedservices.SpecMapper{
+			integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
+		}
+		specTransformation := integratedserviceadapter.NewSpecTransformation(services.NewServiceStatusMapper(), specMappers)
+		clusterRepository := integratedserviceadapter.NewCRRepository(kubeConfigFunc, commonLogger, specTransformation, s.config.Cluster.Namespace)
+		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, commonLogger)
 		return serviceFacade, nil
 	}
 }
