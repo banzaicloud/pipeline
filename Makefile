@@ -221,18 +221,30 @@ test-integrated-service-up: ## Run integrated service functional tests
 	@while ! test -f $(HOME)/.vault-token; do echo "waiting for vault root token"; docker ps; docker-compose logs --tail 10; sleep 3; done
 	ls -alh $(HOME)/.vault-token
 
+IS_TEST_ENTRYPOINT = TestV1
+
 .PHONY: test-integrated-service
 test-integrated-service: ## Run integrated service functional tests
 	cd internal/integratedservices; \
 		PIPELINE_CONFIG_DIR=$(PWD)/internal/integratedservices/testconfig \
 		KUBECONFIG=<(kind get kubeconfig --name pipeline-is-test) \
 		VAULT_ADDR="http://127.0.0.1:8200" \
-		go test -v -run ^TestFunctional
+		go test -v -run ^$(IS_TEST_ENTRYPOINT)
+
+.PHONY: test-integrated-service-v2
+test-integrated-service-v2: IS_TEST_ENTRYPOINT = TestV2 ## Run integrated service functional tests for v2
+test-integrated-service-v2: test-integrated-service
+
+IS_WORKER_CONFIG = $(PWD)/internal/integratedservices/testconfig/config.yaml
 
 .PHONY: test-integrated-service-worker
 test-integrated-service-worker: GOTAGS += dev
 test-integrated-service-worker: build-worker
-	VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker --config $(PWD)/internal/integratedservices/testconfig/config.yaml ${ARGS}
+	VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker --config $(IS_WORKER_CONFIG) ${ARGS}
+
+.PHONY: test-integrated-service-worker-v2
+test-integrated-service-worker-v2: IS_WORKER_CONFIG = $(PWD)/internal/integratedservices/testconfig/config-v2.yaml
+test-integrated-service-worker-v2: test-integrated-service-worker
 
 .PHONY: test-integrated-service-down
 test-integrated-service-down:

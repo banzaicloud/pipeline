@@ -71,6 +71,10 @@ func (c crRepository) GetIntegratedServices(ctx context.Context, clusterID uint)
 	for _, si := range lookupISvcs.Items {
 		transformed, err := c.specTransformation.Transform(ctx, si)
 		if err != nil {
+			c.logger.Error("service transformation", map[string]interface{}{
+				"service": si.Spec.Service,
+				"err":     err,
+			})
 			continue
 		}
 		iSvcs = append(iSvcs, transformed)

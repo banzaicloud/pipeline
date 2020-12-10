@@ -22,10 +22,15 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	"k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -61,27 +66,40 @@ func (s *Suite) TestActivateBanzaiDNSWithoutSecret() {
 	org := uint(r.Uint32())
 	user := uint(r.Uint32())
 
+	ctx = auth.SetCurrentOrganizationID(ctx, org)
+
 	cluster, err := importCluster(s.kubeconfig, fmt.Sprintf("is-test-%d", org), org, user)
 	s.Require().NoError(err)
 
 	s.T().Logf("imported cluster id: %d", cluster.GetID())
 
+	importedFakeCluster := importedCluster{KubeCluster: cluster}
+
 	m := integratedServiceDNS.NewIntegratedServicesManager(
-		importedCluster{KubeCluster: cluster},
-		importedCluster{KubeCluster: cluster},
+		importedFakeCluster,
+		importedFakeCluster,
 		s.config.Cluster.DNS.Config)
 
-	integratedServicesService, err := s.integratedServiceServiceCreater(m)
+	var integratedServicesService integratedservices.Service
+	if s.v2 {
+		// TODO implement workflow check to see when it failed, until then we have to skip
+		s.T().Skip()
+		integratedServicesService, err = s.integratedServiceServiceCreaterV2(importedFakeCluster.KubeConfig, m)
+	} else {
+		integratedServicesService, err = s.integratedServiceServiceCreater(m)
+	}
 	s.Require().NoError(err)
 
-	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, map[string]interface{}{
+	spec := map[string]interface{}{
 		"clusterDomain": "asd",
 		"externalDns": map[string]interface{}{
 			"provider": map[string]string{
 				"name": "banzaicloud-dns",
 			},
 		},
-	})
+	}
+
+	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, spec)
 	s.Require().NoError(err)
 
 	s.Require().Eventually(func() bool {
@@ -103,6 +121,18 @@ func (s *Suite) TestActivateBanzaiDNSWithoutSecret() {
 		}
 		return false
 	}, time.Second*30, time.Second*2)
+
+	details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
+	s.Require().NoError(err)
+
+	originalTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
+
+	returnedTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
+
+	// Check that details contains the same spec as it was when created
+	s.Require().Equal(originalTypedSpec, returnedTypedSpec)
 }
 
 func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
@@ -117,17 +147,26 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 	org := uint(r.Uint32())
 	user := uint(r.Uint32())
 
+	ctx = auth.SetCurrentOrganizationID(ctx, org)
+
 	cluster, err := importCluster(s.kubeconfig, fmt.Sprintf("is-test-%d", org), org, user)
 	s.Require().NoError(err)
 
 	s.T().Logf("imported cluster id: %d", cluster.GetID())
 
+	importedFakeCluster := importedCluster{KubeCluster: cluster}
+
 	m := integratedServiceDNS.NewIntegratedServicesManager(
-		importedCluster{KubeCluster: cluster},
-		importedCluster{KubeCluster: cluster},
+		importedFakeCluster,
+		importedFakeCluster,
 		s.config.Cluster.DNS.Config)
 
-	integratedServicesService, err := s.integratedServiceServiceCreater(m)
+	var integratedServicesService integratedservices.Service
+	if s.v2 {
+		integratedServicesService, err = s.integratedServiceServiceCreaterV2(importedFakeCluster.KubeConfig, m)
+	} else {
+		integratedServicesService, err = s.integratedServiceServiceCreater(m)
+	}
 	s.Require().NoError(err)
 
 	createSecretRequest := secret.CreateSecretRequest{
@@ -150,15 +189,20 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 	fakeSecretId, err := secret.Store.Store(org, &createSecretRequest)
 	s.Require().NoError(err)
 
-	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, map[string]interface{}{
+	spec := map[string]interface{}{
 		"clusterDomain": "asd",
 		"externalDns": map[string]interface{}{
-			"provider": map[string]string{
-				"name":     "fake",
+			"provider": map[string]interface{}{
+				"name":     "google",
 				"secretId": fakeSecretId,
+				"options": map[string]string{
+					"project": "google",
+				},
 			},
 		},
-	})
+	}
+
+	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, spec)
 	s.Require().NoError(err)
 
 	s.Require().Eventually(func() bool {
@@ -179,8 +223,64 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 		}
 		return false
 	}, time.Second*30, time.Second*2)
+
+	details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
+	s.Require().NoError(err)
+
+	originalTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
+
+	returnedTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
+
+	// TXTOwnerID and RBACEnabled is set dynamically so unset here
+	returnedTypedSpec.ExternalDNS.TXTOwnerID = ""
+	returnedTypedSpec.RBACEnabled = false
+
+	// Check that details contains the same spec as it was when created
+	s.Require().Equal(originalTypedSpec, returnedTypedSpec)
+
+	kubeConfig, err := importedFakeCluster.GetK8sConfig()
+	s.Require().NoError(err)
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	s.Require().NoError(err)
+
+	deploymentName := "dns-external-dns"
+
+	s.Require().Eventually(func() bool {
+		_, err = client.AppsV1().Deployments(s.config.Cluster.Namespace).
+			Get(context.TODO(), deploymentName, v1.GetOptions{})
+		if err != nil {
+			if !errors.IsNotFound(err) {
+				s.FailNow(err.Error())
+			}
+			return false
+		}
+		return true
+	}, time.Second*30, time.Second*2, "external-dns deployment created")
+
+	err = integratedServicesService.Deactivate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
+	s.Require().NoError(err)
+
+	s.Require().Eventually(func() bool {
+		_, err = client.AppsV1().Deployments(s.config.Cluster.Namespace).
+			Get(context.TODO(), deploymentName, v1.GetOptions{})
+		if err != nil {
+			if !errors.IsNotFound(err) {
+				s.Error(err)
+			}
+			return true
+		}
+		return false
+	}, time.Second*30, time.Second*2, "external-dns deployment created")
 }
 
-func TestFunctional(t *testing.T) {
+func TestV1(t *testing.T) {
 	suite.Run(t, new(Suite))
+}
+
+func TestV2(t *testing.T) {
+	s := new(Suite)
+	s.v2 = true
+	suite.Run(t, s)
 }

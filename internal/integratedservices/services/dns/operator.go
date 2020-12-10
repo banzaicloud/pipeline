@@ -150,7 +150,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	return nil
 }
 
-func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterID uint, spec dnsIntegratedServiceSpec) ([]byte, error) {
+func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterID uint, spec DNSIntegratedServiceSpec) ([]byte, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get cluster")
