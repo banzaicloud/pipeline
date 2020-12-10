@@ -123,7 +123,7 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 		NodeInstanceType            string `mapstructure:"NodeInstanceType"`
 		NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
 		NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
-		CustomNodeSecurityGroups    string `mapstructure:"CustomNodeSecurityGroups,omitempty"`
+		CustomNodeSecurityGroups    string `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
 		Subnets                     string `mapstructure:"Subnets"`
 	}
 
