@@ -32,6 +32,7 @@ import (
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -68,7 +69,7 @@ type UpdateNodeGroupActivityInput struct {
 
 	ClusterTags map[string]string
 
-	TemplateVersion string
+	CurrentTemplateVersion semver.Version
 }
 
 type UpdateNodeGroupActivityOutput struct {
@@ -117,7 +118,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"CustomNodeSecurityGroups",
-			input.SecurityGroups != nil || input.TemplateVersion == "1.0.0",
+			input.SecurityGroups != nil || input.CurrentTemplateVersion.IsLessThan("2.0.0"), // Note: older templates cannot use non-existing previous value.
 			strings.Join(input.SecurityGroups, ","),
 		),
 		{
