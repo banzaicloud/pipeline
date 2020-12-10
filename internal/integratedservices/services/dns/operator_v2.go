@@ -174,7 +174,7 @@ func (o Operator) Name() string {
 }
 
 // installSecret installs secret to the cluster (from the vault secret store) and returns the name
-func (o Operator) installSecret(ctx context.Context, clusterID uint, secretName string, spec dnsIntegratedServiceSpec) error {
+func (o Operator) installSecret(ctx context.Context, clusterID uint, secretName string, spec DNSIntegratedServiceSpec) error {
 	cl, err := o.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to get cluster")
