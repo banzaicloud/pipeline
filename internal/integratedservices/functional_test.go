@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/stretchr/testify/suite"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,6 +64,8 @@ func (s *Suite) TestActivateBanzaiDNSWithoutSecret() {
 
 	org := uint(r.Uint32())
 	user := uint(r.Uint32())
+
+	ctx = auth.SetCurrentOrganizationID(ctx, org)
 
 	cluster, err := importCluster(s.kubeconfig, fmt.Sprintf("is-test-%d", org), org, user)
 	s.Require().NoError(err)
@@ -128,6 +131,8 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 
 	org := uint(r.Uint32())
 	user := uint(r.Uint32())
+
+	ctx = auth.SetCurrentOrganizationID(ctx, org)
 
 	cluster, err := importCluster(s.kubeconfig, fmt.Sprintf("is-test-%d", org), org, user)
 	s.Require().NoError(err)
