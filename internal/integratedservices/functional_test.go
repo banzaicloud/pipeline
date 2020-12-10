@@ -214,7 +214,7 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 
 	var deploymentName string
 	if s.v2 {
-		deploymentName = "external-dns"
+		deploymentName = "dns-external-dns"
 	} else {
 		deploymentName = "dns-external-dns"
 	}
