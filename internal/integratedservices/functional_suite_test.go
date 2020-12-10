@@ -21,8 +21,6 @@ import (
 	"regexp"
 
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
-	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
-	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/stretchr/testify/suite"
 	zaplog "logur.dev/integration/zap"
 
@@ -34,12 +32,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/types"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )

@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/stretchr/testify/suite"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +29,7 @@ import (
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -212,12 +212,7 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	s.Require().NoError(err)
 
-	var deploymentName string
-	if s.v2 {
-		deploymentName = "dns-external-dns"
-	} else {
-		deploymentName = "dns-external-dns"
-	}
+	deploymentName := "dns-external-dns"
 
 	s.Require().Eventually(func() bool {
 		_, err = client.AppsV1().Deployments(s.config.Cluster.Namespace).
