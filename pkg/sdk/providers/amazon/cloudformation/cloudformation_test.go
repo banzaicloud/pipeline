@@ -23,6 +23,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/stretchr/testify/require"
+
+	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
 
 func TestDecodeStackValue(t *testing.T) {
@@ -319,6 +321,10 @@ func TestParseStackOutputs(t *testing.T) {
 						OutputValue: aws.String("-5"),
 					},
 					{
+						OutputKey:   aws.String("SemanticVersion"),
+						OutputValue: aws.String("1.2.3-dev.4"),
+					},
+					{
 						OutputKey:   aws.String("String"),
 						OutputValue: aws.String("value"),
 					},
@@ -331,12 +337,13 @@ func TestParseStackOutputs(t *testing.T) {
 			output: outputType{
 				expectedError: nil,
 				expectedObjectPointer: &map[string]string{
-					"Bool":   "true",
-					"Extra":  "output",
-					"Float":  "0.5",
-					"Int":    "-5",
-					"String": "value",
-					"Uint":   "5",
+					"Bool":            "true",
+					"Extra":           "output",
+					"Float":           "0.5",
+					"Int":             "-5",
+					"SemanticVersion": "1.2.3-dev.4",
+					"String":          "value",
+					"Uint":            "5",
 				},
 			},
 		},
@@ -344,11 +351,12 @@ func TestParseStackOutputs(t *testing.T) {
 			caseName: "struct -> success",
 			input: inputType{
 				objectPointer: &struct {
-					Bool   bool
-					Float  float64
-					Int    int
-					String string
-					Uint   uint
+					Bool            bool
+					Float           float64
+					Int             int
+					SemanticVersion semver.Version
+					String          string
+					Uint            uint
 				}{},
 				outputs: []*cloudformation.Output{
 					{
@@ -368,6 +376,10 @@ func TestParseStackOutputs(t *testing.T) {
 						OutputValue: aws.String("-5"),
 					},
 					{
+						OutputKey:   aws.String("SemanticVersion"),
+						OutputValue: aws.String("1.2.3-dev.4"),
+					},
+					{
 						OutputKey:   aws.String("String"),
 						OutputValue: aws.String("value"),
 					},
@@ -380,17 +392,19 @@ func TestParseStackOutputs(t *testing.T) {
 			output: outputType{
 				expectedError: nil,
 				expectedObjectPointer: &struct {
-					Bool   bool
-					Float  float64
-					Int    int
-					String string
-					Uint   uint
+					Bool            bool
+					Float           float64
+					Int             int
+					SemanticVersion semver.Version
+					String          string
+					Uint            uint
 				}{
-					Bool:   true,
-					Float:  0.5,
-					Int:    -5,
-					String: "value",
-					Uint:   5,
+					Bool:            true,
+					Float:           0.5,
+					Int:             -5,
+					SemanticVersion: semver.NewVersionFromStringOrPanic("1.2.3-dev.4"),
+					String:          "value",
+					Uint:            5,
 				},
 			},
 		},
@@ -456,6 +470,10 @@ func TestParseStackParameters(t *testing.T) {
 						ParameterValue: aws.String("-5"),
 					},
 					{
+						ParameterKey:   aws.String("SemanticVersion"),
+						ParameterValue: aws.String("1.2.3-dev.4"),
+					},
+					{
 						ParameterKey:   aws.String("String"),
 						ParameterValue: aws.String("value"),
 					},
@@ -468,12 +486,13 @@ func TestParseStackParameters(t *testing.T) {
 			output: outputType{
 				expectedError: nil,
 				expectedObjectPointer: &map[string]string{
-					"Bool":   "true",
-					"Extra":  "parameter",
-					"Float":  "0.5",
-					"Int":    "-5",
-					"String": "value",
-					"Uint":   "5",
+					"Bool":            "true",
+					"Extra":           "parameter",
+					"Float":           "0.5",
+					"Int":             "-5",
+					"SemanticVersion": "1.2.3-dev.4",
+					"String":          "value",
+					"Uint":            "5",
 				},
 			},
 		},
@@ -481,11 +500,12 @@ func TestParseStackParameters(t *testing.T) {
 			caseName: "struct -> success",
 			input: inputType{
 				objectPointer: &struct {
-					Bool   bool
-					Float  float64
-					Int    int
-					String string
-					Uint   uint
+					Bool            bool
+					Float           float64
+					Int             int
+					SemanticVersion semver.Version
+					String          string
+					Uint            uint
 				}{},
 				parameters: []*cloudformation.Parameter{
 					{
@@ -505,6 +525,10 @@ func TestParseStackParameters(t *testing.T) {
 						ParameterValue: aws.String("-5"),
 					},
 					{
+						ParameterKey:   aws.String("SemanticVersion"),
+						ParameterValue: aws.String("1.2.3-dev.4"),
+					},
+					{
 						ParameterKey:   aws.String("String"),
 						ParameterValue: aws.String("value"),
 					},
@@ -517,17 +541,19 @@ func TestParseStackParameters(t *testing.T) {
 			output: outputType{
 				expectedError: nil,
 				expectedObjectPointer: &struct {
-					Bool   bool
-					Float  float64
-					Int    int
-					String string
-					Uint   uint
+					Bool            bool
+					Float           float64
+					Int             int
+					SemanticVersion semver.Version
+					String          string
+					Uint            uint
 				}{
-					Bool:   true,
-					Float:  0.5,
-					Int:    -5,
-					String: "value",
-					Uint:   5,
+					Bool:            true,
+					Float:           0.5,
+					Int:             -5,
+					SemanticVersion: semver.NewVersionFromStringOrPanic("1.2.3-dev.4"),
+					String:          "value",
+					Uint:            5,
 				},
 			},
 		},
@@ -629,6 +655,28 @@ func TestParseStackValue(t *testing.T) {
 			output: outputType{
 				expectedError:  nil,
 				expectedResult: 5,
+			},
+		},
+		{
+			caseName: "invalid semver.Version value error",
+			input: inputType{
+				rawValue:   "version-value",
+				resultType: semver.Version(""),
+			},
+			output: outputType{
+				expectedError:  errors.New("invalid version version-value"),
+				expectedResult: semver.Version(""),
+			},
+		},
+		{
+			caseName: "valid semver.Version value success",
+			input: inputType{
+				rawValue:   "1.2.3-dev.4",
+				resultType: semver.Version(""),
+			},
+			output: outputType{
+				expectedError:  nil,
+				expectedResult: semver.NewVersionFromStringOrPanic("1.2.3-dev.4"),
 			},
 		},
 		{
@@ -787,30 +835,33 @@ func TestParseStackValues(t *testing.T) {
 			caseName: "map[string]string -> success",
 			input: inputType{
 				rawValues: map[string]string{
-					"Bool":   "true",
-					"Extra":  "parameter",
-					"Float":  "0.5",
-					"Int":    "-5",
-					"String": "value",
-					"Uint":   "5",
+					"Bool":            "true",
+					"Extra":           "parameter",
+					"Float":           "0.5",
+					"Int":             "-5",
+					"SemanticVersion": "1.2.3-dev.4",
+					"String":          "value",
+					"Uint":            "5",
 				},
 				objectPointer: &map[string]string{
-					"Bool":   "",
-					"Float":  "",
-					"Int":    "",
-					"String": "",
-					"Uint":   "",
+					"Bool":            "",
+					"Float":           "",
+					"Int":             "",
+					"SemanticVersion": "",
+					"String":          "",
+					"Uint":            "",
 				},
 			},
 			output: outputType{
 				expectedError: nil,
 				expectedObjectPointer: &map[string]string{
-					"Bool":   "true",
-					"Extra":  "parameter",
-					"Float":  "0.5",
-					"Int":    "-5",
-					"String": "value",
-					"Uint":   "5",
+					"Bool":            "true",
+					"Extra":           "parameter",
+					"Float":           "0.5",
+					"Int":             "-5",
+					"SemanticVersion": "1.2.3-dev.4",
+					"String":          "value",
+					"Uint":            "5",
 				},
 			},
 		},
@@ -818,41 +869,46 @@ func TestParseStackValues(t *testing.T) {
 			caseName: "struct -> success",
 			input: inputType{
 				rawValues: map[string]string{
-					"Bool":   "true",
-					"Extra":  "parameter",
-					"Float":  "0.5",
-					"Int":    "-5",
-					"String": "value",
-					"Uint":   "5",
+					"Bool":            "true",
+					"Extra":           "parameter",
+					"Float":           "0.5",
+					"Int":             "-5",
+					"SemanticVersion": "1.2.3-dev.4",
+					"String":          "value",
+					"Uint":            "5",
 				},
 				objectPointer: &struct {
-					Bool   bool
-					Float  float64
-					Int    int
-					String string
-					Uint   uint
+					Bool            bool
+					Float           float64
+					Int             int
+					SemanticVersion semver.Version
+					String          string
+					Uint            uint
 				}{
-					Bool:   false,
-					Float:  0.0,
-					Int:    0,
-					String: "",
-					Uint:   uint(0),
+					Bool:            false,
+					Float:           0.0,
+					Int:             0,
+					SemanticVersion: semver.NewVersionFromStringOrPanic("0.0.0"),
+					String:          "",
+					Uint:            uint(0),
 				},
 			},
 			output: outputType{
 				expectedError: nil,
 				expectedObjectPointer: &struct {
-					Bool   bool
-					Float  float64
-					Int    int
-					String string
-					Uint   uint
+					Bool            bool
+					Float           float64
+					Int             int
+					SemanticVersion semver.Version
+					String          string
+					Uint            uint
 				}{
-					Bool:   true,
-					Float:  0.5,
-					Int:    -5,
-					String: "value",
-					Uint:   uint(5),
+					Bool:            true,
+					Float:           0.5,
+					Int:             -5,
+					SemanticVersion: semver.NewVersionFromStringOrPanic("1.2.3-dev.4"),
+					String:          "value",
+					Uint:            uint(5),
 				},
 			},
 		},

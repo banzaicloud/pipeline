@@ -24,6 +24,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
 
 // decodeStackValue is a mapstructure decode function which parses a string
@@ -110,6 +112,8 @@ func parseStackValue(rawValue string, resultType interface{}) (result interface{
 		return strconv.ParseFloat(rawValue, 0)
 	case int:
 		return strconv.Atoi(rawValue)
+	case semver.Version:
+		return semver.NewVersionFromString(rawValue)
 	case string:
 		return rawValue, nil
 	case uint:
