@@ -135,7 +135,7 @@ func (suite *ServiceRouterSuite) TestList_IntegratedServiceOnBothVersions() {
 					Status: "Active",
 				},
 				{
-					Name:   "v2-is-2", // this is the  duplicate
+					Name:   "v2-is-2",
 					Status: "Active",
 				},
 			}, nil)

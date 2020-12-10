@@ -52,7 +52,7 @@ func (s serviceRouter) List(ctx context.Context, clusterID uint) ([]IntegratedSe
 		return nil, errors.WrapIf(err, "failed to retrieve integrated services - V2")
 	}
 
-	return s.filterDuplicates(issV1, issV2)
+	return s.filterDuplicates(issV1, issV2, clusterID)
 }
 
 // Details retrieves the service from the service v1 if not found retrieves it from v2
@@ -109,7 +109,7 @@ func (s serviceRouter) Update(ctx context.Context, clusterID uint, serviceName s
 
 // filterDuplicates identifies integrated services seen by both the legacy and the new service implementations
 // and only returns adds ti the returned list the service returned by the legacy service
-func (s serviceRouter) filterDuplicates(v1Services []IntegratedService, v2Services []IntegratedService) ([]IntegratedService, error) {
+func (s serviceRouter) filterDuplicates(v1Services []IntegratedService, v2Services []IntegratedService, clusterID uint) ([]IntegratedService, error) {
 	if len(v1Services) == 0 {
 		return v2Services, nil
 	}
@@ -130,7 +130,7 @@ func (s serviceRouter) filterDuplicates(v1Services []IntegratedService, v2Servic
 			// the isv2 doesn't exist on v1
 			deduped = append(deduped, s2)
 		} else {
-			s.log.Warn("Integrated service exists on both versions. Version 1 will be returned.", map[string]interface{}{"service": s2.Name})
+			s.log.Warn("Integrated service exists on both versions. Version 1 will be returned.", map[string]interface{}{"service": s2.Name, "clusterID": clusterID})
 		}
 	}
 
