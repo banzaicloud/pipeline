@@ -26,6 +26,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -124,8 +125,14 @@ func (s *Suite) TestActivateBanzaiDNSWithoutSecret() {
 	details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
 	s.Require().NoError(err)
 
+	originalTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
+
+	returnedTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
+
 	// Check that details contains the same spec as it was when created
-	s.Require().Equal(spec, details.Spec)
+	s.Require().Equal(originalTypedSpec, returnedTypedSpec)
 }
 
 func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
@@ -182,7 +189,7 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 	fakeSecretId, err := secret.Store.Store(org, &createSecretRequest)
 	s.Require().NoError(err)
 
-	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, map[string]interface{}{
+	spec := map[string]interface{}{
 		"clusterDomain": "asd",
 		"externalDns": map[string]interface{}{
 			"provider": map[string]interface{}{
@@ -193,7 +200,9 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 				},
 			},
 		},
-	})
+	}
+
+	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, spec)
 	s.Require().NoError(err)
 
 	s.Require().Eventually(func() bool {
@@ -214,6 +223,22 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 		}
 		return false
 	}, time.Second*30, time.Second*2)
+
+	details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
+	s.Require().NoError(err)
+
+	originalTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
+
+	returnedTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
+
+	// TXTOwnerID and RBACEnabled is set dynamically so unset here
+	returnedTypedSpec.ExternalDNS.TXTOwnerID = ""
+	returnedTypedSpec.RBACEnabled = false
+
+	// Check that details contains the same spec as it was when created
+	s.Require().Equal(originalTypedSpec, returnedTypedSpec)
 
 	kubeConfig, err := importedFakeCluster.GetK8sConfig()
 	s.Require().NoError(err)
