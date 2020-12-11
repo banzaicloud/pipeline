@@ -28,11 +28,11 @@ import (
 	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	pkgCloudFormation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -69,7 +69,7 @@ type UpdateNodeGroupActivityInput struct {
 
 	ClusterTags map[string]string
 
-	TemplateVersion string
+	CurrentTemplateVersion semver.Version
 }
 
 type UpdateNodeGroupActivityOutput struct {
@@ -108,10 +108,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 
 	stackParams := []*cloudformation.Parameter{
 		{
-			ParameterKey:   aws.String(workflow.GetStackTemplateVersionKey()),
-			ParameterValue: aws.String("2.0.0"),
-		},
-		{
 			ParameterKey:     aws.String("KeyName"),
 			UsePreviousValue: aws.Bool(true),
 		},
@@ -122,7 +118,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"CustomNodeSecurityGroups",
-			input.SecurityGroups != nil || input.TemplateVersion == "1.0.0",
+			input.SecurityGroups != nil || input.CurrentTemplateVersion.IsLessThan("2.0.0"), // Note: older templates cannot use non-existing previous value.
 			strings.Join(input.SecurityGroups, ","),
 		),
 		{

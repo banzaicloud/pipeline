@@ -141,10 +141,6 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 				stack: &cloudformation.Stack{
 					Parameters: []*cloudformation.Parameter{
 						{
-							ParameterKey:   aws.String("TemplateVersion"),
-							ParameterValue: aws.String("2.0.0"),
-						},
-						{
 							ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
 							ParameterValue: aws.String("not-a-bool"),
 						},
@@ -187,8 +183,7 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 				expectedNodePool: NodePool{
 					Name:   "node-pool",
 					Status: NodePoolStatusError,
-					StatusMessage: "parsing values failed" +
-						": parsing ClusterAutoscalerEnabled value not-a-bool failed" +
+					StatusMessage: "1 error(s) decoding:\n\n* error decoding 'ClusterAutoscalerEnabled'" +
 						": strconv.ParseBool: parsing \"not-a-bool\": invalid syntax",
 				},
 			},
@@ -202,10 +197,6 @@ func TestNewNodePoolFromCFStack(t *testing.T) {
 				name: "node-pool",
 				stack: &cloudformation.Stack{
 					Parameters: []*cloudformation.Parameter{
-						{
-							ParameterKey:   aws.String("TemplateVersion"),
-							ParameterValue: aws.String("2.0.0"),
-						},
 						{
 							ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
 							ParameterValue: aws.String("true"),

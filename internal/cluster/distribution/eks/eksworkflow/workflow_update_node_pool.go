@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
 
 const UpdateNodePoolWorkflowName = "eks-update-node-pool"
@@ -130,13 +131,11 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
 	}
 
-	var templateVersion string
+	var currentTemplateVersion semver.Version
 	effectiveImage := input.NodeImage
 	effectiveVolumeSize := input.NodeVolumeSize
 	effectiveSecurityGroups := input.SecurityGroups
-	if effectiveImage == "" ||
-		effectiveVolumeSize == 0 ||
-		effectiveSecurityGroups == nil { // Note: needing CF stack for original information for version.
+	{ // Note: needing CF stack for template version and possibly node pool version.
 		getCFStackInput := eksWorkflow.GetCFStackActivityInput{
 			EKSActivityInput: eksActivityInput,
 			StackName:        eksWorkflow.GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),
@@ -149,18 +148,18 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			return err
 		}
 
-		templateVersion = eksWorkflow.GetStackTemplateVersion(getCFStackOutput.Stack)
-
 		var parameters struct {
-			NodeImageID    string `mapstructure:"NodeImageId"`
-			NodeVolumeSize int    `mapstructure:"NodeVolumeSize"`
-			// Note: CustomNodeSecurityGroups is from template version 2.0.0
-			CustomNodeSecurityGroups string `mapstructure:"CustomNodeSecurityGroups,omitempty"`
+			CustomNodeSecurityGroups string         `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
+			NodeImageID              string         `mapstructure:"NodeImageId"`
+			NodeVolumeSize           int            `mapstructure:"NodeVolumeSize"`
+			TemplateVersion          semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
 		}
 		err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 		if err != nil {
 			return err
 		}
+
+		currentTemplateVersion = parameters.TemplateVersion
 
 		if effectiveImage == "" {
 			effectiveImage = parameters.NodeImageID
@@ -236,19 +235,19 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 	{
 		activityInput := UpdateNodeGroupActivityInput{
-			SecretID:              input.ProviderSecretID,
-			Region:                input.Region,
-			ClusterName:           input.ClusterName,
-			StackName:             input.StackName,
-			NodePoolName:          input.NodePoolName,
-			NodePoolVersion:       nodePoolVersion,
-			NodeVolumeSize:        volumeSize,
-			NodeImage:             input.NodeImage,
-			SecurityGroups:        input.SecurityGroups,
-			MaxBatchSize:          input.Options.MaxBatchSize,
-			MinInstancesInService: input.Options.MaxSurge,
-			ClusterTags:           input.ClusterTags,
-			TemplateVersion:       templateVersion,
+			SecretID:               input.ProviderSecretID,
+			Region:                 input.Region,
+			ClusterName:            input.ClusterName,
+			StackName:              input.StackName,
+			NodePoolName:           input.NodePoolName,
+			NodePoolVersion:        nodePoolVersion,
+			NodeVolumeSize:         volumeSize,
+			NodeImage:              input.NodeImage,
+			SecurityGroups:         input.SecurityGroups,
+			MaxBatchSize:           input.Options.MaxBatchSize,
+			MinInstancesInService:  input.Options.MaxSurge,
+			ClusterTags:            input.ClusterTags,
+			CurrentTemplateVersion: currentTemplateVersion,
 		}
 
 		activityOptions := activityOptions

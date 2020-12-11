@@ -15,9 +15,6 @@
 package workflow
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-
 	internalcloudformation "github.com/banzaicloud/pipeline/internal/cloudformation"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
@@ -27,11 +24,6 @@ const (
 	eksVPCTemplateName      = "amazon-eks-vpc-cf.yaml"
 	eksSubnetTemplateName   = "amazon-eks-subnet-cf.yaml"
 	eksNodePoolTemplateName = "amazon-eks-nodepool-cf.yaml"
-
-	// eksStackTemplateVersionParameterKey defines the key of the parameter
-	// holding the version of the template the stack had been created from. The
-	// template version is used to handle stack compatibility.
-	eksStackTemplateVersionParameterKey = "TemplateVersion"
 )
 
 // GetVPCTemplate returns the CloudFormation template for creating VPC for EKS cluster
@@ -60,28 +52,4 @@ func GetIAMTemplate() (string, error) {
 	return internalcloudformation.GetCloudFormationTemplate(
 		global.Config.Distribution.EKS.TemplateLocation, eksIAMTemplateName,
 	)
-}
-
-// GetStackTemplateVersion returns the version of the CloudFormation template
-// the stack had been created from.
-func GetStackTemplateVersion(stack *cloudformation.Stack) string {
-	if stack == nil {
-		return ""
-	} else if len(stack.Parameters) == 0 {
-		return "1.0.0"
-	}
-
-	for _, parameter := range stack.Parameters {
-		if aws.StringValue(parameter.ParameterKey) == eksStackTemplateVersionParameterKey {
-			return aws.StringValue(parameter.ParameterValue)
-		}
-	}
-
-	return "1.0.0"
-}
-
-// GetStackTemplateVersionKey returns the key of the parameter holding the
-// version of the CloudFormation template the stack had been created from.
-func GetStackTemplateVersionKey() string {
-	return eksStackTemplateVersionParameterKey
 }

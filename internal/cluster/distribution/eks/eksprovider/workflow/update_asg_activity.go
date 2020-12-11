@@ -34,6 +34,7 @@ import (
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudformation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
 
 const UpdateAsgActivityName = "eks-update-asg"
@@ -73,6 +74,8 @@ type UpdateAsgActivityInput struct {
 
 	Labels map[string]string
 	Tags   map[string]string
+
+	CurrentTemplateVersion semver.Version
 }
 
 // UpdateAsgActivityOutput holds the output data of the UpdateAsgActivityOutput
@@ -190,10 +193,6 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 	}
 
 	stackParams := []*cloudformation.Parameter{
-		{
-			ParameterKey:   aws.String(eksStackTemplateVersionParameterKey),
-			ParameterValue: aws.String("2.0.0"),
-		},
 		{
 			ParameterKey:     aws.String("KeyName"),
 			UsePreviousValue: aws.Bool(true),

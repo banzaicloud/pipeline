@@ -1,0 +1,45 @@
+name: Integrated Service test for v2
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  is-test:
+    runs-on: ubuntu-latest
+    env:
+      VERBOSE: 1
+      GOFLAGS: -mod=readonly
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Go build cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/go-build
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/*.go', '**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-
+
+      - name: Create kind cluster and run tests
+        run: |
+          make test-integrated-service-up
+          helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com
+          kind get kubeconfig --name pipeline-is-test > kubeconfig
+          export KUBECONFIG=kubeconfig
+          helm install iso banzaicloud-stable/integrated-service-operator
+          kubectl create ns pipeline-system
+          make build-worker
+          make test-integrated-service-worker-v2 &
+          pid=$!
+          make test-integrated-service-v2
+          kill $pid

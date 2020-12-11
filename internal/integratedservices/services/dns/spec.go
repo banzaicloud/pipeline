@@ -23,13 +23,13 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-type dnsIntegratedServiceSpec struct {
+type DNSIntegratedServiceSpec struct {
 	ClusterDomain clusterDomainSpec `json:"clusterDomain" mapstructure:"clusterDomain"`
 	ExternalDNS   externalDNSSpec   `json:"externalDns" mapstructure:"externalDns"`
 	RBACEnabled   bool              `json:"rbacEnabled,omitempty"`
 }
 
-func (s dnsIntegratedServiceSpec) Validate() error {
+func (s DNSIntegratedServiceSpec) Validate() error {
 	return errors.Combine(s.ClusterDomain.Validate(), s.ExternalDNS.Validate())
 }
 
@@ -138,8 +138,8 @@ func (txtPrefixSpec) Validate() error {
 	return nil
 }
 
-func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (dnsIntegratedServiceSpec, error) {
-	var boundSpec dnsIntegratedServiceSpec
+func bindIntegratedServiceSpec(spec integratedservices.IntegratedServiceSpec) (DNSIntegratedServiceSpec, error) {
+	var boundSpec DNSIntegratedServiceSpec
 	if err := mapstructure.Decode(spec, &boundSpec); err != nil {
 		return boundSpec, errors.WrapIf(err, "failed to bind integrated service spec")
 	}

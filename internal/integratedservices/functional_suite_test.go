@@ -26,16 +26,20 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/cmd"
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/types"
+	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -43,10 +47,14 @@ import (
 type Suite struct {
 	suite.Suite
 
-	kubeconfig string
-	config     *cmd.Config
+	v2 bool
 
-	integratedServiceServiceCreater func(...integratedservices.IntegratedServiceManager) (*integratedservices.IntegratedServiceService, error)
+	kubeconfig   string
+	config       *cmd.Config
+	commonLogger common.Logger
+
+	integratedServiceServiceCreater   func(...integratedservices.IntegratedServiceManager) (integratedservices.Service, error)
+	integratedServiceServiceCreaterV2 func(integratedservices.ClusterKubeConfigFunc, ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error)
 }
 
 func (s *Suite) SetupSuite() {
@@ -100,16 +108,31 @@ func (s *Suite) SetupSuite() {
 
 	logurLogger := log.NewLogger(s.config.Log)
 	commonLogger := commonadapter.NewLogger(logurLogger)
+	s.commonLogger = commonLogger
 
 	zaplog := zaplog.New(logurLogger)
 	workflowClient, err := cadence.NewClient(s.config.Cadence, zaplog)
 	s.Require().NoError(err)
 
-	s.integratedServiceServiceCreater = func(managers ...integratedservices.IntegratedServiceManager) (*integratedservices.IntegratedServiceService, error) {
+	s.integratedServiceServiceCreater = func(managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
 		featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
 		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
 		serviceFacade := integratedservices.MakeIntegratedServiceService(dispatcher, registry, featureRepository, commonLogger)
 		return &serviceFacade, nil
+	}
+
+	commonSecretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+	s.integratedServiceServiceCreaterV2 = func(kubeConfigFunc integratedservices.ClusterKubeConfigFunc, managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
+		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
+		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+		specMappers := map[string]integratedservices.SpecMapper{
+			integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
+		}
+		specTransformation := integratedserviceadapter.NewSpecTransformation(services.NewServiceStatusMapper(), specMappers)
+		clusterRepository := integratedserviceadapter.NewCRRepository(kubeConfigFunc, commonLogger, specTransformation, s.config.Cluster.Namespace)
+		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, commonLogger)
+		return serviceFacade, nil
 	}
 }

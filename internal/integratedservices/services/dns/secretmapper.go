@@ -47,7 +47,7 @@ func (s SecretMapper) MapSpec(ctx context.Context, spec integratedservices.Integ
 	return convert(typedSpec)
 }
 
-func convert(spec dnsIntegratedServiceSpec) (integratedservices.IntegratedServiceSpec, error) {
+func convert(spec DNSIntegratedServiceSpec) (integratedservices.IntegratedServiceSpec, error) {
 	var decoded integratedservices.IntegratedServiceSpec
 	if err := mapstructure.Decode(&spec, &decoded); err != nil {
 		return decoded, errors.WrapIf(err, "failed to bind integrated service spec")
