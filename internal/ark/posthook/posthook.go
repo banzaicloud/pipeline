@@ -65,7 +65,7 @@ func RestoreFromBackup(
 		return err
 	}
 
-	err = svc.GetDeploymentsService().Deploy(helmService, &backup.Bucket, true, params.UseClusterSecret, "")
+	err = svc.GetDeploymentsService().Deploy(helmService, &backup.Bucket, true, params.UseClusterSecret, params.ServiceAccountRoleARN)
 	if err != nil {
 		return err
 	}
