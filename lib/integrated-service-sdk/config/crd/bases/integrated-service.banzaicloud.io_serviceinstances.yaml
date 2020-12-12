@@ -36,14 +36,74 @@ spec:
         spec:
           description: ServiceInstanceSpec defines the desired state of ServiceInstance.
           properties:
+            dns:
+              properties:
+                helmOverrides:
+                  description: HelmOverrides is yaml encoded helm overrides
+                  type: string
+                spec:
+                  properties:
+                    clusterDomain:
+                      type: string
+                    externalDns:
+                      properties:
+                        domainFilters:
+                          items:
+                            type: string
+                          type: array
+                        policy:
+                          type: string
+                        provider:
+                          properties:
+                            name:
+                              type: string
+                            options:
+                              properties:
+                                batchSize:
+                                  type: integer
+                                dnsMasked:
+                                  type: boolean
+                                project:
+                                  type: string
+                                region:
+                                  type: string
+                                resourceGroup:
+                                  type: string
+                              required:
+                              - dnsMasked
+                              type: object
+                            secretId:
+                              type: string
+                          required:
+                          - name
+                          - secretId
+                          type: object
+                        sources:
+                          items:
+                            type: string
+                          type: array
+                        txtOwnerId:
+                          type: string
+                        txtPrefix:
+                          type: string
+                      required:
+                      - domainFilters
+                      - policy
+                      - provider
+                      - sources
+                      - txtOwnerId
+                      - txtPrefix
+                      type: object
+                    rbacEnabled:
+                      type: boolean
+                  required:
+                  - clusterDomain
+                  - externalDns
+                  type: object
+              type: object
             enabled:
               type: boolean
-            overrides:
-              type: string
             service:
-              type: string
-            serviceSpec:
-              description: ServiceSpec Service specification
               type: string
             version:
               type: string
