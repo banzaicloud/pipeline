@@ -16,10 +16,10 @@ package dns
 
 import (
 	"context"
-	"encoding/json"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/dns"
 	"github.com/mitchellh/mapstructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -104,7 +104,7 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 		return err
 	}
 
-	boundSpec, err := bindIntegratedServiceSpec(spec)
+	boundSpec, err := dns.BindIntegratedServiceSpec(spec)
 	if err != nil {
 		return errors.WrapIf(err, "failed to bind integrated service spec")
 	}
@@ -145,7 +145,6 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 
 	// decorate the input with cluster data
 	boundSpec.RBACEnabled = cl.RbacEnabled()
-	serviceSpec, err := json.Marshal(boundSpec)
 	if err != nil {
 		return errors.WrapIf(err, "failed to marshal the api spec")
 	}
@@ -156,9 +155,11 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 			Name:      IntegratedServiceName,
 		},
 		Spec: v1alpha1.ServiceInstanceSpec{
-			Service:     IntegratedServiceName,
-			Enabled:     nil,
-			ServiceSpec: string(serviceSpec),
+			Service: IntegratedServiceName,
+			Enabled: nil,
+			DNS: v1alpha1.DNS{
+				Spec: &boundSpec,
+			},
 		},
 	}
 
@@ -174,7 +175,7 @@ func (o Operator) Name() string {
 }
 
 // installSecret installs secret to the cluster (from the vault secret store) and returns the name
-func (o Operator) installSecret(ctx context.Context, clusterID uint, secretName string, spec DNSIntegratedServiceSpec) error {
+func (o Operator) installSecret(ctx context.Context, clusterID uint, secretName string, spec dns.ServiceSpec) error {
 	cl, err := o.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to get cluster")

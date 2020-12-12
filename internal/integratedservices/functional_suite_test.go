@@ -127,11 +127,11 @@ func (s *Suite) SetupSuite() {
 	s.integratedServiceServiceCreaterV2 = func(kubeConfigFunc integratedservices.ClusterKubeConfigFunc, managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
 		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
 		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-		specMappers := map[string]integratedservices.SpecMapper{
+		specMappers := map[string]integratedservices.SpecConversion{
 			integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
 		}
-		specTransformation := integratedserviceadapter.NewSpecTransformation(services.NewServiceStatusMapper(), specMappers)
-		clusterRepository := integratedserviceadapter.NewCRRepository(kubeConfigFunc, commonLogger, specTransformation, s.config.Cluster.Namespace)
+		specTransformation := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specMappers)
+		clusterRepository := integratedserviceadapter.NewCustomResourceRepository(kubeConfigFunc, commonLogger, specTransformation, s.config.Cluster.Namespace)
 		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, commonLogger)
 		return serviceFacade, nil
 	}
