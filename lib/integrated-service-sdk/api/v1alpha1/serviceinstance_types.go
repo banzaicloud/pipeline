@@ -15,17 +15,23 @@
 package v1alpha1
 
 import (
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/dns"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ServiceInstanceSpec defines the desired state of ServiceInstance.
 type ServiceInstanceSpec struct {
-	Service   string `json:"service,omitempty"`
-	Version   string `json:"version,omitempty"`
-	Enabled   *bool  `json:"enabled,omitempty"`
-	Overrides string `json:"overrides,omitempty"`
-	// ServiceSpec Service specification
-	ServiceSpec string `json:"serviceSpec,omitempty"`
+	Service string `json:"service,omitempty"`
+	Version string `json:"version,omitempty"`
+	Enabled *bool  `json:"enabled,omitempty"`
+
+	DNS DNS `json:"dns,omitempty"`
+}
+
+type DNS struct {
+	// HelmOverrides is yaml encoded helm overrides
+	HelmOverrides string           `json:"helmOverrides,omitempty"`
+	Spec          *dns.ServiceSpec `json:"spec,omitempty"`
 }
 
 type Status string
