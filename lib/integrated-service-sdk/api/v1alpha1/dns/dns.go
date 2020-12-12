@@ -53,10 +53,10 @@ func (s ClusterDomainSpec) Validate() error {
 // +kubebuilder:object:generate=true
 
 type ExternalDNSSpec struct {
-	DomainFilters DomainFiltersSpec `json:"domainFilters" mapstructure:"domainFilters"`
+	DomainFilters DomainFiltersSpec `json:"domainFilters,omitempty" mapstructure:"domainFilters"`
 	Policy        PolicySpec        `json:"policy" mapstructure:"policy"`
 	Provider      ProviderSpec      `json:"provider" mapstructure:"provider"`
-	Sources       SourcesSpec       `json:"sources" mapstructure:"sources"`
+	Sources       SourcesSpec       `json:"sources,omitempty" mapstructure:"sources"`
 	TXTOwnerID    TxtOwnerIDSpec    `json:"txtOwnerId" mapstructure:"txtOwnerId"`
 	TXTPrefix     TxtPrefixSpec     `json:"txtPrefix" mapstructure:"txtPrefix"`
 }

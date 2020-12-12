@@ -87,10 +87,8 @@ spec:
                         txtPrefix:
                           type: string
                       required:
-                      - domainFilters
                       - policy
                       - provider
-                      - sources
                       - txtOwnerId
                       - txtPrefix
                       type: object
