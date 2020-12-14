@@ -218,6 +218,8 @@ github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a1856
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f/go.mod h1:2GxaTh0YYmhQEMQ4wJ8Izr7sBecWZtnXlDzybR1hSO8=
 github.com/banzaicloud/operator-tools v0.15.0 h1:BxtRBJlHntpAq4dtgCkhTImAUiT9sdKxwlcYKoKR+uM=
 github.com/banzaicloud/operator-tools v0.15.0/go.mod h1:544x65QDUmKMTrnMs0lbJ/0jvBSGKkaP2Z4fcmUZeLg=
+github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.3.0 h1:wl8GJ8uQPvy3ah+ER+aMQHPgJEFQoP5/o/Sn2MDLGrA=
+github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.3.0/go.mod h1:pcyaU7IFG5lNg7OtjxQiCIepgU18csGfxvlUcBy1FaA=
 github.com/bazelbuild/bazel-gazelle v0.18.2/go.mod h1:D0ehMSbS+vesFsLGiD6JXu3mVEzOlfUl8wNnq+x/9p0=
 github.com/bazelbuild/bazel-gazelle v0.19.1-0.20191105222053-70208cbdc798/go.mod h1:rPwzNHUqEzngx1iVBfO/2X2npKaT3tqPqqHW6rVsn/A=
 github.com/bazelbuild/buildtools v0.0.0-20190731111112-f720930ceb60/go.mod h1:5JP0TXzWDHXv8qvxRC4InIazwdyDseBDbzESUMKk1yU=
