@@ -127,7 +127,7 @@ replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
 	github.com/banzaicloud/cadence-aws-sdk => ./lib/cadence-aws-sdk
-	github.com/banzaicloud/integrated-service-sdk => ./lib/integrated-service-sdk
+	github.com/banzaicloud/integrated-service-sdk => github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.3.0
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
