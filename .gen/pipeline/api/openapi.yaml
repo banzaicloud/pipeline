@@ -22913,6 +22913,12 @@ components:
             to the cluster.
           example: false
           type: boolean
+        serviceAccountRoleARN:
+          description: relevant only in case of Amazon clusters. This a third option
+            to give permissions for volume snapshots to Velero, besides the default
+            NodeInstance role or cluster secret deployment.
+          example: arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME
+          type: string
         storageAccount:
           description: required only case of Azure
           example: my-storage-account

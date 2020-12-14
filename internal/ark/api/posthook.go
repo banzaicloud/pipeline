@@ -16,7 +16,8 @@ package api
 
 // RestoreFromBackupParams describes RestoreFromBackup posthook params
 type RestoreFromBackupParams struct {
-	BackupID         uint           `json:"backupId"`
-	Options          RestoreOptions `json:"options,omitempty"`
-	UseClusterSecret bool           `json:"useClusterSecret,omitempty"`
+	BackupID              uint           `json:"backupId"`
+	Options               RestoreOptions `json:"options,omitempty"`
+	UseClusterSecret      bool           `json:"useClusterSecret,omitempty"`
+	ServiceAccountRoleARN string         `json:"serviceAccountRoleARN,omitempty"`
 }
