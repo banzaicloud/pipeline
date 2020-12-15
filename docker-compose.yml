@@ -67,7 +67,7 @@ services:
             RECOMMENDER_URL: https://try.pipeline.banzai.cloud/recommender
 
     dex:
-        image: banzaicloud/dex-shim:0.6.0
+        image: banzaicloud/dex-shim:0.7.0
         command: serve /dex.yml
         restart: on-failure
         depends_on:
