@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  helm: banzaicloud/helm@0.0.5
+  helm: banzaicloud/helm@0.0.8
 
 helm-repositories: &helm_repositories
     - run: helm repo add rimusz https://charts.rimusz.net
