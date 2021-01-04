@@ -31,6 +31,9 @@ ignored = [
   "google.golang.org/api",
   "google.golang.org/protobuf",
 
+  "github.com/russross/blackfriday", # BSD-2
+  "github.com/russross/blackfriday/v2", # BSD-2
+
   # Temporary, until the package can be used without replacing
   "github.com/banzaicloud/cadence-aws-sdk",
   "github.com/banzaicloud/integrated-service-sdk",
