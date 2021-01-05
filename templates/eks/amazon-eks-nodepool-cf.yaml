@@ -44,7 +44,7 @@ Parameters:
   BootstrapArguments:
     Type: String
     Default: ""
-    Description: "Arguments to pass to the bootstrap script beside the kubelet parameters. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
+    Description: "Additional arguments to pass to the bootstrap script beside the kubelet parameters. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
 
   ClusterAutoscalerEnabled:
     Type: String
@@ -730,12 +730,12 @@ Resources:
                     - "    mkdir /media/local"
                     - "    mount -o defaults,noatime,discard,nobarrier $DEVICE /media/local"
                     - "    mkdir /media/local/kubelet"
-                    - !Sub "    /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '--root-dir /media/local/kubelet ${KubeletExtraArguments}'"
+                    - !Sub "    /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '--root-dir /media/local/kubelet ${KubeletExtraArguments}' ${BootstrapArguments}"
                     - "  else"
-                    - !Sub "  /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '${KubeletExtraArguments}'"
+                    - !Sub "  /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '${KubeletExtraArguments}' ${BootstrapArguments}"
                     - "  fi"
                     - "else"
-                    - !Sub "  /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '${KubeletExtraArguments}'"
+                    - !Sub "  /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '${KubeletExtraArguments}' ${BootstrapArguments}"
                     - "fi"
                     - !Sub "/opt/aws/bin/cfn-signal --exit-code $? --stack  ${AWS::StackName} --resource NodeGroup --region ${AWS::Region}"
         MetadataOptions:
