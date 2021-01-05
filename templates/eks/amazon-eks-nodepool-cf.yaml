@@ -481,7 +481,7 @@ Parameters:
 
   TemplateVersion:
     Type: String
-    Default: "2.1.0"
+    Default: "2.2.0"
     Description: Current version of the template structure as metainformation for created stacks.
 
   TerminationDetachEnabled:
