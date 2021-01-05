@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/dns"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -97,7 +98,7 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 		return err
 	}
 
-	boundSpec, err := bindIntegratedServiceSpec(spec)
+	boundSpec, err := dns.BindIntegratedServiceSpec(spec)
 	if err != nil {
 		return errors.WrapIf(err, "failed to bind integrated service spec")
 	}
@@ -150,7 +151,7 @@ func (op IntegratedServiceOperator) Deactivate(ctx context.Context, clusterID ui
 	return nil
 }
 
-func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterID uint, spec DNSIntegratedServiceSpec) ([]byte, error) {
+func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterID uint, spec dns.ServiceSpec) ([]byte, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get cluster")
