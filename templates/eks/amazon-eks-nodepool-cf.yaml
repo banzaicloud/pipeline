@@ -491,7 +491,7 @@ Parameters:
   UseInstanceStore:
       Type: String
       Default: "false"
-      "AllowedValues":
+      AllowedValues:
         - "true"
         - "false"
       Description: "Mount and setup available instance stores for Kubelet if available."
