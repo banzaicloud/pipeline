@@ -696,7 +696,7 @@ Resources:
                 Fn::Sub: |
                       #!/usr/bin/env bash
                       set -o xtrace
-                      if [ \"${UseInstanceStore}\" == \"true\" ]; then
+                      if [ "${UseInstanceStore}" == "true" ]; then
                         SSD_NVME_DEVICE_LIST=($(lsblk -l -o name,model | grep "Instance Storage" | cut -d " " -f 1 | sed -e "s/.*/\\/dev\\/&/" || true))
                         SSD_NVME_DEVICE_COUNT=${!#SSD_NVME_DEVICE_LIST[@]}
                         RAID_DEVICE=${!RAID_DEVICE:-/dev/md0}
