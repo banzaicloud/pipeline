@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/dns"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/pkg/any"
@@ -66,7 +67,7 @@ func (m IntegratedServiceManager) GetOutput(ctx context.Context, clusterID uint,
 
 // ValidateSpec validates a DNS integrated service specification
 func (IntegratedServiceManager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
-	dnsSpec, err := bindIntegratedServiceSpec(spec)
+	dnsSpec, err := dns.BindIntegratedServiceSpec(spec)
 	if err != nil {
 		return integratedservices.InvalidIntegratedServiceSpecError{
 			IntegratedServiceName: IntegratedServiceName,

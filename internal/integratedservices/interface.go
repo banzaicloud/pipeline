@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 )
 
 // IntegratedService represents the state of an integrated service.
@@ -211,7 +212,7 @@ func (e ClusterIsNotReadyError) ShouldRetry() bool {
 	return true
 }
 
-type SpecMapper interface {
-	// MapSpec maps certain values in integrated spec while keeping it's original type structure
-	MapSpec(ctx context.Context, spec IntegratedServiceSpec) (IntegratedServiceSpec, error)
+type SpecConversion interface {
+	// ConvertSpec converts in integrated service spec while keeping it's original structure
+	ConvertSpec(ctx context.Context, instance v1alpha1.ServiceInstance) (IntegratedServiceSpec, error)
 }

@@ -18,6 +18,8 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/dns"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -34,23 +36,24 @@ func NewSecretMapper(secretStore services.SecretStore) *SecretMapper {
 	}
 }
 
-func (s SecretMapper) MapSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceSpec, error) {
-	typedSpec, err := bindIntegratedServiceSpec(spec)
-	if err != nil {
-		return integratedservices.IntegratedServiceSpec{}, errors.WrapIf(err, "unable to bind dns spec for mapping secrets")
+func (s SecretMapper) ConvertSpec(ctx context.Context, service v1alpha1.ServiceInstance) (integratedservices.IntegratedServiceSpec, error) {
+	if service.Spec.DNS.Spec == nil {
+		return integratedservices.IntegratedServiceSpec{}, nil
 	}
-	secretID, err := s.secretStore.GetIDByName(ctx, typedSpec.ExternalDNS.Provider.SecretID)
-	if err != nil {
-		return integratedservices.IntegratedServiceSpec{}, errors.WrapIf(err, "unable to map dns secret name to secret id")
+	if services.IsManagedByPipeline(service.ObjectMeta) {
+		secretID, err := s.secretStore.GetIDByName(ctx, service.Spec.DNS.Spec.ExternalDNS.Provider.SecretID)
+		if err != nil {
+			return integratedservices.IntegratedServiceSpec{}, errors.WrapIf(err, "unable to map dns secret name to secret id")
+		}
+		service.Spec.DNS.Spec.ExternalDNS.Provider.SecretID = secretID
 	}
-	typedSpec.ExternalDNS.Provider.SecretID = secretID
-	return convert(typedSpec)
+	return convert(service.Spec.DNS.Spec)
 }
 
-func convert(spec DNSIntegratedServiceSpec) (integratedservices.IntegratedServiceSpec, error) {
+func convert(spec *dns.ServiceSpec) (integratedservices.IntegratedServiceSpec, error) {
 	var decoded integratedservices.IntegratedServiceSpec
-	if err := mapstructure.Decode(&spec, &decoded); err != nil {
-		return decoded, errors.WrapIf(err, "failed to bind integrated service spec")
+	if err := mapstructure.Decode(spec, &decoded); err != nil {
+		return decoded, errors.WrapIf(err, "failed to convert typed integrated service spec")
 	}
 	return decoded, nil
 }

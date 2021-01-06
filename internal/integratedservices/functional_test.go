@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/dns"
 	"github.com/stretchr/testify/suite"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -125,10 +126,10 @@ func (s *Suite) TestActivateBanzaiDNSWithoutSecret() {
 	details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
 	s.Require().NoError(err)
 
-	originalTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	originalTypedSpec := &dns.ServiceSpec{}
 	s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
 
-	returnedTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	returnedTypedSpec := &dns.ServiceSpec{}
 	s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
 
 	// Check that details contains the same spec as it was when created
@@ -227,10 +228,10 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 	details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
 	s.Require().NoError(err)
 
-	originalTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	originalTypedSpec := &dns.ServiceSpec{}
 	s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
 
-	returnedTypedSpec := &integratedServiceDNS.DNSIntegratedServiceSpec{}
+	returnedTypedSpec := &dns.ServiceSpec{}
 	s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
 
 	// TXTOwnerID and RBACEnabled is set dynamically so unset here

@@ -925,12 +925,12 @@ func main() {
 
 					integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
 					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
-					specMappers := map[string]integratedservices.SpecMapper{
+					specConversions := map[string]integratedservices.SpecConversion{
 						integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
 					}
-					specTransformation := integratedserviceadapter.NewSpecTransformation(services.NewServiceStatusMapper(), specMappers)
-					clusterRepository := integratedserviceadapter.NewCRRepository(clusterManager.KubeConfigFunc(), commonLogger, specTransformation, config.Cluster.Namespace)
-					integratedServicesService = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, clusterRepository, commonLogger)
+					serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions)
+					repository := integratedserviceadapter.NewCustomResourceRepository(clusterManager.KubeConfigFunc(), commonLogger, serviceConversion, config.Cluster.Namespace)
+					integratedServicesService = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, repository, commonLogger)
 				} else {
 					// legacy setup
 					featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
