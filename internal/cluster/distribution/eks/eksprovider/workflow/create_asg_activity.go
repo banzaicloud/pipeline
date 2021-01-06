@@ -269,8 +269,8 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 			ParameterValue: aws.String(fmt.Sprint(terminationDetachEnabled)),
 		},
 		{
-			ParameterKey:   aws.String("BootstrapArguments"),
-			ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
+			ParameterKey:   aws.String("KubeletExtraArguments"),
+			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
 	}
 	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateAsgActivityName)

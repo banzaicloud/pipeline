@@ -234,8 +234,8 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			UsePreviousValue: aws.Bool(true),
 		},
 		{
-			ParameterKey:   aws.String("BootstrapArguments"),
-			ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
+			ParameterKey:   aws.String("KubeletExtraArguments"),
+			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
 	}
 

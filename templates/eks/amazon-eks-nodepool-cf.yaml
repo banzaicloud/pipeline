@@ -30,6 +30,8 @@ Metadata:
           - NodeVolumeSize
           - KeyName
           - BootstrapArguments
+          - KubeletExtraArguments
+          - UseInstanceStore
           - DisableIMDSv1
           - TemplateVersion
       - Label:
@@ -42,7 +44,7 @@ Parameters:
   BootstrapArguments:
     Type: String
     Default: ""
-    Description: "Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
+    Description: "Additional arguments to pass to the bootstrap script beside the kubelet parameters. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
 
   ClusterAutoscalerEnabled:
     Type: String
@@ -76,6 +78,11 @@ Parameters:
   #   Type: Number
   #   Default: 1
   #   Description: Desired capacity of Node Group ASG.
+
+  KubeletExtraArguments:
+      Type: String
+      Default: ""
+      Description: "Arguments to pass to the bootstrap script as kubelet parameters."
 
   NodeAutoScalingGroupMaxBatchSize:
     Type: Number
@@ -474,16 +481,25 @@ Parameters:
 
   TemplateVersion:
     Type: String
-    Default: "2.1.0"
+    Default: "2.2.0"
     Description: Current version of the template structure as metainformation for created stacks.
 
   TerminationDetachEnabled:
     Type: String
     Description: Enable detachment from ASG at instance termination (true/false)
 
+  UseInstanceStore:
+      Type: String
+      Default: "false"
+      AllowedValues:
+        - "true"
+        - "false"
+      Description: "Mount and setup available instance stores for Kubelet if available."
+
   VpcId:
     Type: "AWS::EC2::VPC::Id"
     Description: The VPC of the worker instances
+
 
 Mappings:
   PartitionMap:
@@ -675,15 +691,51 @@ Resources:
         KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
         SecurityGroupIds:
           !If [NoCustomNodeSecurityGroups, [!Ref NodeSecurityGroup], !Split [ ",",  !Join [ ",", [ !Ref NodeSecurityGroup, !Ref CustomNodeSecurityGroups ] ]  ] ]
-        UserData: !Base64
-          "Fn::Sub": |
-            #!/bin/bash
-            set -o xtrace
-            /etc/eks/bootstrap.sh ${ClusterName} ${BootstrapArguments}
-            /opt/aws/bin/cfn-signal --exit-code $? \
-                     --stack  ${AWS::StackName} \
-                     --resource NodeGroup  \
-                     --region ${AWS::Region}
+        UserData:
+            Fn::Base64:
+                Fn::Sub: |
+                      #!/usr/bin/env bash
+                      set -o xtrace
+                      if [ "${UseInstanceStore}" == "true" ]; then
+                        SSD_NVME_DEVICE_LIST=($(lsblk -l -o name,model | grep "Instance Storage" | cut -d " " -f 1 | sed -e "s/.*/\\/dev\\/&/" || true))
+                        SSD_NVME_DEVICE_COUNT=${!#SSD_NVME_DEVICE_LIST[@]}
+                        RAID_DEVICE=${!RAID_DEVICE:-/dev/md0}
+                        RAID_CHUNK_SIZE=${!RAID_CHUNK_SIZE:-512}
+                        FILESYSTEM_BLOCK_SIZE=${!FILESYSTEM_BLOCK_SIZE:-4096}
+                        STRIDE=$(expr $RAID_CHUNK_SIZE \* 1024 / $FILESYSTEM_BLOCK_SIZE || true)
+                        STRIPE_WIDTH=$(expr $SSD_NVME_DEVICE_COUNT \* $STRIDE || true)
+                        case $SSD_NVME_DEVICE_COUNT in
+                        "0")
+                          echo "No devices found of type Amazon EC2 NVMe Instance Storage"
+                          ;;
+                        "1")
+                          echo "Format nvme device $SSD_NVME_DEVICE_LIST"
+                          mkfs.ext4 -m 0 -b $FILESYSTEM_BLOCK_SIZE $SSD_NVME_DEVICE_LIST
+                          DEVICE=$SSD_NVME_DEVICE_LIST
+                          ;;
+                        *)
+                          yum install mdadm -y
+                          mdadm --create --verbose $RAID_DEVICE --level=0 -c ${!RAID_CHUNK_SIZE} --raid-devices=${!#SSD_NVME_DEVICE_LIST[@]} ${!SSD_NVME_DEVICE_LIST[*]}
+                          while [ -n "$(mdadm --detail $RAID_DEVICE | grep -ioE 'State :.*resyncing')" ]; do
+                            echo "Raid is resyncing.."
+                            sleep 1
+                          done
+                          echo "Raid0 device $RAID_DEVICE has been created with disks ${!SSD_NVME_DEVICE_LIST[*]}"
+                          mkfs.ext4 -m 0 -b $FILESYSTEM_BLOCK_SIZE -E stride=$STRIDE,stripe-width=$STRIPE_WIDTH $RAID_DEVICE
+                          DEVICE=$RAID_DEVICE
+                          ;;
+                        esac
+                        if [ $SSD_NVME_DEVICE_COUNT -gt 0 ]; then
+                          mkdir /media/local
+                          mount -o defaults,noatime,discard,nobarrier $DEVICE /media/local
+                          mkdir /media/local/kubelet
+                          /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '--root-dir /media/local/kubelet ${KubeletExtraArguments}' ${BootstrapArguments}
+                        else
+                          /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '${KubeletExtraArguments}' ${BootstrapArguments}
+                        fi
+                      else
+                        /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '${KubeletExtraArguments}' ${BootstrapArguments}
+                      fi
         MetadataOptions:
           HttpPutResponseHopLimit: 2
           HttpEndpoint: enabled
