@@ -923,7 +923,7 @@ func main() {
 						integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 					}
 
-					integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+					integratedServiceOperationDispatcher := integratedserviceadapter.NewCadenceOperationDispatcher(workflowClient, commonLogger)
 					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 					specConversions := map[string]integratedservices.SpecConversion{
 						integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),

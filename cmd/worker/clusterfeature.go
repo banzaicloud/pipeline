@@ -24,12 +24,10 @@ import (
 )
 
 func registerClusterFeatureWorkflows(worker worker.Worker, featureOperatorRegistry integratedservices.IntegratedServiceOperatorRegistry, featureRepository integratedservices.IntegratedServiceRepository, isV2 bool) {
-	workflowFunc := clusterfeatureworkflow.IntegratedServiceJobWorkflow
-	if isV2 {
-		workflowFunc = clusterfeatureworkflow.IntegratedServiceJobWorkflowV2
-	}
+	worker.RegisterWorkflowWithOptions(clusterfeatureworkflow.IntegratedServiceJobWorkflow, workflow.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceJobWorkflowName})
 
-	worker.RegisterWorkflowWithOptions(workflowFunc, workflow.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceJobWorkflowName})
+	// register the new workflow for handling v2 integrated services
+	worker.RegisterWorkflowWithOptions(clusterfeatureworkflow.IntegratedServiceJobWorkflowV2, workflow.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name})
 
 	{
 		a := clusterfeatureworkflow.MakeIntegratedServicesApplyActivity(featureOperatorRegistry)

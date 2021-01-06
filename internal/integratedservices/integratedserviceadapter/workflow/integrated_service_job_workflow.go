@@ -27,6 +27,9 @@ import (
 // IntegratedServiceJobWorkflowName is the name the IntegratedServiceJobWorkflow is registered under
 const IntegratedServiceJobWorkflowName = "integrated-service-job"
 
+// IntegratedServiceJobWorkflowV2Name name of the v2 integrated service workflow
+const IntegratedServiceJobWorkflowV2Name = "integrated-service-job-v2"
+
 // IntegratedServiceJobSignalName is the name of signal with which jobs can be sent to the workflow
 const IntegratedServiceJobSignalName = "job"
 
