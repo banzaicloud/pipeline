@@ -126,7 +126,8 @@ type NodePool struct {
 
 	// SecurityGroups collects the user provided node security group IDs for the
 	// node pool.
-	SecurityGroups []string `json:"securityGroups,omitempty" yaml:"securityGroups,omitempty"`
+	SecurityGroups   []string `json:"securityGroups,omitempty" yaml:"securityGroups,omitempty"`
+	UseInstanceStore *bool    `json:"useInstanceStore,omitempty" yaml:"useInstanceStore,omitempty"`
 
 	// Subnet for worker nodes of this node pool. If not specified than worker nodes
 	// are launched in the same subnet in one of the subnets from the list of subnets of the EKS cluster

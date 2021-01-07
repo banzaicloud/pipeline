@@ -226,12 +226,13 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 				MinSize: requestedNodePool.MinCount,
 				MaxSize: requestedNodePool.MaxCount,
 			},
-			VolumeSize:     requestedNodePool.VolumeSize,
-			InstanceType:   requestedNodePool.InstanceType,
-			Image:          requestedNodePool.Image,
-			SpotPrice:      requestedNodePool.SpotPrice,
-			SecurityGroups: requestedNodePool.SecurityGroups,
-			SubnetID:       subnetID,
+			VolumeSize:       requestedNodePool.VolumeSize,
+			InstanceType:     requestedNodePool.InstanceType,
+			Image:            requestedNodePool.Image,
+			SpotPrice:        requestedNodePool.SpotPrice,
+			SecurityGroups:   requestedNodePool.SecurityGroups,
+			SubnetID:         subnetID,
+			UseInstanceStore: requestedNodePool.UseInstanceStore,
 		}
 
 		if requestedNodePool.VolumeEncryption != nil {

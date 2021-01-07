@@ -266,6 +266,7 @@ func newASGsFromRequestedUpdatedNodePools(
 			NodeImage:            nodePool.Image,
 			NodeInstanceType:     nodePool.InstanceType,
 			SecurityGroups:       nodePool.SecurityGroups,
+			UseInstanceStore:     nodePool.UseInstanceStore,
 			Labels:               nodePool.Labels,
 			Delete:               false,
 			Create:               false,
@@ -487,6 +488,7 @@ func newNodePoolsFromRequestedNewNodePools(
 			SpotPrice:        nodePool.SpotPrice,
 			SecurityGroups:   nodePool.SecurityGroups,
 			SubnetID:         newNodePoolSubnetIDs[nodePoolName][0],
+			UseInstanceStore: nodePool.UseInstanceStore,
 		})
 	}
 

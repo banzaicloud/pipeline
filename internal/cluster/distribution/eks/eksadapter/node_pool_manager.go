@@ -246,6 +246,7 @@ func (n nodePoolManager) UpdateNodePool(
 		NodeVolumeSize:       nodePoolUpdate.VolumeSize,
 		NodeImage:            nodePoolUpdate.Image,
 		SecurityGroups:       nodePoolUpdate.SecurityGroups,
+		UseInstanceStore:     nodePoolUpdate.UseInstanceStore,
 
 		Options: eks.NodePoolUpdateOptions{
 			MaxSurge:       nodePoolUpdate.Options.MaxSurge,

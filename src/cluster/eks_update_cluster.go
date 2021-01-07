@@ -349,6 +349,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				Labels:                 updatedNodePool.Labels,
 				Tags:                   input.Tags,
 				CurrentTemplateVersion: currentTemplateVersion,
+				UseInstanceStore:       updatedNodePool.UseInstanceStore,
 			}
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.UpdateAsgActivityName, activityInput)

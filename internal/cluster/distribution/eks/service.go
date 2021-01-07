@@ -68,8 +68,9 @@ type NodePoolUpdate struct {
 	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
 	VolumeSize       int                       `mapstructure:"volumeSize"`
 
-	Image          string   `mapstructure:"image"`
-	SecurityGroups []string `mapstructure:"securityGroups"`
+	Image            string   `mapstructure:"image"`
+	SecurityGroups   []string `mapstructure:"securityGroups"`
+	UseInstanceStore *bool    `mapstructure:"useInstanceStore,omitempty"`
 
 	Options NodePoolUpdateOptions `mapstructure:"options"`
 }
