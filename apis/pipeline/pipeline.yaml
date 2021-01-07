@@ -4693,6 +4693,9 @@ components:
                             items:
                                 type: string
                             example: ["sg-00000xxxx0000xxx1", "sg-00000xxxx0000xxx2"]
+                        useInstanceStore:
+                            description: Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+                            type: boolean
 
         EKSNodePoolVolumeEncryption:
             description: Encryption details of the node volumes in an EKS node pool.
@@ -4816,6 +4819,9 @@ components:
                             items:
                                 type: string
                             example: ["sg-00000xxxx0000xxx1", "sg-00000xxxx0000xxx2"]
+                        useInstanceStore:
+                            description: Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+                            type: boolean
                         options:
                             $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
 
@@ -4933,6 +4939,10 @@ components:
                     items:
                         type: string
                     example: ["sg-00000xxxx0000xxx1", "sg-00000xxxx0000xxx2"]
+                useInstanceStore:
+                    description: Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+                    type: boolean
+
 
         CreateEKSProperties:
             type: object
