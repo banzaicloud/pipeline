@@ -588,7 +588,7 @@ func main() {
 				specConversions := map[string]integratedservices.SpecConversion{
 					integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
 				}
-				serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions)
+				serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions, make(map[string]integratedserviceadapter.OutputResolver))
 				featureRepository = integratedserviceadapter.NewCustomResourceRepository(clusterManager.KubeConfigFunc(), commonLogger, serviceConversion, config.Cluster.Namespace)
 			} else {
 				featureRepository = integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)

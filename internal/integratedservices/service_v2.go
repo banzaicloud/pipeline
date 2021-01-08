@@ -101,13 +101,6 @@ func (i ISServiceV2) Details(ctx context.Context, clusterID uint, serviceName st
 		return integratedService, errors.WrapIf(err, "failed to retrieve integrated service")
 	}
 
-	output, err := manager.GetOutput(ctx, clusterID, integratedService.Spec)
-	if err != nil {
-		return integratedService, errors.WrapIfWithDetails(err, "failed to retrieve integrated service output", "clusterID", clusterID, "integrated service", serviceName)
-	}
-
-	integratedService.Output = merge(integratedService.Output, output)
-
 	return integratedService, nil
 }
 
