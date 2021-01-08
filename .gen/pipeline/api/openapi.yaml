@@ -23718,6 +23718,7 @@ components:
             root if available. As a result emptyDir volumes will be provisioned on
             local instance storage disks. You can check out available instance storages
             here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+          nullable: true
           type: boolean
         options:
           $ref: '#/components/schemas/BaseUpdateNodePoolOptions'

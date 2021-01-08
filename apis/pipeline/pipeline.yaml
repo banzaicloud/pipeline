@@ -4820,6 +4820,7 @@ components:
                                 type: string
                             example: ["sg-00000xxxx0000xxx1", "sg-00000xxxx0000xxx2"]
                         useInstanceStore:
+                            nullable: true
                             description: Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
                             type: boolean
                         options:
