@@ -430,3 +430,7 @@ func (d dummyIntegratedServiceOperationDispatcher) DispatchApply(ctx context.Con
 func (d dummyIntegratedServiceOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error {
 	return d.DeactivateError
 }
+
+func (d dummyIntegratedServiceOperationDispatcher) IsBeingDispatched(ctx context.Context, clusterID uint, integratedServiceName string) (bool, error) {
+	return false, nil
+}

@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"go.uber.org/cadence/.gen/go/shared"
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -77,6 +78,22 @@ func (d CadenceIntegratedServiceOperationDispatcher) dispatchOperation(ctx conte
 		return errors.WrapIfWithDetails(err, "signal with start workflow failed", "workflowId", workflowID)
 	}
 	return nil
+}
+
+func (d CadenceIntegratedServiceOperationDispatcher) IsBeingDispatched(ctx context.Context, clusterID uint, integratedServiceName string) (bool, error) {
+	const workflowName = workflow.IntegratedServiceJobWorkflowName
+	workflowID := getWorkflowID(workflowName, clusterID, integratedServiceName)
+
+	response, err := d.cadenceClient.DescribeWorkflowExecution(ctx, workflowID, "")
+	if err != nil {
+		notExists := &shared.EntityNotExistsError{}
+		if errors.As(err, &notExists) {
+			return false, nil
+		}
+		return false, errors.WrapIfWithDetails(err, "unable to describe workflow for service",
+			"workflowId", workflowID, "service", integratedServiceName)
+	}
+	return response.WorkflowExecutionInfo.CloseTime == nil, nil
 }
 
 func getWorkflowID(workflowName string, clusterID uint, integratedServiceName string) string {

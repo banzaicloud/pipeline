@@ -42,6 +42,14 @@ func (r integratedServiceManagerRegistry) GetIntegratedServiceManager(integrated
 	return nil, errors.WithStack(UnknownIntegratedServiceError{IntegratedServiceName: integratedServiceName})
 }
 
+func (r integratedServiceManagerRegistry) GetIntegratedServiceNames() []string {
+	keys := make([]string, 0)
+	for key := range r.lookup {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 // MakeIntegratedServiceOperatorRegistry returns a IntegratedServiceOperatorRegistry with the specified integrated service operators registered.
 func MakeIntegratedServiceOperatorRegistry(operators []IntegratedServiceOperator) IntegratedServiceOperatorRegistry {
 	lookup := make(map[string]IntegratedServiceOperator, len(operators))
