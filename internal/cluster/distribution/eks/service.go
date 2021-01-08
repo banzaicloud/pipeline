@@ -111,6 +111,7 @@ type NodePool struct {
 	SpotPrice        string                    `mapstructure:"spotPrice"`
 	SecurityGroups   []string                  `mapstructure:"securityGroups,omitempty"`
 	SubnetID         string                    `mapstructure:"subnetId"`
+	UseInstanceStore bool                      `mapstructure:"UseInstanceStore"`
 	Status           NodePoolStatus            `mapstructure:"status"`
 	StatusMessage    string                    `mapstructure:"statusMessage"`
 }
@@ -131,6 +132,7 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 		NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
 		CustomNodeSecurityGroups    string `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
 		Subnets                     string `mapstructure:"Subnets"`
+		UseInstanceStore            string `mapstructure:"UseInstanceStore,omitempty"`
 	}
 
 	err := sdkCloudFormation.ParseStackParameters(stack.Parameters, &nodePoolParameters)
@@ -170,6 +172,14 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 	nodePool.SubnetID = nodePoolParameters.Subnets // Note: currently we ensure a single value at creation.
 	nodePool.Status = NewNodePoolStatusFromCFStackStatus(aws.StringValue(stack.StackStatus))
 	nodePool.StatusMessage = aws.StringValue(stack.StackStatusReason)
+
+	if nodePoolParameters.UseInstanceStore != "" {
+		useInstanceStore, err := strconv.ParseBool(nodePoolParameters.UseInstanceStore)
+		if err != nil {
+			return NewNodePoolWithNoValues(name, NodePoolStatusError, "invalid useInstanceStore information")
+		}
+		nodePool.UseInstanceStore = useInstanceStore
+	}
 
 	return nodePool
 }

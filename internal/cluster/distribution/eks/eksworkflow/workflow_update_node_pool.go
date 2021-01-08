@@ -162,7 +162,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodeVolumeEncryptionKeyARN  string         `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
 			NodeVolumeSize              int            `mapstructure:"NodeVolumeSize"`
 			TemplateVersion             semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
-			UseInstanceStore            string         `mapstructure:"UseInstanceStore"` // Note: TemplateVersion is only available from template version 2.2.0.
+			UseInstanceStore            string         `mapstructure:"UseInstanceStore"`          // Note: TemplateVersion is only available from template version 2.2.0.
 
 		}
 		err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
