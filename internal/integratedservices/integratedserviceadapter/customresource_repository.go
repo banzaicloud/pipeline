@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -62,6 +63,9 @@ func (c customResourceRepository) GetIntegratedServices(ctx context.Context, clu
 
 	lookupISvcs := &v1alpha1.ServiceInstanceList{}
 	if err := clusterClient.List(ctx, lookupISvcs); err != nil {
+		if meta.IsNoMatchError(err) {
+			return nil, nil
+		}
 		return nil, errors.Wrap(err, "failed to retrieve integrated service list")
 	}
 
@@ -112,6 +116,9 @@ func (c customResourceRepository) GetIntegratedService(ctx context.Context, clus
 				ClusterID:             clusterID,
 				IntegratedServiceName: serviceName,
 			}
+		}
+		if meta.IsNoMatchError(err) {
+			return emptyIS, IntegratedServiceOperatorNotAvailable{}
 		}
 
 		return emptyIS, errors.Wrap(err, "failed to look up service instance")
@@ -164,4 +171,16 @@ func (c customResourceRepository) k8sClientForCluster(ctx context.Context, clust
 	}
 
 	return cli, nil
+}
+
+type IntegratedServiceOperatorNotAvailable struct {
+	error
+}
+
+func (i IntegratedServiceOperatorNotAvailable) Error() string {
+	return "Integrated Service Operator is not yet available on the cluster"
+}
+
+func (i IntegratedServiceOperatorNotAvailable) ServiceError() bool {
+	return true
 }
