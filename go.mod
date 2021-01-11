@@ -27,7 +27,7 @@ require (
 	github.com/aws/aws-sdk-go v1.35.20
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
-	github.com/banzaicloud/bank-vaults/pkg/sdk v0.4.0
+	github.com/banzaicloud/bank-vaults/pkg/sdk v0.6.0
 	github.com/banzaicloud/cadence-aws-sdk v0.0.0-20201104115745-5238cf77328b
 	github.com/banzaicloud/gin-utilz v0.3.1
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
