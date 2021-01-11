@@ -567,7 +567,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::vault::managed::enabled", false)
 	v.SetDefault("cluster::vault::managed::endpoint", "")
 	v.SetDefault("cluster::vault::charts::webhook::chart", "banzaicloud-stable/vault-secrets-webhook")
-	v.SetDefault("cluster::vault::charts::webhook::version", "1.3.0")
+	v.SetDefault("cluster::vault::charts::webhook::version", "1.10.0")
 	v.SetDefault("cluster::vault::charts::webhook::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::monitoring::enabled", true)
