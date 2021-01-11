@@ -58,24 +58,42 @@ func (s serviceRouter) List(ctx context.Context, clusterID uint) ([]IntegratedSe
 // Details retrieves the service from the service v1 if not found retrieves it from v2
 // Note: an Integrated Service can only be managed by one of the service versions
 func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
-	if detailsV1, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
-		// return the legacy integrated service details
-		return detailsV1, nil
-	} else if !IsIntegratedServiceNotFoundError(err) {
-		return IntegratedService{}, errors.Wrapf(err, "failed to retrieve legacy integrated service details")
-	} // ignore the not found error, proceed to the new implementation
+	var (
+		// cache variables to spare redundant external calls
+		detailsV1, detailsV2 IntegratedService
+		errV1, errV2         error
+	)
 
+	if detailsV1, errV1 = s.serviceV1.Details(ctx, clusterID, serviceName); errV1 == nil {
+		if detailsV1.Status != IntegratedServiceStatusInactive {
+			// return the legacy integrated service details
+			return detailsV1, nil
+		}
+	} else if !IsUnknownIntegratedServiceError(errV1) {
+		// ignore the unknown service error, proceed to the new implementation
+		return IntegratedService{}, errors.Wrapf(errV1, "failed to retrieve legacy integrated service details")
+	}
+
+	if detailsV2, errV2 = s.serviceV2.Details(ctx, clusterID, serviceName); errV2 != nil {
+		if IsUnknownIntegratedServiceError(errV2) {
+			// fallback to the legacy implementation
+			return detailsV1, errV1
+		}
+
+		return IntegratedService{}, errors.Wrapf(errV2, "failed to retrieve legacy integrated service details")
+	}
 	// delegate to the new version of the service
-	return s.serviceV2.Details(ctx, clusterID, serviceName)
+	return detailsV2, errV2
 }
 
 // Activate delegates the activation request to the appropriate service version
 // New services are always activated with the version 2 service
 func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName string, spec IntegratedServiceSpec) error {
-	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
-		// if found on the legacy service, delegate to it
-		return s.serviceV1.Activate(ctx, clusterID, serviceName, spec)
-	} else if !IsIntegratedServiceNotFoundError(err) {
+	if applies, err := s.appliesToLegacy(ctx, clusterID, serviceName); err == nil {
+		if applies {
+			return s.serviceV1.Activate(ctx, clusterID, serviceName, spec)
+		}
+	} else if !IsUnknownIntegratedServiceError(err) {
 		return errors.WrapIf(err, "failed to retrieve integrated service from the legacy service")
 	}
 
@@ -93,9 +111,11 @@ func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName
 }
 
 func (s serviceRouter) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {
-	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
+	if applies, err := s.appliesToLegacy(ctx, clusterID, serviceName); err == nil {
 		// if found on the legacy service, delegate to it
-		return s.serviceV1.Deactivate(ctx, clusterID, serviceName)
+		if applies {
+			return s.serviceV1.Deactivate(ctx, clusterID, serviceName)
+		}
 	} else if !IsIntegratedServiceNotFoundError(err) {
 		return errors.WrapIf(err, "failed to retrieve integrated service from the legacy service")
 	}
@@ -105,9 +125,11 @@ func (s serviceRouter) Deactivate(ctx context.Context, clusterID uint, serviceNa
 }
 
 func (s serviceRouter) Update(ctx context.Context, clusterID uint, serviceName string, spec IntegratedServiceSpec) error {
-	if _, err := s.serviceV1.Details(ctx, clusterID, serviceName); err == nil {
-		// if found on the legacy service, delegate to it
-		return s.serviceV1.Update(ctx, clusterID, serviceName, spec)
+	if applies, err := s.appliesToLegacy(ctx, clusterID, serviceName); err == nil {
+		// if found on the legacy service, delegate to
+		if applies {
+			return s.serviceV1.Update(ctx, clusterID, serviceName, spec)
+		}
 	} else if !IsIntegratedServiceNotFoundError(err) {
 		return errors.WrapIf(err, "failed to retrieve integrated service from the legacy service")
 	}
@@ -116,8 +138,8 @@ func (s serviceRouter) Update(ctx context.Context, clusterID uint, serviceName s
 	return s.serviceV2.Update(ctx, clusterID, serviceName, spec)
 }
 
-// filterDuplicates identifies integrated services seen by both the legacy and the new service implementations
-// and only returns adds ti the returned list the service returned by the legacy service
+// filterDuplicates identifies integrated services seen by both the legacy and the new service implementations;
+// legacy services take precedence over v2 services in the returned list
 func (s serviceRouter) filterDuplicates(v1Services []IntegratedService, v2Services []IntegratedService, clusterID uint) ([]IntegratedService, error) {
 	if len(v1Services) == 0 {
 		return v2Services, nil
@@ -144,4 +166,20 @@ func (s serviceRouter) filterDuplicates(v1Services []IntegratedService, v2Servic
 	}
 
 	return deduped, nil
+}
+
+// appliesToLegacy checks whether the legacy service should be used
+func (s serviceRouter) appliesToLegacy(ctx context.Context, clusterID uint, serviceName string) (bool, error) {
+	// the legacy service return with an inactive service instance in case the service is not found
+	details, err := s.serviceV1.Details(ctx, clusterID, serviceName)
+	if err != nil {
+		return false, err
+	}
+
+	if details.Status == IntegratedServiceStatusInactive {
+		// this means the service is not found
+		return false, nil
+	}
+
+	return true, nil
 }

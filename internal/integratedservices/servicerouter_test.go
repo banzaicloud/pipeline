@@ -158,7 +158,10 @@ func (suite *ServiceRouterSuite) TestDetails_ServiceOnV2() {
 	// Given
 	// the IS is not found by the legacy service
 	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
-		Return(IntegratedService{}, integratedServiceNotFoundError{clusterID: suite.clusterID, integratedServiceName: "IS2"})
+		Return(IntegratedService{
+			Name:   "IS2",
+			Status: IntegratedServiceStatusInactive,
+		}, nil)
 
 	// serviceV2 returns the requested IS / serviceV1 doesn't get called
 	suite.serviceV2.On("Details", suite.ctx, suite.clusterID, "IS2").
@@ -256,10 +259,11 @@ func (suite *ServiceRouterSuite) TestActivate_NotFoundOnLegacy() {
 	// Given
 	// the IS is NOT found by the legacy service
 	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
-		Return(IntegratedService{}, integratedServiceNotFoundError{
-			clusterID:             suite.clusterID,
-			integratedServiceName: "IS2",
-		})
+		Return(
+			IntegratedService{
+				Name:   "IS2",
+				Status: IntegratedServiceStatusInactive,
+			}, nil)
 
 	// the activation is delegated to the new service
 	suite.serviceV2.On("Activate", suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{}).Return(nil)
@@ -386,10 +390,10 @@ func (suite *ServiceRouterSuite) TestActivate_ServiceUnknownOnV2() {
 
 	// the IS is NOT found by the legacy service
 	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS").
-		Return(IntegratedService{}, integratedServiceNotFoundError{
-			clusterID:             suite.clusterID,
-			integratedServiceName: "IS",
-		})
+		Return(IntegratedService{
+			Name:   "IS",
+			Status: IntegratedServiceStatusInactive,
+		}, nil)
 
 	// the service is unknown by the V2 implementation
 	suite.serviceV2.On("Activate", ctx, suite.clusterID, "IS", IntegratedServiceSpec{}).Return(UnknownIntegratedServiceError{})
