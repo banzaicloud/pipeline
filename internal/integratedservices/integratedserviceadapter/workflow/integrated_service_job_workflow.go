@@ -113,9 +113,6 @@ func IntegratedServiceJobWorkflowV2(ctx workflow.Context, input IntegratedServic
 	switch op := signalInput.Operation; op {
 	case OperationApply:
 	case OperationDeactivate:
-		if err := deleteIntegratedService(ctx, input, true); err != nil {
-			return err
-		}
 	default:
 		workflow.GetLogger(ctx).Error("unsupported operation", zap.String("operation", op))
 	}
