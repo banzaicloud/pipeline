@@ -84,11 +84,6 @@ func (i ISServiceV2) List(ctx context.Context, clusterID uint) ([]IntegratedServ
 }
 
 func (i ISServiceV2) Details(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
-	manager, err := i.managerRegistry.GetIntegratedServiceManager(serviceName)
-	if err != nil {
-		return IntegratedService{}, errors.WrapIf(err, "failed to get integrated service manager")
-	}
-
 	integratedService, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
 	if err != nil {
 		if IsIntegratedServiceNotFoundError(err) {

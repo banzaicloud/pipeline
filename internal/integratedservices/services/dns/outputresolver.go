@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
+
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
