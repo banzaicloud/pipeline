@@ -79,8 +79,17 @@ func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName
 		return errors.WrapIf(err, "failed to retrieve integrated service from the legacy service")
 	}
 
+	if err := s.serviceV2.Activate(ctx, clusterID, serviceName, spec); err != nil {
+		if IsUnknownIntegratedServiceError(err) {
+			// fallback to the legacy !
+			return s.serviceV1.Activate(ctx, clusterID, serviceName, spec)
+		}
+
+		return err
+	}
+
 	// delegate to the new implementation
-	return s.serviceV2.Activate(ctx, clusterID, serviceName, spec)
+	return nil
 }
 
 func (s serviceRouter) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {

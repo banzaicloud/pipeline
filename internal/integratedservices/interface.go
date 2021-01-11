@@ -93,6 +93,14 @@ func IsIntegratedServiceNotFoundError(err error) bool {
 	return errors.As(err, &notFoundErr) && notFoundErr.IntegratedServiceNotFound()
 }
 
+// IsIntegratedServiceNotFoundError returns true when the specified error is a "integrated service is unknown" error
+func IsUnknownIntegratedServiceError(err error) bool {
+	var unknownSvcErr interface {
+		Unknown() bool
+	}
+	return errors.As(err, &unknownSvcErr) && unknownSvcErr.Unknown()
+}
+
 // IntegratedServiceManager is a collection of integrated service specific methods that are used synchronously when responding to integrated service related requests.
 type IntegratedServiceManager interface {
 	IntegratedServiceOutputProducer

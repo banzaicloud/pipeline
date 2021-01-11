@@ -379,3 +379,29 @@ func (suite *ServiceRouterSuite) TestUpdate_NotFoundOnLegacy() {
 	// Then
 	require.Nil(suite.T(), err, "router must not return with error")
 }
+
+func (suite *ServiceRouterSuite) TestActivate_ServiceUnknownOnV2() {
+	// Given
+	ctx := context.Background()
+
+	// the IS is NOT found by the legacy service
+	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{}, integratedServiceNotFoundError{
+			clusterID:             suite.clusterID,
+			integratedServiceName: "IS",
+		})
+
+	// the service is unknown by the V2 implementation
+	suite.serviceV2.On("Activate", ctx, suite.clusterID, "IS", IntegratedServiceSpec{}).Return(UnknownIntegratedServiceError{})
+
+	// the activation is delegated to the legacy  service
+	suite.serviceV1.On("Activate", suite.ctx, suite.clusterID, "IS", IntegratedServiceSpec{}).Return(nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
+
+	// When
+	err := routerService.Activate(ctx, suite.clusterID, "IS", IntegratedServiceSpec{})
+
+	// Then
+	require.Nil(suite.T(), err, "router must not return with error")
+}
