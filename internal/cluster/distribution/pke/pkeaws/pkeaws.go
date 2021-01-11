@@ -15,4 +15,4 @@
 package pkeaws
 
 // Version is the currently supported PKE version.
-const Version = "0.7.1"
+const Version = "0.7.2"
