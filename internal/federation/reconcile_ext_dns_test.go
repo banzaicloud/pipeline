@@ -28,9 +28,9 @@ import (
 
 func testEnsureCRDSourceForExtDNS(testNamespace string) func(t *testing.T) {
 	return func(t *testing.T) {
-		chartName := "stable/external-dns"
+		chartName := "bitnami/external-dns"
 		releaseName := "fed-ext-dns"
-		chartVersion := "2.15.2"
+		chartVersion := "4.5.0"
 
 		clusterId := uint(1)
 
@@ -60,7 +60,8 @@ func testEnsureCRDSourceForExtDNS(testNamespace string) func(t *testing.T) {
 		config := helm.Config{
 			Home: home,
 			Repositories: map[string]string{
-				"stable": "https://charts.helm.sh/stable",
+				"stable":  "https://charts.helm.sh/stable",
+				"bitnami": "https://charts.bitnami.com/bitnami",
 			},
 		}
 
