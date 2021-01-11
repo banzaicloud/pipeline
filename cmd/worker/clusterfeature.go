@@ -33,9 +33,11 @@ func registerClusterFeatureWorkflows(worker worker.Worker, featureOperatorRegist
 	}
 
 	{
-		activityName := clusterfeatureworkflow.GetActivityName(clusterfeatureworkflow.IntegratedServiceDeleteActivityName, isV2)
-		a := clusterfeatureworkflow.MakeIntegratedServiceDeleteActivity(featureRepository)
-		worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
+		if !isV2 {
+			activityName := clusterfeatureworkflow.GetActivityName(clusterfeatureworkflow.IntegratedServiceDeleteActivityName, isV2)
+			a := clusterfeatureworkflow.MakeIntegratedServiceDeleteActivity(featureRepository)
+			worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
+		}
 	}
 
 	{
@@ -45,14 +47,19 @@ func registerClusterFeatureWorkflows(worker worker.Worker, featureOperatorRegist
 	}
 
 	{
-		activityName := clusterfeatureworkflow.GetActivityName(clusterfeatureworkflow.IntegratedServiceSetSpecActivityName, isV2)
-		a := clusterfeatureworkflow.MakeIntegratedServiceSetSpecActivity(featureRepository)
-		worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
+		if !isV2 {
+			// this activity is not used
+			activityName := clusterfeatureworkflow.GetActivityName(clusterfeatureworkflow.IntegratedServiceSetSpecActivityName, isV2)
+			a := clusterfeatureworkflow.MakeIntegratedServiceSetSpecActivity(featureRepository)
+			worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
+		}
 	}
 
 	{
-		activityName := clusterfeatureworkflow.GetActivityName(clusterfeatureworkflow.IntegratedServiceSetStatusActivityName, isV2)
-		a := clusterfeatureworkflow.MakeIntegratedServiceSetStatusActivity(featureRepository)
-		worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
+		if !isV2 {
+			activityName := clusterfeatureworkflow.GetActivityName(clusterfeatureworkflow.IntegratedServiceSetStatusActivityName, isV2)
+			a := clusterfeatureworkflow.MakeIntegratedServiceSetStatusActivity(featureRepository)
+			worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
+		}
 	}
 }
