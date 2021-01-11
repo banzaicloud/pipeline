@@ -130,7 +130,10 @@ func (s *Suite) SetupSuite() {
 		specConversions := map[string]integratedservices.SpecConversion{
 			integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
 		}
-		serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions)
+		outputResolvers := map[string]integratedserviceadapter.OutputResolver{
+			integratedServiceDNS.IntegratedServiceName: &integratedServiceDNS.OutputResolver{},
+		}
+		serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions, outputResolvers)
 		clusterRepository := integratedserviceadapter.NewCustomResourceRepository(kubeConfigFunc, commonLogger, serviceConversion, s.config.Cluster.Namespace)
 		serviceFacade := integratedservices.NewISServiceV2(registry, dispatcher, clusterRepository, commonLogger)
 		return serviceFacade, nil

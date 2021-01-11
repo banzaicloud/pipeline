@@ -25,14 +25,23 @@ import (
 )
 
 type ServiceConversion struct {
-	statusMapper   services.StatusMapper
-	specConversion map[string]integratedservices.SpecConversion
+	statusMapper    services.StatusMapper
+	specConversion  map[string]integratedservices.SpecConversion
+	outputResolvers map[string]OutputResolver
 }
 
-func NewServiceConversion(statusMapper services.StatusMapper, specConverters map[string]integratedservices.SpecConversion) *ServiceConversion {
+type OutputResolver interface {
+	Resolve(ctx context.Context, instance v1alpha1.ServiceInstance) (integratedservices.IntegratedServiceOutput, error)
+}
+
+func NewServiceConversion(
+	statusMapper services.StatusMapper,
+	specConverters map[string]integratedservices.SpecConversion,
+	outputResolvers map[string]OutputResolver) *ServiceConversion {
 	return &ServiceConversion{
-		statusMapper:   statusMapper,
-		specConversion: specConverters,
+		statusMapper:    statusMapper,
+		specConversion:  specConverters,
+		outputResolvers: outputResolvers,
 	}
 }
 
@@ -43,11 +52,20 @@ func (c ServiceConversion) Convert(ctx context.Context, instance v1alpha1.Servic
 			return integratedservices.IntegratedService{}, errors.WrapIfWithDetails(err,
 				"failed to convert service spec", "service", instance.Spec.Service)
 		}
-		return integratedservices.IntegratedService{
+		convertedService := integratedservices.IntegratedService{
 			Name:   instance.Name,
 			Spec:   mappedServiceSpec,
 			Status: c.statusMapper.MapStatus(instance),
-		}, nil
+		}
+		if outputResolver, ok := c.outputResolvers[instance.Spec.Service]; ok {
+			output, err := outputResolver.Resolve(ctx, instance)
+			if err != nil {
+				return integratedservices.IntegratedService{}, errors.WrapIfWithDetails(err, "output resolution failed for service",
+					"name", instance.Name, "service", instance.Spec.Service)
+			}
+			convertedService.Output = output
+		}
+		return convertedService, nil
 	}
 	return integratedservices.IntegratedService{}, errors.NewWithDetails("spec converter not found for service",
 		"name", instance.Name, "service", instance.Spec.Service)

@@ -20,7 +20,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
@@ -32,17 +32,26 @@ type specConversionStub struct {
 	mappedError error
 }
 
-func (f specConversionStub) ConvertSpec(ctx context.Context, service v1alpha1.ServiceInstance) (integratedservices.IntegratedServiceSpec, error) {
+func (f specConversionStub) ConvertSpec(_ context.Context, _ v1alpha1.ServiceInstance) (integratedservices.IntegratedServiceSpec, error) {
 	return f.mappedSpec, f.mappedError
+}
+
+type outputResolverStub struct {
+	resolvedOutput integratedservices.IntegratedServiceOutput
+	resolvedError  error
+}
+
+func (o outputResolverStub) Resolve(_ context.Context, _ v1alpha1.ServiceInstance) (integratedservices.IntegratedServiceOutput, error) {
+	return o.resolvedOutput, o.resolvedError
 }
 
 func TestServiceConversion(t *testing.T) {
 	testData := map[string]struct {
-		service      string
-		mappers      map[string]integratedservices.SpecConversion
-		serviceSpec  string
-		expectError  bool
-		expectResult interface{}
+		service         string
+		mappers         map[string]integratedservices.SpecConversion
+		outputResolvers map[string]OutputResolver
+		serviceSpec     string
+		expect          func(t *testing.T, i integratedservices.IntegratedService, err error)
 	}{
 		"spec extracted successfully": {
 			service: "fake-is",
@@ -54,9 +63,11 @@ func TestServiceConversion(t *testing.T) {
 					mappedError: nil,
 				},
 			},
-			expectError: false,
-			expectResult: map[string]interface{}{
-				"key": "val",
+			expect: func(t *testing.T, i integratedservices.IntegratedService, err error) {
+				require.NoError(t, err)
+				require.Equal(t, map[string]interface{}{
+					"key": "val",
+				}, i.Spec)
 			},
 		},
 		"spec fails to map": {
@@ -67,35 +78,70 @@ func TestServiceConversion(t *testing.T) {
 					mappedError: errors.NewPlain("cannot be mapped"),
 				},
 			},
-			expectError:  true,
-			expectResult: nil,
+			expect: func(t *testing.T, i integratedservices.IntegratedService, err error) {
+				require.Error(t, err)
+			},
 		},
 		"service not recognized": {
-			service:      "fake-is",
-			mappers:      map[string]integratedservices.SpecConversion{},
-			expectError:  true,
-			expectResult: nil,
+			service: "fake-is",
+			mappers: map[string]integratedservices.SpecConversion{},
+			expect: func(t *testing.T, i integratedservices.IntegratedService, err error) {
+				require.Error(t, err)
+			},
+		},
+		"custom output": {
+			service: "fake-is",
+			mappers: map[string]integratedservices.SpecConversion{
+				"fake-is": specConversionStub{},
+			},
+			outputResolvers: map[string]OutputResolver{
+				"fake-is": outputResolverStub{
+					resolvedOutput: map[string]interface{}{
+						"a": "b",
+					},
+					resolvedError: nil,
+				},
+			},
+			expect: func(t *testing.T, i integratedservices.IntegratedService, err error) {
+				require.NoError(t, err)
+				require.Equal(t, map[string]interface{}{
+					"a": "b",
+				}, i.Output)
+			},
+		},
+		"failed output": {
+			service: "fake-is",
+			mappers: map[string]integratedservices.SpecConversion{
+				"fake-is": specConversionStub{},
+			},
+			outputResolvers: map[string]OutputResolver{
+				"fake-is": outputResolverStub{
+					resolvedOutput: map[string]interface{}{
+						"a": "b",
+					},
+					resolvedError: errors.NewPlain("asd"),
+				},
+			},
+			expect: func(t *testing.T, i integratedservices.IntegratedService, err error) {
+				require.Error(t, err)
+			},
 		},
 	}
 
 	for name, d := range testData {
-		t.Log(name)
-		serviceTransformation := NewServiceConversion(services.NewServiceStatusMapper(), d.mappers)
-		serviceInstance := v1alpha1.ServiceInstance{
-			ObjectMeta: v1.ObjectMeta{
-				Name: d.service,
-			},
-			Spec: v1alpha1.ServiceInstanceSpec{
-				Service: d.service,
-			},
-		}
+		t.Run(name, func(t *testing.T) {
+			serviceTransformation := NewServiceConversion(services.NewServiceStatusMapper(), d.mappers, d.outputResolvers)
+			serviceInstance := v1alpha1.ServiceInstance{
+				ObjectMeta: v1.ObjectMeta{
+					Name: d.service,
+				},
+				Spec: v1alpha1.ServiceInstanceSpec{
+					Service: d.service,
+				},
+			}
 
-		transformedService, err := serviceTransformation.Convert(context.TODO(), serviceInstance)
-		if d.expectError {
-			assert.Error(t, err)
-		} else {
-			assert.NoError(t, err)
-			assert.Equal(t, d.expectResult, transformedService.Spec)
-		}
+			transformedService, err := serviceTransformation.Convert(context.TODO(), serviceInstance)
+			d.expect(t, transformedService, err)
+		})
 	}
 }
