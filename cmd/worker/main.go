@@ -358,6 +358,9 @@ func main() {
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
 		worker.RegisterActivityWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
 
+		installIntServiceOpWorkflow := cluster.NewInstallIntegratedServiceOperatorWorkflow(unifiedHelmReleaser)
+		worker.RegisterWorkflowWithOptions(installIntServiceOpWorkflow.Execute, workflow.RegisterOptions{Name: cluster.InstallIntServiceOperatorWorkflowName})
+
 		cloudinfoClient := cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
 			BasePath:      config.Cloudinfo.Endpoint,
 			DefaultHeader: make(map[string]string),
