@@ -243,10 +243,10 @@ dex:
 #
 #        charts:
 #            externalDns:
-#                chart: "stable/external-dns"
-#                version: "2.15.2"
+#                chart: "bitnami/external-dns"
+#                version: "4.5.0"
 #
-#                # See https://github.com/helm/charts/tree/master/stable/external-dns for details
+#                # See https://github.com/bitnami/charts/tree/master/bitnami/external-dns for details
 #                values: {}
 #
 #    securityScan:
@@ -421,6 +421,7 @@ dex:
 #    repositories:
 #        stable: "https://charts.helm.sh/stable"
 #        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
+#        bitnami: "https://charts.bitnami.com/bitnami"
 #        loki: "https://grafana.github.io/loki/charts"
 #        kubefed-charts: "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts"
 

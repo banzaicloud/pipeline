@@ -648,12 +648,12 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::dns::namespace", "")
 	v.SetDefault("cluster::dns::baseDomain", "")
 	v.SetDefault("cluster::dns::providerSecret", "secret/data/banzaicloud/aws")
-	v.SetDefault("cluster::dns::charts::externalDns::chart", "stable/external-dns")
-	v.SetDefault("cluster::dns::charts::externalDns::version", "2.15.2")
+	v.SetDefault("cluster::dns::charts::externalDns::chart", "bitnami/external-dns")
+	v.SetDefault("cluster::dns::charts::externalDns::version", "4.5.0")
 	v.SetDefault("cluster::dns::charts::externalDns::values", map[string]interface{}{
 		"image": map[string]interface{}{
-			"repository": "bitnami/external-dns",
-			"tag":        "0.5.18",
+			"repository": "k8s.gcr.io/external-dns/external-dns",
+			"tag":        "v0.7.5",
 		},
 	})
 
@@ -874,6 +874,7 @@ traefik:
 	v.SetDefault("helm::home", "./var/cache")
 	v.SetDefault("helm::repositories::stable", "https://charts.helm.sh/stable")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
+	v.SetDefault("helm::repositories::bitnami", "https://charts.bitnami.com/bitnami")
 	v.SetDefault("helm::repositories::loki", "https://grafana.github.io/loki/charts")
 	v.SetDefault("helm::repositories::kubefed-charts", "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts")
 

@@ -229,6 +229,10 @@ func Test_service_ListRepositories(t *testing.T) {
 					URL:  "https://kubernetes-charts.banzaicloud.com",
 				},
 				{
+					Name: "bitnami",
+					URL:  "https://charts.bitnami.com/bitnami",
+				},
+				{
 					Name: "loki",
 					URL:  "https://grafana.github.io/loki/charts",
 				},
@@ -250,6 +254,10 @@ func Test_service_ListRepositories(t *testing.T) {
 						{
 							Name: "banzaicloud-stable",
 							URL:  "https://kubernetes-charts.banzaicloud.com",
+						},
+						{
+							Name: "bitnami",
+							URL:  "https://charts.bitnami.com/bitnami",
 						},
 						{
 							Name: "loki",
