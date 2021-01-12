@@ -126,7 +126,7 @@ func (s *Suite) SetupSuite() {
 
 	s.integratedServiceServiceCreaterV2 = func(kubeConfigFunc integratedservices.ClusterKubeConfigFunc, managers ...integratedservices.IntegratedServiceManager) (integratedservices.Service, error) {
 		registry := integratedservices.MakeIntegratedServiceManagerRegistry(managers)
-		dispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+		dispatcher := integratedserviceadapter.NewCadenceOperationDispatcher(workflowClient, commonLogger)
 		specConversions := map[string]integratedservices.SpecConversion{
 			integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
 		}
