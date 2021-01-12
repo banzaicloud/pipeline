@@ -20,10 +20,10 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/Masterminds/semver/v3"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/banzaicloud/operator-tools/pkg/utils"
-	"golang.org/x/mod/semver"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -127,9 +127,10 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 	}
 
 	existingSI.Spec.Version = incomingSI.Spec.Version
+	existingSI.Spec.DNS = incomingSI.Spec.DNS
 	// make sure the version is populated / set the latest available version by default
 	if incomingSI.Spec.Version == "" {
-		latestVersion, err := is.getLatestVersion(*existingSI)
+		latestVersion, err := getLatestVersion(*existingSI)
 		if err != nil {
 			return errors.Wrap(err, "failed to get the latest version")
 		}
@@ -209,38 +210,40 @@ func (is isvcReconciler) Disable(ctx context.Context, kubeConfig []byte, incomin
 	return nil
 }
 
-func (is isvcReconciler) getLatestVersion(instance v1alpha1.ServiceInstance) (string, error) {
+func getLatestVersion(instance v1alpha1.ServiceInstance) (string, error) {
 	if len(instance.Status.AvailableVersions) == 0 {
 		return "", errors.New("no versions available")
 	}
 
-	availableVersions := make(AvailableVersions, 0, len(instance.Status.AvailableVersions))
+	availableVersions := make([]*semver.Version, 0)
+
+	var allErr error
+
+	if instance.Status.Version != "" {
+		actualVersion, err := semver.NewVersion(instance.Status.Version)
+		if err != nil {
+			allErr = errors.Combine(allErr, errors.Wrapf(err, "invalid version %s", instance.Status.Version))
+		} else {
+			availableVersions = append(availableVersions, actualVersion)
+		}
+	}
+
 	for version := range instance.Status.AvailableVersions {
-		availableVersions = append(availableVersions, version)
+		parsedVersion, err := semver.NewVersion(version)
+		if err != nil {
+			allErr = errors.Combine(allErr, errors.Wrapf(err, "invalid version %s", version))
+		} else {
+			availableVersions = append(availableVersions, parsedVersion)
+		}
+	}
+
+	if len(availableVersions) == 0 {
+		return "", errors.WrapIf(allErr, "no valid versions available")
 	}
 
 	// sort the available versions
-	sort.Sort(availableVersions)
+	sort.Sort(semver.Collection(availableVersions))
 
 	// get the highest version available
-	return availableVersions[len(availableVersions)-1], nil
-}
-
-// AvailableVersions slice of semver version strings to facilitate sorting
-type AvailableVersions []string
-
-func (a AvailableVersions) Len() int {
-	return len(a)
-}
-
-func (a AvailableVersions) Less(i, j int) bool {
-	if semver.Compare(a[i], a[j]) < 0 {
-		return true
-	}
-
-	return false
-}
-
-func (a AvailableVersions) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
+	return availableVersions[len(availableVersions)-1].Original(), allErr
 }

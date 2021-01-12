@@ -68,6 +68,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
+	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
@@ -583,8 +584,9 @@ func main() {
 
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 
-			var featureRepository integratedservices.IntegratedServiceRepository
-			if config.IntegratedService.V2 {
+			var featureRepository, featureRepositoryV2 integratedservices.IntegratedServiceRepository
+			// V2 setup
+			{
 				specConversions := map[string]integratedservices.SpecConversion{
 					integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
 				}
@@ -592,8 +594,11 @@ func main() {
 					integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.OutputResolver{},
 				}
 				serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions, outputResolvers)
-				featureRepository = integratedserviceadapter.NewCustomResourceRepository(clusterManager.KubeConfigFunc(), commonLogger, serviceConversion, config.Cluster.Namespace)
-			} else {
+				featureRepositoryV2 = integratedserviceadapter.NewCustomResourceRepository(clusterManager.KubeConfigFunc(), commonLogger, serviceConversion, config.Cluster.Namespace)
+			}
+
+			// V1 setup
+			{
 				featureRepository = integratedserviceadapter.NewGormIntegratedServiceRepository(db, logger)
 			}
 
@@ -644,18 +649,8 @@ func main() {
 
 			expirerService := adapter.NewAsyncExpiryService(workflowClient, logger)
 
-			var dnsISOp integratedservices.IntegratedServiceOperator
-			if config.IntegratedService.V2 {
-				dnsISOp = integratedServiceDNS.NewDNSISOperator(
-					clusterGetter,
-					clusterService,
-					orgDomainService,
-					commonSecretStore,
-					config.Cluster.DNS.Config,
-					logger,
-				)
-			} else {
-				dnsISOp = integratedServiceDNS.MakeIntegratedServiceOperator(
+			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
+				integratedServiceDNS.MakeIntegratedServiceOperator(
 					clusterGetter,
 					clusterService,
 					unifiedHelmReleaser,
@@ -663,11 +658,7 @@ func main() {
 					orgDomainService,
 					commonSecretStore,
 					config.Cluster.DNS.Config,
-				)
-			}
-
-			featureOperatorRegistry := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
-				dnsISOp,
+				),
 				securityscan.MakeIntegratedServiceOperator(
 					config.Cluster.SecurityScan.Config,
 					clusterGetter,
@@ -716,8 +707,19 @@ func main() {
 					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
 				),
 			})
+			featureOperatorRegistryV2 := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
+				integratedServiceDNS.NewDNSISOperator(
+					clusterGetter,
+					clusterService,
+					orgDomainService,
+					commonSecretStore,
+					config.Cluster.DNS.Config,
+					logger,
+				),
+			})
 
-			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, config.IntegratedService.V2)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistryV2, featureRepositoryV2, clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name, true)
 		}
 
 		group.Add(appkitrun.CadenceWorkerRun(worker))

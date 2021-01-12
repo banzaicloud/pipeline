@@ -910,20 +910,21 @@ func main() {
 			}
 
 			// Cluster IntegratedService API
-			var integratedServicesService integratedservices.Service
+			var isServiceV1, isServiceV2, isRouter integratedservices.Service
 			{
 				// common setup (for both legacy and V2 IS)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				endpointManager := endpoints.NewEndpointManager(commonLogger)
 				integratedServiceManagers := make([]integratedservices.IntegratedServiceManager, 0)
-				if config.IntegratedService.V2 {
-					// v2 setup
+
+				// integrated service service V2 setup
+				{
 					if config.Cluster.DNS.Enabled {
 						integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 					}
 
-					integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
+					integratedServiceOperationDispatcher := integratedserviceadapter.NewCadenceOperationDispatcher(workflowClient, commonLogger)
 					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 					specConversions := map[string]integratedservices.SpecConversion{
 						integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
@@ -933,8 +934,11 @@ func main() {
 					}
 					serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions, outputResolvers)
 					repository := integratedserviceadapter.NewCustomResourceRepository(clusterManager.KubeConfigFunc(), commonLogger, serviceConversion, config.Cluster.Namespace)
-					integratedServicesService = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, repository, commonLogger)
-				} else {
+					isServiceV2 = integratedservices.NewISServiceV2(integratedServiceManagerRegistry, integratedServiceOperationDispatcher, repository, commonLogger)
+				}
+
+				// integrated service service V2 setup
+				{
 					// legacy setup
 					featureRepository := integratedserviceadapter.NewGormIntegratedServiceRepository(db, commonLogger)
 
@@ -1019,12 +1023,26 @@ func main() {
 
 					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 					integratedServiceOperationDispatcher := integratedserviceadapter.MakeCadenceIntegratedServiceOperationDispatcher(workflowClient, commonLogger)
-					integratedServicesService = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
+					isServiceV1 = integratedservices.MakeIntegratedServiceService(integratedServiceOperationDispatcher, integratedServiceManagerRegistry, featureRepository, commonLogger)
 				}
-				endpoints := integratedservicesdriver.MakeEndpoints(
-					integratedServicesService,
-					kitxendpoint.Combine(endpointMiddleware...),
-				)
+				// router for handling integrated service versions simultaneously
+				isRouter = integratedservices.NewServiceRouter(isServiceV1, isServiceV2, commonLogger)
+
+				var endpoints integratedservicesdriver.Endpoints
+				// use the desired version of integrated services as backend, use the v1 by default
+
+				if config.IntegratedService.V2 {
+					// use the router if v2 is switched on
+					endpoints = integratedservicesdriver.MakeEndpoints(
+						isRouter,
+						kitxendpoint.Combine(endpointMiddleware...),
+					)
+				} else {
+					endpoints = integratedservicesdriver.MakeEndpoints(
+						isServiceV1,
+						kitxendpoint.Combine(endpointMiddleware...),
+					)
+				}
 
 				{
 					integratedservicesdriver.RegisterHTTPHandlers(
@@ -1050,7 +1068,13 @@ func main() {
 				}
 			}
 
-			hpaApi := api.NewHPAAPI(integratedServicesService, clientFactory, configFactory, commonClusterGetter, errorHandler)
+			var hpaApi api.HPAAPI
+			if config.IntegratedService.V2 {
+				hpaApi = api.NewHPAAPI(isRouter, clientFactory, configFactory, commonClusterGetter, errorHandler)
+			} else {
+				hpaApi = api.NewHPAAPI(isServiceV1, clientFactory, configFactory, commonClusterGetter, errorHandler)
+			}
+
 			cRouter.GET("/hpa", hpaApi.GetHpaResource)
 			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
 			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)

@@ -17,6 +17,7 @@ package workflow
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"go.uber.org/cadence/activity"
@@ -54,4 +55,12 @@ func wait(ctx context.Context, duration time.Duration) error {
 	case <-ctx.Done():
 	}
 	return ctx.Err()
+}
+
+func GetActivityName(v1Name string, isV2 bool) string {
+	if isV2 {
+		return strings.Join([]string{v1Name, "v2"}, "-")
+	}
+
+	return v1Name
 }

@@ -190,56 +190,120 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 	fakeSecretId, err := secret.Store.Store(org, &createSecretRequest)
 	s.Require().NoError(err)
 
-	spec := map[string]interface{}{
-		"clusterDomain": "asd",
-		"externalDns": map[string]interface{}{
-			"provider": map[string]interface{}{
-				"name":     "google",
-				"secretId": fakeSecretId,
-				"options": map[string]string{
-					"project": "google",
+	var createdOutput, updatedOutput integratedservices.IntegratedServiceOutput
+	{
+		spec := map[string]interface{}{
+			"clusterDomain": "asd",
+			"externalDns": map[string]interface{}{
+				"provider": map[string]interface{}{
+					"name":     "google",
+					"secretId": fakeSecretId,
+					"options": map[string]string{
+						"project": "google",
+					},
 				},
 			},
-		},
+		}
+
+		err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, spec)
+		s.Require().NoError(err)
+
+		s.Require().Eventually(func() bool {
+			isList, err := integratedServicesService.List(ctx, cluster.GetID())
+			if err != nil {
+				s.T().Fatalf("%+v", err)
+			}
+			for _, i := range isList {
+				if i.Name == integratedServiceDNS.IntegratedServiceName {
+					switch i.Status {
+					case integratedservices.IntegratedServiceStatusActive:
+						return true
+					case integratedservices.IntegratedServiceStatusError:
+						s.T().Fatal("unexpected error status")
+					}
+					s.T().Logf("is status %s", i.Status)
+				}
+			}
+			return false
+		}, time.Second*30, time.Second*2)
+
+		details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
+		s.Require().NoError(err)
+
+		createdOutput = details.Output
+
+		originalTypedSpec := &dns.ServiceSpec{}
+		s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
+
+		returnedTypedSpec := &dns.ServiceSpec{}
+		s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
+
+		// TXTOwnerID and RBACEnabled is set dynamically so unset here
+		returnedTypedSpec.ExternalDNS.TXTOwnerID = ""
+		returnedTypedSpec.RBACEnabled = false
+
+		// Check that details contains the same spec as it was when created
+		s.Require().Equal(originalTypedSpec, returnedTypedSpec)
 	}
 
-	err = integratedServicesService.Activate(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, spec)
-	s.Require().NoError(err)
-
-	s.Require().Eventually(func() bool {
-		isList, err := integratedServicesService.List(ctx, cluster.GetID())
-		if err != nil {
-			s.T().Fatalf("%+v", err)
+	// CHECK UPDATE
+	{
+		spec := map[string]interface{}{
+			"clusterDomain": "asd",
+			"externalDns": map[string]interface{}{
+				"provider": map[string]interface{}{
+					"name":     "google",
+					"secretId": fakeSecretId,
+					"options": map[string]string{
+						"project": "google",
+					},
+				},
+				"sources": []string{"service", "ingress"},
+			},
 		}
-		for _, i := range isList {
-			if i.Name == integratedServiceDNS.IntegratedServiceName {
-				switch i.Status {
-				case integratedservices.IntegratedServiceStatusActive:
-					return true
-				case integratedservices.IntegratedServiceStatusError:
-					s.T().Fatal("unexpected error status")
-				}
-				s.T().Logf("is status %s", i.Status)
+
+		err = integratedServicesService.Update(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName, spec)
+		s.Require().NoError(err)
+
+		s.Require().Eventually(func() bool {
+			isList, err := integratedServicesService.List(ctx, cluster.GetID())
+			if err != nil {
+				s.T().Fatalf("%+v", err)
 			}
-		}
-		return false
-	}, time.Second*30, time.Second*2)
+			for _, i := range isList {
+				if i.Name == integratedServiceDNS.IntegratedServiceName {
+					switch i.Status {
+					case integratedservices.IntegratedServiceStatusActive:
+						return true
+					case integratedservices.IntegratedServiceStatusError:
+						s.T().Fatal("unexpected error status")
+					}
+					s.T().Logf("is status %s", i.Status)
+				}
+			}
+			return false
+		}, time.Second*30, time.Second*2)
 
-	details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
-	s.Require().NoError(err)
+		details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
+		s.Require().NoError(err)
 
-	originalTypedSpec := &dns.ServiceSpec{}
-	s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
+		updatedOutput = details.Output
 
-	returnedTypedSpec := &dns.ServiceSpec{}
-	s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
+		originalTypedSpec := &dns.ServiceSpec{}
+		s.Require().NoError(services.BindIntegratedServiceSpec(spec, originalTypedSpec))
 
-	// TXTOwnerID and RBACEnabled is set dynamically so unset here
-	returnedTypedSpec.ExternalDNS.TXTOwnerID = ""
-	returnedTypedSpec.RBACEnabled = false
+		returnedTypedSpec := &dns.ServiceSpec{}
+		s.Require().NoError(services.BindIntegratedServiceSpec(details.Spec, returnedTypedSpec))
 
-	// Check that details contains the same spec as it was when created
-	s.Require().Equal(originalTypedSpec, returnedTypedSpec)
+		// TXTOwnerID and RBACEnabled is set dynamically so unset here
+		returnedTypedSpec.ExternalDNS.TXTOwnerID = ""
+		returnedTypedSpec.RBACEnabled = false
+
+		// Check that details contains the same spec as it was when created
+		s.Assert().Equal(originalTypedSpec, returnedTypedSpec)
+	}
+
+	s.Assert().Equal(createdOutput, updatedOutput)
 
 	kubeConfig, err := importedFakeCluster.GetK8sConfig()
 	s.Require().NoError(err)

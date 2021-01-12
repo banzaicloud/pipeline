@@ -27,6 +27,9 @@ import (
 // IntegratedServiceJobWorkflowName is the name the IntegratedServiceJobWorkflow is registered under
 const IntegratedServiceJobWorkflowName = "integrated-service-job"
 
+// IntegratedServiceJobWorkflowV2Name name of the v2 integrated service workflow
+const IntegratedServiceJobWorkflowV2Name = "integrated-service-job-v2"
+
 // IntegratedServiceJobSignalName is the name of signal with which jobs can be sent to the workflow
 const IntegratedServiceJobSignalName = "job"
 
@@ -36,6 +39,9 @@ const (
 	// OperationDeactivate identifies the integrated service deactivation operation
 	OperationDeactivate = "deactivate"
 )
+
+// integratedServicesV2 readable flag for signaling the implementation version
+const integratedServicesV2 bool = true
 
 // IntegratedServiceJobWorkflowInput defines the fixed inputs of the IntegratedServiceJobWorkflow
 type IntegratedServiceJobWorkflowInput struct {
@@ -67,7 +73,7 @@ func IntegratedServiceJobWorkflow(ctx workflow.Context, input IntegratedServiceJ
 		return err
 	}
 
-	if err := executeJobs(ctx, input, &signalInput, jobsChannel); err != nil {
+	if err := executeJobs(ctx, input, &signalInput, jobsChannel, !integratedServicesV2); err != nil {
 		if err := setIntegratedServiceStatus(ctx, input, integratedservices.IntegratedServiceStatusError); err != nil {
 			workflow.GetLogger(ctx).Error("failed to set integrated service status", zap.Error(err))
 		}
@@ -80,7 +86,7 @@ func IntegratedServiceJobWorkflow(ctx workflow.Context, input IntegratedServiceJ
 			return err
 		}
 	case OperationDeactivate:
-		if err := deleteIntegratedService(ctx, input); err != nil {
+		if err := deleteIntegratedService(ctx, input, false); err != nil {
 			return err
 		}
 	default:
@@ -103,35 +109,24 @@ func IntegratedServiceJobWorkflowV2(ctx workflow.Context, input IntegratedServic
 	var signalInput IntegratedServiceJobSignalInput
 	jobsChannel.Receive(ctx, &signalInput) // wait until the first job arrives
 
-	if err := executeJobs(ctx, input, &signalInput, jobsChannel); err != nil {
+	if err := executeJobs(ctx, input, &signalInput, jobsChannel, integratedServicesV2); err != nil {
 		return err
-	}
-
-	switch op := signalInput.Operation; op {
-	case OperationApply:
-		// todo revisit this: do nothing / success flow
-	case OperationDeactivate:
-		if err := deleteIntegratedService(ctx, input); err != nil {
-			return err
-		}
-	default:
-		workflow.GetLogger(ctx).Error("unsupported operation", zap.String("operation", op))
 	}
 
 	return nil
 }
 
-func getActivity(workflowInput IntegratedServiceJobWorkflowInput, signalInput IntegratedServiceJobSignalInput) (string, interface{}, error) {
+func getActivity(workflowInput IntegratedServiceJobWorkflowInput, signalInput IntegratedServiceJobSignalInput, isV2 bool) (string, interface{}, error) {
 	switch op := signalInput.Operation; op {
 	case OperationApply:
-		return IntegratedServiceApplyActivityName, IntegratedServiceApplyActivityInput{
+		return GetActivityName(IntegratedServiceApplyActivityName, isV2), IntegratedServiceApplyActivityInput{
 			ClusterID:             workflowInput.ClusterID,
 			IntegratedServiceName: workflowInput.IntegratedServiceName,
 			IntegratedServiceSpec: signalInput.IntegratedServiceSpecs,
 			RetryInterval:         signalInput.RetryInterval,
 		}, nil
 	case OperationDeactivate:
-		return IntegratedServiceDeactivateActivityName, IntegratedServiceDeactivateActivityInput{
+		return GetActivityName(IntegratedServiceDeactivateActivityName, isV2), IntegratedServiceDeactivateActivityInput{
 			ClusterID:             workflowInput.ClusterID,
 			IntegratedServiceName: workflowInput.IntegratedServiceName,
 			IntegratedServiceSpec: signalInput.IntegratedServiceSpecs,
@@ -142,9 +137,9 @@ func getActivity(workflowInput IntegratedServiceJobWorkflowInput, signalInput In
 	}
 }
 
-func executeJobs(ctx workflow.Context, workflowInput IntegratedServiceJobWorkflowInput, signalInputPtr *IntegratedServiceJobSignalInput, jobsChannel workflow.Channel) error {
+func executeJobs(ctx workflow.Context, workflowInput IntegratedServiceJobWorkflowInput, signalInputPtr *IntegratedServiceJobSignalInput, jobsChannel workflow.Channel, isV2 bool) error {
 	for {
-		activityName, activityInput, err := getActivity(workflowInput, *signalInputPtr)
+		activityName, activityInput, err := getActivity(workflowInput, *signalInputPtr, isV2)
 		if err != nil {
 			return err
 		}
@@ -190,10 +185,10 @@ func setIntegratedServiceStatus(ctx workflow.Context, input IntegratedServiceJob
 	return workflow.ExecuteActivity(ctx, IntegratedServiceSetStatusActivityName, activityInput).Get(ctx, nil)
 }
 
-func deleteIntegratedService(ctx workflow.Context, input IntegratedServiceJobWorkflowInput) error {
+func deleteIntegratedService(ctx workflow.Context, input IntegratedServiceJobWorkflowInput, isV2 bool) error {
 	activityInput := IntegratedServiceDeleteActivityInput{
 		ClusterID:             input.ClusterID,
 		IntegratedServiceName: input.IntegratedServiceName,
 	}
-	return workflow.ExecuteActivity(ctx, IntegratedServiceDeleteActivityName, activityInput).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, GetActivityName(IntegratedServiceDeleteActivityName, isV2), activityInput).Get(ctx, nil)
 }

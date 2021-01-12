@@ -99,3 +99,9 @@ func (UnknownIntegratedServiceError) NotFound() bool {
 func (UnknownIntegratedServiceError) ServiceError() bool {
 	return true
 }
+
+// Unknown tells a client that this error is related to a resource being unsupported.
+// Can be used to translate the error to eg. status code.
+func (UnknownIntegratedServiceError) Unknown() bool {
+	return true
+}

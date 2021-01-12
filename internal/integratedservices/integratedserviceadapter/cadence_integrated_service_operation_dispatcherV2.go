@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2021 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@ package integratedserviceadapter
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"emperror.dev/errors"
+	"go.uber.org/cadence/.gen/go/shared"
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -27,35 +27,35 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 )
 
-// MakeCadenceIntegratedServiceOperationDispatcher returns an Uber Cadence based implementation of IntegratedServiceOperationDispatcher
-func MakeCadenceIntegratedServiceOperationDispatcher(
+// OperationDispatcher component dispatching operations related to the new version of the integrated services
+type OperationDispatcher struct {
+	cadenceClient client.Client
+	logger        common.Logger
+}
+
+// NewCadenceOperationDispatcher returns the new version Uber Cadence based implementation of IntegratedServiceOperationDispatcher
+func NewCadenceOperationDispatcher(
 	cadenceClient client.Client,
 	logger common.Logger,
-) CadenceIntegratedServiceOperationDispatcher {
-	return CadenceIntegratedServiceOperationDispatcher{
+) OperationDispatcher {
+	return OperationDispatcher{
 		cadenceClient: cadenceClient,
 		logger:        logger,
 	}
 }
 
-// CadenceIntegratedServiceOperationDispatcher implements an integrated service operation dispatcher using Uber Cadence
-type CadenceIntegratedServiceOperationDispatcher struct {
-	cadenceClient client.Client
-	logger        common.Logger
-}
-
 // DispatchApply dispatches an Apply request to an integrated service manager asynchronously
-func (d CadenceIntegratedServiceOperationDispatcher) DispatchApply(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
+func (d OperationDispatcher) DispatchApply(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
 	return d.dispatchOperation(ctx, workflow.OperationApply, clusterID, integratedServiceName, spec)
 }
 
 // DispatchDeactivate dispatches a Deactivate request to an integrated service manager asynchronously
-func (d CadenceIntegratedServiceOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
+func (d OperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
 	return d.dispatchOperation(ctx, workflow.OperationDeactivate, clusterID, integratedServiceName, spec)
 }
 
-func (d CadenceIntegratedServiceOperationDispatcher) dispatchOperation(ctx context.Context, op string, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
-	const workflowName = workflow.IntegratedServiceJobWorkflowName
+func (d OperationDispatcher) dispatchOperation(ctx context.Context, op string, clusterID uint, integratedServiceName string, spec integratedservices.IntegratedServiceSpec) error {
+	const workflowName = workflow.IntegratedServiceJobWorkflowV2Name
 	workflowID := getWorkflowID(workflowName, clusterID, integratedServiceName)
 	const signalName = workflow.IntegratedServiceJobSignalName
 	signalArg := workflow.IntegratedServiceJobSignalInput{
@@ -79,10 +79,18 @@ func (d CadenceIntegratedServiceOperationDispatcher) dispatchOperation(ctx conte
 	return nil
 }
 
-func (d CadenceIntegratedServiceOperationDispatcher) IsBeingDispatched(ctx context.Context, clusterID uint, integratedServiceName string) (bool, error) {
-	return false, errors.New("method not applicable for the v1 implementation")
-}
+func (d OperationDispatcher) IsBeingDispatched(ctx context.Context, clusterID uint, integratedServiceName string) (bool, error) {
+	const workflowName = workflow.IntegratedServiceJobWorkflowV2Name
+	workflowID := getWorkflowID(workflowName, clusterID, integratedServiceName)
 
-func getWorkflowID(workflowName string, clusterID uint, integratedServiceName string) string {
-	return fmt.Sprintf("%s-%d-%s", workflowName, clusterID, integratedServiceName)
+	response, err := d.cadenceClient.DescribeWorkflowExecution(ctx, workflowID, "")
+	if err != nil {
+		notExists := &shared.EntityNotExistsError{}
+		if errors.As(err, &notExists) {
+			return false, nil
+		}
+		return false, errors.WrapIfWithDetails(err, "unable to describe workflow for service",
+			"workflowId", workflowID, "service", integratedServiceName)
+	}
+	return response.WorkflowExecutionInfo.CloseTime == nil, nil
 }
