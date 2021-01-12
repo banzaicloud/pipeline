@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package eksworkflow
+package awsworkflow
 
 import (
 	"context"
@@ -20,8 +20,10 @@ import (
 	"strings"
 
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
+
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
@@ -69,4 +71,42 @@ func (a CalculateNodePoolVersionActivity) Execute(
 			strings.Join(input.CustomSecurityGroups, ","),
 		),
 	}, nil
+}
+
+// CalculateNodePoolVersion retrieves the calculated nodePoolVersion
+//
+// This is a convenience wrapper around the corresponding activity.
+func CalculateNodePoolVersion(
+	ctx workflow.Context,
+	image string,
+	volumeEncryption *eks.NodePoolVolumeEncryption,
+	volumeSize int,
+	customSecurityGroups []string,
+) (string, error) {
+	var activityOutput CalculateNodePoolVersionActivityOutput
+	err := calculateNodePoolVersionAsync(
+		ctx, image, volumeEncryption, volumeSize, customSecurityGroups).Get(ctx, &activityOutput)
+	if err != nil {
+		return "", err
+	}
+
+	return activityOutput.Version, nil
+}
+
+// calculateNodePoolVersion retrieves a future object for calucating the  nodePoolVersion
+//
+// This is a convenience wrapper around the corresponding activity.
+func calculateNodePoolVersionAsync(
+	ctx workflow.Context,
+	image string,
+	volumeEncryption *eks.NodePoolVolumeEncryption,
+	volumeSize int,
+	customSecurityGroups []string,
+) workflow.Future {
+	return workflow.ExecuteActivity(ctx, CalculateNodePoolVersionActivityName, CalculateNodePoolVersionActivityInput{
+		Image:                image,
+		VolumeEncryption:     volumeEncryption,
+		VolumeSize:           volumeSize,
+		CustomSecurityGroups: customSecurityGroups,
+	})
 }
