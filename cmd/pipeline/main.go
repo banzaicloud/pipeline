@@ -1042,7 +1042,6 @@ func main() {
 						isServiceV1,
 						kitxendpoint.Combine(endpointMiddleware...),
 					)
-
 				}
 
 				{
