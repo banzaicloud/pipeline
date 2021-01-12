@@ -23,7 +23,6 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
-
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 )
 
