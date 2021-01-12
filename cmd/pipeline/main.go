@@ -1030,10 +1030,6 @@ func main() {
 
 				var endpoints integratedservicesdriver.Endpoints
 				// use the desired version of integrated services as backend, use the v1 by default
-				endpoints = integratedservicesdriver.MakeEndpoints(
-					isServiceV1,
-					kitxendpoint.Combine(endpointMiddleware...),
-				)
 
 				if config.IntegratedService.V2 {
 					// use the router if v2 is switched on
@@ -1041,6 +1037,12 @@ func main() {
 						isRouter,
 						kitxendpoint.Combine(endpointMiddleware...),
 					)
+				} else {
+					endpoints = integratedservicesdriver.MakeEndpoints(
+						isServiceV1,
+						kitxendpoint.Combine(endpointMiddleware...),
+					)
+
 				}
 
 				{

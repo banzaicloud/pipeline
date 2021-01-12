@@ -93,7 +93,7 @@ func IsIntegratedServiceNotFoundError(err error) bool {
 	return errors.As(err, &notFoundErr) && notFoundErr.IntegratedServiceNotFound()
 }
 
-// IsIntegratedServiceNotFoundError returns true when the specified error is a "integrated service is unknown" error
+// IsUnknownIntegratedServiceError returns true when the specified error is a "integrated service is unknown" error
 func IsUnknownIntegratedServiceError(err error) bool {
 	var unknownSvcErr interface {
 		Unknown() bool

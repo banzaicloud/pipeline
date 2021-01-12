@@ -70,7 +70,6 @@ func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName 
 			return detailsV1, nil
 		}
 	} else if !IsUnknownIntegratedServiceError(errV1) {
-		// ignore the unknown service error, proceed to the new implementation
 		return IntegratedService{}, errors.Wrapf(errV1, "failed to retrieve legacy integrated service details")
 	}
 

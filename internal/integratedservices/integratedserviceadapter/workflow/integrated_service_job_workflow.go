@@ -40,6 +40,9 @@ const (
 	OperationDeactivate = "deactivate"
 )
 
+// integratedServicesV2 readable flag for signaling the implementation version
+const integratedServicesV2 bool = true
+
 // IntegratedServiceJobWorkflowInput defines the fixed inputs of the IntegratedServiceJobWorkflow
 type IntegratedServiceJobWorkflowInput struct {
 	ClusterID             uint
@@ -70,7 +73,7 @@ func IntegratedServiceJobWorkflow(ctx workflow.Context, input IntegratedServiceJ
 		return err
 	}
 
-	if err := executeJobs(ctx, input, &signalInput, jobsChannel, false); err != nil {
+	if err := executeJobs(ctx, input, &signalInput, jobsChannel, !integratedServicesV2); err != nil {
 		if err := setIntegratedServiceStatus(ctx, input, integratedservices.IntegratedServiceStatusError); err != nil {
 			workflow.GetLogger(ctx).Error("failed to set integrated service status", zap.Error(err))
 		}
@@ -106,7 +109,7 @@ func IntegratedServiceJobWorkflowV2(ctx workflow.Context, input IntegratedServic
 	var signalInput IntegratedServiceJobSignalInput
 	jobsChannel.Receive(ctx, &signalInput) // wait until the first job arrives
 
-	if err := executeJobs(ctx, input, &signalInput, jobsChannel, true); err != nil {
+	if err := executeJobs(ctx, input, &signalInput, jobsChannel, integratedServicesV2); err != nil {
 		return err
 	}
 
