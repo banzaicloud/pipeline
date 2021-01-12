@@ -110,13 +110,6 @@ func IntegratedServiceJobWorkflowV2(ctx workflow.Context, input IntegratedServic
 		return err
 	}
 
-	switch op := signalInput.Operation; op {
-	case OperationApply:
-	case OperationDeactivate:
-	default:
-		workflow.GetLogger(ctx).Error("unsupported operation", zap.String("operation", op))
-	}
-
 	return nil
 }
 
