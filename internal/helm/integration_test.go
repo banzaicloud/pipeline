@@ -98,8 +98,9 @@ func testIntegrationInstall(t *testing.T) {
 	config := helm.Config{
 		Home: home,
 		Repositories: map[string]string{
-			"stable":             "https://charts.helm.sh/stable",
-			"banzaicloud-stable": "https://kubernetes-charts.banzaicloud.com",
+			"stable":               "https://charts.helm.sh/stable",
+			"banzaicloud-stable":   "https://kubernetes-charts.banzaicloud.com",
+			"prometheus-community": "https://prometheus-community.github.io/helm-charts",
 		},
 	}
 

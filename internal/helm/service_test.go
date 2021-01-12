@@ -236,6 +236,10 @@ func Test_service_ListRepositories(t *testing.T) {
 					Name: "loki",
 					URL:  "https://grafana.github.io/loki/charts",
 				},
+				{
+					Name: "prometheus-community",
+					URL:  "https://prometheus-community.github.io/helm-charts",
+				},
 			},
 			setupMocks: func(store *Store, secretStore *SecretStore, envResolver *EnvResolver, envService *EnvService, arguments args) {
 				storeMock := (*store).(*MockStore)
@@ -262,6 +266,10 @@ func Test_service_ListRepositories(t *testing.T) {
 						{
 							Name: "loki",
 							URL:  "https://grafana.github.io/loki/charts",
+						},
+						{
+							Name: "prometheus-community",
+							URL:  "https://prometheus-community.github.io/helm-charts",
 						},
 					},
 					nil,
