@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 )
 
 func TestCreateNodePool(t *testing.T) {
@@ -744,6 +745,23 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 				},
 				activity.RegisterOptions{
 					Name: SetNodePoolStatusActivityName,
+				},
+			)
+
+			environment.RegisterActivityWithOptions(
+				func(
+					ctx context.Context,
+					input awsworkflow.CalculateNodePoolVersionActivityInput,
+				) (*awsworkflow.CalculateNodePoolVersionActivityOutput, error) {
+					if testCase.expectedError != nil &&
+						strings.HasPrefix(testCase.expectedError.Error(), "node pool calculation error") {
+						return nil, testCase.expectedError
+					}
+
+					return &awsworkflow.CalculateNodePoolVersionActivityOutput{}, nil
+				},
+				activity.RegisterOptions{
+					Name: awsworkflow.CalculateNodePoolVersionActivityName,
 				},
 			)
 
