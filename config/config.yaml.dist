@@ -195,17 +195,17 @@ dex:
 #
 #        charts:
 #            operator:
-#                chart: "stable/prometheus-operator"
-#                version: "8.5.14"
+#                chart: "prometheus-community/kube-prometheus-stack"
+#                version: "12.11.3"
 #
-#                # See https://github.com/helm/charts/tree/master/stable/prometheus-operator for details
+#                # See https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack for details
 #                values: {}
 #
 #            pushgateway:
-#                chart: "stable/prometheus-pushgateway"
-#                version: "1.2.13"
+#                chart: "prometheus-community/prometheus-pushgateway"
+#                version: "1.5.1"
 #
-#                # See https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway for details
+#                # See https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-pushgateway for details
 #                values: {}
 #
 #    logging:
@@ -424,6 +424,7 @@ dex:
 #        bitnami: "https://charts.bitnami.com/bitnami"
 #        loki: "https://grafana.github.io/loki/charts"
 #        kubefed-charts: "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts"
+#        prometheus-community: "https://prometheus-community.github.io/helm-charts"
 
 #cloud:
 #    amazon:

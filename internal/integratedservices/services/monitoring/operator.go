@@ -800,8 +800,10 @@ func (op IntegratedServiceOperator) getDefaultStorageClassName(ctx context.Conte
 func (op IntegratedServiceOperator) cleanupCRDs(ctx context.Context, clusterID uint) error {
 	// list with the monitoring related CRDs
 	crdNames := []string{
+		"alertmanagerconfigs.monitoring.coreos.com",
 		"alertmanagers.monitoring.coreos.com",
 		"podmonitors.monitoring.coreos.com",
+		"probes.monitoring.coreos.com",
 		"prometheuses.monitoring.coreos.com",
 		"prometheusrules.monitoring.coreos.com",
 		"servicemonitors.monitoring.coreos.com",
