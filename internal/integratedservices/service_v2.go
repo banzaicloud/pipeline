@@ -62,7 +62,7 @@ func (i ISServiceV2) Activate(ctx context.Context, clusterID uint, serviceName s
 	}
 
 	if err := i.dispatcher.DispatchApply(ctx, clusterID, serviceName, preparedSpec); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to dispatch the apply operation", "clusterID", clusterID, "integrated service", serviceName)
+		return errors.WrapIfWithDetails(err, "failed to dispatch the apply operation", "clusterID", clusterID, "serviceName", serviceName)
 	}
 
 	return nil
@@ -74,16 +74,50 @@ func (i ISServiceV2) List(ctx context.Context, clusterID uint) ([]IntegratedServ
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve integrated services", "clusterId", clusterID)
 	}
 
-	// only keep integrated service name and status
-	for j := range integratedServices {
-		integratedServices[j].Spec = nil
-		integratedServices[j].Output = nil
+	// Some services may be disabled, we only want enabled ones
+	supportedServiceNames := i.managerRegistry.GetIntegratedServiceNames()
+
+	servicesToReturn := make([]IntegratedService, len(supportedServiceNames))
+	for j, serviceName := range supportedServiceNames {
+		status := IntegratedServiceStatusInactive
+		// Take the status of existing integrated service instance if it exists
+		for _, service := range integratedServices {
+			if service.Name == serviceName {
+				status = service.Status
+				break
+			}
+		}
+		// Check whether there is an active workflow running for the service
+		dispatched, err := i.dispatcher.IsBeingDispatched(ctx, clusterID, serviceName)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to retrieve integrated service dispatched status")
+		}
+		// Services where a job is currently being dispatched should be treated as pending
+		if dispatched {
+			status = IntegratedServiceStatusPending
+		}
+		servicesToReturn[j] = IntegratedService{
+			Name:   serviceName,
+			Status: status,
+		}
 	}
 
-	return integratedServices, nil
+	return servicesToReturn, nil
 }
 
 func (i ISServiceV2) Details(ctx context.Context, clusterID uint, serviceName string) (IntegratedService, error) {
+	isDispatched, err := i.dispatcher.IsBeingDispatched(ctx, clusterID, serviceName)
+	if err != nil {
+		return IntegratedService{}, errors.WrapIfWithDetails(err, "failed to check workflow",
+			"clusterID", clusterID, "serviceName", serviceName)
+	}
+	if isDispatched {
+		return IntegratedService{
+			Name:   serviceName,
+			Status: IntegratedServiceStatusPending,
+		}, nil
+	}
+
 	integratedService, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
 	if err != nil {
 		if IsIntegratedServiceNotFoundError(err) {

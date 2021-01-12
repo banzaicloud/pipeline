@@ -46,10 +46,14 @@ const (
 	IntegratedServiceStatusError    IntegratedServiceStatus = "ERROR"
 )
 
+// +testify:mock:testOnly=true
+
 // IntegratedServiceManagerRegistry contains integrated service managers.
 type IntegratedServiceManagerRegistry interface {
 	// GetIntegratedServiceManager retrieves an integrated service manager by name.
 	GetIntegratedServiceManager(integratedServiceName string) (IntegratedServiceManager, error)
+	// GetIntegratedServiceNames retrieves all known integrated services
+	GetIntegratedServiceNames() []string
 }
 
 // IntegratedServiceOperatorRegistry contains integrated service operators.
@@ -57,6 +61,8 @@ type IntegratedServiceOperatorRegistry interface {
 	// GetIntegratedServiceOperator retrieves an integrated service operator by name.
 	GetIntegratedServiceOperator(integratedServiceName string) (IntegratedServiceOperator, error)
 }
+
+// +testify:mock:testOnly=true
 
 // IntegratedServiceRepository manages integrated service state.
 type IntegratedServiceRepository interface {
@@ -164,6 +170,8 @@ func (PassthroughIntegratedServiceSpecPreparer) PrepareSpec(_ context.Context, _
 	return spec, nil
 }
 
+// +testify:mock:testOnly=true
+
 // IntegratedServiceOperationDispatcher dispatches cluster integrated service operations asynchronously.
 type IntegratedServiceOperationDispatcher interface {
 	// DispatchApply starts applying a desired state for an integrated service asynchronously.
@@ -171,6 +179,9 @@ type IntegratedServiceOperationDispatcher interface {
 
 	// DispatchDeactivate starts deactivating an integrated service asynchronously.
 	DispatchDeactivate(ctx context.Context, clusterID uint, integratedServiceName string, spec IntegratedServiceSpec) error
+
+	// IsBeingDispatched checks whether there are any actively running workflows for the service
+	IsBeingDispatched(ctx context.Context, clusterID uint, integratedServiceName string) (bool, error)
 }
 
 // IntegratedServiceOperator defines the operations that can be applied to an integrated service.
