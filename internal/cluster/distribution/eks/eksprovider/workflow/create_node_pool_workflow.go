@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
+	awsworkflow "github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -233,7 +234,14 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		return err
 	}
 
-	err = createASG(ctx, eksActivityInput, eksCluster, vpcConfig, input.NodePool, input.NodePoolSubnetIDs, volumeSize)
+	nodePoolVersion, err := awsworkflow.CalculateNodePoolVersion(
+		ctx, input.NodePool.Image, input.NodePool.VolumeEncryption, input.NodePool.VolumeSize, input.NodePool.SecurityGroups)
+	if err != nil {
+		return err
+	}
+
+	err = createASG(
+		ctx, eksActivityInput, eksCluster, vpcConfig, input.NodePool, input.NodePoolSubnetIDs, volumeSize, nodePoolVersion)
 	if err != nil {
 		return pkgcadence.WrapClientError(err)
 	}

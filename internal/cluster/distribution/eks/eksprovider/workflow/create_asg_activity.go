@@ -71,6 +71,7 @@ type CreateAsgActivityInput struct {
 	NodeImage            string
 	NodeInstanceType     string
 	Labels               map[string]string
+	NodePoolVersion      string
 
 	Subnets             []Subnet
 	VpcID               string
@@ -144,21 +145,11 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
 	var stackParams []*cloudformation.Parameter
 
-	nodeVolumeEncryption := "<nil>"
-	if input.NodeVolumeEncryption != nil {
-		nodeVolumeEncryption = fmt.Sprintf("%v", *input.NodeVolumeEncryption)
-	}
-
 	// do not update node labels via kubelet boostrap params as that induces node reboot or replacement
 	// we only add node pool name here, all other labels will be added by NodePoolLabelSet operator
 	nodeLabels := []string{
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
-		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, eks.CalculateNodePoolVersion(
-			input.NodeImage,
-			nodeVolumeEncryption,
-			fmt.Sprintf("%d", input.NodeVolumeSize),
-			strings.Join(input.SecurityGroups, ","),
-		)),
+		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.NodePoolVersion),
 	}
 
 	nodeVolumeEncryptionEnabled := "" // Note: defaulting to AWS account default encryption settings.
@@ -338,6 +329,7 @@ func createASG(
 	nodePool eks.NewNodePool,
 	nodePoolSubnetIDs []string,
 	selectedVolumeSize int,
+	nodePoolVersion string,
 ) error {
 	return createASGAsync(
 		ctx, eksActivityInput,
@@ -345,6 +337,7 @@ func createASG(
 		nodePool,
 		nodePoolSubnetIDs,
 		selectedVolumeSize,
+		nodePoolVersion,
 	).Get(ctx, nil)
 }
 
@@ -360,6 +353,7 @@ func createASGAsync(
 	nodePool eks.NewNodePool,
 	nodePoolSubnetIDs []string,
 	selectedVolumeSize int,
+	nodePoolVersion string,
 ) workflow.Future {
 	minSize := nodePool.Size
 	maxSize := nodePool.Size + 1
@@ -404,6 +398,7 @@ func createASGAsync(
 		NodeImage:            nodePool.Image,
 		NodeInstanceType:     nodePool.InstanceType,
 		Labels:               nodePool.Labels,
+		NodePoolVersion:      nodePoolVersion,
 
 		Subnets:             subnets,
 		VpcID:               vpcConfig.VpcID,
