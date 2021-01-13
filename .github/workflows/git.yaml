@@ -1,0 +1,21 @@
+name: Git
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - master # Note: 1, we don't check older history, 2, if something gets to master, it is considered manually accepted.
+
+jobs:
+  check-commit-message:
+    name: Check Commit Message
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check unnecessary (rebase-removable) automatic merge commits
+        uses: gsactions/commit-message-checker@v1
+        with:
+          pattern: ^(?!Merge (branch '[^']+' into |pull request \#[1-9][0-9]* from ))(.*)$ # https://regex101.com/r/VMjzUN/5/
+          error: There is an automatic merge commit on the branch or pull request which is unnecessary noise and should be removed by rebasing the branch.
+          excludeDescription: "true" # Note: we don't care about the PR description, only care about the automatic short message.
+          excludeTitle: "true" # Note: we don't care about the PR title, only care about the automatic short message.
+          checkAllCommitMessages: "true" # Note: all commit messages should be checked for a PR to prevent merging.
+          accessToken: ${{ secrets.GITHUB_TOKEN }} # Note: required to check older commit messages.
