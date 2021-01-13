@@ -9,7 +9,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/cluster",
-        "//internal/cluster/distribution/eks",
         ],
 )
 

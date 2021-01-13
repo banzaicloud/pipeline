@@ -16,6 +16,7 @@ package awsworkflow
 
 import (
 	"context"
+	"crypto/sha1"
 	"fmt"
 	"strings"
 
@@ -63,7 +64,7 @@ func (a CalculateNodePoolVersionActivity) Execute(
 	}
 
 	return CalculateNodePoolVersionActivityOutput{
-		Version: eks.CalculateNodePoolVersion(
+		Version: calculateNodePoolVersion(
 			input.Image,
 			volumeEncryption,
 			fmt.Sprintf("%d", input.VolumeSize),
@@ -108,4 +109,14 @@ func calculateNodePoolVersionAsync(
 		VolumeSize:           volumeSize,
 		CustomSecurityGroups: customSecurityGroups,
 	})
+}
+
+func calculateNodePoolVersion(input ...string) string {
+	h := sha1.New() // #nosec
+
+	for _, i := range input {
+		_, _ = h.Write([]byte(i))
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
