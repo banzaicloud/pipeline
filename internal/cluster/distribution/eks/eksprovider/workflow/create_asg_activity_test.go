@@ -127,7 +127,6 @@ func TestCreateASG(t *testing.T) {
 					"subnet-id-2",
 				},
 				selectedVolumeSize: 1,
-				nodePoolVersion:    "1",
 			},
 		},
 		{
@@ -241,7 +240,6 @@ func TestCreateASGAsync(t *testing.T) {
 					"subnet-id-2",
 				},
 				selectedVolumeSize: 1,
-				nodePoolVersion:    "1",
 			},
 		},
 		{
