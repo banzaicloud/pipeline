@@ -55,7 +55,7 @@ func TestCalculateNodePoolVersionActivity(t *testing.T) {
 	assert.Equal(
 		t,
 		CalculateNodePoolVersionActivityOutput{
-			Version: eks.CalculateNodePoolVersion(
+			Version: calculateNodePoolVersion(
 				input.Image,
 				fmt.Sprintf("%v", *input.VolumeEncryption),
 				fmt.Sprintf("%d", input.VolumeSize),
@@ -78,7 +78,7 @@ func TestCalculateNodePoolVersionActivity(t *testing.T) {
 	assert.Equal(
 		t,
 		CalculateNodePoolVersionActivityOutput{
-			Version: eks.CalculateNodePoolVersion(
+			Version: calculateNodePoolVersion(
 				input2.Image,
 				"<nil>",
 				fmt.Sprintf("%d", input2.VolumeSize),
