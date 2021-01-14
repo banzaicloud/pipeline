@@ -156,9 +156,17 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 				registry.Password = secret[secrettype.Password]
 			}
 
-			err = anchoreClient.AddRegistry(ctx, registry)
+			_, err = anchoreClient.GetRegistry(ctx, registry.Registry)
 			if err != nil {
-				return errors.WrapWithDetails(err, "failed to add anchore registry")
+				err = anchoreClient.AddRegistry(ctx, registry)
+				if err != nil {
+					return errors.WrapWithDetails(err, "failed to add anchore registry")
+				}
+			} else {
+				err = anchoreClient.UpdateRegistry(ctx, registry.Registry, registry)
+				if err != nil {
+					return errors.WrapWithDetails(err, "failed to update anchore registry")
+				}
 			}
 		}
 	}
