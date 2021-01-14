@@ -135,29 +135,31 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 
 	anchoreClient := anchore.NewAnchoreClient(anchoreValues.User, anchoreValues.Password, anchoreValues.Host, anchoreValues.Insecure, logger)
 
-	if boundSpec.Registry != nil {
-		secret, err := op.secretStore.GetSecretValues(ctx, boundSpec.Registry.SecretID)
-		if err != nil {
-			return errors.WrapWithDetails(err, "failed to get anchore registry secret", "secretId", boundSpec.CustomAnchore.SecretID)
-		}
+	if boundSpec.Registries != nil {
+		for _, registryItem := range boundSpec.Registries {
+			secret, err := op.secretStore.GetSecretValues(ctx, registryItem.SecretID)
+			if err != nil {
+				return errors.WrapWithDetails(err, "failed to get anchore registry secret", "secretId", registryItem.SecretID)
+			}
 
-		registry := anchore.Registry{
-			Type:     boundSpec.Registry.Type,
-			Registry: boundSpec.Registry.Registry,
-			Verify:   !boundSpec.Registry.Insecure,
-		}
+			registry := anchore.Registry{
+				Type:     registryItem.Type,
+				Registry: registryItem.Registry,
+				Verify:   !registryItem.Insecure,
+			}
 
-		if anchore.IsEcrRegistry(boundSpec.Registry.Registry) {
-			registry.Username = secret[secrettype.AwsAccessKeyId]
-			registry.Password = secret[secrettype.AwsSecretAccessKey]
-		} else {
-			registry.Username = secret[secrettype.Username]
-			registry.Password = secret[secrettype.Password]
-		}
+			if anchore.IsEcrRegistry(registryItem.Registry) {
+				registry.Username = secret[secrettype.AwsAccessKeyId]
+				registry.Password = secret[secrettype.AwsSecretAccessKey]
+			} else {
+				registry.Username = secret[secrettype.Username]
+				registry.Password = secret[secrettype.Password]
+			}
 
-		err = anchoreClient.AddRegistry(ctx, registry)
-		if err != nil {
-			return errors.WrapWithDetails(err, "failed to add anchore registry")
+			err = anchoreClient.AddRegistry(ctx, registry)
+			if err != nil {
+				return errors.WrapWithDetails(err, "failed to add anchore registry")
+			}
 		}
 	}
 
