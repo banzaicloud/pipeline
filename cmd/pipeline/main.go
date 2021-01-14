@@ -1068,17 +1068,6 @@ func main() {
 				}
 			}
 
-			var hpaApi api.HPAAPI
-			if config.IntegratedService.V2 {
-				hpaApi = api.NewHPAAPI(isRouter, clientFactory, configFactory, commonClusterGetter, errorHandler)
-			} else {
-				hpaApi = api.NewHPAAPI(isServiceV1, clientFactory, configFactory, commonClusterGetter, errorHandler)
-			}
-
-			cRouter.GET("/hpa", hpaApi.GetHpaResource)
-			cRouter.PUT("/hpa", hpaApi.PutHpaResource)
-			cRouter.DELETE("/hpa", hpaApi.DeleteHpaResource)
-
 			// ClusterGroupAPI
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
