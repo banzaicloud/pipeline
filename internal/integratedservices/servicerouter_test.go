@@ -355,6 +355,7 @@ func (suite *ServiceRouterSuite) TestActivate_RouteToV2() {
 	// Then
 	require.Nil(suite.T(), err, "router must not return with error")
 }
+
 func (suite *ServiceRouterSuite) TestActivate_RouteToV1() {
 	// Given
 	ctx := context.Background()
