@@ -88,6 +88,18 @@ func (s serviceRouter) Details(ctx context.Context, clusterID uint, serviceName 
 // Activate delegates the activation request to the appropriate service version
 // New services are always activated with the version 2 service
 func (s serviceRouter) Activate(ctx context.Context, clusterID uint, serviceName string, spec IntegratedServiceSpec) error {
+	// check the status of the service before triggering the activation
+	if isSvc, err := s.Details(ctx, clusterID, serviceName); err != nil || isSvc.Status != IntegratedServiceStatusInactive {
+		if err != nil {
+			return errors.WrapIf(err, "failed to activate integrated service")
+		}
+
+		// the integrated service has already been activated (it might be in error or pending state here)
+		return errors.WithStackIf(serviceAlreadyActiveError{
+			ServiceName: serviceName,
+		})
+	}
+
 	if applies, err := s.appliesToLegacy(ctx, clusterID, serviceName); err == nil {
 		if applies {
 			return s.serviceV1.Activate(ctx, clusterID, serviceName, spec)
