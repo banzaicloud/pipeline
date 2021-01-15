@@ -757,7 +757,7 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 						return nil, testCase.expectedError
 					}
 
-					return &CalculateNodePoolVersionActivityOutput{}, nil
+					return &CalculateNodePoolVersionActivityOutput{Version: "test-node-pool-version"}, nil
 				},
 				activity.RegisterOptions{
 					Name: CalculateNodePoolVersionActivityName,

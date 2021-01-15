@@ -63,14 +63,19 @@ func (a CalculateNodePoolVersionActivity) Execute(
 		volumeEncryption = fmt.Sprintf("%v", *input.VolumeEncryption)
 	}
 
-	return CalculateNodePoolVersionActivityOutput{
-		Version: calculateNodePoolVersion(
-			input.Image,
-			volumeEncryption,
-			fmt.Sprintf("%d", input.VolumeSize),
-			strings.Join(input.CustomSecurityGroups, ","),
-		),
-	}, nil
+	calculationParams := []string{
+		input.Image,
+		volumeEncryption,
+		fmt.Sprintf("%d", input.VolumeSize),
+		strings.Join(input.CustomSecurityGroups, ","),
+	}
+
+	h := sha1.New() // #nosec
+	for _, i := range calculationParams {
+		_, _ = h.Write([]byte(i))
+	}
+
+	return CalculateNodePoolVersionActivityOutput{Version: fmt.Sprintf("%x", h.Sum(nil))}, nil
 }
 
 // CalculateNodePoolVersion retrieves the calculated nodePoolVersion
