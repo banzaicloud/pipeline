@@ -96,6 +96,7 @@ func TestCreateASG(t *testing.T) {
 		nodePool           eks.NewNodePool
 		nodePoolSubnetIDs  []string
 		selectedVolumeSize int
+		nodePoolVersion    string
 	}
 
 	testCases := []struct {
@@ -185,6 +186,7 @@ func TestCreateASG(t *testing.T) {
 					testCase.input.nodePool,
 					testCase.input.nodePoolSubnetIDs,
 					testCase.input.selectedVolumeSize,
+					testCase.input.nodePoolVersion,
 				)
 
 				return nil
@@ -207,6 +209,7 @@ func TestCreateASGAsync(t *testing.T) {
 		nodePool           eks.NewNodePool
 		nodePoolSubnetIDs  []string
 		selectedVolumeSize int
+		nodePoolVersion    string
 	}
 
 	testCases := []struct {
@@ -324,6 +327,7 @@ func TestCreateASGAsync(t *testing.T) {
 					testCase.input.nodePool,
 					testCase.input.nodePoolSubnetIDs,
 					testCase.input.selectedVolumeSize,
+					testCase.input.nodePoolVersion,
 				)
 				actualError = actualFuture.Get(ctx, nil)
 

@@ -747,6 +747,23 @@ func TestCreateNodePoolWorkflowExecute(t *testing.T) {
 				},
 			)
 
+			environment.RegisterActivityWithOptions(
+				func(
+					ctx context.Context,
+					input CalculateNodePoolVersionActivityInput,
+				) (*CalculateNodePoolVersionActivityOutput, error) {
+					if testCase.expectedError != nil &&
+						strings.HasPrefix(testCase.expectedError.Error(), "node pool calculation error") {
+						return nil, testCase.expectedError
+					}
+
+					return &CalculateNodePoolVersionActivityOutput{Version: "test-node-pool-version"}, nil
+				},
+				activity.RegisterOptions{
+					Name: CalculateNodePoolVersionActivityName,
+				},
+			)
+
 			environment.ExecuteWorkflow(t.Name(), testCase.input.input)
 			actualError := environment.GetWorkflowError()
 

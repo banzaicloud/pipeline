@@ -11,15 +11,10 @@ go_library(
         "//internal/cluster",
         "//internal/cluster/clusterworkflow",
         "//internal/cluster/distribution/eks",
+        "//internal/cluster/distribution/eks/eksprovider/workflow",
         "//internal/providers/amazon",
         "//pkg/providers/amazon/cloudformation",
         "//pkg/sdk/brn",
         "//pkg/sdk/cadence/lib/pipeline/processlog",
     ],
-)
-
-go_test(
-    name = "test",
-    srcs = glob(["*_test.go"]),
-    deps = [":eksworkflow"],
 )

@@ -233,7 +233,14 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		return err
 	}
 
-	err = createASG(ctx, eksActivityInput, eksCluster, vpcConfig, input.NodePool, input.NodePoolSubnetIDs, volumeSize)
+	nodePoolVersion, err := calculateNodePoolVersion(
+		ctx, input.NodePool.Image, input.NodePool.VolumeEncryption, input.NodePool.VolumeSize, input.NodePool.SecurityGroups)
+	if err != nil {
+		return err
+	}
+
+	err = createASG(
+		ctx, eksActivityInput, eksCluster, vpcConfig, input.NodePool, input.NodePoolSubnetIDs, volumeSize, nodePoolVersion)
 	if err != nil {
 		return pkgcadence.WrapClientError(err)
 	}
