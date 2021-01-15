@@ -81,7 +81,7 @@ func (a CalculateNodePoolVersionActivity) Execute(
 // CalculateNodePoolVersion retrieves the calculated nodePoolVersion
 //
 // This is a convenience wrapper around the corresponding activity.
-func CalculateNodePoolVersion(
+func calculateNodePoolVersion(
 	ctx workflow.Context,
 	image string,
 	volumeEncryption *eks.NodePoolVolumeEncryption,
@@ -114,14 +114,4 @@ func calculateNodePoolVersionAsync(
 		VolumeSize:           volumeSize,
 		CustomSecurityGroups: customSecurityGroups,
 	})
-}
-
-func calculateNodePoolVersion(input ...string) string {
-	h := sha1.New() // #nosec
-
-	for _, i := range input {
-		_, _ = h.Write([]byte(i))
-	}
-
-	return fmt.Sprintf("%x", h.Sum(nil))
 }

@@ -15,76 +15,93 @@
 package workflow
 
 import (
-	"fmt"
-	"strings"
+	"context"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
+	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
 
-func TestCalculateNodePoolVersionActivity(t *testing.T) {
-	env := (&testsuite.WorkflowTestSuite{}).NewTestActivityEnvironment()
+func TestCalculateNodePoolVersion(t *testing.T) {
+	type inputType struct {
+		input CalculateNodePoolVersionActivityInput
+	}
 
-	NewCalculateNodePoolVersionActivity().Register(env)
-
-	input := CalculateNodePoolVersionActivityInput{
-		Image: "ami-xxxxxxxxxxxxx",
-		VolumeEncryption: &eks.NodePoolVolumeEncryption{
-			Enabled:          true,
-			EncryptionKeyARN: "arn:aws:kms:region:account:key/id",
+	testCases := []struct {
+		caseDescription string
+		expectedError   error
+		input           inputType
+	}{
+		{
+			caseDescription: "success",
+			expectedError:   nil,
+			input: inputType{
+				input: CalculateNodePoolVersionActivityInput{
+					Image: "ami-xxxxxxxxxxxxx",
+					VolumeEncryption: &eks.NodePoolVolumeEncryption{
+						Enabled:          true,
+						EncryptionKeyARN: "arn:aws:kms:region:account:key/id",
+					},
+					VolumeSize: 50,
+					CustomSecurityGroups: []string{
+						"sg-1",
+						"sg-2",
+					},
+				},
+			},
 		},
-		VolumeSize: 50,
-		CustomSecurityGroups: []string{
-			"sg-1",
-			"sg-2",
+		{
+			caseDescription: "success",
+			expectedError:   nil,
+			input: inputType{
+				input: CalculateNodePoolVersionActivityInput{},
+			},
 		},
 	}
 
-	v, err := env.ExecuteActivity(CalculateNodePoolVersionActivityName, input)
-	require.NoError(t, err)
+	for _, testCase := range testCases {
+		testCase := testCase
 
-	var output CalculateNodePoolVersionActivityOutput
+		t.Run(testCase.caseDescription, func(t *testing.T) {
+			suite := testsuite.WorkflowTestSuite{}
+			environment := suite.NewTestWorkflowEnvironment()
+			environment.RegisterActivityWithOptions(
+				func(ctx context.Context, input CalculateNodePoolVersionActivityInput) (*CalculateNodePoolVersionActivityOutput, error) {
+					return &CalculateNodePoolVersionActivityOutput{}, testCase.expectedError
+				},
+				activity.RegisterOptions{Name: CalculateNodePoolVersionActivityName},
+			)
 
-	err = v.Get(&output)
-	require.NoError(t, err)
+			var actualError error
+			environment.ExecuteWorkflow(func(ctx workflow.Context) error {
+				ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+					ScheduleToCloseTimeout: 10 * time.Second,
+					ScheduleToStartTimeout: 3 * time.Second,
+					StartToCloseTimeout:    7 * time.Second,
+					WaitForCancellation:    true,
+				})
 
-	assert.Equal(
-		t,
-		CalculateNodePoolVersionActivityOutput{
-			Version: calculateNodePoolVersion(
-				input.Image,
-				fmt.Sprintf("%v", *input.VolumeEncryption),
-				fmt.Sprintf("%d", input.VolumeSize),
-				strings.Join(input.CustomSecurityGroups, ","),
-			),
-		},
-		output,
-	)
+				_, actualError = calculateNodePoolVersion(
+					ctx,
+					testCase.input.input.Image,
+					testCase.input.input.VolumeEncryption,
+					testCase.input.input.VolumeSize,
+					testCase.input.input.CustomSecurityGroups,
+				)
 
-	input2 := CalculateNodePoolVersionActivityInput{}
+				return nil
+			})
 
-	v, err = env.ExecuteActivity(CalculateNodePoolVersionActivityName, input2)
-	require.NoError(t, err)
-
-	var output2 CalculateNodePoolVersionActivityOutput
-
-	err = v.Get(&output2)
-	require.NoError(t, err)
-
-	assert.Equal(
-		t,
-		CalculateNodePoolVersionActivityOutput{
-			Version: calculateNodePoolVersion(
-				input2.Image,
-				"<nil>",
-				fmt.Sprintf("%d", input2.VolumeSize),
-				strings.Join(input2.CustomSecurityGroups, ","),
-			),
-		},
-		output2,
-	)
+			if testCase.expectedError == nil {
+				require.NoError(t, actualError)
+			} else {
+				require.EqualError(t, actualError, testCase.expectedError.Error())
+			}
+		})
+	}
 }

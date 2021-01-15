@@ -233,7 +233,7 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		return err
 	}
 
-	nodePoolVersion, err := CalculateNodePoolVersion(
+	nodePoolVersion, err := calculateNodePoolVersion(
 		ctx, input.NodePool.Image, input.NodePool.VolumeEncryption, input.NodePool.VolumeSize, input.NodePool.SecurityGroups)
 	if err != nil {
 		return err
