@@ -71,6 +71,7 @@ func (a CalculateNodePoolVersionActivity) Execute(
 	}
 
 	h := sha1.New() // #nosec
+
 	for _, i := range calculationParams {
 		_, _ = h.Write([]byte(i))
 	}
