@@ -264,14 +264,12 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 			ParameterKey:   aws.String("KubeletExtraArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
+		{
+			ParameterKey:   aws.String("UseInstanceStore"),
+			ParameterValue: aws.String(strconv.FormatBool(aws.BoolValue(input.UseInstanceStore))),
+		},
 	}
 
-	if input.UseInstanceStore != nil {
-		stackParams = append(stackParams, &cloudformation.Parameter{
-			ParameterKey:   aws.String("UseInstanceStore"),
-			ParameterValue: aws.String(strconv.FormatBool(*input.UseInstanceStore)),
-		})
-	}
 	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateAsgActivityName)
 
 	createStackInput := &cloudformation.CreateStackInput{

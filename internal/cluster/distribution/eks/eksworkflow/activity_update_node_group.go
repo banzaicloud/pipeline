@@ -238,18 +238,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:   aws.String("KubeletExtraArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
-	}
-
-	if input.UseInstanceStore != nil {
-		stackParams = append(stackParams, &cloudformation.Parameter{
-			ParameterKey:   aws.String("UseInstanceStore"),
-			ParameterValue: aws.String(strconv.FormatBool(*input.UseInstanceStore)),
-		})
-	} else if !input.CurrentTemplateVersion.IsLessThan("2.2.0") {
-		stackParams = append(stackParams, &cloudformation.Parameter{
-			ParameterKey:     aws.String("UseInstanceStore"),
-			UsePreviousValue: aws.Bool(true),
-		})
+		sdkCloudFormation.NewOptionalStackParameter(
+			"UseInstanceStore",
+			input.UseInstanceStore != nil || input.CurrentTemplateVersion.IsLessThan("2.2.0"),
+			strconv.FormatBool(aws.BoolValue(input.UseInstanceStore)), // Note: false default value for old stacks.
+		),
 	}
 
 	// we don't reuse the creation time template, since it may have changed
