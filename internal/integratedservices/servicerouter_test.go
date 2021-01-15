@@ -289,7 +289,7 @@ func (suite *ServiceRouterSuite) TestActivate_IntermittentErrorLegacy() {
 	err := routerService.Activate(suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
 
 	// Then
-	require.NotNil(suite.T(), err, "router must not return with error")
+	require.NotNil(suite.T(), err, "router must return with error")
 }
 
 func (suite *ServiceRouterSuite) TestDeactivate_ISFoundOnLegacy() {
@@ -408,4 +408,50 @@ func (suite *ServiceRouterSuite) TestActivate_ServiceUnknownOnV2() {
 
 	// Then
 	require.Nil(suite.T(), err, "router must not return with error")
+}
+
+func (suite *ServiceRouterSuite) TestActivate_ISActivatedAlreadyOnV1() {
+	// Given
+	ctx := context.Background()
+
+	// the IS is NOT found by the legacy service
+	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{
+			Name:   "IS",
+			Status: IntegratedServiceStatusPending,
+		}, nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
+
+	// When
+	err := routerService.Activate(ctx, suite.clusterID, "IS", IntegratedServiceSpec{})
+	// Then
+	require.NotNil(suite.T(), err, "router must return with error")
+	require.True(suite.T(), errors.As(err, &serviceAlreadyActiveError{}))
+}
+
+func (suite *ServiceRouterSuite) TestActivate_ISActivatedAlreadyOnV2() {
+	// Given
+	ctx := context.Background()
+
+	// the IS is NOT found by the legacy service
+	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{
+			Name:   "IS",
+			Status: IntegratedServiceStatusInactive,
+		}, nil)
+
+	suite.serviceV2.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{
+			Name:   "IS",
+			Status: IntegratedServiceStatusActive,
+		}, nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
+
+	// When
+	err := routerService.Activate(ctx, suite.clusterID, "IS", IntegratedServiceSpec{})
+	// Then
+	require.NotNil(suite.T(), err, "router must return with error")
+	require.True(suite.T(), errors.As(err, &serviceAlreadyActiveError{}))
 }
