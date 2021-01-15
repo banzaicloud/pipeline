@@ -234,64 +234,6 @@ func (suite *ServiceRouterSuite) TestDetails_ServiceNotFound() {
 	require.Equal(suite.T(), IntegratedService{}, isDetails, "the details must be empty")
 }
 
-func (suite *ServiceRouterSuite) TestActivate_ISFoundOnLegacy() {
-	// Given
-	// the IS is found by the legacy service
-	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS1").
-		Return(IntegratedService{
-			Name:   "IS1",
-			Status: "ACTIVE",
-		}, nil)
-
-	// the activation is delegated to the legacy  service
-	suite.serviceV1.On("Activate", suite.ctx, suite.clusterID, "IS1", IntegratedServiceSpec{}).Return(nil)
-
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
-
-	// When
-	err := routerService.Activate(suite.ctx, suite.clusterID, "IS1", IntegratedServiceSpec{})
-
-	// Then
-	require.Nil(suite.T(), err, "router must not return with error")
-}
-
-func (suite *ServiceRouterSuite) TestActivate_NotFoundOnLegacy() {
-	// Given
-	// the IS is NOT found by the legacy service
-	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
-		Return(
-			IntegratedService{
-				Name:   "IS2",
-				Status: IntegratedServiceStatusInactive,
-			}, nil)
-
-	// the activation is delegated to the new service
-	suite.serviceV2.On("Activate", suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{}).Return(nil)
-
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
-
-	// When
-	err := routerService.Activate(suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
-
-	// Then
-	require.Nil(suite.T(), err, "router must not return with error")
-}
-
-func (suite *ServiceRouterSuite) TestActivate_IntermittentErrorLegacy() {
-	// Given
-	// the IS is NOT found by the legacy service
-	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
-		Return(IntegratedService{}, errors.New("intermittent error"))
-
-	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
-
-	// When
-	err := routerService.Activate(suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
-
-	// Then
-	require.NotNil(suite.T(), err, "router must return with error")
-}
-
 func (suite *ServiceRouterSuite) TestDeactivate_ISFoundOnLegacy() {
 	// Given
 	ctx := context.Background()
@@ -384,21 +326,59 @@ func (suite *ServiceRouterSuite) TestUpdate_NotFoundOnLegacy() {
 	require.Nil(suite.T(), err, "router must not return with error")
 }
 
-func (suite *ServiceRouterSuite) TestActivate_ServiceUnknownOnV2() {
+func (suite *ServiceRouterSuite) TestActivate_RouteToV2() {
 	// Given
 	ctx := context.Background()
 
-	// the IS is NOT found by the legacy service
+	// the IS is NOT Active on V1
 	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS").
 		Return(IntegratedService{
 			Name:   "IS",
 			Status: IntegratedServiceStatusInactive,
 		}, nil)
 
-	// the service is unknown by the V2 implementation
-	suite.serviceV2.On("Activate", ctx, suite.clusterID, "IS", IntegratedServiceSpec{}).Return(UnknownIntegratedServiceError{})
+	// the IS is NOT Active on V2
+	suite.serviceV2.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{
+			Name:   "IS",
+			Status: IntegratedServiceStatusInactive,
+		}, nil)
 
-	// the activation is delegated to the legacy  service
+	// Activation on V2 succeeds
+	suite.serviceV2.On("Activate", suite.ctx, suite.clusterID, "IS", IntegratedServiceSpec{}).Return(nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
+
+	// When
+	err := routerService.Activate(ctx, suite.clusterID, "IS", IntegratedServiceSpec{})
+
+	// Then
+	require.Nil(suite.T(), err, "router must not return with error")
+}
+func (suite *ServiceRouterSuite) TestActivate_RouteToV1() {
+	// Given
+	ctx := context.Background()
+
+	// the IS is NOT Active on V1
+	suite.serviceV1.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{
+			Name:   "IS",
+			Status: IntegratedServiceStatusInactive,
+		}, nil)
+
+	// the IS is NOT Active on V2
+	suite.serviceV2.On("Details", ctx, suite.clusterID, "IS").
+		Return(IntegratedService{
+			Name:   "IS",
+			Status: IntegratedServiceStatusInactive,
+		}, nil)
+
+	// IS is  not supported by the V2
+	suite.serviceV2.On("Activate", suite.ctx, suite.clusterID, "IS", IntegratedServiceSpec{}).Return(UnknownIntegratedServiceError{
+		IntegratedServiceName: "IS",
+	})
+
+	// Activation on V1 succeeds
 	suite.serviceV1.On("Activate", suite.ctx, suite.clusterID, "IS", IntegratedServiceSpec{}).Return(nil)
 
 	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
@@ -454,4 +434,51 @@ func (suite *ServiceRouterSuite) TestActivate_ISActivatedAlreadyOnV2() {
 	// Then
 	require.NotNil(suite.T(), err, "router must return with error")
 	require.True(suite.T(), errors.As(err, &serviceAlreadyActiveError{}))
+}
+
+func (suite *ServiceRouterSuite) TestActivate_IntermittentErrorLegacy() {
+	// Given
+	// the IS is NOT found by the legacy service
+	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
+		Return(IntegratedService{}, errors.New("intermittent error"))
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
+
+	// When
+	err := routerService.Activate(suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
+
+	// Then
+	require.NotNil(suite.T(), err, "router must return with error")
+}
+
+func (suite *ServiceRouterSuite) TestActivate_ServiceNotSupportedByV2() {
+	// Given
+	// the IS is NOT activated on V1
+	suite.serviceV1.On("Details", suite.ctx, suite.clusterID, "IS2").
+		Return(IntegratedService{
+			Name:   "IS2",
+			Status: IntegratedServiceStatusInactive,
+		}, nil)
+
+	// the IS is NOT supported on V2
+	suite.serviceV2.On("Details", suite.ctx, suite.clusterID, "IS2").
+		Return(IntegratedService{}, UnknownIntegratedServiceError{
+			IntegratedServiceName: "IS2",
+		})
+
+	suite.serviceV2.On("Activate", suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{}).
+		Return(UnknownIntegratedServiceError{
+			IntegratedServiceName: "IS2",
+		})
+
+	suite.serviceV1.On("Activate", suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{}).
+		Return(nil)
+
+	routerService := NewServiceRouter(&suite.serviceV1, &suite.serviceV2, suite.logger)
+
+	// When
+	err := routerService.Activate(suite.ctx, suite.clusterID, "IS2", IntegratedServiceSpec{})
+
+	// Then
+	require.Nil(suite.T(), err, "router must not return with error")
 }
