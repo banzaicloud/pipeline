@@ -234,18 +234,18 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 
 	var nodePoolVersion string
 	{
-		activityInput := awsworkflow.CalculateNodePoolVersionActivityInput{
+		activityInput := eksWorkflow.CalculateNodePoolVersionActivityInput{
 			Image:                effectiveImage,
 			VolumeEncryption:     effectiveVolumeEncryption,
 			VolumeSize:           effectiveVolumeSize,
 			CustomSecurityGroups: effectiveSecurityGroups,
 		}
 
-		var output awsworkflow.CalculateNodePoolVersionActivityOutput
+		var output eksWorkflow.CalculateNodePoolVersionActivityOutput
 
-		processActivity := process.StartActivity(ctx, awsworkflow.CalculateNodePoolVersionActivityName)
+		processActivity := process.StartActivity(ctx, eksWorkflow.CalculateNodePoolVersionActivityName)
 		err = workflow.ExecuteActivity(
-			ctx, awsworkflow.CalculateNodePoolVersionActivityName, activityInput).Get(ctx, &output)
+			ctx, eksWorkflow.CalculateNodePoolVersionActivityName, activityInput).Get(ctx, &output)
 		processActivity.Finish(ctx, err)
 		if err != nil {
 			return err

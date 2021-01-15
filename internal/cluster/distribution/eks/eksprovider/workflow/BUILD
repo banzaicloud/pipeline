@@ -12,7 +12,6 @@ go_library(
         "//internal/cluster",
         "//internal/cluster/distribution/eks",
         "//internal/cluster/distribution/eks/eksmodel",
-        "//internal/cluster/infrastructure/aws/awsworkflow",
         "//internal/global",
         "//internal/providers/amazon",
         "//internal/secret/secrettype",

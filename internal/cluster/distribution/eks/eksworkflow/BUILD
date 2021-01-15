@@ -12,7 +12,6 @@ go_library(
         "//internal/cluster/clusterworkflow",
         "//internal/cluster/distribution/eks",
         "//internal/cluster/distribution/eks/eksprovider/workflow",
-        "//internal/cluster/infrastructure/aws/awsworkflow",
         "//internal/providers/amazon",
         "//pkg/providers/amazon/cloudformation",
         "//pkg/sdk/brn",

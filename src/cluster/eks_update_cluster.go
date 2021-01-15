@@ -27,7 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	eksWorkflow "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
@@ -300,7 +299,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 
 			var nodePoolVersion string
 			{
-				activityInput := awsworkflow.CalculateNodePoolVersionActivityInput{
+				activityInput := eksWorkflow.CalculateNodePoolVersionActivityInput{
 					Image:                effectiveImage,
 					VolumeEncryption:     effectiveVolumeEncryption,
 					VolumeSize:           effectiveVolumeSize,
@@ -316,11 +315,11 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 					MaximumInterval:    10 * time.Minute,
 				}
 
-				var output awsworkflow.CalculateNodePoolVersionActivityOutput
+				var output eksWorkflow.CalculateNodePoolVersionActivityOutput
 
 				err = workflow.ExecuteActivity(
 					workflow.WithActivityOptions(ctx, activityOptions),
-					awsworkflow.CalculateNodePoolVersionActivityName,
+					eksWorkflow.CalculateNodePoolVersionActivityName,
 					activityInput,
 				).Get(ctx, &output)
 				if err != nil {
