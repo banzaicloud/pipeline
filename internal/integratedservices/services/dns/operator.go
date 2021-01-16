@@ -210,7 +210,12 @@ func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterI
 			return nil, errors.WrapIf(err, "failed to decode secret values")
 		}
 
-		secretName, err := installSecret(cl, op.config.Namespace, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
+		secretBytes, err := json.Marshal(secret)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal secret values")
+		}
+
+		secretName, err := installSecret(cl, op.config.Namespace, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secretBytes)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
@@ -221,7 +226,12 @@ func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterI
 		}
 
 	case dnsGoogle:
-		secretName, err := installSecret(cl, op.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
+		secretBytes, err := json.Marshal(secretValues)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal secret values")
+		}
+
+		secretName, err := installSecret(cl, op.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretBytes)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
@@ -256,28 +266,17 @@ func getProviderNameForChart(p string) string {
 }
 
 // installSecret installs a secret to the specified cluster
-func installSecret(
-	cl interface {
-		GetK8sConfig() ([]byte, error)
-		GetOrganizationId() uint
-	},
-	namespace string,
-	secretName string,
-	secretDataKey string,
-	secretValue interface{},
-) (string, error) {
-	raw, err := json.Marshal(secretValue)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to marshal secret values")
-	}
-
+func installSecret(cl interface {
+	GetK8sConfig() ([]byte, error)
+	GetOrganizationId() uint
+}, namespace string, secretName string, secretDataKey string, secretValue []byte) (string, error) {
 	req := cluster.InstallSecretRequest{
 		// Note: leave the Source field empty as the secret needs to be transformed
 		Namespace: namespace,
 		Update:    true,
 		Spec: map[string]cluster.InstallSecretRequestSpecItem{
 			secretDataKey: {
-				Value: string(raw),
+				Value: string(secretValue),
 			},
 		},
 	}
@@ -292,11 +291,11 @@ func installSecret(
 
 func (op IntegratedServiceOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
-		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
 			return ctx, errors.WrapIf(err, "failed to get cluster by ID")
 		}
-		ctx = auth.SetCurrentOrganizationID(ctx, cluster.GetOrganizationId())
+		ctx = auth.SetCurrentOrganizationID(ctx, cl.GetOrganizationId())
 	}
 	return ctx, nil
 }
