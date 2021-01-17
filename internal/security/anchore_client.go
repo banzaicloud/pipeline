@@ -343,29 +343,42 @@ func (a anchoreClient) UpdateRegistry(ctx context.Context, registry Registry) er
 	fnCtx := map[string]interface{}{"registry": registry.Registry}
 	a.logger.Info("updating anchore registry", fnCtx)
 
-	registryType := registry.Type
-	if registryType == "" {
-		if IsEcrRegistry(registry.Registry) {
-			registryType = "awsecr"
-		} else {
-			registryType = "docker_v2"
-		}
-	}
+	// registryType := registry.Type
+	// if registryType == "" {
+	// 	if IsEcrRegistry(registry.Registry) {
+	// 		registryType = "awsecr"
+	// 	} else {
+	// 		registryType = "docker_v2"
+	// 	}
+	// }
 
-	request := anchore.RegistryConfigurationRequest{
-		Registry:       registry.Registry,
-		RegistryName:   registry.Registry,
-		RegistryUser:   registry.Username,
-		RegistryPass:   registry.Password,
-		RegistryType:   registryType,
-		RegistryVerify: registry.Verify,
-	}
+	// request := anchore.RegistryConfigurationRequest{
+	// 	Registry:       registry.Registry,
+	// 	RegistryName:   registry.Registry,
+	// 	RegistryUser:   registry.Username,
+	// 	RegistryPass:   registry.Password,
+	// 	RegistryType:   registryType,
+	// 	RegistryVerify: registry.Verify,
+	// }
 
-	opts := &anchore.UpdateRegistryOpts{}
-	_, resp, err := a.getRestClient().RegistriesApi.UpdateRegistry(a.authorizedContext(ctx), registry.Registry, request, opts)
+	// opts := &anchore.UpdateRegistryOpts{Validate: optional.NewBool(true)}
+	// _, resp, err := a.getRestClient().RegistriesApi.UpdateRegistry(a.authorizedContext(ctx), registry.Registry, request, opts)
 
+	// if err != nil || (resp.StatusCode != http.StatusOK) {
+	// 	return errors.WrapIfWithDetails(err, "failed to update anchore registry", fnCtx)
+	// }
+
+	// https://github.com/anchore/anchore-engine/issues/847
+	// using DeleteRegistry and AddRegistry instead of updateRegistry because UpdateRegistry doesn't work in anchore-engine
+	opts := &anchore.DeleteRegistryOpts{}
+	resp, err := a.getRestClient().RegistriesApi.DeleteRegistry(a.authorizedContext(ctx), registry.Registry, opts)
 	if err != nil || (resp.StatusCode != http.StatusOK) {
-		return errors.WrapIfWithDetails(err, "failed to update anchore registry", fnCtx)
+		return errors.WrapIfWithDetails(err, "failed to delete anchore registry", fnCtx)
+	}
+
+	err = a.AddRegistry(ctx, registry)
+	if err != nil {
+		return err
 	}
 
 	a.logger.Info("anchore registry updated", fnCtx)
