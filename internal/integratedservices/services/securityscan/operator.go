@@ -160,12 +160,12 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 			if err != nil {
 				err = anchoreClient.AddRegistry(ctx, registry)
 				if err != nil {
-					return errors.WrapWithDetails(err, "failed to add anchore registry")
+					return err
 				}
 			} else {
-				err = anchoreClient.UpdateRegistry(ctx, registry.Registry, registry)
+				err = anchoreClient.UpdateRegistry(ctx, registry)
 				if err != nil {
-					return errors.WrapWithDetails(err, "failed to update anchore registry")
+					return err
 				}
 			}
 		}
