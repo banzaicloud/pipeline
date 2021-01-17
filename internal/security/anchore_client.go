@@ -48,8 +48,8 @@ type PolicyClient interface {
 
 type RegistryClient interface {
 	AddRegistry(ctx context.Context, registry Registry) error
-	GetRegistry(ctx context.Context, registryName string) (anchore.RegistryConfiguration, error)
-	UpdateRegistry(ctx context.Context, registryName string, registry Registry) error
+	GetRegistry(ctx context.Context, registryName string) ([]anchore.RegistryConfiguration, error)
+	UpdateRegistry(ctx context.Context, registry Registry) error
 }
 
 type Registry struct {
@@ -319,26 +319,27 @@ func (a anchoreClient) AddRegistry(ctx context.Context, registry Registry) error
 	return nil
 }
 
-func (a anchoreClient) GetRegistry(ctx context.Context, registryName string) (anchore.RegistryConfiguration, error) {
+func (a anchoreClient) GetRegistry(ctx context.Context, registryName string) ([]anchore.RegistryConfiguration, error) {
 	a.logger.Info("getting anchore registry", map[string]interface{}{
-		registryName: registryName,
+		"registryName": registryName,
 	})
 
 	opts := &anchore.GetRegistryOpts{}
 	registry, resp, err := a.getRestClient().RegistriesApi.GetRegistry(a.authorizedContext(ctx), registryName, opts)
 
-	if err != nil || (resp.StatusCode != http.StatusOK) {
-		a.logger.Debug("failed to get anchore registry", map[string]interface{}{
-			registryName: registryName,
-		})
+	a.logger.Debug("registry", map[string]interface{}{
+		"response":   resp.Status,
+		"registriey": registry,
+	})
 
-		return registry, errors.WrapIfWithDetails(err, "failed to get anchore registry", registryName)
+	if err != nil || (resp.StatusCode != http.StatusOK) {
+		return nil, errors.WrapIfWithDetails(err, "failed to get registry", registryName)
 	}
 
 	return registry, nil
 }
 
-func (a anchoreClient) UpdateRegistry(ctx context.Context, registryName string, registry Registry) error {
+func (a anchoreClient) UpdateRegistry(ctx context.Context, registry Registry) error {
 	fnCtx := map[string]interface{}{"registry": registry.Registry}
 	a.logger.Info("updating anchore registry", fnCtx)
 
@@ -360,14 +361,11 @@ func (a anchoreClient) UpdateRegistry(ctx context.Context, registryName string, 
 		RegistryVerify: registry.Verify,
 	}
 
-	opts := &anchore.UpdateRegistryOpts{Validate: optional.NewBool(true)}
-
-	_, resp, err := a.getRestClient().RegistriesApi.UpdateRegistry(a.authorizedContext(ctx), registryName, request, opts)
+	opts := &anchore.UpdateRegistryOpts{}
+	_, resp, err := a.getRestClient().RegistriesApi.UpdateRegistry(a.authorizedContext(ctx), registry.Registry, request, opts)
 
 	if err != nil || (resp.StatusCode != http.StatusOK) {
-		a.logger.Debug("failed to update anchore registry", fnCtx)
-
-		return errors.WrapIfWithDetails(err, "failed to add anchore registry", fnCtx)
+		return errors.WrapIfWithDetails(err, "failed to update anchore registry", fnCtx)
 	}
 
 	a.logger.Info("anchore registry updated", fnCtx)
