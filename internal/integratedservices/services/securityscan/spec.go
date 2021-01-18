@@ -48,10 +48,8 @@ func (s integratedServiceSpec) Validate(pipelineNamespace string) error {
 
 	validationErrors = errors.Combine(validationErrors, s.WebhookConfig.Validate(pipelineNamespace))
 
-	if s.Registries != nil {
-		for _, registryItem := range s.Registries {
-			validationErrors = errors.Combine(validationErrors, registryItem.Validate())
-		}
+	for _, registryItem := range s.Registries {
+		validationErrors = errors.Combine(validationErrors, registryItem.Validate())
 	}
 
 	return validationErrors

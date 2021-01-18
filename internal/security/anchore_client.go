@@ -309,7 +309,7 @@ func (a anchoreClient) AddRegistry(ctx context.Context, registry Registry) error
 
 	_, resp, err := a.getRestClient().RegistriesApi.CreateRegistry(a.authorizedContext(ctx), request, opts)
 
-	if err != nil || (resp.StatusCode != http.StatusOK) {
+	if err != nil || resp.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to add anchore registry", fnCtx)
 
 		return errors.WrapIfWithDetails(err, "failed to add anchore registry", fnCtx)
@@ -327,11 +327,6 @@ func (a anchoreClient) GetRegistry(ctx context.Context, registryName string) ([]
 	opts := &anchore.GetRegistryOpts{}
 	registry, resp, err := a.getRestClient().RegistriesApi.GetRegistry(a.authorizedContext(ctx), registryName, opts)
 
-	a.logger.Debug("registry", map[string]interface{}{
-		"response":   resp.Status,
-		"registriey": registry,
-	})
-
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		return nil, errors.WrapIfWithDetails(err, "failed to get registry", registryName)
 	}
@@ -343,36 +338,11 @@ func (a anchoreClient) UpdateRegistry(ctx context.Context, registry Registry) er
 	fnCtx := map[string]interface{}{"registry": registry.Registry}
 	a.logger.Info("updating anchore registry", fnCtx)
 
-	// registryType := registry.Type
-	// if registryType == "" {
-	// 	if IsEcrRegistry(registry.Registry) {
-	// 		registryType = "awsecr"
-	// 	} else {
-	// 		registryType = "docker_v2"
-	// 	}
-	// }
-
-	// request := anchore.RegistryConfigurationRequest{
-	// 	Registry:       registry.Registry,
-	// 	RegistryName:   registry.Registry,
-	// 	RegistryUser:   registry.Username,
-	// 	RegistryPass:   registry.Password,
-	// 	RegistryType:   registryType,
-	// 	RegistryVerify: registry.Verify,
-	// }
-
-	// opts := &anchore.UpdateRegistryOpts{Validate: optional.NewBool(true)}
-	// _, resp, err := a.getRestClient().RegistriesApi.UpdateRegistry(a.authorizedContext(ctx), registry.Registry, request, opts)
-
-	// if err != nil || (resp.StatusCode != http.StatusOK) {
-	// 	return errors.WrapIfWithDetails(err, "failed to update anchore registry", fnCtx)
-	// }
-
 	// https://github.com/anchore/anchore-engine/issues/847
 	// using DeleteRegistry and AddRegistry instead of updateRegistry because UpdateRegistry doesn't work in anchore-engine
 	opts := &anchore.DeleteRegistryOpts{}
 	resp, err := a.getRestClient().RegistriesApi.DeleteRegistry(a.authorizedContext(ctx), registry.Registry, opts)
-	if err != nil || (resp.StatusCode != http.StatusOK) {
+	if err != nil || resp.StatusCode != http.StatusOK {
 		return errors.WrapIfWithDetails(err, "failed to delete anchore registry", fnCtx)
 	}
 
