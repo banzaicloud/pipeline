@@ -135,37 +135,17 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 
 	anchoreClient := anchore.NewAnchoreClient(anchoreValues.User, anchoreValues.Password, anchoreValues.Host, anchoreValues.Insecure, logger)
 
+	if boundSpec.Registry != nil && len(boundSpec.Registries) == 0 {
+		err := op.apply(ctx, boundSpec.Registry, anchoreClient)
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to apply anchore registry secret", "secretId", boundSpec.Registry.SecretID, "registry", boundSpec.Registry.Registry)
+		}
+	}
+
 	for _, registryItem := range boundSpec.Registries {
-		secret, err := op.secretStore.GetSecretValues(ctx, registryItem.SecretID)
+		err := op.apply(ctx, registryItem, anchoreClient)
 		if err != nil {
-			return errors.WrapWithDetails(err, "failed to get anchore registry secret", "secretId", registryItem.SecretID, "registry", registryItem.Registry)
-		}
-
-		registry := anchore.Registry{
-			Type:     registryItem.Type,
-			Registry: registryItem.Registry,
-			Verify:   !registryItem.Insecure,
-		}
-
-		if anchore.IsEcrRegistry(registryItem.Registry) {
-			registry.Username = secret[secrettype.AwsAccessKeyId]
-			registry.Password = secret[secrettype.AwsSecretAccessKey]
-		} else {
-			registry.Username = secret[secrettype.Username]
-			registry.Password = secret[secrettype.Password]
-		}
-
-		_, err = anchoreClient.GetRegistry(ctx, registry.Registry)
-		if err != nil {
-			err = anchoreClient.AddRegistry(ctx, registry)
-			if err != nil {
-				return errors.WrapWithDetails(err, "failed to add anchore registry")
-			}
-		} else {
-			err = anchoreClient.UpdateRegistry(ctx, registry)
-			if err != nil {
-				return errors.WrapWithDetails(err, "failed to update anchore registry")
-			}
+			return errors.WrapWithDetails(err, "failed to apply anchore registry secret", "secretId", boundSpec.Registry.SecretID, "registry", boundSpec.Registry.Registry)
 		}
 	}
 
@@ -192,6 +172,42 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 			op.errorHandler.HandleContext(ctx, err)
 		}
 	}
+	return nil
+}
+
+func (op IntegratedServiceOperator) apply(ctx context.Context, registrySpec *registrySpec, anchoreClient anchore.AnchoreClient) error {
+	secret, err := op.secretStore.GetSecretValues(ctx, registrySpec.SecretID)
+	if err != nil {
+		return errors.WrapWithDetails(err, "failed to get anchore registry secret", "secretId", registrySpec.SecretID, "registry", registrySpec.Registry)
+	}
+
+	registry := anchore.Registry{
+		Type:     registrySpec.Type,
+		Registry: registrySpec.Registry,
+		Verify:   !registrySpec.Insecure,
+	}
+
+	if anchore.IsEcrRegistry(registrySpec.Registry) {
+		registry.Username = secret[secrettype.AwsAccessKeyId]
+		registry.Password = secret[secrettype.AwsSecretAccessKey]
+	} else {
+		registry.Username = secret[secrettype.Username]
+		registry.Password = secret[secrettype.Password]
+	}
+
+	_, err = anchoreClient.GetRegistry(ctx, registry.Registry)
+	if err != nil {
+		err = anchoreClient.AddRegistry(ctx, registry)
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to add anchore registry")
+		}
+	} else {
+		err = anchoreClient.UpdateRegistry(ctx, registry)
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to update anchore registry")
+		}
+	}
+
 	return nil
 }
 
