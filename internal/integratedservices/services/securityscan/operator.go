@@ -135,38 +135,36 @@ func (op IntegratedServiceOperator) Apply(ctx context.Context, clusterID uint, s
 
 	anchoreClient := anchore.NewAnchoreClient(anchoreValues.User, anchoreValues.Password, anchoreValues.Host, anchoreValues.Insecure, logger)
 
-	if boundSpec.Registries != nil {
-		for _, registryItem := range boundSpec.Registries {
-			secret, err := op.secretStore.GetSecretValues(ctx, registryItem.SecretID)
+	for _, registryItem := range boundSpec.Registries {
+		secret, err := op.secretStore.GetSecretValues(ctx, registryItem.SecretID)
+		if err != nil {
+			return errors.WrapWithDetails(err, "failed to get anchore registry secret", "secretId", registryItem.SecretID, "registry", registryItem.Registry)
+		}
+
+		registry := anchore.Registry{
+			Type:     registryItem.Type,
+			Registry: registryItem.Registry,
+			Verify:   !registryItem.Insecure,
+		}
+
+		if anchore.IsEcrRegistry(registryItem.Registry) {
+			registry.Username = secret[secrettype.AwsAccessKeyId]
+			registry.Password = secret[secrettype.AwsSecretAccessKey]
+		} else {
+			registry.Username = secret[secrettype.Username]
+			registry.Password = secret[secrettype.Password]
+		}
+
+		_, err = anchoreClient.GetRegistry(ctx, registry.Registry)
+		if err != nil {
+			err = anchoreClient.AddRegistry(ctx, registry)
 			if err != nil {
-				return errors.WrapWithDetails(err, "failed to get anchore registry secret", "secretId", registryItem.SecretID)
+				return errors.WrapWithDetails(err, "failed to add anchore registry")
 			}
-
-			registry := anchore.Registry{
-				Type:     registryItem.Type,
-				Registry: registryItem.Registry,
-				Verify:   !registryItem.Insecure,
-			}
-
-			if anchore.IsEcrRegistry(registryItem.Registry) {
-				registry.Username = secret[secrettype.AwsAccessKeyId]
-				registry.Password = secret[secrettype.AwsSecretAccessKey]
-			} else {
-				registry.Username = secret[secrettype.Username]
-				registry.Password = secret[secrettype.Password]
-			}
-
-			_, err = anchoreClient.GetRegistry(ctx, registry.Registry)
+		} else {
+			err = anchoreClient.UpdateRegistry(ctx, registry)
 			if err != nil {
-				err = anchoreClient.AddRegistry(ctx, registry)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = anchoreClient.UpdateRegistry(ctx, registry)
-				if err != nil {
-					return err
-				}
+				return errors.WrapWithDetails(err, "failed to update anchore registry")
 			}
 		}
 	}
