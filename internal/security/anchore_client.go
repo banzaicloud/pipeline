@@ -50,6 +50,7 @@ type RegistryClient interface {
 	AddRegistry(ctx context.Context, registry Registry) error
 	GetRegistry(ctx context.Context, registryName string) ([]anchore.RegistryConfiguration, error)
 	UpdateRegistry(ctx context.Context, registry Registry) error
+	DeleteRegistry(ctx context.Context, registry Registry) error
 }
 
 type Registry struct {
@@ -340,18 +341,29 @@ func (a anchoreClient) UpdateRegistry(ctx context.Context, registry Registry) er
 
 	// https://github.com/anchore/anchore-engine/issues/847
 	// using DeleteRegistry and AddRegistry instead of updateRegistry because UpdateRegistry doesn't work in anchore-engine
+	if err := a.DeleteRegistry(ctx, registry); err != nil {
+		return err
+	}
+
+	if err := a.AddRegistry(ctx, registry); err != nil {
+		return err
+	}
+
+	a.logger.Info("anchore registry updated", fnCtx)
+	return nil
+}
+
+func (a anchoreClient) DeleteRegistry(ctx context.Context, registry Registry) error {
+	fnCtx := map[string]interface{}{"registry": registry.Registry}
+	a.logger.Info("deleting anchore registry", fnCtx)
+
 	opts := &anchore.DeleteRegistryOpts{}
 	resp, err := a.getRestClient().RegistriesApi.DeleteRegistry(a.authorizedContext(ctx), registry.Registry, opts)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		return errors.WrapIfWithDetails(err, "failed to delete anchore registry", fnCtx)
 	}
 
-	err = a.AddRegistry(ctx, registry)
-	if err != nil {
-		return err
-	}
-
-	a.logger.Info("anchore registry updated", fnCtx)
+	a.logger.Info("anchore registry deleted", fnCtx)
 	return nil
 }
 
