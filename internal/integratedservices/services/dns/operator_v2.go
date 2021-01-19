@@ -15,7 +15,10 @@
 package dns
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"text/template"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
@@ -145,9 +148,6 @@ func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedserv
 
 	// decorate the input with cluster data
 	boundSpec.RBACEnabled = cl.RbacEnabled()
-	if err != nil {
-		return errors.WrapIf(err, "failed to marshal the api spec")
-	}
 
 	si := v1alpha1.ServiceInstance{
 		ObjectMeta: metav1.ObjectMeta{
@@ -189,10 +189,21 @@ func (o Operator) installSecret(ctx context.Context, clusterID uint, secretName 
 
 	switch spec.ExternalDNS.Provider.Name {
 	case dnsBanzai, dnsRoute53:
-		_, err := installSecret(cl, o.config.Namespace, secretName, externaldns.AwsSecretDataKey, secretValues)
-		if err != nil {
+		const credentialsTpl = `
+[default]
+aws_access_key_id={{.AWS_ACCESS_KEY_ID}}
+aws_secret_access_key={{.AWS_SECRET_ACCESS_KEY}}
+`
+		t := template.Must(template.New("default").Parse(credentialsTpl))
+		var tpl bytes.Buffer
+		if err := t.Execute(&tpl, secretValues); err != nil {
+			return errors.WrapIf(err, "failed to transform aws secret")
+		}
+
+		if _, err := installSecret(cl, o.config.Namespace, secretName, externaldns.AwsSecretDataKey, tpl.Bytes()); err != nil {
 			return errors.WrapIf(err, "failed to install aws secret")
 		}
+
 	case dnsAzure:
 		type azureSecret struct {
 			ClientID       string `json:"aadClientId" mapstructure:"AZURE_CLIENT_ID"`
@@ -206,13 +217,21 @@ func (o Operator) installSecret(ctx context.Context, clusterID uint, secretName 
 			return errors.WrapIf(err, "failed to decode secret values")
 		}
 
-		_, err := installSecret(cl, o.config.Namespace, secretName, externaldns.AzureSecretDataKey, secret)
-		if err != nil {
+		secretBytes, mErr := json.Marshal(secret)
+		if mErr != nil {
+			return errors.Wrap(err, "failed to marshal secret values")
+		}
+
+		if _, err := installSecret(cl, o.config.Namespace, secretName, externaldns.AzureSecretDataKey, secretBytes); err != nil {
 			return errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
 	case dnsGoogle:
-		_, err := installSecret(cl, o.config.Namespace, secretName, externaldns.GoogleSecretDataKey, secretValues)
-		if err != nil {
+		secretBytes, mErr := json.Marshal(secretValues)
+		if mErr != nil {
+			return errors.Wrap(err, "failed to marshal secret values")
+		}
+
+		if _, err := installSecret(cl, o.config.Namespace, secretName, externaldns.GoogleSecretDataKey, secretBytes); err != nil {
 			return errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
 	default:
