@@ -74,7 +74,8 @@ type UpdateAsgActivityInput struct {
 
 	// SecurityGroups collects the user specified custom node security group
 	// IDs.
-	SecurityGroups []string
+	SecurityGroups   []string
+	UseInstanceStore *bool
 
 	Labels map[string]string
 	Tags   map[string]string
@@ -305,6 +306,11 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			ParameterKey:   aws.String("KubeletExtraArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
+		sdkCloudformation.NewOptionalStackParameter(
+			"UseInstanceStore",
+			input.UseInstanceStore != nil || input.CurrentTemplateVersion.IsLessThan("2.2.0"),
+			strconv.FormatBool(aws.BoolValue(input.UseInstanceStore)), // Note: false default value for old stacks.
+		),
 	}
 
 	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, UpdateAsgActivityName)

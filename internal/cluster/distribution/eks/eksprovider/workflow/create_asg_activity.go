@@ -80,7 +80,8 @@ type CreateAsgActivityInput struct {
 
 	// SecurityGroups collects the user specified custom node security group
 	// IDs.
-	SecurityGroups []string
+	SecurityGroups   []string
+	UseInstanceStore *bool
 
 	NodeInstanceRoleID string
 	Tags               map[string]string
@@ -263,7 +264,12 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 			ParameterKey:   aws.String("KubeletExtraArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
+		{
+			ParameterKey:   aws.String("UseInstanceStore"),
+			ParameterValue: aws.String(strconv.FormatBool(aws.BoolValue(input.UseInstanceStore))),
+		},
 	}
+
 	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateAsgActivityName)
 
 	createStackInput := &cloudformation.CreateStackInput{
@@ -406,6 +412,7 @@ func createASGAsync(
 		NodeSecurityGroupID: vpcConfig.NodeSecurityGroupID,
 		SecurityGroups:      nodePool.SecurityGroups,
 		NodeInstanceRoleID:  path.Base(eksCluster.NodeInstanceRoleId),
+		UseInstanceStore:    nodePool.UseInstanceStore,
 		Tags:                eksCluster.Cluster.Tags,
 	}
 

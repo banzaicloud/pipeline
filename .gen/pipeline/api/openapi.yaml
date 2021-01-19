@@ -19370,6 +19370,12 @@ components:
           items:
             type: string
           type: array
+        useInstanceStore:
+          description: Setup available instance stores (NVMe disks) to use for Kubelet
+            root if available. As a result emptyDir volumes will be provisioned on
+            local instance storage disks. You can check out available instance storages
+            here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+          type: boolean
       required:
       - instanceType
       - maxCount
@@ -23662,6 +23668,12 @@ components:
           items:
             type: string
           type: array
+        useInstanceStore:
+          description: Setup available instance stores (NVMe disks) to use for Kubelet
+            root if available. As a result emptyDir volumes will be provisioned on
+            local instance storage disks. You can check out available instance storages
+            here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+          type: boolean
       required:
       - instanceType
     EksUpdateNodePoolRequest_allOf:
@@ -23701,6 +23713,13 @@ components:
             type: string
           nullable: true
           type: array
+        useInstanceStore:
+          description: Setup available instance stores (NVMe disks) to use for Kubelet
+            root if available. As a result emptyDir volumes will be provisioned on
+            local instance storage disks. You can check out available instance storages
+            here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+          nullable: true
+          type: boolean
         options:
           $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
     PkeAwsUpdateNodePoolRequest_allOf:

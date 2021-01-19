@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"go.uber.org/cadence/activity"
@@ -37,6 +38,7 @@ type CalculateNodePoolVersionActivityInput struct {
 	VolumeEncryption     *eks.NodePoolVolumeEncryption
 	VolumeSize           int
 	CustomSecurityGroups []string
+	UseInstanceStore     *bool
 }
 
 type CalculateNodePoolVersionActivityOutput struct {
@@ -62,12 +64,16 @@ func (a CalculateNodePoolVersionActivity) Execute(
 	if input.VolumeEncryption != nil {
 		volumeEncryption = fmt.Sprintf("%v", *input.VolumeEncryption)
 	}
-
+	useInstanceStore := "<nil>"
+	if input.UseInstanceStore != nil {
+		useInstanceStore = strconv.FormatBool(*input.UseInstanceStore)
+	}
 	calculationParams := []string{
 		input.Image,
 		volumeEncryption,
 		fmt.Sprintf("%d", input.VolumeSize),
 		strings.Join(input.CustomSecurityGroups, ","),
+		useInstanceStore,
 	}
 
 	h := sha1.New() // #nosec

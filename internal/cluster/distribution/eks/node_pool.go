@@ -37,6 +37,7 @@ type NewNodePool struct {
 	SpotPrice        string                    `mapstructure:"spotPrice"`
 	SecurityGroups   []string                  `mapstructure:"securityGroups"`
 	SubnetID         string                    `mapstructure:"subnetId"`
+	UseInstanceStore *bool                     `mapstructure:"useInstanceStore,omitempty"`
 }
 
 // Validate semantically validates the new node pool.

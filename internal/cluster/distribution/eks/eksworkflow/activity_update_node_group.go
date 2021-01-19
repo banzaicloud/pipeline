@@ -67,6 +67,7 @@ type UpdateNodeGroupActivityInput struct {
 	NodeImage            string
 	DesiredCapacity      int64
 	SecurityGroups       []string
+	UseInstanceStore     *bool
 
 	MaxBatchSize          int
 	MinInstancesInService int
@@ -237,6 +238,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:   aws.String("KubeletExtraArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
+		sdkCloudFormation.NewOptionalStackParameter(
+			"UseInstanceStore",
+			input.UseInstanceStore != nil || input.CurrentTemplateVersion.IsLessThan("2.2.0"),
+			strconv.FormatBool(aws.BoolValue(input.UseInstanceStore)), // Note: false default value for old stacks.
+		),
 	}
 
 	// we don't reuse the creation time template, since it may have changed

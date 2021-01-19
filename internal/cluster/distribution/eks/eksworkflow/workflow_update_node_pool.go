@@ -75,6 +75,7 @@ type UpdateNodePoolWorkflowInput struct {
 	NodeVolumeSize       int
 	NodeImage            string
 	SecurityGroups       []string
+	UseInstanceStore     *bool
 
 	Options eks.NodePoolUpdateOptions
 
@@ -139,6 +140,8 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 	effectiveVolumeEncryption := input.NodeVolumeEncryption
 	effectiveVolumeSize := input.NodeVolumeSize
 	effectiveSecurityGroups := input.SecurityGroups
+	effectiveUseInstanceStore := input.UseInstanceStore
+
 	{ // Note: needing CF stack for template version and possibly node pool version.
 		getCFStackInput := eksWorkflow.GetCFStackActivityInput{
 			EKSActivityInput: eksActivityInput,
@@ -158,7 +161,9 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodeVolumeEncryptionEnabled string         `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: NodeVolumeEncryptionEnabled is only available from template version 2.1.0.
 			NodeVolumeEncryptionKeyARN  string         `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
 			NodeVolumeSize              int            `mapstructure:"NodeVolumeSize"`
-			TemplateVersion             semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
+			TemplateVersion             semver.Version `mapstructure:"TemplateVersion,omitempty"`  // Note: TemplateVersion is only available from template version 2.0.0.
+			UseInstanceStore            string         `mapstructure:"UseInstanceStore,omitempty"` // Note: TemplateVersion is only available from template version 2.2.0.
+
 		}
 		err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 		if err != nil {
@@ -192,6 +197,15 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			parameters.CustomNodeSecurityGroups != "" {
 			effectiveSecurityGroups = strings.Split(parameters.CustomNodeSecurityGroups, ",")
 			sort.Strings(effectiveSecurityGroups)
+		}
+
+		if effectiveUseInstanceStore == nil &&
+			parameters.UseInstanceStore != "" {
+			useInstanceStore, err := strconv.ParseBool(parameters.UseInstanceStore)
+			if err != nil {
+				return errors.WrapIf(err, "invalid UseInstanceStore parameter value")
+			}
+			effectiveUseInstanceStore = &useInstanceStore
 		}
 	}
 
@@ -239,6 +253,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			VolumeEncryption:     effectiveVolumeEncryption,
 			VolumeSize:           effectiveVolumeSize,
 			CustomSecurityGroups: effectiveSecurityGroups,
+			UseInstanceStore:     effectiveUseInstanceStore,
 		}
 
 		var output eksWorkflow.CalculateNodePoolVersionActivityOutput
@@ -266,6 +281,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodeVolumeSize:         volumeSize,
 			NodeImage:              input.NodeImage,
 			SecurityGroups:         input.SecurityGroups,
+			UseInstanceStore:       input.UseInstanceStore,
 			MaxBatchSize:           input.Options.MaxBatchSize,
 			MinInstancesInService:  input.Options.MaxSurge,
 			ClusterTags:            input.ClusterTags,

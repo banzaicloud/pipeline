@@ -236,7 +236,8 @@ type AutoscaleGroup struct {
 
 	// SecurityGroups collects the user specified custom node security group
 	// IDs.
-	SecurityGroups []string
+	SecurityGroups   []string
+	UseInstanceStore *bool
 
 	Labels    map[string]string
 	Delete    bool

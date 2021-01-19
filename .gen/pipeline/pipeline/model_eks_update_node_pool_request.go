@@ -41,5 +41,8 @@ type EksUpdateNodePoolRequest struct {
 	// List of additional custom security groups for all nodes in the pool.
 	SecurityGroups *[]string `json:"securityGroups,omitempty"`
 
+	// Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+	UseInstanceStore *bool `json:"useInstanceStore,omitempty"`
+
 	Options BaseUpdateNodePoolOptions `json:"options,omitempty"`
 }
