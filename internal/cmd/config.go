@@ -775,7 +775,7 @@ traefik:
 	v.SetDefault("cluster::posthook::ith::version", "0.0.9")
 
 	// Horizontal Pod Autoscaler
-	v.SetDefault("cluster::posthook::hpa::enabled", true)
+	v.SetDefault("cluster::posthook::hpa::enabled", false)
 
 	// Cluster Autoscaler
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
