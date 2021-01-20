@@ -38,7 +38,6 @@ Pipeline supports all major cloud providers (either provider managed Kubernetes 
   * Amazon 
   * Google 
   * Microsoft 
-  * Oracle 
   * VMware
 
 Pipeline does support `BYOK` - `Bring Your Own Kubernetes` and can adopt and manage existing Kubernetes clusters as well. 
