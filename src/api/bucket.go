@@ -55,16 +55,15 @@ type secretData struct {
 // BucketResponseItem encapsulates bucket and secret details to be returned
 // it's purpose is to properly format the response details - especially the secret details
 type BucketResponseItem struct {
-	Name       string                                 `json:"name"  binding:"required"`
-	Managed    bool                                   `json:"managed" binding:"required"`
-	Location   string                                 `json:"location,omitempty"`
-	Cloud      string                                 `json:"cloud,omitempty"`
-	Notes      *string                                `json:"notes,omitempty"`
-	SecretInfo *secretData                            `json:"secret"`
-	Azure      *objectstore.BlobStoragePropsForAzure  `json:"aks,omitempty"`
-	Oracle     *objectstore.BlobStoragePropsForOracle `json:"oracle,omitempty"`
-	Status     string                                 `json:"status"`
-	StatusMsg  string                                 `json:"statusMessage"`
+	Name       string                                `json:"name"  binding:"required"`
+	Managed    bool                                  `json:"managed" binding:"required"`
+	Location   string                                `json:"location,omitempty"`
+	Cloud      string                                `json:"cloud,omitempty"`
+	Notes      *string                               `json:"notes,omitempty"`
+	SecretInfo *secretData                           `json:"secret"`
+	Azure      *objectstore.BlobStoragePropsForAzure `json:"aks,omitempty"`
+	Status     string                                `json:"status"`
+	StatusMsg  string                                `json:"statusMessage"`
 }
 
 // ListAllBuckets handles 	bucket list requests. The handler method directs the flow to the appropriate retrieval
@@ -144,7 +143,6 @@ func ListManagedBuckets(c *gin.Context) {
 		pkgProviders.Amazon,
 		pkgProviders.Azure,
 		pkgProviders.Google,
-		pkgProviders.Oracle,
 	}
 
 	const (
@@ -276,9 +274,6 @@ func CreateBucket(c *gin.Context) {
 		objectStoreCtx.Location = createBucketRequest.Properties.Azure.Location
 		objectStoreCtx.ResourceGroup = createBucketRequest.Properties.Azure.ResourceGroup
 		objectStoreCtx.StorageAccount = createBucketRequest.Properties.Azure.StorageAccount
-
-	case pkgProviders.Oracle:
-		objectStoreCtx.Location = createBucketRequest.Properties.Oracle.Location
 	}
 
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
@@ -333,16 +328,6 @@ func CheckBucket(c *gin.Context) {
 	}
 
 	switch cloudType {
-	case pkgProviders.Alibaba, pkgProviders.Amazon, pkgProviders.Oracle:
-		location, ok := ginutils.RequiredQueryOrAbort(c, "location")
-		if !ok {
-			logger.Debug("missing location")
-
-			return
-		}
-
-		objectStoreCtx.Location = location
-
 	case pkgProviders.Azure:
 		resourceGroup, ok := ginutils.RequiredQueryOrAbort(c, "resourceGroup")
 		if !ok {
@@ -416,16 +401,6 @@ func DeleteBucket(c *gin.Context) {
 	}
 
 	switch cloudType {
-	case pkgProviders.Oracle:
-		location, ok := ginutils.RequiredQueryOrAbort(c, "location")
-		if !ok {
-			logger.Debug("missing location")
-
-			return
-		}
-
-		objectStoreCtx.Location = location
-
 	case pkgProviders.Azure:
 		resourceGroup, ok := ginutils.RequiredQueryOrAbort(c, "resourceGroup")
 		if !ok {
@@ -556,9 +531,6 @@ func determineCloudProviderFromRequest(req CreateBucketRequest, cloudType string
 	}
 	if req.Properties.Google != nil && cloudType == pkgCluster.Google {
 		return pkgCluster.Google, nil
-	}
-	if req.Properties.Oracle != nil && cloudType == pkgCluster.Oracle {
-		return pkgCluster.Oracle, nil
 	}
 	return "", pkgErrors.ErrorMissingCloudSpecificProperties
 }
@@ -714,7 +686,6 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 		Managed:   bi.Managed,
 		Notes:     &notes,
 		Azure:     bi.Azure,
-		Oracle:    bi.Oracle,
 		SecretInfo: &secretData{
 			SecretName:       secretName,
 			SecretId:         bi.SecretRef,
