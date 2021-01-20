@@ -11,7 +11,6 @@ go_library(
         "//internal/secret",
         "//pkg/k8sclient",
         "//pkg/providers/azure",
-        "//pkg/providers/oracle/oci",
         "//pkg/secret",
     ],
 )
