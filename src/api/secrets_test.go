@@ -77,12 +77,10 @@ func testAddSecret(t *testing.T) {
 		{name: "add aws secret", request: awsCreateSecretRequest, isError: false},
 		{name: "add aks secret", request: aksCreateSecretRequest, isError: false},
 		{name: "add gke secret", request: gkeCreateSecretRequest, isError: false},
-		{name: "add oci secret", request: OCICreateSecretRequest, isError: false},
 
 		{name: "add aws secret (missing key(s))", request: awsMissingKey, isError: true},
 		{name: "add aks secret (missing key(s))", request: aksMissingKey, isError: true},
 		{name: "add gke secret (missing key(s))", request: gkeMissingKey, isError: true},
-		{name: "add oci secret (missing key(s))", request: OCIMissingKey, isError: true},
 	}
 
 	for _, tc := range cases {
@@ -101,7 +99,6 @@ func testListSecrets(t *testing.T) {
 	_, _ = secret.Store.Store(orgId, &awsCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &aksCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &gkeCreateSecretRequest)
-	_, _ = secret.Store.Store(orgId, &OCICreateSecretRequest)
 
 	cases := []struct {
 		name           string
