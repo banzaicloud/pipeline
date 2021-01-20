@@ -1795,7 +1795,7 @@ paths:
                     description: Identifies the cloud provider
                     schema:
                         type: string
-                        enum: [amazon, google, azure, oracle, alibaba]
+                        enum: [amazon, google, azure, alibaba]
                     required: true
                 -
                     name: force
@@ -1819,7 +1819,7 @@ paths:
                 -
                     name: location
                     in: query
-                    description: The region to delete the bucket from. Required on Amazon, Oracle and Alibaba cloud providers.
+                    description: The region to delete the bucket from. Required on Amazon and Alibaba cloud providers.
                     schema:
                         type: string
             responses:
@@ -1855,7 +1855,7 @@ paths:
                     description: Identifies the cloud provider
                     schema:
                         type: string
-                        enum: [amazon, google, azure, oracle, alibaba]
+                        enum: [amazon, google, azure, alibaba]
                     required: true
                 -
                     name: resourceGroup
@@ -1872,7 +1872,7 @@ paths:
                 -
                     name: location
                     in: query
-                    description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
+                    description: The region to lookup the bucket under. Required on Amazon and Alibaba cloud providers.
                     schema:
                         type: string
             responses:
@@ -1908,7 +1908,7 @@ paths:
                     description: Identifies the cloud provider
                     schema:
                         type: string
-                        enum: [amazon, google, azure, oracle, alibaba]
+                        enum: [amazon, google, azure, alibaba]
                     required: true
                 -
                     name: resourceGroup
@@ -1925,7 +1925,7 @@ paths:
                 -
                     name: location
                     in: query
-                    description: The region to lookup the bucket under. Required on Amazon, Oracle and Alibaba cloud providers.
+                    description: The region to lookup the bucket under. Required on Amazon and Alibaba cloud providers.
                     schema:
                         type: string
             responses:
@@ -1963,7 +1963,7 @@ paths:
                     required: true
                     schema:
                         type: string
-                        enum: [amazon, google, azure, oracle, alibaba]
+                        enum: [amazon, google, azure, alibaba]
                 -
                     name: region
                     description: Identifies the region of the VPC network (required when cloudType != azure)
@@ -2020,7 +2020,7 @@ paths:
                     required: true
                     schema:
                         type: string
-                        enum: [amazon, google, azure, oracle, alibaba]
+                        enum: [amazon, google, azure, alibaba]
                 -
                     name: region
                     description: Identifies the region of the VPC network (required when cloudType != azure)
@@ -2077,7 +2077,7 @@ paths:
                     required: true
                     schema:
                         type: string
-                        enum: [amazon, google, azure, oracle, alibaba]
+                        enum: [amazon, google, azure, alibaba]
                 -
                     name: region
                     description: Identifies the region of the VPC network (required when cloudType != azure)
@@ -4066,8 +4066,6 @@ components:
                     #     -
                     #         $ref: '#/components/schemas/CreateEKSProperties'
                     #     -
-                    #         $ref: '#/components/schemas/CreateUpdateOKEProperties'
-                    #     -
                     #         $ref: '#/components/schemas/CreateACKProperties'
                     #     -
                     #         $ref: '#/components/schemas/CreatePKEProperties'
@@ -5097,64 +5095,6 @@ components:
             type: string
             example: "labelValue"
 
-        CreateUpdateOKEProperties:
-            type: object
-            required:
-                - oke
-            properties:
-                oke:
-                    type: object
-                    required:
-                        - version
-                        - nodePools
-                    properties:
-                        version:
-                            type: string
-                            example: "v1.10.3"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsOracle'
-                        vcnId:
-                            type: string
-                            example: "ocid1.vcn.oc1.iad.aaaaaaaapt4vnv6vhy4nxwxfq7e5hji44ugdz3dqpffxk77gurec7skjbcyq"
-                        lbSubnetId1:
-                            type: string
-                            example: "ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx"
-                        lbSubnetId2:
-                            type: string
-                            example: "ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx"
-
-        NodePoolsOracle:
-            type: object
-            properties:
-                version:
-                    type: string
-                    example: "v1.10.3"
-                count:
-                    type: integer
-                    example: 1
-                image:
-                    type: string
-                    example: "Oracle-Linux-7.5"
-                shape:
-                    type: string
-                    example: "VM.Standard1.1"
-                labels:
-                    additionalProperties:
-                        $ref: '#/components/schemas/LabelsOracle'
-                subnetIds:
-                    type: array
-                    items:
-                        type: string
-                        example: "ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx"
-                    maxItems: 3
-
-
-        LabelsOracle:
-            type: string
-            example: "labelValue"
-
         CreatePKEProperties:
             type: object
             required:
@@ -5410,8 +5350,6 @@ components:
                         #         $ref: '#/components/schemas/UpdateGoogleProperties'
                         #     -
                         #         $ref: '#/components/schemas/UpdateEksProperties'
-                        #     -
-                        #         $ref: '#/components/schemas/CreateUpdateOKEProperties'
                         #     -
                         #         $ref: '#/components/schemas/UpdateACKProperties'
                     example:
@@ -6446,8 +6384,6 @@ components:
                         #     -
                         #         $ref: '#/components/schemas/SecretKeyValueGoogle'
                         #     -
-                        #         $ref: '#/components/schemas/SecretKeyValueOracle'
-                        #     -
                         #         $ref: '#/components/schemas/SecretKeyValueKubernetes'
                         #     -
                         #         $ref: '#/components/schemas/SecretKeyValueGeneric'
@@ -6527,29 +6463,6 @@ components:
                 auth_provider_x509_cert_url:
                     type: string
                 client_x509_cert_url:
-                    type: string
-
-        SecretKeyValueOracle:
-            type: object
-            required:
-                - user_ocid
-                - tenancy_ocid
-                - api_key
-                - api_key_fingerprint
-                - region
-                - compartment_ocid
-            properties:
-                user_ocid:
-                    type: string
-                tenancy_ocid:
-                    type: string
-                api_key:
-                    type: string
-                api_key_fingerprint:
-                    type: string
-                region:
-                    type: string
-                client_id:
                     type: string
 
         SecretKeyValueTLS:
@@ -6727,8 +6640,6 @@ components:
                 -
                     $ref: '#/components/schemas/NodePoolStatusGoogle'
                 -
-                    $ref: '#/components/schemas/NodePoolStatusOracle'
-                -
                     $ref: '#/components/schemas/NodePoolStatusVSphere'
             example:
                 count: 1
@@ -6815,32 +6726,6 @@ components:
                     additionalProperties:
                         $ref: '#/components/schemas/ResourceSummary'
 
-        NodePoolStatusOracle:
-            type: object
-            properties:
-                count:
-                    type: integer
-                    example: 1
-                minCount:
-                    type: integer
-                    example: 1
-                maxCount:
-                    type: integer
-                    example: 2
-                instanceType:
-                    type: string
-                    example: "VM.Standard1.1"
-                image:
-                    type: string
-                    example: "ami-4d485ca7"
-                autoscaling:
-                    type: boolean
-                    example: false
-                resourceSummary:
-                    type: object
-                    additionalProperties:
-                        $ref: '#/components/schemas/ResourceSummary'
-
         NodePoolStatusVSphere:
             type: object
             properties:
@@ -6890,8 +6775,6 @@ components:
                     $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
                 google:
                     $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
-                oracle:
-                    $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
 
         CreateAlibabaObjectStoreBucketProperties:
             type: object
@@ -6940,15 +6823,6 @@ components:
                 resourceGroup:
                     type: string
 
-        CreateOracleObjectStoreBucketProperties:
-            type: object
-            nullable: true
-            required:
-                - location
-            properties:
-                location:
-                    type: string
-
         CreateObjectStoreBucketResponse:
             type: object
             required:
@@ -6960,7 +6834,7 @@ components:
                     example: "mybucket"
                 cloud:
                     type: string
-                    enum: [amazon, azure, google, oracle, alibaba]
+                    enum: [amazon, azure, google, alibaba]
                     example: amazon
 
         BucketInfo:
@@ -7013,8 +6887,6 @@ components:
                             example: "myaccesssecretname"
                 aks:
                     $ref: '#/components/schemas/AzureBlobStorageProps'
-                oracle:
-                    $ref: '#/components/schemas/OracleStorageProps'
                 status:
                     description: the status of the bucket
                     type: string
@@ -7112,14 +6984,6 @@ components:
                 resourceGroup:
                     type: string
                 storageAccount:
-                    type: string
-
-        OracleStorageProps:
-            type: object
-            required:
-                - namespace
-            properties:
-                namespace:
                     type: string
 
         PodDetailsResponse:
