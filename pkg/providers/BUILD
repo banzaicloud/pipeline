@@ -13,7 +13,6 @@ go_library(
         "//pkg/providers/amazon",
         "//pkg/providers/azure",
         "//pkg/providers/google",
-        "//pkg/providers/oracle",
         "//src/secret",
     ],
 )
