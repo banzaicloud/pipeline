@@ -23,7 +23,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
-	"github.com/banzaicloud/pipeline/internal/providers/oracle"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -64,9 +63,6 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 
 	case providers.Google:
 		return google.NewObjectStore(ctx.Organization, ctx.Secret, ctx.Location, db, logger, ctx.ForceOperation)
-
-	case providers.Oracle:
-		return oracle.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation)
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
