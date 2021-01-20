@@ -19,5 +19,4 @@ const (
 	Amazon  = "amazon"
 	Azure   = "azure"
 	Google  = "google"
-	Oracle  = "oracle"
 )
