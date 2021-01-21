@@ -228,16 +228,16 @@ Get information on a specific registry
  * @param registry
  * @param optional nil or *GetRegistryOpts - Optional Parameters:
  * @param "XAnchoreAccount" (optional.String) -  An account name to change the resource scope of the request to that account, if permissions allow (admin only)
-@return RegistryConfiguration
+@return []RegistryConfiguration
 */
-func (a *RegistriesApiService) GetRegistry(ctx _context.Context, registry string, localVarOptionals *GetRegistryOpts) (RegistryConfiguration, *_nethttp.Response, error) {
+func (a *RegistriesApiService) GetRegistry(ctx _context.Context, registry string, localVarOptionals *GetRegistryOpts) ([]RegistryConfiguration, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodGet
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  RegistryConfiguration
+		localVarReturnValue  []RegistryConfiguration
 	)
 
 	// create path and map variables

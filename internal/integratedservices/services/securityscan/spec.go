@@ -28,6 +28,7 @@ type integratedServiceSpec struct {
 	ReleaseWhiteList []releaseSpec     `json:"releaseWhiteList,omitempty" mapstructure:"releaseWhiteList"`
 	WebhookConfig    webHookConfigSpec `json:"webhookConfig" mapstructure:"webhookConfig"`
 	Registry         *registrySpec     `json:"registry" mapstructure:"registry"`
+	Registries       []*registrySpec   `json:"registries" mapstructure:"registries"`
 }
 
 // Validate validates the input security scan specification.
@@ -48,8 +49,12 @@ func (s integratedServiceSpec) Validate(pipelineNamespace string) error {
 
 	validationErrors = errors.Combine(validationErrors, s.WebhookConfig.Validate(pipelineNamespace))
 
-	if s.Registry != nil {
+	if s.Registry != nil && len(s.Registries) == 0 {
 		validationErrors = errors.Combine(validationErrors, s.Registry.Validate())
+	}
+
+	for _, registryItem := range s.Registries {
+		validationErrors = errors.Combine(validationErrors, registryItem.Validate())
 	}
 
 	return validationErrors
