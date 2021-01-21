@@ -328,6 +328,16 @@ func CheckBucket(c *gin.Context) {
 	}
 
 	switch cloudType {
+	case pkgProviders.Alibaba, pkgProviders.Amazon:
+		location, ok := ginutils.RequiredQueryOrAbort(c, "location")
+		if !ok {
+			logger.Debug("missing location")
+
+			return
+		}
+
+		objectStoreCtx.Location = location
+
 	case pkgProviders.Azure:
 		resourceGroup, ok := ginutils.RequiredQueryOrAbort(c, "resourceGroup")
 		if !ok {
