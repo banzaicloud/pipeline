@@ -34,7 +34,6 @@ go_library(
         "//pkg/common",
         "//pkg/errors",
         "//pkg/helm",
-        "//pkg/hpa",
         "//pkg/k8sclient",
         "//pkg/k8sutil",
         "//pkg/kubernetes/custom/npls",
