@@ -7526,7 +7526,6 @@ paths:
           - amazon
           - google
           - azure
-          - alibaba
           type: string
         style: form
       - description: Is the operation forced
@@ -7555,8 +7554,8 @@ paths:
         schema:
           type: string
         style: form
-      - description: The region to delete the bucket from. Required on Amazon and
-          Alibaba cloud providers.
+      - description: The region to delete the bucket from. Required on Amazon cloud
+          provider.
         explode: true
         in: query
         name: location
@@ -7716,7 +7715,6 @@ paths:
           - amazon
           - google
           - azure
-          - alibaba
           type: string
         style: form
       - description: Azure resource group to lookup the bucket(storage container)
@@ -7737,8 +7735,8 @@ paths:
         schema:
           type: string
         style: form
-      - description: The region to lookup the bucket under. Required on Amazon and
-          Alibaba cloud providers.
+      - description: The region to lookup the bucket under. Required on Amazon cloud
+          provider.
         explode: true
         in: query
         name: location
@@ -7902,7 +7900,6 @@ paths:
           - amazon
           - google
           - azure
-          - alibaba
           type: string
         style: form
       - description: Azure resource group to lookup the bucket(storage container)
@@ -7923,8 +7920,7 @@ paths:
         schema:
           type: string
         style: form
-      - description: The region to lookup the bucket under. Required on Amazon and
-          Alibaba cloud providers.
+      - description: The region to lookup the bucket under. Required on Amazon provider.
         explode: true
         in: query
         name: location
@@ -8069,7 +8065,6 @@ paths:
           - amazon
           - google
           - azure
-          - alibaba
           type: string
         style: form
       - description: Identifies the region of the VPC network (required when cloudType
@@ -8239,7 +8234,6 @@ paths:
           - amazon
           - google
           - azure
-          - alibaba
           type: string
         style: form
       - description: Identifies the region of the VPC network (required when cloudType
@@ -8409,7 +8403,6 @@ paths:
           - amazon
           - google
           - azure
-          - alibaba
           type: string
         style: form
       - description: Identifies the region of the VPC network (required when cloudType
@@ -20826,8 +20819,6 @@ components:
         properties:
           amazon:
             location: eu-west-1
-          alibaba:
-            location: eu-central-1
           google:
             location: europe
           azure:
@@ -20853,8 +20844,6 @@ components:
       example:
         amazon:
           location: eu-west-1
-        alibaba:
-          location: eu-central-1
         google:
           location: europe
         azure:
@@ -20862,25 +20851,12 @@ components:
           location: westeurope
           storageAccount: mystorageaccount
       properties:
-        alibaba:
-          $ref: '#/components/schemas/CreateAlibabaObjectStoreBucketProperties'
         amazon:
           $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
         azure:
           $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
         google:
           $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
-      type: object
-    CreateAlibabaObjectStoreBucketProperties:
-      example:
-        location: eu-central-1
-      nullable: true
-      properties:
-        location:
-          example: eu-central-1
-          type: string
-      required:
-      - location
       type: object
     CreateAmazonObjectStoreBucketProperties:
       example:
@@ -20937,7 +20913,6 @@ components:
           - amazon
           - azure
           - google
-          - alibaba
           example: amazon
           type: string
       required:
