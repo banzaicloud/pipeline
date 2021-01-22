@@ -19,6 +19,4 @@ type CreateObjectStoreBucketProperties struct {
 	Azure *CreateAzureObjectStoreBucketProperties `json:"azure,omitempty"`
 
 	Google *CreateGoogleObjectStoreBucketProperties `json:"google,omitempty"`
-
-	Oracle *CreateOracleObjectStoreBucketProperties `json:"oracle,omitempty"`
 }

@@ -15,6 +15,5 @@ go_library(
         "//internal/providers/azure/azureadapter",
         "//internal/providers/kubernetes/kubernetesadapter",
         "//pkg/cluster",
-        "//pkg/providers/oracle/model",
     ],
 )

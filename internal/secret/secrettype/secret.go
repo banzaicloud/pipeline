@@ -36,7 +36,6 @@ const (
 	Google     = "google"
 	Dummy      = "dummy"
 	Kubernetes = "kubernetes"
-	Oracle     = "oracle"
 	Vsphere    = "vsphere"
 )
 
@@ -74,16 +73,6 @@ const (
 	TokenUri      = "token_uri"
 	AuthX509Url   = "auth_provider_x509_cert_url"
 	ClientX509Url = "client_x509_cert_url"
-)
-
-// Oracle keys
-const (
-	OracleUserOCID          = "user_ocid"
-	OracleTenancyOCID       = "tenancy_ocid"
-	OracleAPIKey            = "api_key"
-	OracleAPIKeyFingerprint = "api_key_fingerprint"
-	OracleRegion            = "region"
-	OracleCompartmentOCID   = "compartment_ocid"
 )
 
 // vSphere keys
@@ -263,16 +252,6 @@ var DefaultRules = map[string]Meta{
 	Kubernetes: {
 		Fields: []FieldMeta{
 			{Name: K8SConfig, Required: true},
-		},
-	},
-	Oracle: {
-		Fields: []FieldMeta{
-			{Name: OracleUserOCID, Required: true, IsSafeToDisplay: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://banzaicloud.com/docs/pipeline/secrets/providers/oci_auth_credentials/"},
-			{Name: OracleTenancyOCID, Required: true, IsSafeToDisplay: true, Description: "Your tenancy OCID"},
-			{Name: OracleAPIKey, Required: true, IsSafeToDisplay: true, Description: "Your public key"},
-			{Name: OracleAPIKeyFingerprint, Required: true, IsSafeToDisplay: true, Description: "Fingerprint of you public key"},
-			{Name: OracleRegion, Required: true, IsSafeToDisplay: true, Description: "Oracle region"},
-			{Name: OracleCompartmentOCID, Required: true, IsSafeToDisplay: true, Description: "Your compartment OCID"},
 		},
 	},
 	Vsphere: {

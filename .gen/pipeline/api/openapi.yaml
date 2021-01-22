@@ -7526,7 +7526,6 @@ paths:
           - amazon
           - google
           - azure
-          - oracle
           - alibaba
           type: string
         style: form
@@ -7556,8 +7555,8 @@ paths:
         schema:
           type: string
         style: form
-      - description: The region to delete the bucket from. Required on Amazon, Oracle
-          and Alibaba cloud providers.
+      - description: The region to delete the bucket from. Required on Amazon and
+          Alibaba cloud providers.
         explode: true
         in: query
         name: location
@@ -7717,7 +7716,6 @@ paths:
           - amazon
           - google
           - azure
-          - oracle
           - alibaba
           type: string
         style: form
@@ -7739,8 +7737,8 @@ paths:
         schema:
           type: string
         style: form
-      - description: The region to lookup the bucket under. Required on Amazon, Oracle
-          and Alibaba cloud providers.
+      - description: The region to lookup the bucket under. Required on Amazon and
+          Alibaba cloud providers.
         explode: true
         in: query
         name: location
@@ -7904,7 +7902,6 @@ paths:
           - amazon
           - google
           - azure
-          - oracle
           - alibaba
           type: string
         style: form
@@ -7926,8 +7923,8 @@ paths:
         schema:
           type: string
         style: form
-      - description: The region to lookup the bucket under. Required on Amazon, Oracle
-          and Alibaba cloud providers.
+      - description: The region to lookup the bucket under. Required on Amazon and
+          Alibaba cloud providers.
         explode: true
         in: query
         name: location
@@ -8072,7 +8069,6 @@ paths:
           - amazon
           - google
           - azure
-          - oracle
           - alibaba
           type: string
         style: form
@@ -8243,7 +8239,6 @@ paths:
           - amazon
           - google
           - azure
-          - oracle
           - alibaba
           type: string
         style: form
@@ -8414,7 +8409,6 @@ paths:
           - amazon
           - google
           - azure
-          - oracle
           - alibaba
           type: string
         style: form
@@ -19074,41 +19068,6 @@ components:
     LabelsGoogle:
       example: labelValue
       type: string
-    CreateUpdateOKEProperties:
-      properties:
-        oke:
-          $ref: '#/components/schemas/CreateUpdateOKEProperties_oke'
-      required:
-      - oke
-      type: object
-    NodePoolsOracle:
-      properties:
-        version:
-          example: v1.10.3
-          type: string
-        count:
-          example: 1
-          type: integer
-        image:
-          example: Oracle-Linux-7.5
-          type: string
-        shape:
-          example: VM.Standard1.1
-          type: string
-        labels:
-          additionalProperties:
-            $ref: '#/components/schemas/LabelsOracle'
-          type: object
-        subnetIds:
-          items:
-            example: ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx
-            type: string
-          maxItems: 3
-          type: array
-      type: object
-    LabelsOracle:
-      example: labelValue
-      type: string
     CreatePKEProperties:
       properties:
         network:
@@ -20542,28 +20501,6 @@ components:
       - token_uri
       - type
       type: object
-    SecretKeyValueOracle:
-      properties:
-        user_ocid:
-          type: string
-        tenancy_ocid:
-          type: string
-        api_key:
-          type: string
-        api_key_fingerprint:
-          type: string
-        region:
-          type: string
-        client_id:
-          type: string
-      required:
-      - api_key
-      - api_key_fingerprint
-      - compartment_ocid
-      - region
-      - tenancy_ocid
-      - user_ocid
-      type: object
     SecretKeyValueTLS:
       properties:
         hosts:
@@ -20784,7 +20721,6 @@ components:
       - $ref: '#/components/schemas/NodePoolStatusAmazon'
       - $ref: '#/components/schemas/NodePoolStatusAzure'
       - $ref: '#/components/schemas/NodePoolStatusGoogle'
-      - $ref: '#/components/schemas/NodePoolStatusOracle'
       - $ref: '#/components/schemas/NodePoolStatusVSphere'
     NodePoolStatusAmazon:
       properties:
@@ -20863,31 +20799,6 @@ components:
             $ref: '#/components/schemas/ResourceSummary'
           type: object
       type: object
-    NodePoolStatusOracle:
-      properties:
-        count:
-          example: 1
-          type: integer
-        minCount:
-          example: 1
-          type: integer
-        maxCount:
-          example: 2
-          type: integer
-        instanceType:
-          example: VM.Standard1.1
-          type: string
-        image:
-          example: ami-4d485ca7
-          type: string
-        autoscaling:
-          example: false
-          type: boolean
-        resourceSummary:
-          additionalProperties:
-            $ref: '#/components/schemas/ResourceSummary'
-          type: object
-      type: object
     NodePoolStatusVSphere:
       properties:
         count:
@@ -20917,8 +20828,6 @@ components:
             location: eu-west-1
           alibaba:
             location: eu-central-1
-          oracle:
-            location: location
           google:
             location: europe
           azure:
@@ -20946,8 +20855,6 @@ components:
           location: eu-west-1
         alibaba:
           location: eu-central-1
-        oracle:
-          location: location
         google:
           location: europe
         azure:
@@ -20963,8 +20870,6 @@ components:
           $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
         google:
           $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
-        oracle:
-          $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
       type: object
     CreateAlibabaObjectStoreBucketProperties:
       example:
@@ -21019,16 +20924,6 @@ components:
       - resourceGroup
       - storageAccount
       type: object
-    CreateOracleObjectStoreBucketProperties:
-      example:
-        location: location
-      nullable: true
-      properties:
-        location:
-          type: string
-      required:
-      - location
-      type: object
     CreateObjectStoreBucketResponse:
       example:
         cloud: amazon
@@ -21042,7 +20937,6 @@ components:
           - amazon
           - azure
           - google
-          - oracle
           - alibaba
           example: amazon
           type: string
@@ -21054,8 +20948,6 @@ components:
       example:
         cloud: amazon
         notes: There's no secret with this ID
-        oracle:
-          namespace: namespace
         managed: true
         name: mybucket
         aks:
@@ -21094,8 +20986,6 @@ components:
           $ref: '#/components/schemas/BucketInfo_secret'
         aks:
           $ref: '#/components/schemas/AzureBlobStorageProps'
-        oracle:
-          $ref: '#/components/schemas/OracleStorageProps'
         status:
           description: the status of the bucket
           enum:
@@ -21216,15 +21106,6 @@ components:
       required:
       - resourceGroup
       - storageAccount
-      type: object
-    OracleStorageProps:
-      example:
-        namespace: namespace
-      properties:
-        namespace:
-          type: string
-      required:
-      - namespace
       type: object
     PodDetailsResponse:
       items:
@@ -23311,27 +23192,6 @@ components:
           type: object
       required:
       - nodePools
-    CreateUpdateOKEProperties_oke:
-      properties:
-        version:
-          example: v1.10.3
-          type: string
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolsOracle'
-          type: object
-        vcnId:
-          example: ocid1.vcn.oc1.iad.aaaaaaaapt4vnv6vhy4nxwxfq7e5hji44ugdz3dqpffxk77gurec7skjbcyq
-          type: string
-        lbSubnetId1:
-          example: ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx
-          type: string
-        lbSubnetId2:
-          example: ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx
-          type: string
-      required:
-      - nodePools
-      - version
     CreatePKEProperties_network:
       properties:
         apiServerAddress:

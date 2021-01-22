@@ -17,7 +17,6 @@ go_library(
         "//internal/providers/azure",
         "//internal/providers/azure/pke/adapter",
         "//internal/providers/google",
-        "//internal/providers/oracle",
         "//internal/providers/pke",
         "//internal/providers/vsphere/pke/adapter",
         "//pkg/errors",

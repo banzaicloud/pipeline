@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
-	"github.com/banzaicloud/pipeline/internal/providers/oracle"
 	"github.com/banzaicloud/pipeline/internal/providers/pke"
 	vsphere "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
 )
@@ -45,10 +44,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := google.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	if err := oracle.Migrate(db, logger); err != nil {
 		return err
 	}
 

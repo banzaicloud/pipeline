@@ -77,12 +77,10 @@ func testAddSecret(t *testing.T) {
 		{name: "add aws secret", request: awsCreateSecretRequest, isError: false},
 		{name: "add aks secret", request: aksCreateSecretRequest, isError: false},
 		{name: "add gke secret", request: gkeCreateSecretRequest, isError: false},
-		{name: "add oci secret", request: OCICreateSecretRequest, isError: false},
 
 		{name: "add aws secret (missing key(s))", request: awsMissingKey, isError: true},
 		{name: "add aks secret (missing key(s))", request: aksMissingKey, isError: true},
 		{name: "add gke secret (missing key(s))", request: gkeMissingKey, isError: true},
-		{name: "add oci secret (missing key(s))", request: OCIMissingKey, isError: true},
 	}
 
 	for _, tc := range cases {
@@ -101,7 +99,6 @@ func testListSecrets(t *testing.T) {
 	_, _ = secret.Store.Store(orgId, &awsCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &aksCreateSecretRequest)
 	_, _ = secret.Store.Store(orgId, &gkeCreateSecretRequest)
-	_, _ = secret.Store.Store(orgId, &OCICreateSecretRequest)
 
 	cases := []struct {
 		name           string
@@ -112,7 +109,6 @@ func testListSecrets(t *testing.T) {
 		{name: "List aws secrets", secretType: clusterTypes.Amazon, tag: awsCreateSecretRequest.Tags, expectedValues: awsExpectedItems},
 		{name: "List aks secrets", secretType: clusterTypes.Azure, tag: aksCreateSecretRequest.Tags, expectedValues: aksExpectedItems},
 		{name: "List gke secrets", secretType: clusterTypes.Google, tag: gkeCreateSecretRequest.Tags, expectedValues: gkeExpectedItems},
-		{name: "List oci secrets", secretType: clusterTypes.Oracle, tag: OCICreateSecretRequest.Tags, expectedValues: OCIExpectedItems},
 		{name: "List all secrets", secretType: "", tag: nil, expectedValues: allExpectedItems},
 		{name: "List repo:pipeline secrets", secretType: "", tag: []string{"repo:pipeline"}, expectedValues: awsExpectedItems},
 	}
@@ -144,7 +140,6 @@ func testDeleteSecrets(t *testing.T) {
 		{name: "Delete amazon secret", secretId: secretIdAmazon},
 		{name: "Delete azure secret", secretId: secretIdAzure},
 		{name: "Delete google secret", secretId: secretIdGoogle},
-		{name: "Delete oracle secret", secretId: secretIdOracle},
 	}
 
 	for _, tc := range cases {
@@ -175,7 +170,6 @@ var (
 	secretNameAmazon = "my-aws-secret"
 	secretNameAzure  = "my-aks-secret"
 	secretNameGoogle = "my-gke-secret"
-	secretNameOracle = "my-oci-secret"
 )
 
 // nolint: gochecknoglobals
@@ -183,7 +177,6 @@ var (
 	secretIdAmazon = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAmazon)))
 	secretIdAzure  = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAzure)))
 	secretIdGoogle = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameGoogle)))
-	secretIdOracle = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameOracle)))
 )
 
 const (
@@ -270,19 +263,6 @@ var (
 		},
 	}
 
-	OCICreateSecretRequest = secret.CreateSecretRequest{
-		Name: secretNameOracle,
-		Type: clusterTypes.Oracle,
-		Values: map[string]string{
-			"user_ocid":           OCIUserOCID,
-			"tenancy_ocid":        OCITenancyOCID,
-			"api_key":             OCIAPIKey,
-			"api_key_fingerprint": OCIAPIKeyFingerprint,
-			"region":              OCIRegion,
-			"compartment_ocid":    OCICompartmentOCID,
-		},
-	}
-
 	awsMissingKey = secret.CreateSecretRequest{
 		Name: secretNameAmazon,
 		Type: clusterTypes.Amazon,
@@ -310,17 +290,6 @@ var (
 			"private_key_id":              gkePrivateKeyId,
 			"auth_provider_x509_cert_url": gkeAuthProvider,
 			"client_x509_cert_url":        gkeClientX509,
-		},
-	}
-
-	OCIMissingKey = secret.CreateSecretRequest{
-		Name: secretNameOracle,
-		Type: clusterTypes.Oracle,
-		Values: map[string]string{
-			"tenancy_ocid":        OCITenancyOCID,
-			"api_key":             OCIAPIKey,
-			"api_key_fingerprint": OCIAPIKeyFingerprint,
-			"region":              OCIRegion,
 		},
 	}
 )
@@ -369,17 +338,6 @@ var (
 		},
 	}
 
-	OCIExpectedItems = []*secret.SecretItemResponse{
-		{
-			ID:      secretIdOracle,
-			Name:    secretNameOracle,
-			Type:    clusterTypes.Oracle,
-			Values:  toHiddenValues(clusterTypes.Oracle),
-			Tags:    []string{},
-			Version: 1,
-		},
-	}
-
 	allExpectedItems = []*secret.SecretItemResponse{
 		{
 			ID:      secretIdGoogle,
@@ -403,14 +361,6 @@ var (
 			Type:    clusterTypes.Amazon,
 			Values:  toHiddenValues(clusterTypes.Amazon),
 			Tags:    awsCreateSecretRequest.Tags,
-			Version: 1,
-		},
-		{
-			ID:      secretIdOracle,
-			Name:    secretNameOracle,
-			Type:    clusterTypes.Oracle,
-			Values:  toHiddenValues(clusterTypes.Oracle),
-			Tags:    []string{},
 			Version: 1,
 		},
 	}

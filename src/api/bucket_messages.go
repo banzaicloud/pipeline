@@ -24,7 +24,6 @@ type CreateBucketRequest struct {
 		Amazon  *CreateAmazonObjectStoreBucketProperties  `json:"amazon,omitempty"`
 		Azure   *CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
 		Google  *CreateGoogleObjectStoreBucketProperties  `json:"google,omitempty"`
-		Oracle  *CreateObjectStoreBucketProperties        `json:"oracle,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 
@@ -50,11 +49,6 @@ type CreateAzureObjectStoreBucketProperties struct {
 // CreateGoogleObjectStoreBucketProperties describes Google Object Store Bucket creation request
 type CreateGoogleObjectStoreBucketProperties struct {
 	Location string `json:"location,required"`
-}
-
-// CreateObjectStoreBucketProperties describes Oracle Object Store Bucket creation request
-type CreateObjectStoreBucketProperties struct {
-	Location string `json:"location" binding:"required"`
 }
 
 // CreateBucketResponse describes a storage bucket creation response

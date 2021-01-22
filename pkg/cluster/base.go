@@ -29,7 +29,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	oke "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
 
 // ### [ Cluster statuses ] ### //
@@ -54,7 +53,6 @@ const (
 	Azure      = "azure"
 	Google     = "google"
 	Kubernetes = "kubernetes"
-	Oracle     = "oracle"
 	Vsphere    = "vsphere"
 )
 
@@ -64,7 +62,6 @@ const (
 	EKS     = "eks"
 	AKS     = "aks"
 	GKE     = "gke"
-	OKE     = "oke"
 	PKE     = "pke"
 	Unknown = "unknown"
 )
@@ -101,7 +98,6 @@ type CreateClusterProperties struct {
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
 	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
 	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
-	CreateClusterOKE        *oke.Cluster                        `json:"oke,omitempty" yaml:"oke,omitempty"`
 	CreateClusterPKE        *pke.CreateClusterPKE               `json:"pke,omitempty" yaml:"pke,omitempty"`
 }
 
@@ -230,7 +226,6 @@ type UpdateProperties struct {
 	EKS *ekscluster.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	AKS *aks.UpdateClusterAzure            `json:"aks,omitempty"`
 	GKE *gke.UpdateClusterGoogle           `json:"gke,omitempty"`
-	OKE *oke.Cluster                       `json:"oke,omitempty"`
 	PKE *pke.UpdateClusterPKE              `json:"pke,omitempty"`
 }
 
@@ -269,17 +264,6 @@ func (r *UpdateClusterRequest) String() string { // todo expand
 		if r.GKE.NodePools != nil {
 			buffer.WriteString(fmt.Sprintf("Node pools: %v", r.GKE.NodePools))
 		}
-	} else if r.Cloud == Oracle && r.OKE != nil {
-		buffer.WriteString(fmt.Sprintf("Master version: %s", r.OKE.Version))
-		for name, nodePool := range r.UpdateProperties.OKE.NodePools {
-			buffer.WriteString(fmt.Sprintf("NodePool %s Count: %d Version: %s Image: %s Shape: %s CustomLabels: %v",
-				name,
-				nodePool.Count,
-				nodePool.Version,
-				nodePool.Image,
-				nodePool.Shape,
-				nodePool.Labels))
-		}
 	}
 
 	return buffer.String()
@@ -293,8 +277,6 @@ func (r *CreateClusterRequest) AddDefaults() error {
 			return r.Properties.CreateClusterPKE.AddDefaults()
 		}
 		return r.Properties.CreateClusterEKS.AddDefaults(r.Location)
-	case Oracle:
-		return r.Properties.CreateClusterOKE.AddDefaults()
 	default:
 		return nil
 	}
@@ -326,9 +308,6 @@ func (r *CreateClusterRequest) Validate() error {
 	case Kubernetes:
 		// kubernetes validate
 		return r.Properties.CreateClusterKubernetes.Validate()
-	case Oracle:
-		// oracle validate
-		return r.Properties.CreateClusterOKE.Validate(false)
 	default:
 		// not supported cloud type
 		return pkgErrors.ErrorNotSupportedCloudType
@@ -366,8 +345,6 @@ func (r *UpdateClusterRequest) Validate() error {
 		return r.AKS.Validate()
 	case Google:
 		return r.GKE.Validate()
-	case Oracle:
-		return r.OKE.Validate(true)
 	default:
 		return pkgErrors.ErrorNotSupportedCloudType
 	}
@@ -380,7 +357,6 @@ func (r *UpdateClusterRequest) preValidate() {
 		// reset other fields
 		r.AKS = nil
 		r.GKE = nil
-		r.OKE = nil
 		r.EKS = nil
 		break
 	case Amazon:
@@ -388,26 +364,17 @@ func (r *UpdateClusterRequest) preValidate() {
 		r.ACK = nil
 		r.AKS = nil
 		r.GKE = nil
-		r.OKE = nil
 		break
 	case Azure:
 		// reset other fields
 		r.ACK = nil
 		r.GKE = nil
-		r.OKE = nil
 		r.EKS = nil
 		break
 	case Google:
 		// reset other fields
 		r.ACK = nil
 		r.AKS = nil
-		r.OKE = nil
-		r.EKS = nil
-	case Oracle:
-		// reset other fields
-		r.ACK = nil
-		r.AKS = nil
-		r.GKE = nil
 		r.EKS = nil
 	}
 }

@@ -31,8 +31,6 @@ type BucketInfo struct {
 
 	Aks AzureBlobStorageProps `json:"aks,omitempty"`
 
-	Oracle OracleStorageProps `json:"oracle,omitempty"`
-
 	// the status of the bucket
 	Status string `json:"status"`
 

@@ -20,7 +20,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
-	"github.com/banzaicloud/pipeline/pkg/providers/oracle"
 )
 
 const (
@@ -28,7 +27,6 @@ const (
 	Amazon  = amazon.Provider
 	Azure   = azure.Provider
 	Google  = google.Provider
-	Oracle  = oracle.Provider
 
 	BucketCreating    = "CREATING"
 	BucketCreated     = "AVAILABLE"
@@ -47,7 +45,6 @@ func ValidateProvider(provider string) error {
 	case Amazon:
 	case Google:
 	case Azure:
-	case Oracle:
 	default:
 		// TODO: create an error value in this package instead
 		return pkgErrors.ErrorNotSupportedCloudType

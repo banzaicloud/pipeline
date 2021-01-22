@@ -30,7 +30,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 )
 
 const unknown = "unknown"
@@ -59,7 +58,6 @@ type ClusterModel struct {
 	ACK            alibabaadapter.ACKClusterModel           `gorm:"foreignkey:ID"`
 	AKS            azureadapter.AKSClusterModel             `gorm:"foreignkey:ID"`
 	Kubernetes     kubernetesadapter.KubernetesClusterModel `gorm:"foreignkey:ID"`
-	OKE            modelOracle.Cluster
 	CreatedBy      uint
 	Tags           ClusterTags `gorm:"type:json"`
 }

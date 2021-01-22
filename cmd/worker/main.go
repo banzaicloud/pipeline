@@ -347,9 +347,6 @@ func main() {
 		downloadK8sConfigActivity := cluster.NewDownloadK8sConfigActivity(clusterManager)
 		worker.RegisterActivityWithOptions(downloadK8sConfigActivity.Execute, activity.RegisterOptions{Name: cluster.DownloadK8sConfigActivityName})
 
-		setupPrivilegesActivity := cluster.NewSetupPrivilegesActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
-		worker.RegisterActivityWithOptions(setupPrivilegesActivity.Execute, activity.RegisterOptions{Name: cluster.SetupPrivilegesActivityName})
-
 		labelNodesWithNodepoolNameActivity := cluster.NewLabelNodesWithNodepoolNameActivity(kubernetes.NewClientFactory(configFactory), clusterManager)
 		worker.RegisterActivityWithOptions(labelNodesWithNodepoolNameActivity.Execute, activity.RegisterOptions{Name: cluster.LabelNodesWithNodepoolNameActivityName})
 
@@ -471,10 +468,6 @@ func main() {
 					},
 					clusteradapter.ClusterDeleterEntry{
 						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Kubernetes, pkgCluster.Unknown),
-						Deleter: commonClusterDeleter,
-					},
-					clusteradapter.ClusterDeleterEntry{
-						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Oracle, pkgCluster.OKE),
 						Deleter: commonClusterDeleter,
 					},
 					clusteradapter.ClusterDeleterEntry{

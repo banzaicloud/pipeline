@@ -23,7 +23,6 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
-	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
@@ -77,30 +76,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		err := workflow.ExecuteActivity(ctx, DownloadK8sConfigActivityName, activityInput).Get(ctx, &configSecretID)
 		if err != nil {
 			return pkgCadence.UnwrapError(err)
-		}
-	}
-
-	if input.Distribution == pkgCluster.OKE {
-		ao := workflow.ActivityOptions{
-			ScheduleToStartTimeout: 10 * time.Minute,
-			StartToCloseTimeout:    20 * time.Minute,
-			WaitForCancellation:    true,
-			RetryPolicy: &cadence.RetryPolicy{
-				InitialInterval:    15 * time.Second,
-				BackoffCoefficient: 1.0,
-				MaximumAttempts:    30,
-			},
-		}
-		ctx := workflow.WithActivityOptions(ctx, ao)
-
-		activityInput := SetupPrivilegesActivityInput{
-			SecretID:  brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
-			ClusterID: input.ClusterID,
-		}
-
-		err := workflow.ExecuteActivity(ctx, SetupPrivilegesActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			return err
 		}
 	}
 
@@ -233,78 +208,6 @@ func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8
 	}
 
 	return cluster.GetConfigSecretId(), nil
-}
-
-const SetupPrivilegesActivityName = "setup-privileges-legacy"
-
-type SetupPrivilegesActivityInput struct {
-	ClusterID uint
-	SecretID  string
-}
-
-type SetupPrivilegesActivity struct {
-	clientFactory ClientFactory
-	manager       *Manager
-}
-
-func NewSetupPrivilegesActivity(clientFactory ClientFactory, manager *Manager) SetupPrivilegesActivity {
-	return SetupPrivilegesActivity{
-		clientFactory: clientFactory,
-		manager:       manager,
-	}
-}
-
-func (a SetupPrivilegesActivity) Execute(ctx context.Context, input SetupPrivilegesActivityInput) error {
-	logger := activity.GetLogger(ctx).Sugar().With("clusterId", input.ClusterID)
-
-	cluster, err := a.manager.GetClusterByIDOnly(ctx, input.ClusterID)
-	if err != nil {
-		return err
-	}
-
-	okeCluster, ok := cluster.(*OKECluster)
-	if !ok {
-		logger.Warn("not an OKE cluster")
-
-		return nil
-	}
-
-	client, err := a.clientFactory.FromSecret(ctx, input.SecretID)
-	if err != nil {
-		return err
-	}
-
-	userName, err := okeCluster.GetKubernetesUserName()
-	if err != nil {
-		return err
-	}
-
-	name := "cluster-creator-admin-right"
-
-	logger = logger.With("name", name, "user", userName)
-
-	log.Info("creating cluster role")
-
-	_, err = client.RbacV1().ClusterRoleBindings().Create(ctx, &rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind: "User",
-				Name: userName,
-			},
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind: "ClusterRole",
-			Name: "cluster-admin",
-		},
-	}, metav1.CreateOptions{})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 const LabelNodesWithNodepoolNameActivityName = "label-nodes-with-nodepool-name-legacy"

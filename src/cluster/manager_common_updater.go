@@ -239,24 +239,6 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *cluster
 			}
 		}
 
-	case cluster.Oracle:
-		for name, np := range updateRequest.OKE.NodePools {
-			if np != nil {
-				npls := NodePoolLabels{
-					NodePoolName: name,
-					Existing:     false,
-					InstanceType: np.Shape,
-					CustomLabels: np.Labels,
-				}
-				existingNodePool, ok := existingNodePoolMap[name]
-				if ok {
-					npls.Existing = true
-					npls.InstanceType = existingNodePool.InstanceType
-				}
-				nodePools = append(nodePools, npls)
-			}
-		}
-
 	case cluster.Kubernetes:
 	}
 
@@ -321,7 +303,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 // It's used only used in case of ACK etc. when we're not able to add labels via API.
 func labelNodesWithNodePoolName(ctx context.Context, commonCluster CommonCluster) error {
 	switch commonCluster.GetDistribution() {
-	case cluster.EKS, cluster.OKE, cluster.GKE, cluster.PKE, cluster.AKS:
+	case cluster.EKS, cluster.GKE, cluster.PKE, cluster.AKS:
 		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
 		return nil
 	}

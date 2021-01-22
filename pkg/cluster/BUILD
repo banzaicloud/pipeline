@@ -16,7 +16,6 @@ go_library(
         "//pkg/cluster/pke",
         "//pkg/common",
         "//pkg/errors",
-        "//pkg/providers/oracle/cluster",
         "//pkg/values",
     ],
 )

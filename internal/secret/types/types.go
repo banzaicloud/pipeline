@@ -41,7 +41,6 @@ func NewDefaultTypeList(config DefaultTypeListConfig) secret.TypeList {
 		GoogleType{},
 		HtpasswdType{},
 		KubernetesType{},
-		OracleType{},
 		PagerDutyType{},
 		PasswordType{},
 		PKEType{PkeSecreter: config.PkeSecreter},
