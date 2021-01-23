@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
+	"github.com/banzaicloud/pipeline/internal/cluster/workflow/isoperator"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
@@ -115,6 +116,9 @@ type Config struct {
 	IntegratedService struct {
 		V2 bool
 	}
+
+	// Integrated Service Operator related configuration
+	ISOperator isoperator.Config
 }
 
 func (c Config) Validate() error {
@@ -900,4 +904,13 @@ traefik:
 	v.SetDefault("telemetry::debug", true)
 
 	v.SetDefault("integratedservice::v2", false)
+
+	// Integrated Service Operator
+	v.SetDefault("isoperator::enabled", true)
+	v.SetDefault("isoperator::repourl", "")
+	v.SetDefault("isoperator::reponame", "")
+	v.SetDefault("isoperator::chartversion", "latest")
+	v.SetDefault("isoperator::chartname", "isoperator")
+	v.SetDefault("isoperator::namespace", "pipeline-system")
+	v.SetDefault("isoperator::batchsize", 1)
 }
