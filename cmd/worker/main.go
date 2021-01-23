@@ -57,6 +57,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/cluster/workflow/isoperator"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
@@ -712,6 +713,18 @@ func main() {
 
 			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)
 			registerClusterFeatureWorkflows(worker, featureOperatorRegistryV2, featureRepositoryV2, clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name, true)
+
+			// integrated service operator setup
+			{
+				isOpWf := isoperator.NewISOperatorWorkflow(config.ISOperator)
+				worker.RegisterWorkflowWithOptions(isOpWf.Execute, workflow.RegisterOptions{Name: isoperator.ISOperatorInstallerWorkflowName})
+
+				getNextActivity := isoperator.NewNextClusterIDActivity(clusterRepo.FindNextWithGreaterID)
+				worker.RegisterActivityWithOptions(getNextActivity.Execute, activity.RegisterOptions{Name: isoperator.GetNextClusterRefActivityName})
+
+				isOPInstallerActivity := isoperator.NewISOperatorInstallerActivity(helmFacade, unifiedHelmReleaser, config.ISOperator)
+				worker.RegisterActivityWithOptions(isOPInstallerActivity.Execute, activity.RegisterOptions{Name: isoperator.ISOperatorInstallerActivityName})
+			}
 		}
 
 		group.Add(appkitrun.CadenceWorkerRun(worker))
