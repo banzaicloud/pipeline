@@ -174,3 +174,20 @@ func (c *Clusters) GetConfigSecretIDByClusterID(organizationID uint, clusterID u
 
 	return cluster.ConfigSecretId, nil
 }
+
+// FindNextWithGreaterID returns the next cluster <orgID, clusterID> tuple that is greater than the passed in clusterID
+func (c *Clusters) FindNextWithGreaterID(clusterID uint) (uint, uint, error) {
+	cluster := model.ClusterModel{}
+
+	err := c.db.Where("id > ?", clusterID).First(&cluster).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return 0, 0, errors.WithStack(&clusterModelNotFoundError{
+				cluster: cluster,
+			})
+		}
+		return 0, 0, err
+	}
+
+	return cluster.OrganizationId, cluster.ID, nil
+}
