@@ -20,17 +20,10 @@ type CreateBucketRequest struct {
 	SecretName string `json:"secretName"`
 	Name       string `json:"name" binding:"required"`
 	Properties struct {
-		Alibaba *CreateAlibabaObjectStoreBucketProperties `json:"alibaba,omitempty"`
 		Amazon  *CreateAmazonObjectStoreBucketProperties  `json:"amazon,omitempty"`
 		Azure   *CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
 		Google  *CreateGoogleObjectStoreBucketProperties  `json:"google,omitempty"`
 	} `json:"properties" binding:"required"`
-}
-
-// CreateAlibabaObjectStoreBucketProperties describes the properties of
-// an OSS bucket creation request
-type CreateAlibabaObjectStoreBucketProperties struct {
-	Location string `json:"location" binding:"required"`
 }
 
 // CreateAmazonObjectStoreBucketProperties describes the properties of

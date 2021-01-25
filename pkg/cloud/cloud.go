@@ -15,7 +15,6 @@
 package cloud
 
 const (
-	Alibaba = "alibaba"
 	Amazon  = "amazon"
 	Azure   = "azure"
 	Google  = "google"

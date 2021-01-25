@@ -274,7 +274,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return errors.WrapIf(err, "deploying cluster autoscaler failed")
 	}
 
-	// on certain clouds like Alibaba we still need to add node pool name labels
+	// on certain clouds we still need to add node pool name labels
 	if err := labelNodesWithNodePoolName(ctx, c.cluster); err != nil {
 		return errors.WrapIf(err, "adding labels to nodes failed")
 	}
