@@ -136,8 +136,8 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 
 	{
 		// install / upgrade the  integrated service operator
-		input := isoperator.NewISOperatorInstallerActivityInput(input.Organization.ID, input.Cluster.ID)
-		if err := workflow.ExecuteActivity(ctx, isoperator.ISOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
+		input := isoperator.NewInstallerActivityInput(input.Organization.ID, input.Cluster.ID)
+		if err := workflow.ExecuteActivity(ctx, isoperator.IntegratedServiceOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
 			return errors.WrapIfWithDetails(err, "failed to install the  operator", "orgID", input.OrgID, "clusterID", input.ClusterID)
 		}
 	}

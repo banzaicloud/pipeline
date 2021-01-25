@@ -23,38 +23,38 @@ import (
 )
 
 const (
-	ISOperatorInstallerActivityName = "is-operator-installer-activity"
-	GetNextClusterRefActivityName   = "get-next-cluster-id-activity"
+	IntegratedServiceOperatorInstallerActivityName = "integrated-service-operator-installer-activity"
+	GetNextClusterRefActivityName                  = "get-next-cluster-id-activity"
 )
 
-type ISOperatorInstallerActivityInput struct {
+type IntegratedServicesOperatorInstallerActivityInput struct {
 	OrgID     uint
 	ClusterID uint
 }
 
-func NewISOperatorInstallerActivityInput(orgID uint, clusterID uint) ISOperatorInstallerActivityInput {
-	return ISOperatorInstallerActivityInput{
+func NewInstallerActivityInput(orgID uint, clusterID uint) IntegratedServicesOperatorInstallerActivityInput {
+	return IntegratedServicesOperatorInstallerActivityInput{
 		OrgID:     orgID,
 		ClusterID: clusterID,
 	}
 }
 
-type ISOperatorInstallerActivity struct {
+type IntegratedServicesOperatorInstallerActivity struct {
 	config              Config
 	clusterDataProvider helm.ClusterDataProvider
 	repoUpdater         helm.Service
 	chartReleaser       helm.UnifiedReleaser
 }
 
-func NewISOperatorInstallerActivity(repoUpdater helm.Service, chartReleaser helm.UnifiedReleaser, config Config) ISOperatorInstallerActivity {
-	return ISOperatorInstallerActivity{
+func NewInstallerActivity(repoUpdater helm.Service, chartReleaser helm.UnifiedReleaser, config Config) IntegratedServicesOperatorInstallerActivity {
+	return IntegratedServicesOperatorInstallerActivity{
 		config:        config,
 		repoUpdater:   repoUpdater,
 		chartReleaser: chartReleaser,
 	}
 }
 
-func (r ISOperatorInstallerActivity) Execute(ctx context.Context, input ISOperatorInstallerActivityInput) error {
+func (r IntegratedServicesOperatorInstallerActivity) Execute(ctx context.Context, input IntegratedServicesOperatorInstallerActivityInput) error {
 	if err := r.repoUpdater.UpdateRepository(ctx,
 		input.OrgID,
 		helm.Repository{
@@ -83,12 +83,12 @@ func (r ISOperatorInstallerActivity) Execute(ctx context.Context, input ISOperat
 }
 
 type NextClusterIDActivity struct {
-	NextidProvider NextIDProvider
+	NextIDProvider NextIDProvider
 }
 
 func NewNextClusterIDActivity(NextidProvider NextIDProvider) NextClusterIDActivity {
 	return NextClusterIDActivity{
-		NextidProvider: NextidProvider,
+		NextIDProvider: NextidProvider,
 	}
 }
 
@@ -98,9 +98,9 @@ type ClusterRef struct {
 }
 
 func (n NextClusterIDActivity) Execute(ctx context.Context, lastClusterID uint) (ClusterRef, error) {
-	orgID, clusterID, err := n.NextidProvider(lastClusterID)
+	orgID, clusterID, err := n.NextIDProvider(lastClusterID)
 	if err != nil {
-		return ClusterRef{}, errors.WrapIfWithDetails(err, "failed to retrieve the next cluster references ")
+		return ClusterRef{}, errors.WrapIfWithDetails(err, "failed to retrieve the next cluster reference")
 	}
 
 	return ClusterRef{ID: clusterID, OrgID: orgID}, nil

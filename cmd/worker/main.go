@@ -717,13 +717,13 @@ func main() {
 			// integrated service operator setup
 			{
 				isOpWf := isoperator.NewISOperatorWorkflow(config.ISOperator)
-				worker.RegisterWorkflowWithOptions(isOpWf.Execute, workflow.RegisterOptions{Name: isoperator.ISOperatorInstallerWorkflowName})
+				worker.RegisterWorkflowWithOptions(isOpWf.Execute, workflow.RegisterOptions{Name: isoperator.IntegratedServiceOperatorInstallerWorkflowName})
 
 				getNextActivity := isoperator.NewNextClusterIDActivity(clusterRepo.FindNextWithGreaterID)
 				worker.RegisterActivityWithOptions(getNextActivity.Execute, activity.RegisterOptions{Name: isoperator.GetNextClusterRefActivityName})
 
-				isOPInstallerActivity := isoperator.NewISOperatorInstallerActivity(helmFacade, unifiedHelmReleaser, config.ISOperator)
-				worker.RegisterActivityWithOptions(isOPInstallerActivity.Execute, activity.RegisterOptions{Name: isoperator.ISOperatorInstallerActivityName})
+				isOPInstallerActivity := isoperator.NewInstallerActivity(helmFacade, unifiedHelmReleaser, config.ISOperator)
+				worker.RegisterActivityWithOptions(isOPInstallerActivity.Execute, activity.RegisterOptions{Name: isoperator.IntegratedServiceOperatorInstallerActivityName})
 			}
 		}
 

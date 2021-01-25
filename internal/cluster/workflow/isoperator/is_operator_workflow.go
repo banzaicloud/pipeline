@@ -22,7 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
-const ISOperatorInstallerWorkflowName = "integrated-service-operator-installer"
+const IntegratedServiceOperatorInstallerWorkflowName = "integrated-service-operator-installer"
 
 type Config struct {
 	Enabled      bool   `json:"enabled"`
@@ -37,24 +37,24 @@ type Config struct {
 
 type NextIDProvider func(uint) (uint, uint, error)
 
-type ISOperatorInstallerWorkflowInput struct {
+type IntegratedSesrvicesOperatorInstallerWorkflowInput struct {
 	LastClusterID uint
 }
 
-type ISOperatorWorkflow struct {
+type IntegratedSesrvicesOperatorWorkflow struct {
 	config Config
 }
 
-func NewISOperatorWorkflow(config Config) ISOperatorWorkflow {
-	return ISOperatorWorkflow{
+func NewISOperatorWorkflow(config Config) IntegratedSesrvicesOperatorWorkflow {
+	return IntegratedSesrvicesOperatorWorkflow{
 		config: config,
 	}
 }
 
-func (w ISOperatorWorkflow) Execute(ctx workflow.Context, input ISOperatorInstallerWorkflowInput) error {
+func (w IntegratedSesrvicesOperatorWorkflow) Execute(ctx workflow.Context, input IntegratedSesrvicesOperatorInstallerWorkflowInput) error {
 	activityOptions := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 15 * time.Minute,
-		StartToCloseTimeout:    3 * time.Hour,
+		StartToCloseTimeout:    5 * time.Minute,
 		WaitForCancellation:    true,
 	}
 	ctx = workflow.WithActivityOptions(ctx, activityOptions)
@@ -68,12 +68,12 @@ func (w ISOperatorWorkflow) Execute(ctx workflow.Context, input ISOperatorInstal
 				// all clusters have been processed, success flow!
 				return nil
 			}
-			return errors.WrapIf(err, "failed to get the next cluster references")
+			return errors.WrapIf(err, "failed to get the next cluster reference")
 		}
 
 		// install / upgrade the  operator
-		input := NewISOperatorInstallerActivityInput(clusterRef.OrgID, clusterRef.ID)
-		if err := workflow.ExecuteActivity(ctx, ISOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
+		input := NewInstallerActivityInput(clusterRef.OrgID, clusterRef.ID)
+		if err := workflow.ExecuteActivity(ctx, IntegratedServiceOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
 			return errors.WrapIfWithDetails(err, "failed to install the  operator", "orgID", input.OrgID, "clusterID", input.ClusterID)
 		}
 		lastProcessedClusterID = input.ClusterID

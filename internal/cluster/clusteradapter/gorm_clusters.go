@@ -186,7 +186,7 @@ func (c *Clusters) FindNextWithGreaterID(clusterID uint) (uint, uint, error) {
 				cluster: cluster,
 			})
 		}
-		return 0, 0, err
+		return 0, 0, errors.WithStack(err)
 	}
 
 	return cluster.OrganizationId, cluster.ID, nil
