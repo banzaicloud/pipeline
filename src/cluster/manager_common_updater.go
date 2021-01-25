@@ -184,24 +184,6 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *cluster
 	}
 
 	switch cloudType {
-	case cluster.Alibaba:
-		for name, np := range updateRequest.ACK.NodePools {
-			if np != nil {
-				npls := NodePoolLabels{
-					NodePoolName: name,
-					Existing:     false,
-					InstanceType: np.InstanceType,
-					CustomLabels: np.Labels,
-				}
-				existingNodePool, ok := existingNodePoolMap[name]
-				if ok {
-					npls.Existing = true
-					npls.InstanceType = existingNodePool.InstanceType
-				}
-				nodePools = append(nodePools, npls)
-			}
-		}
-
 	case cluster.Azure:
 		for name, np := range updateRequest.AKS.NodePools {
 			if np != nil {

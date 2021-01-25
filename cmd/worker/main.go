@@ -427,10 +427,6 @@ func main() {
 				clusteradapter.NewPolyClusterDeleter(
 					clusterStore,
 					clusteradapter.ClusterDeleterEntry{
-						Key:     clusteradapter.MakeClusterDeleterKey(pkgCluster.Alibaba, pkgCluster.ACK),
-						Deleter: commonClusterDeleter,
-					},
-					clusteradapter.ClusterDeleterEntry{
 						Key: clusteradapter.MakeClusterDeleterKey(pkgCluster.Amazon, pkgCluster.EKS),
 						Deleter: eksClusterDriver.NewEKSClusterDeleter(
 							nil,

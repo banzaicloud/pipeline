@@ -110,8 +110,6 @@ func ListBuckets(c *gin.Context) {
 	switch cloudType {
 	case pkgProviders.Amazon:
 		objectStoreCtx.Location = global.Config.Cloud.Amazon.DefaultRegion
-	case pkgProviders.Alibaba:
-		objectStoreCtx.Location = global.Config.Cloud.Alibaba.DefaultRegion
 	}
 
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
@@ -530,9 +528,6 @@ func getValidatedSecret(organizationId uint, secretId string, cloudType string) 
 }
 
 func determineCloudProviderFromRequest(req CreateBucketRequest, cloudType string) (string, error) {
-	if req.Properties.Alibaba != nil && cloudType == pkgCluster.Alibaba {
-		return pkgCluster.Alibaba, nil
-	}
 	if req.Properties.Azure != nil && cloudType == pkgCluster.Azure {
 		return pkgCluster.Azure, nil
 	}

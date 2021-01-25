@@ -22,7 +22,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
@@ -48,7 +47,6 @@ const (
 
 // Cloud constants
 const (
-	Alibaba    = "alibaba"
 	Amazon     = "amazon"
 	Azure      = "azure"
 	Google     = "google"
@@ -92,7 +90,6 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	CreateClusterACK *ack.CreateClusterACK `json:"ack,omitempty" yaml:"ack,omitempty"`
 
 	CreateClusterEKS        *ekscluster.CreateClusterEKS        `json:"eks,omitempty" yaml:"eks,omitempty"`
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
@@ -222,7 +219,6 @@ type UpdateClusterRequest struct {
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	ACK *ack.UpdateClusterACK              `json:"ack,omitempty"`
 	EKS *ekscluster.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	AKS *aks.UpdateClusterAzure            `json:"aks,omitempty"`
 	GKE *gke.UpdateClusterGoogle           `json:"gke,omitempty"`
@@ -289,9 +285,6 @@ func (r *CreateClusterRequest) Validate() error {
 	}
 
 	switch r.Cloud {
-	case Alibaba:
-		// alibaba validate
-		return r.Properties.CreateClusterACK.Validate()
 	case Amazon:
 		// eks validate
 		if r.Properties.CreateClusterPKE != nil {
@@ -316,7 +309,7 @@ func (r *CreateClusterRequest) Validate() error {
 
 // validateMainFields checks the request's main fields
 func (r *CreateClusterRequest) validateMainFields() error {
-	if r.Cloud != Kubernetes && r.Cloud != Alibaba {
+	if r.Cloud != Kubernetes {
 		if len(r.Location) == 0 {
 			return pkgErrors.ErrorLocationEmpty
 		}
@@ -337,8 +330,6 @@ func (r *UpdateClusterRequest) Validate() error {
 	}
 
 	switch r.Cloud {
-	case Alibaba:
-		return r.ACK.Validate()
 	case Amazon:
 		return r.EKS.Validate()
 	case Azure:
@@ -353,27 +344,18 @@ func (r *UpdateClusterRequest) Validate() error {
 // preValidate resets other cloud type fields
 func (r *UpdateClusterRequest) preValidate() {
 	switch r.Cloud {
-	case Alibaba:
-		// reset other fields
-		r.AKS = nil
-		r.GKE = nil
-		r.EKS = nil
-		break
 	case Amazon:
 		// reset other fields
-		r.ACK = nil
 		r.AKS = nil
 		r.GKE = nil
 		break
 	case Azure:
 		// reset other fields
-		r.ACK = nil
 		r.GKE = nil
 		r.EKS = nil
 		break
 	case Google:
 		// reset other fields
-		r.ACK = nil
 		r.AKS = nil
 		r.EKS = nil
 	}
