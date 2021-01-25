@@ -52,8 +52,6 @@ go_library(
         "//pkg/sdk/brn",
         "//pkg/cadence",
         "//pkg/cluster",
-        "//pkg/cluster/ack",
-        "//pkg/cluster/ack/action",
         "//pkg/cluster/aks",
         "//pkg/cluster/gke",
         "//pkg/cluster/pke",
