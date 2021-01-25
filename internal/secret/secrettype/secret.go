@@ -30,20 +30,12 @@ type Meta struct {
 
 // Cloud constants
 const (
-	Alibaba    = "alibaba"
 	Amazon     = "amazon"
 	Azure      = "azure"
 	Google     = "google"
 	Dummy      = "dummy"
 	Kubernetes = "kubernetes"
 	Vsphere    = "vsphere"
-)
-
-// Alibaba keys
-const (
-	AlibabaRegion          = "ALIBABA_REGION_ID"
-	AlibabaAccessKeyId     = "ALIBABA_ACCESS_KEY_ID"
-	AlibabaSecretAccessKey = "ALIBABA_ACCESS_KEY_SECRET"
 )
 
 // Amazon keys
@@ -213,13 +205,6 @@ const (
 // DefaultRules key matching for types
 // nolint: gochecknoglobals
 var DefaultRules = map[string]Meta{
-	Alibaba: {
-		Fields: []FieldMeta{
-			{Name: AlibabaRegion, Required: false, IsSafeToDisplay: true, Description: "Alibaba Cloud region"},
-			{Name: AlibabaAccessKeyId, Required: true, IsSafeToDisplay: true, Description: "Your Alibaba Cloud access key id"},
-			{Name: AlibabaSecretAccessKey, Required: true, Description: "Your Alibaba Cloud secret access key id"},
-		},
-	},
 	Amazon: {
 		Fields: []FieldMeta{
 			{Name: AwsRegion, Required: false, IsSafeToDisplay: true, Description: "Amazon Cloud region"},
