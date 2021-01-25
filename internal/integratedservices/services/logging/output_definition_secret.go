@@ -46,11 +46,6 @@ func newOutputSecretInstallManager(providerName, sourceSecretName, namespace str
 			sourceSecretName: sourceSecretName,
 			namespace:        namespace,
 		}}, nil
-	case providerAlibabaOSS:
-		return outputSecretInstallManagerOSS{baseOutputSecretInstallManager{
-			sourceSecretName: sourceSecretName,
-			namespace:        namespace,
-		}}, nil
 	default:
 		return nil, errors.NewWithDetails("unsupported provider", "provider", providerName)
 	}

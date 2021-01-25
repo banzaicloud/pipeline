@@ -23,7 +23,6 @@ const (
 
 	providerAmazonS3   = "s3"
 	providerGoogleGCS  = "gcs"
-	providerAlibabaOSS = "oss"
 	providerAzure      = "azure"
 	providerLoki       = "loki"
 

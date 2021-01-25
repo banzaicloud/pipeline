@@ -133,7 +133,7 @@ func (s providerSpec) Validate() error {
 	}
 
 	switch s.Name {
-	case providerAmazonS3, providerAzure, providerAlibabaOSS, providerGoogleGCS:
+	case providerAmazonS3, providerAzure, providerGoogleGCS:
 	default:
 		return errors.New("invalid provider name")
 	}

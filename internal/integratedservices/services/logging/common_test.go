@@ -33,8 +33,6 @@ const (
 	lokiURL           = "http://logging.io/loki"
 	lokiServiceUrl    = "dummyServiceUrl:9090"
 	lokiSecretID      = "lokiSecretID"
-	alibabaSecretID   = "alibabaSecretID"
-	alibabaSecretName = "alibabaSecretName"
 )
 
 type dummyClusterGetter struct {

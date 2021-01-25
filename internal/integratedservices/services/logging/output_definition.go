@@ -50,8 +50,6 @@ func newOutputDefinitionManager(creators []outputManagerCreator) (managers []out
 			managers = append(managers, outputDefinitionManagerGCS{baseOutputManager: baseManager})
 		case providerAzure:
 			managers = append(managers, outputDefinitionManagerAzure{baseOutputManager: baseManager})
-		case providerAlibabaOSS:
-			managers = append(managers, outputDefinitionManagerOSS{baseOutputManager: baseManager})
 		case providerLoki:
 			managers = append(managers, outputDefinitionManagerLoki{serviceURL: creator.serviceURL})
 		}
