@@ -430,10 +430,6 @@ dex:
 #    amazon:
 #        # Default Amazon region
 #        defaultRegion: "us-west-1"
-#
-#    alibaba:
-#        # Default Alibaba region
-#        defaultRegion: "eu-central-1"
 
 #distribution:
 #    eks:
