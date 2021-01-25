@@ -36,8 +36,6 @@ const (
 	generatedSecretUsername    = "admin"
 	fluentSharedSecretName     = "logging-operator-fluent-shared-secret"
 
-	outputDefinitionSecretKeyOSSAccessKeyID      = "accessKeyId"
-	outputDefinitionSecretKeyOSSAccessKey        = "accessKeySecret"
 	outputDefinitionSecretKeyS3AccessKeyID       = "awsAccessKeyId"
 	outputDefinitionSecretKeyS3AccessKey         = "awsSecretAccessKey"
 	outputDefinitionSecretKeyGCS                 = "credentials.json"
