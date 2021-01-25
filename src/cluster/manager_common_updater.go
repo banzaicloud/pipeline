@@ -282,7 +282,6 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 }
 
 // labelNodesWithNodePoolName add node pool name labels for all nodes.
-// It's used only used in case of ACK etc. when we're not able to add labels via API.
 func labelNodesWithNodePoolName(ctx context.Context, commonCluster CommonCluster) error {
 	switch commonCluster.GetDistribution() {
 	case cluster.EKS, cluster.GKE, cluster.PKE, cluster.AKS:
