@@ -67,7 +67,7 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 			return
 		}
 
-		if len(request.Location) == 0 && (request.Cloud == providers.Alibaba || request.Cloud == providers.Amazon) {
+		if len(request.Location) == 0 && (request.Cloud == providers.Amazon) {
 			// location field is empty in request, get bucket location
 			organizationID := auth.GetCurrentOrganization(c.Request).ID
 

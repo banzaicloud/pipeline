@@ -16,14 +16,12 @@ package providers
 
 import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
 )
 
 const (
-	Alibaba = alibaba.Provider
 	Amazon  = amazon.Provider
 	Azure   = azure.Provider
 	Google  = google.Provider
@@ -41,7 +39,6 @@ const (
 // Unsupported cloud providers trigger an pkgErrors.ErrorNotSupportedCloudType error.
 func ValidateProvider(provider string) error {
 	switch provider {
-	case Alibaba:
 	case Amazon:
 	case Google:
 	case Azure:
