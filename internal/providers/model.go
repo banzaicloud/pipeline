@@ -20,7 +20,6 @@ import (
 	logrusadapter "logur.dev/adapter/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
@@ -31,9 +30,6 @@ import (
 
 // Migrate runs migrations for cloud provider services.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-	if err := alibaba.Migrate(db, logger); err != nil {
-		return err
-	}
 
 	if err := amazon.Migrate(db, logger); err != nil {
 		return err

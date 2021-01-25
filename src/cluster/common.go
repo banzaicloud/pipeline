@@ -30,7 +30,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
@@ -313,26 +312,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	}
 
 	switch modelCluster.Cloud {
-	case pkgCluster.Alibaba:
-		// Create Alibaba struct
-
-		alibabaCluster, err := CreateACKClusterFromModel(modelCluster)
-		if err != nil {
-			return nil, err
-		}
-
-		err = db.Where(alibabaadapter.ACKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACK).Error
-		if err != nil {
-			return nil, err
-		}
-
-		err = db.Model(&alibabaCluster.modelCluster.ACK).Related(&alibabaCluster.modelCluster.ACK.NodePools, "NodePools").Error
-		if err != nil {
-			return nil, err
-		}
-
-		return alibabaCluster, nil
-
 	case pkgCluster.Amazon:
 		// Create Amazon EKS struct
 		eksCluster, err := CreateEKSClusterFromModel(modelCluster)
@@ -390,14 +369,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
-	case pkgCluster.Alibaba:
-		// Create Alibaba struct
-		alibabaCluster, err := CreateACKClusterFromRequest(createClusterRequest, orgId, userId)
-		if err != nil {
-			return nil, err
-		}
-		return alibabaCluster, nil
-
 	case pkgCluster.Amazon:
 		// Check for PKE
 		if createClusterRequest.Properties.CreateClusterPKE != nil {

@@ -26,7 +26,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/database/sql/json"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/providers/alibaba/alibabaadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/azureadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -55,7 +54,6 @@ type ClusterModel struct {
 	RbacEnabled    bool
 	ScaleOptions   clustermodel.ScaleOptions                `gorm:"foreignkey:ClusterID"`
 	StatusMessage  string                                   `sql:"type:text;"`
-	ACK            alibabaadapter.ACKClusterModel           `gorm:"foreignkey:ID"`
 	AKS            azureadapter.AKSClusterModel             `gorm:"foreignkey:ID"`
 	Kubernetes     kubernetesadapter.KubernetesClusterModel `gorm:"foreignkey:ID"`
 	CreatedBy      uint
