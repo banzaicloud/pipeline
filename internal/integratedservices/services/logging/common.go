@@ -21,10 +21,10 @@ import (
 const (
 	integratedServiceName = "logging"
 
-	providerAmazonS3   = "s3"
-	providerGoogleGCS  = "gcs"
-	providerAzure      = "azure"
-	providerLoki       = "loki"
+	providerAmazonS3  = "s3"
+	providerGoogleGCS = "gcs"
+	providerAzure     = "azure"
+	providerLoki      = "loki"
 
 	tlsSecretName              = "logging-tls-secret"
 	loggingOperatorReleaseName = "logging-operator"

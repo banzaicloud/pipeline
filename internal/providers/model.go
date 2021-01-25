@@ -30,7 +30,6 @@ import (
 
 // Migrate runs migrations for cloud provider services.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
-
 	if err := amazon.Migrate(db, logger); err != nil {
 		return err
 	}

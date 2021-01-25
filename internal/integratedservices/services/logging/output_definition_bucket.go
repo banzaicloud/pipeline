@@ -27,9 +27,6 @@ type bucketOptions struct {
 	s3 *struct {
 		region string
 	}
-	oss *struct {
-		region string
-	}
 	gcs *struct {
 		project string
 	}

@@ -20,9 +20,9 @@ type CreateBucketRequest struct {
 	SecretName string `json:"secretName"`
 	Name       string `json:"name" binding:"required"`
 	Properties struct {
-		Amazon  *CreateAmazonObjectStoreBucketProperties  `json:"amazon,omitempty"`
-		Azure   *CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
-		Google  *CreateGoogleObjectStoreBucketProperties  `json:"google,omitempty"`
+		Amazon *CreateAmazonObjectStoreBucketProperties `json:"amazon,omitempty"`
+		Azure  *CreateAzureObjectStoreBucketProperties  `json:"azure,omitempty"`
+		Google *CreateGoogleObjectStoreBucketProperties `json:"google,omitempty"`
 	} `json:"properties" binding:"required"`
 }
 

@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	Amazon  = amazon.Provider
-	Azure   = azure.Provider
-	Google  = google.Provider
+	Amazon = amazon.Provider
+	Azure  = azure.Provider
+	Google = google.Provider
 
 	BucketCreating    = "CREATING"
 	BucketCreated     = "AVAILABLE"

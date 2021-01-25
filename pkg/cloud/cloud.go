@@ -15,7 +15,7 @@
 package cloud
 
 const (
-	Amazon  = "amazon"
-	Azure   = "azure"
-	Google  = "google"
+	Amazon = "amazon"
+	Azure  = "azure"
+	Google = "google"
 )

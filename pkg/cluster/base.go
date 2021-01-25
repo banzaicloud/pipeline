@@ -89,7 +89,6 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-
 	CreateClusterEKS        *ekscluster.CreateClusterEKS        `json:"eks,omitempty" yaml:"eks,omitempty"`
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
 	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
