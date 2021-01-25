@@ -82,11 +82,6 @@ func (cs *ClusterModel) AfterFind() error {
 		cs.Location = unknown
 	}
 
-	if cs.Distribution == "acsk" {
-		// we renamed acsk distribution to ack
-		cs.Distribution = pkgCluster.ACK
-	}
-
 	return nil
 }
 

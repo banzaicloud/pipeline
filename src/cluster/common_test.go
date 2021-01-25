@@ -95,7 +95,6 @@ func TestIntegration(t *testing.T) {
 	secret.InitSecretStore(secretStore, secretTypes)
 	restricted.InitSecretStore(secret.Store)
 
-	t.Run("testACKClusterStatus", testACKClusterStatus)
 	t.Run("testCreateCommonClusterFromRequest", testCreateCommonClusterFromRequest)
 	t.Run("testGKEKubernetesVersion", testGKEKubernetesVersion)
 }

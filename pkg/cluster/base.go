@@ -56,7 +56,6 @@ const (
 
 // Distribution constants
 const (
-	ACK     = "ack"
 	EKS     = "eks"
 	AKS     = "aks"
 	GKE     = "gke"
