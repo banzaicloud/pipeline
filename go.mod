@@ -19,7 +19,6 @@ require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/semver/v3 v3.1.0
 	github.com/ThreeDotsLabs/watermill v1.1.0
-	github.com/aliyun/alibaba-cloud-sdk-go v1.60.327
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible
 	github.com/antihax/optional v1.0.0
 	github.com/aokoli/goutils v1.1.0
