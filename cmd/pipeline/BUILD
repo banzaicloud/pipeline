@@ -98,7 +98,6 @@ go_test(
         "//internal/platform/log",
         "//internal/platform/watermill",
         "//internal/providers",
-        "//internal/providers/alibaba/alibabaadapter",
         "//internal/providers/azure/azureadapter",
         "//internal/providers/azure/pke/adapter",
         "//internal/providers/azure/pke/driver",

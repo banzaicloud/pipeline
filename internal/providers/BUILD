@@ -12,7 +12,6 @@ go_library(
         "//internal/global",
         "//internal/network",
         "//internal/objectstore",
-        "//internal/providers/alibaba",
         "//internal/providers/amazon",
         "//internal/providers/azure",
         "//internal/providers/azure/pke/adapter",
