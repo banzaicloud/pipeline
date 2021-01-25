@@ -4066,8 +4066,6 @@ components:
                     #     -
                     #         $ref: '#/components/schemas/CreateEKSProperties'
                     #     -
-                    #         $ref: '#/components/schemas/CreateACKProperties'
-                    #     -
                     #         $ref: '#/components/schemas/CreatePKEProperties'
                     example:
                         gke:
@@ -4934,48 +4932,8 @@ components:
                                 example:
                                     customTagKey: customTagValue
                             description: User defined tags to be added to created AWS resources. Empty keys and values are not permitted.
-        CreateACKProperties:
-            type: object
-            required:
-                - ack
-            properties:
-                ack:
-                    type: object
-                    required:
-                        - regionId
-                        - zoneId
-                        - nodePools
-                    properties:
-                        regionId:
-                            type: string
-                            example: ""
-                        zoneId:
-                            type: string
-                            example: ""
-                        vswitchId:
-                            type: string
-                            example: "vsw-zysrfslpfhasklu338qys"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsACK'
-
-        NodePoolsACK:
-            type: object
-            required:
-                - count
-                - instanceType
-            properties:
-                instanceType:
-                    type: string
-                    example: ""
-                minCount:
-                    type: integer
-                    example: 1
-                maxCount:
-                    type: integer
-                    example: 1
-
+       
+      
         CreateAKSProperties:
             type: object
             required:
@@ -5350,8 +5308,6 @@ components:
                         #         $ref: '#/components/schemas/UpdateGoogleProperties'
                         #     -
                         #         $ref: '#/components/schemas/UpdateEksProperties'
-                        #     -
-                        #         $ref: '#/components/schemas/UpdateACKProperties'
                     example:
                         google:
                             master:
@@ -5375,21 +5331,6 @@ components:
                                 $ref: '#/components/schemas/EKSNodePool'
                     required:
                         - nodePools
-
-        UpdateACKProperties:
-            type: object
-            required:
-                - ack
-            properties:
-                ack:
-                    type: object
-                    required:
-                        - nodePools
-                    properties:
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsACK'
 
         UpdateAzureProperties:
             type: object
