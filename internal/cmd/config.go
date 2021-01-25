@@ -154,10 +154,6 @@ func (c *Config) Process() error {
 
 type CloudConfig struct {
 	Amazon AmazonCloudConfig
-
-	Alibaba struct {
-		DefaultRegion string
-	}
 }
 
 func (c CloudConfig) Validate() error {
@@ -881,7 +877,6 @@ traefik:
 
 	// Cloud configuration
 	v.SetDefault("cloud::amazon::defaultRegion", "us-west-1")
-	v.SetDefault("cloud::alibaba::defaultRegion", "eu-central-1")
 
 	v.SetDefault("distribution::eks::templateLocation", "./templates/eks")
 	v.SetDefault("distribution::eks::exposeAdminKubeconfig", true)
