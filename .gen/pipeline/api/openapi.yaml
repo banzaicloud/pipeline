@@ -18969,27 +18969,6 @@ components:
       required:
       - eks
       type: object
-    CreateACKProperties:
-      properties:
-        ack:
-          $ref: '#/components/schemas/CreateACKProperties_ack'
-      required:
-      - ack
-      type: object
-    NodePoolsACK:
-      properties:
-        instanceType:
-          type: string
-        minCount:
-          example: 1
-          type: integer
-        maxCount:
-          example: 1
-          type: integer
-      required:
-      - count
-      - instanceType
-      type: object
     CreateAKSProperties:
       properties:
         aks:
@@ -19277,13 +19256,6 @@ components:
           $ref: '#/components/schemas/UpdateEksProperties_eks'
       required:
       - eks
-      type: object
-    UpdateACKProperties:
-      properties:
-        ack:
-          $ref: '#/components/schemas/UpdateACKProperties_ack'
-      required:
-      - ack
       type: object
     UpdateAzureProperties:
       properties:
@@ -23101,23 +23073,6 @@ components:
           type: object
       required:
       - nodePools
-    CreateACKProperties_ack:
-      properties:
-        regionId:
-          type: string
-        zoneId:
-          type: string
-        vswitchId:
-          example: vsw-zysrfslpfhasklu338qys
-          type: string
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolsACK'
-          type: object
-      required:
-      - nodePools
-      - regionId
-      - zoneId
     CreateAKSProperties_aks:
       properties:
         resourceGroup:
@@ -23226,14 +23181,6 @@ components:
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/EKSNodePool'
-          type: object
-      required:
-      - nodePools
-    UpdateACKProperties_ack:
-      properties:
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolsACK'
           type: object
       required:
       - nodePools
