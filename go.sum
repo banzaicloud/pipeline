@@ -158,8 +158,6 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d h1:UQZhZ2O0vMHr2cI+DC1Mbh0TJxzA3RcLoMsFw+aXw7E=
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d/go.mod h1:rBZYJk541a8SKzHPHnH3zbiI+7dagKZ0cgpgrD7Fyho=
 github.com/alessio/shellescape v0.0.0-20190409004728-b115ca0f9053/go.mod h1:xW8sBma2LE3QxFSzCnH9qe6gAE2yO9GvQaWwX89HxbE=
-github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible h1:A3oZlWPD/Poa19FvNbw+Zu4yKAurDBTjlRDilYGBiS4=
-github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible/go.mod h1:T/Aws4fEfogEE9v+HPhhw+CntffsBHJ8nXQCwKr0/g8=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883 h1:bvNMNQO63//z+xNgfBlViaCIJKLlCJ6/fmUseuG0wVQ=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883/go.mod h1:rCTlJbsFo29Kk6CurOXKm700vrz8f0KW0JNfpkRJY/8=
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 h1:kFOfPq6dUM1hTo4JG6LR5AXSUEsOjtdm0kw0FtQtMJA=
@@ -196,8 +194,6 @@ github.com/aws/aws-sdk-go v1.35.20/go.mod h1:tlPOdRjfxPBpNIwqDj61rmsnA85v9jc0Ps9
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
-github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a h1:9/qDp7sMlIdbPxAd9ZYgKHMkBFs1jYG8e/MazklsET4=
-github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a/go.mod h1:0tP+OZnwCc6rkSU2WkqysjrDhR7QuSve8Czl9Z0dFsU=
 github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62 h1:wlvTg+btN2gyZrKDOoCpAz+tJLnc072UbTfFTtEdnZk=
 github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62/go.mod h1:LpX/aNV3ZYLT0UphkpG88OPi5/vHMrScB7TQtQLrjTs=
 github.com/banzaicloud/bank-vaults/pkg/sdk v0.6.0 h1:SOv7vrvAynnp2vrC26cKWRbj1O0ymswvNOVVGtiL178=

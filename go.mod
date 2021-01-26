@@ -19,12 +19,10 @@ require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/semver/v3 v3.1.0
 	github.com/ThreeDotsLabs/watermill v1.1.0
-	github.com/aliyun/aliyun-oss-go-sdk v2.0.5+incompatible
 	github.com/antihax/optional v1.0.0
 	github.com/aokoli/goutils v1.1.0
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.35.20
-	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-00010101000000-000000000000 // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.6.0
 	github.com/banzaicloud/cadence-aws-sdk v0.0.0-20201104115745-5238cf77328b
@@ -122,7 +120,6 @@ require (
 
 replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
-	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
 	github.com/banzaicloud/cadence-aws-sdk => ./lib/cadence-aws-sdk
 	github.com/banzaicloud/integrated-service-sdk => github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.4.0
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
