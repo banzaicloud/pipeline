@@ -41,17 +41,16 @@ func NewInstallerActivityInput(orgID uint, clusterID uint) IntegratedServicesOpe
 }
 
 type IntegratedServicesOperatorInstallerActivity struct {
-	config              Config
-	clusterDataProvider helm.ClusterDataProvider
-	repoUpdater         helm.Service
-	chartReleaser       helm.UnifiedReleaser
+	config        Config
+	repoUpdater   helm.Service
+	chartReleaser helm.UnifiedReleaser
 }
 
 func NewInstallerActivity(repoUpdater helm.Service, chartReleaser helm.UnifiedReleaser, config Config) IntegratedServicesOperatorInstallerActivity {
 	return IntegratedServicesOperatorInstallerActivity{
-		config:        config,
 		repoUpdater:   repoUpdater,
 		chartReleaser: chartReleaser,
+		config:        config,
 	}
 }
 
@@ -68,11 +67,13 @@ func (r IntegratedServicesOperatorInstallerActivity) Execute(ctx context.Context
 
 	if err := r.chartReleaser.InstallOrUpgrade(
 		input.OrgID,
-		r.clusterDataProvider,
+		clusterDataProvider{
+			clusterID: input.ClusterID,
+		},
 		helm.Release{
 			ChartName: r.config.Chart,
 			Namespace: r.config.Namespace,
-			Version:   r.config.ChartVersion,
+			Version:   r.config.Version,
 		},
 		helm.Options{
 			Namespace: r.config.Namespace,
@@ -105,4 +106,17 @@ func (n NextClusterIDActivity) Execute(ctx context.Context, lastClusterID uint) 
 	}
 
 	return ClusterRef{ID: clusterID, OrgID: orgID}, nil
+}
+
+type clusterDataProvider struct {
+	clusterID uint
+}
+
+func (c clusterDataProvider) GetK8sConfig() ([]byte, error) {
+	// no op here!
+	return nil, nil
+}
+
+func (c clusterDataProvider) GetID() uint {
+	return c.clusterID
 }

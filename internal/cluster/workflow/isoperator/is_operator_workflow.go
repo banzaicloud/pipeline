@@ -26,10 +26,10 @@ const IntegratedServiceOperatorInstallerWorkflowName = "integrated-service-opera
 
 type Config struct {
 	// repoName/ChartName format
-	Chart        string `json:"chart"`
-	ChartVersion string `json:"chartVersion"`
-	Namespace    string `json:"namespace"`
-	BatchSize    int    `json:"batchSize"`
+	Chart     string `json:"chart"`
+	Version   string `json:"version"`
+	Namespace string `json:"namespace"`
+	BatchSize int    `json:"batchSize"`
 }
 
 type NextIDProvider func(uint) (uint, uint, error)
