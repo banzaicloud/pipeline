@@ -25,33 +25,30 @@ import (
 const IntegratedServiceOperatorInstallerWorkflowName = "integrated-service-operator-installer"
 
 type Config struct {
-	Enabled      bool   `json:"enabled"`
-	RepoURL      string `json:"repoUrl"`
-	RepoName     string `json:"repoName"`
+	// repoName/ChartName format
+	Chart        string `json:"chart"`
 	ChartVersion string `json:"chartVersion"`
-	ChartName    string `json:"chartName"`
-	ReleaseName  string `json:"releaseName"`
 	Namespace    string `json:"namespace"`
 	BatchSize    int    `json:"batchSize"`
 }
 
 type NextIDProvider func(uint) (uint, uint, error)
 
-type IntegratedSesrvicesOperatorInstallerWorkflowInput struct {
+type IntegratedServicesOperatorInstallerWorkflowInput struct {
 	LastClusterID uint
 }
 
-type IntegratedSesrvicesOperatorWorkflow struct {
+type IntegratedServicesOperatorWorkflow struct {
 	config Config
 }
 
-func NewISOperatorWorkflow(config Config) IntegratedSesrvicesOperatorWorkflow {
-	return IntegratedSesrvicesOperatorWorkflow{
+func NewISOperatorWorkflow(config Config) IntegratedServicesOperatorWorkflow {
+	return IntegratedServicesOperatorWorkflow{
 		config: config,
 	}
 }
 
-func (w IntegratedSesrvicesOperatorWorkflow) Execute(ctx workflow.Context, input IntegratedSesrvicesOperatorInstallerWorkflowInput) error {
+func (w IntegratedServicesOperatorWorkflow) Execute(ctx workflow.Context, input IntegratedServicesOperatorInstallerWorkflowInput) error {
 	activityOptions := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 15 * time.Minute,
 		StartToCloseTimeout:    5 * time.Minute,

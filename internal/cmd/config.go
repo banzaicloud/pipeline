@@ -115,10 +115,9 @@ type Config struct {
 	// temporary switch to control the integrated service implementation
 	IntegratedService struct {
 		V2 bool
+		// Integrated Service Operator related configuration
+		Operator isoperator.Config
 	}
-
-	// Integrated Service Operator related configuration
-	ISOperator isoperator.Config
 }
 
 func (c Config) Validate() error {
@@ -906,11 +905,7 @@ traefik:
 	v.SetDefault("integratedservice::v2", false)
 
 	// Integrated Service Operator
-	v.SetDefault("isoperator::enabled", true)
-	v.SetDefault("isoperator::repourl", "")
-	v.SetDefault("isoperator::reponame", "")
-	v.SetDefault("isoperator::chartversion", "latest")
-	v.SetDefault("isoperator::chartname", "isoperator")
-	v.SetDefault("isoperator::namespace", "pipeline-system")
-	v.SetDefault("isoperator::batchsize", 1)
+	v.SetDefault("integratedservice::operator::chart", "banzaicloud-stable/integrated-service-operator")
+	v.SetDefault("integratedservice::operator::version", "0.4.0")
+	v.SetDefault("integratedservice::operator::batchsize", 100)
 }

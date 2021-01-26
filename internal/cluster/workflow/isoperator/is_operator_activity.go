@@ -16,6 +16,7 @@ package isoperator
 
 import (
 	"context"
+	"strings"
 
 	"emperror.dev/errors"
 
@@ -55,11 +56,12 @@ func NewInstallerActivity(repoUpdater helm.Service, chartReleaser helm.UnifiedRe
 }
 
 func (r IntegratedServicesOperatorInstallerActivity) Execute(ctx context.Context, input IntegratedServicesOperatorInstallerActivityInput) error {
+	repoName := strings.Split(r.config.Chart, "/")[0]
+
 	if err := r.repoUpdater.UpdateRepository(ctx,
 		input.OrgID,
 		helm.Repository{
-			Name: r.config.RepoName,
-			URL:  r.config.RepoURL,
+			Name: repoName,
 		}); err != nil {
 		return errors.WrapIf(err, "failed to update helm repository")
 	}
@@ -68,10 +70,9 @@ func (r IntegratedServicesOperatorInstallerActivity) Execute(ctx context.Context
 		input.OrgID,
 		r.clusterDataProvider,
 		helm.Release{
-			ReleaseName: r.config.ReleaseName,
-			ChartName:   r.config.ChartName,
-			Namespace:   r.config.Namespace,
-			Version:     r.config.ChartVersion,
+			ChartName: r.config.Chart,
+			Namespace: r.config.Namespace,
+			Version:   r.config.ChartVersion,
 		},
 		helm.Options{
 			Namespace: r.config.Namespace,
