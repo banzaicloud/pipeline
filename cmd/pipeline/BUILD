@@ -81,7 +81,6 @@ go_test(
         "//internal/integratedservices/services/vault",
         "//internal/istio/istiofeature",
         "//internal/kubernetes",
-        "//internal/monitor",
         "//internal/pke",
         "//internal/platform/appkit",
         "//internal/platform/appkit/transport/http",

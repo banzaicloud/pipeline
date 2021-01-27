@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/spf13/pflag"
@@ -50,11 +49,6 @@ type configuration struct {
 	Frontend frontend.Config
 
 	Pipeline PipelineConfig
-
-	SpotMetrics struct {
-		Enabled            bool
-		CollectionInterval time.Duration
-	}
 }
 
 // Validate validates the configuration.
@@ -178,9 +172,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cors::allowAllOrigins", true)
 	v.SetDefault("cors::allowOrigins", []string{})
 	v.SetDefault("cors::allowOriginsRegexp", "")
-
-	v.SetDefault("spotmetrics::enabled", false)
-	v.SetDefault("spotmetrics::collectionInterval", 30*time.Second)
 
 	// Cadence configuration
 	v.SetDefault("cadence::createNonexistentDomain", false)
