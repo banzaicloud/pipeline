@@ -27,6 +27,7 @@ const IntegratedServiceOperatorInstallerWorkflowName = "integrated-service-opera
 type Config struct {
 	// repoName/ChartName format
 	Chart     string `json:"chart"`
+	Release   string `json:"release"`
 	Version   string `json:"version"`
 	Namespace string `json:"namespace"`
 	BatchSize int    `json:"batchSize"`

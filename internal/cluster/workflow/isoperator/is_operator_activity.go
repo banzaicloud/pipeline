@@ -71,9 +71,10 @@ func (r IntegratedServicesOperatorInstallerActivity) Execute(ctx context.Context
 			clusterID: input.ClusterID,
 		},
 		helm.Release{
-			ChartName: r.config.Chart,
-			Namespace: r.config.Namespace,
-			Version:   r.config.Version,
+			ChartName:   r.config.Chart,
+			Namespace:   r.config.Namespace,
+			Version:     r.config.Version,
+			ReleaseName: r.config.Release,
 		},
 		helm.Options{
 			Namespace: r.config.Namespace,
