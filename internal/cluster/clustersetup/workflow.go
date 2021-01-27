@@ -31,6 +31,9 @@ const WorkflowName = "cluster-setup"
 type Workflow struct {
 	// InstallInit
 	InstallInitManifest bool
+
+	// Drives installation
+	IsIntegratedServicesV2 bool
 }
 
 // WorkflowInput is the input for a cluster setup workflow.
@@ -135,10 +138,12 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 	}
 
 	{
-		// install / upgrade the  integrated service operator
-		input := isoperator.NewInstallerActivityInput(input.Organization.ID, input.Cluster.ID)
-		if err := workflow.ExecuteActivity(ctx, isoperator.IntegratedServiceOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
-			return errors.WrapIfWithDetails(err, "failed to install the  operator", "orgID", input.OrgID, "clusterID", input.ClusterID)
+		if w.IsIntegratedServicesV2 {
+			// install / upgrade the  integrated service operator
+			input := isoperator.NewInstallerActivityInput(input.Organization.ID, input.Cluster.ID)
+			if err := workflow.ExecuteActivity(ctx, isoperator.IntegratedServiceOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
+				return errors.WrapIfWithDetails(err, "failed to install the  operator", "orgID", input.OrgID, "clusterID", input.ClusterID)
+			}
 		}
 	}
 
