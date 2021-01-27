@@ -719,7 +719,7 @@ func main() {
 				isOpWf := operator.NewISOperatorWorkflow(config.IntegratedService.Operator)
 				worker.RegisterWorkflowWithOptions(isOpWf.Execute, workflow.RegisterOptions{Name: operator.IntegratedServiceOperatorInstallerWorkflowName})
 
-				getNextActivity := operator.NewNextClusterIDActivity(clusterRepo.FindNextWithGreaterID)
+				getNextActivity := operator.NewNextClusterIDActivity(clusterService, clusterRepo.FindNextWithGreaterID)
 				worker.RegisterActivityWithOptions(getNextActivity.Execute, activity.RegisterOptions{Name: operator.GetNextClusterRefActivityName})
 
 				isOPInstallerActivity := operator.NewInstallerActivity(helmFacade, unifiedHelmReleaser, config.IntegratedService.Operator)

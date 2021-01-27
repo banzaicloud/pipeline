@@ -20,6 +20,7 @@ import (
 
 	"emperror.dev/errors"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
@@ -91,21 +92,33 @@ type NextClusterIDActivity struct {
 	ClusterChecker integratedservices.ClusterService
 }
 
-func NewNextClusterIDActivity(NextidProvider NextIDProvider) NextClusterIDActivity {
+func NewNextClusterIDActivity(clusterService integratedservices.ClusterService, NextidProvider NextIDProvider) NextClusterIDActivity {
 	return NextClusterIDActivity{
+		ClusterChecker: clusterService,
 		NextIDProvider: NextidProvider,
 	}
 }
 
+// ClusterRef encapsulates information about the next cluster to be processed
 type ClusterRef struct {
-	ID    uint
-	OrgID uint
+	ID       uint
+	OrgID    uint
+	NotFound bool
 }
 
 func (n NextClusterIDActivity) Execute(ctx context.Context, lastClusterID uint) (ClusterRef, error) {
 	orgID, clusterID, err := n.NextIDProvider(lastClusterID)
 	if err != nil {
-		return ClusterRef{}, errors.WrapIfWithDetails(err, "failed to retrieve the next cluster reference")
+		if cluster.IsNotFoundError(err) {
+			return ClusterRef{NotFound: true}, nil
+		}
+		return ClusterRef{}, errors.WrapIfWithDetails(err, "failed to retrieve the next cluster reference",
+			"lastClusterID", lastClusterID)
+	}
+
+	if err := n.ClusterChecker.CheckClusterReady(ctx, clusterID); err != nil {
+		return ClusterRef{}, errors.WrapIfWithDetails(err, "cluster is not running",
+			"lastClusterID", lastClusterID)
 	}
 
 	return ClusterRef{ID: clusterID, OrgID: orgID}, nil

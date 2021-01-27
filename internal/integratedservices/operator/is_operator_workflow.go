@@ -18,8 +18,6 @@ import (
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
-
-	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
 const IntegratedServiceOperatorInstallerWorkflowName = "integrated-service-operator-installer"
@@ -62,11 +60,12 @@ func (w IntegratedServicesOperatorWorkflow) Execute(ctx workflow.Context, input 
 		// get the next cluster reference to be processed
 		var clusterRef ClusterRef
 		if err := workflow.ExecuteActivity(ctx, GetNextClusterRefActivityName, lastProcessedClusterID).Get(ctx, &clusterRef); err != nil {
-			if cluster.IsNotFoundError(err) {
-				// all clusters have been processed, success flow!
-				return nil
-			}
 			return errors.WrapIf(err, "failed to get the next cluster reference")
+		}
+
+		if clusterRef.NotFound {
+			// this is the end criteria for the recursion (= all the clusters have been processed)
+			return nil
 		}
 
 		// install / upgrade the  operator
