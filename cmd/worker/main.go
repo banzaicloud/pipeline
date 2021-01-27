@@ -57,7 +57,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
-	"github.com/banzaicloud/pipeline/internal/cluster/workflow/isoperator"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
@@ -70,6 +69,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
@@ -716,14 +716,14 @@ func main() {
 
 			// integrated service operator setup
 			{
-				isOpWf := isoperator.NewISOperatorWorkflow(config.IntegratedService.Operator)
-				worker.RegisterWorkflowWithOptions(isOpWf.Execute, workflow.RegisterOptions{Name: isoperator.IntegratedServiceOperatorInstallerWorkflowName})
+				isOpWf := operator.NewISOperatorWorkflow(config.IntegratedService.Operator)
+				worker.RegisterWorkflowWithOptions(isOpWf.Execute, workflow.RegisterOptions{Name: operator.IntegratedServiceOperatorInstallerWorkflowName})
 
-				getNextActivity := isoperator.NewNextClusterIDActivity(clusterRepo.FindNextWithGreaterID)
-				worker.RegisterActivityWithOptions(getNextActivity.Execute, activity.RegisterOptions{Name: isoperator.GetNextClusterRefActivityName})
+				getNextActivity := operator.NewNextClusterIDActivity(clusterRepo.FindNextWithGreaterID)
+				worker.RegisterActivityWithOptions(getNextActivity.Execute, activity.RegisterOptions{Name: operator.GetNextClusterRefActivityName})
 
-				isOPInstallerActivity := isoperator.NewInstallerActivity(helmFacade, unifiedHelmReleaser, config.IntegratedService.Operator)
-				worker.RegisterActivityWithOptions(isOPInstallerActivity.Execute, activity.RegisterOptions{Name: isoperator.IntegratedServiceOperatorInstallerActivityName})
+				isOPInstallerActivity := operator.NewInstallerActivity(helmFacade, unifiedHelmReleaser, config.IntegratedService.Operator)
+				worker.RegisterActivityWithOptions(isOPInstallerActivity.Execute, activity.RegisterOptions{Name: operator.IntegratedServiceOperatorInstallerActivityName})
 			}
 		}
 

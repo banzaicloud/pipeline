@@ -23,9 +23,9 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
-	"github.com/banzaicloud/pipeline/internal/cluster/workflow/isoperator"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
@@ -116,7 +116,7 @@ type Config struct {
 	IntegratedService struct {
 		V2 bool
 		// Integrated Service Operator related configuration
-		Operator isoperator.Config
+		Operator operator.Config
 	}
 }
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package isoperator
+package operator
 
 import (
 	"context"
@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
 const (
@@ -87,6 +88,7 @@ func (r IntegratedServicesOperatorInstallerActivity) Execute(ctx context.Context
 
 type NextClusterIDActivity struct {
 	NextIDProvider NextIDProvider
+	ClusterChecker integratedservices.ClusterService
 }
 
 func NewNextClusterIDActivity(NextidProvider NextIDProvider) NextClusterIDActivity {
