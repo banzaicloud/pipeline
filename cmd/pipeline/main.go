@@ -121,7 +121,6 @@ import (
 	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
-	"github.com/banzaicloud/pipeline/internal/monitor"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	apphttp "github.com/banzaicloud/pipeline/internal/platform/appkit/transport/http"
@@ -426,26 +425,6 @@ func main() {
 	commonClusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
 	var group run.Group
-
-	if config.SpotMetrics.Enabled {
-		ctx, cancel := context.WithCancel(context.Background())
-		exporter := monitor.NewSpotMetricsExporter(
-			ctx,
-			clusterManager,
-			logrusLogger.WithField("subsystem", "spot-metrics-exporter"),
-		)
-
-		group.Add(
-			func() error {
-				exporter.Run(config.SpotMetrics.CollectionInterval)
-
-				return nil
-			},
-			func(err error) {
-				cancel()
-			},
-		)
-	}
 
 	cloudinfoClient := cloudinfo.NewClient(cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
 		BasePath:      config.Cloudinfo.Endpoint,

@@ -18,6 +18,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
+const instancePipelineCreatedTag = "pipeline-created"
+
 // SpotInstanceRequest extends ec2.SpotInstanceRequest
 type SpotInstanceRequest struct {
 	*ec2.SpotInstanceRequest
