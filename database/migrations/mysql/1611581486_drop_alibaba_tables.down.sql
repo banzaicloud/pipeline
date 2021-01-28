@@ -46,4 +46,3 @@ CREATE TABLE `alibaba_acsk_clusters` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 UPDATE `alibaba_acsk_clusters` SET `v_switch_id` = NULL;
-
