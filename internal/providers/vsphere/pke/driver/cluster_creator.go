@@ -213,6 +213,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 	tf := nodeTemplateFactory{
 		ClusterID:                   cl.ID,
 		ClusterName:                 cl.Name,
+		ClusterUUID:                 cl.UID,
 		KubernetesVersion:           cl.Kubernetes.Version,
 		NoProxy:                     strings.Join(cl.HTTPProxy.Exceptions, ","),
 		OrganizationID:              cl.OrganizationID,

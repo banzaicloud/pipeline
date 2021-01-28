@@ -108,6 +108,7 @@ func (cu ClusterUpdater) Update(ctx context.Context, params VspherePKEClusterUpd
 	tf := nodeTemplateFactory{
 		ClusterID:                   cluster.ID,
 		ClusterName:                 cluster.Name,
+		ClusterUUID:                 cluster.UID,
 		KubernetesVersion:           cluster.Kubernetes.Version,
 		NoProxy:                     strings.Join(cluster.HTTPProxy.Exceptions, ","),
 		OrganizationID:              cluster.OrganizationID,
