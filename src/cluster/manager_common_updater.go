@@ -184,24 +184,6 @@ func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *cluster
 	}
 
 	switch cloudType {
-	case cluster.Alibaba:
-		for name, np := range updateRequest.ACK.NodePools {
-			if np != nil {
-				npls := NodePoolLabels{
-					NodePoolName: name,
-					Existing:     false,
-					InstanceType: np.InstanceType,
-					CustomLabels: np.Labels,
-				}
-				existingNodePool, ok := existingNodePoolMap[name]
-				if ok {
-					npls.Existing = true
-					npls.InstanceType = existingNodePool.InstanceType
-				}
-				nodePools = append(nodePools, npls)
-			}
-		}
-
 	case cluster.Azure:
 		for name, np := range updateRequest.AKS.NodePools {
 			if np != nil {
@@ -292,7 +274,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return errors.WrapIf(err, "deploying cluster autoscaler failed")
 	}
 
-	// on certain clouds like Alibaba we still need to add node pool name labels
+	// on certain clouds we still need to add node pool name labels
 	if err := labelNodesWithNodePoolName(ctx, c.cluster); err != nil {
 		return errors.WrapIf(err, "adding labels to nodes failed")
 	}
@@ -300,7 +282,6 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 }
 
 // labelNodesWithNodePoolName add node pool name labels for all nodes.
-// It's used only used in case of ACK etc. when we're not able to add labels via API.
 func labelNodesWithNodePoolName(ctx context.Context, commonCluster CommonCluster) error {
 	switch commonCluster.GetDistribution() {
 	case cluster.EKS, cluster.GKE, cluster.PKE, cluster.AKS:

@@ -29,7 +29,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
@@ -76,30 +75,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		err := workflow.ExecuteActivity(ctx, DownloadK8sConfigActivityName, activityInput).Get(ctx, &configSecretID)
 		if err != nil {
 			return pkgCadence.UnwrapError(err)
-		}
-	}
-
-	if input.Distribution == pkgCluster.ACK {
-		ao := workflow.ActivityOptions{
-			ScheduleToStartTimeout: 10 * time.Minute,
-			StartToCloseTimeout:    20 * time.Minute,
-			WaitForCancellation:    true,
-			RetryPolicy: &cadence.RetryPolicy{
-				InitialInterval:    15 * time.Second,
-				BackoffCoefficient: 1.0,
-				MaximumAttempts:    30,
-			},
-		}
-		ctx := workflow.WithActivityOptions(ctx, ao)
-
-		activityInput := LabelNodesWithNodepoolNameActivityInput{
-			SecretID:  brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
-			ClusterID: input.ClusterID,
-		}
-
-		err := workflow.ExecuteActivity(ctx, LabelNodesWithNodepoolNameActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			return err
 		}
 	}
 

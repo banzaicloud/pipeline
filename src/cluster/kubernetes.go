@@ -15,16 +15,12 @@
 package cluster
 
 import (
-	"context"
 	"encoding/base64"
 	"strings"
 
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
-	storagev1 "k8s.io/api/storage/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/kubernetes/kubernetesadapter"
@@ -100,26 +96,6 @@ func (c *KubeCluster) CreateCluster() error {
 // Deprecated: Do not use.
 func (c *KubeCluster) Persist() error {
 	return errors.WrapIf(c.modelCluster.Save(), "failed to persist cluster")
-}
-
-// createDefaultStorageClass creates a default storage class as some clusters are not created with
-// any storage classes or with default one
-func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode, parameters map[string]string) error {
-	defaultStorageClass := storagev1.StorageClass{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "default",
-			Annotations: map[string]string{
-				storageUtil.IsDefaultStorageClassAnnotation: "true",
-			},
-		},
-		VolumeBindingMode: &volumeBindingMode,
-		Provisioner:       provisioner,
-		Parameters:        parameters,
-	}
-
-	_, err := kubernetesClient.StorageV1().StorageClasses().Create(context.Background(), &defaultStorageClass, metav1.CreateOptions{})
-
-	return errors.WrapIf(err, "create storage class failed")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud

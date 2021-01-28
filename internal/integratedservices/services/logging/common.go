@@ -21,11 +21,10 @@ import (
 const (
 	integratedServiceName = "logging"
 
-	providerAmazonS3   = "s3"
-	providerGoogleGCS  = "gcs"
-	providerAlibabaOSS = "oss"
-	providerAzure      = "azure"
-	providerLoki       = "loki"
+	providerAmazonS3  = "s3"
+	providerGoogleGCS = "gcs"
+	providerAzure     = "azure"
+	providerLoki      = "loki"
 
 	tlsSecretName              = "logging-tls-secret"
 	loggingOperatorReleaseName = "logging-operator"
@@ -37,8 +36,6 @@ const (
 	generatedSecretUsername    = "admin"
 	fluentSharedSecretName     = "logging-operator-fluent-shared-secret"
 
-	outputDefinitionSecretKeyOSSAccessKeyID      = "accessKeyId"
-	outputDefinitionSecretKeyOSSAccessKey        = "accessKeySecret"
 	outputDefinitionSecretKeyS3AccessKeyID       = "awsAccessKeyId"
 	outputDefinitionSecretKeyS3AccessKey         = "awsSecretAccessKey"
 	outputDefinitionSecretKeyGCS                 = "credentials.json"

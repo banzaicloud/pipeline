@@ -36,9 +36,6 @@ var Config struct {
 		}
 	}
 	Cloud struct {
-		Alibaba struct {
-			DefaultRegion string
-		}
 		Amazon struct {
 			DefaultRegion string
 		}

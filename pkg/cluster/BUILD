@@ -9,7 +9,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/cluster/distribution/eks/ekscluster",
-        "//pkg/cluster/ack",
         "//pkg/cluster/aks",
         "//pkg/cluster/gke",
         "//pkg/cluster/kubernetes",

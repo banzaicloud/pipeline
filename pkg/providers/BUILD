@@ -9,7 +9,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//pkg/errors",
-        "//pkg/providers/alibaba",
         "//pkg/providers/amazon",
         "//pkg/providers/azure",
         "//pkg/providers/google",

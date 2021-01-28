@@ -29,12 +29,10 @@ import (
 type obj = map[string]interface{}
 
 const (
-	lokiPath          = "/loki"
-	lokiURL           = "http://logging.io/loki"
-	lokiServiceUrl    = "dummyServiceUrl:9090"
-	lokiSecretID      = "lokiSecretID"
-	alibabaSecretID   = "alibabaSecretID"
-	alibabaSecretName = "alibabaSecretName"
+	lokiPath       = "/loki"
+	lokiURL        = "http://logging.io/loki"
+	lokiServiceUrl = "dummyServiceUrl:9090"
+	lokiSecretID   = "lokiSecretID"
 )
 
 type dummyClusterGetter struct {

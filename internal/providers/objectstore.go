@@ -19,7 +19,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
-	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
@@ -52,9 +51,6 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 	db := global.DB()
 
 	switch ctx.Provider {
-	case providers.Alibaba:
-		return alibaba.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation)
-
 	case providers.Amazon:
 		return amazon.NewObjectStore(ctx.Location, ctx.Secret, ctx.Organization, db, logger, ctx.ForceOperation)
 
@@ -71,10 +67,6 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 
 func GetBucketLocation(provider string, secret *secret.SecretItemResponse, bucketName string, orgID uint, log logrus.FieldLogger) (string, error) {
 	switch provider {
-	case providers.Alibaba:
-		defaultRegion := global.Config.Cloud.Alibaba.DefaultRegion
-		return alibaba.GetBucketLocation(secret, bucketName, defaultRegion, orgID, log)
-
 	case providers.Amazon:
 		defaultRegion := global.Config.Cloud.Amazon.DefaultRegion
 		return amazon.GetBucketRegion(secret, bucketName, defaultRegion, orgID, log)

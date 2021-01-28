@@ -57,14 +57,6 @@ func TestIntegratedServiceOperator_Apply(t *testing.T) {
 					Tags:    []string{secret.TagBanzaiReadonly},
 					Version: 1,
 				},
-				alibabaSecretID: {
-					ID:      alibabaSecretID,
-					Name:    alibabaSecretName,
-					Type:    secrettype.Alibaba,
-					Values:  map[string]string{secrettype.AlibabaAccessKeyId: "asd", secrettype.AlibabaSecretAccessKey: "asd"},
-					Tags:    []string{secret.TagBanzaiReadonly},
-					Version: 1,
-				},
 			},
 		},
 	}

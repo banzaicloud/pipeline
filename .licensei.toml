@@ -9,7 +9,6 @@ approved = [
 ignored = [
   "github.com/banzaicloud/pipeline/pkg/sdk", #go submodule
 
-  "github.com/aliyun/aliyun-oss-go-sdk",
   "github.com/ghodss/yaml",
   "sigs.k8s.io/yaml", # Forked from above
   "github.com/gogo/protobuf",

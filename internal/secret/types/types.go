@@ -30,7 +30,6 @@ type DefaultTypeListConfig struct {
 // NewDefaultTypeList returns a TypeList with all default types.
 func NewDefaultTypeList(config DefaultTypeListConfig) secret.TypeList {
 	return secret.NewTypeList([]secret.Type{
-		AlibabaType{},
 		AmazonType{Region: config.AmazonRegion},
 		AzureType{},
 		AzureStorageAccountType{},

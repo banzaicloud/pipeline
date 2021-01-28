@@ -34,7 +34,6 @@ Check out the developer preview environment if you would like to try out the pla
 
 Pipeline supports all major cloud providers (either provider managed Kubernetes or our own CNCF certified Kubernetes distribution, [PKE](https://github.com/banzaicloud/pke) and on-premise setups (VMware, bare metal).
 
-  * Alibaba 
   * Amazon 
   * Google 
   * Microsoft 

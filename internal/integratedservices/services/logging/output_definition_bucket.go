@@ -27,9 +27,6 @@ type bucketOptions struct {
 	s3 *struct {
 		region string
 	}
-	oss *struct {
-		region string
-	}
 	gcs *struct {
 		project string
 	}
@@ -44,8 +41,6 @@ func generateBucketOptions(spec providerSpec, secretValues map[string]string, or
 		return generateS3BucketOptions(spec, secretItems, orgID)
 	case providerGoogleGCS:
 		return generateGCSBucketOptions(secretValues), nil
-	case providerAlibabaOSS:
-		return generateOSSBucketOptions(spec, secretItems, orgID)
 	default:
 		return &bucketOptions{}, nil
 	}
@@ -58,20 +53,6 @@ func generateS3BucketOptions(spec providerSpec, secretItems *secret.SecretItemRe
 	}
 	return &bucketOptions{
 		s3: &struct {
-			region string
-		}{
-			region: region,
-		},
-	}, nil
-}
-
-func generateOSSBucketOptions(spec providerSpec, secretItems *secret.SecretItemResponse, orgID uint) (*bucketOptions, error) {
-	region, err := providers.GetBucketLocation(pkgCluster.Alibaba, secretItems, spec.Bucket.Name, orgID, nil)
-	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get OSS bucket region", "bucket", spec.Bucket.Name)
-	}
-	return &bucketOptions{
-		oss: &struct {
 			region string
 		}{
 			region: region,
