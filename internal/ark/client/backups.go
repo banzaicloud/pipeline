@@ -27,7 +27,7 @@ import (
 
 const (
 	DefaultVolumeSnapshotLocationName = "default"
-	DefaultBackupStorageLocationName = "default"
+	DefaultBackupStorageLocationName  = "default"
 )
 
 // CreateBackup creates an ARK backup by a CreateBackupRequest
