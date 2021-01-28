@@ -80,3 +80,37 @@ func (w IntegratedServicesOperatorWorkflow) Execute(ctx workflow.Context, input 
 	input.LastClusterID = lastProcessedClusterID
 	return workflow.NewContinueAsNewError(ctx, w.Execute, input)
 }
+
+const SingleClusterIntegratedServiceOperatorInstallerWorkflowName = "single-cluster-integrated-service-operator-installer"
+
+// SingleClusterIntegratedServiceOperatorInstallerWorkflow workflow component struct
+type SingleClusterIntegratedServiceOperatorInstallerWorkflow struct {
+}
+
+// SingleClusterIntegratedServiceOperatorInstallerWorkflowInput input definition for the SingleClusterIntegratedServiceOperatorInstallerWorkflow
+type SingleClusterIntegratedServiceOperatorInstallerWorkflowInput struct {
+	ClusterID uint
+	OrgID     uint
+}
+
+func NewSingleClusterIntegratedServiceOperatorInstallerWorkflow() SingleClusterIntegratedServiceOperatorInstallerWorkflow {
+	return SingleClusterIntegratedServiceOperatorInstallerWorkflow{}
+}
+
+// Execute workflow function for installing the integrated service operator to a single cluster
+func (s SingleClusterIntegratedServiceOperatorInstallerWorkflow) Execute(ctx workflow.Context, input SingleClusterIntegratedServiceOperatorInstallerWorkflowInput) error {
+	activityOptions := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 15 * time.Minute,
+		StartToCloseTimeout:    5 * time.Minute,
+		WaitForCancellation:    true,
+	}
+	ctx = workflow.WithActivityOptions(ctx, activityOptions)
+
+	// install / upgrade the  operator
+	activityInput := NewInstallerActivityInput(input.OrgID, input.ClusterID)
+	if err := workflow.ExecuteActivity(ctx, IntegratedServiceOperatorInstallerActivityName, activityInput).Get(ctx, nil); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to install the  operator", "orgID", input.OrgID, "clusterID", input.ClusterID)
+	}
+
+	return nil
+}
