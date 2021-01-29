@@ -52,7 +52,6 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1
-	github.com/jmespath/go-jmespath v0.4.0
 	github.com/jonboulle/clockwork v0.2.0
 	github.com/json-iterator/go v1.1.10
 	github.com/lestrrat-go/backoff v1.0.0
@@ -67,7 +66,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.10.0
 	github.com/prometheus/prom2json v1.3.0
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
@@ -82,7 +80,7 @@ require (
 	github.com/vmware-tanzu/velero v1.5.1
 	github.com/vmware/govmomi v0.22.0
 	go.opencensus.io v0.22.2
-	go.uber.org/cadence v0.13.4
+	go.uber.org/cadence v0.15.0
 	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
