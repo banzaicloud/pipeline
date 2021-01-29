@@ -304,7 +304,8 @@ func main() {
 		// Cluster setup
 		{
 			wf := clustersetup.Workflow{
-				InstallInitManifest: config.Cluster.Manifest != "",
+				InstallInitManifest:    config.Cluster.Manifest != "",
+				IsIntegratedServicesV2: config.IntegratedService.V2,
 			}
 			worker.RegisterWorkflowWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
 
