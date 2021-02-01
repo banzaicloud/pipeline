@@ -69,6 +69,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
@@ -303,7 +304,8 @@ func main() {
 		// Cluster setup
 		{
 			wf := clustersetup.Workflow{
-				InstallInitManifest: config.Cluster.Manifest != "",
+				InstallInitManifest:    config.Cluster.Manifest != "",
+				IsIntegratedServicesV2: config.IntegratedService.V2,
 			}
 			worker.RegisterWorkflowWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
 
@@ -709,6 +711,21 @@ func main() {
 
 			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)
 			registerClusterFeatureWorkflows(worker, featureOperatorRegistryV2, featureRepositoryV2, clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name, true)
+
+			// integrated service operator setup
+			{
+				singleClusterIntegratedServiceOperatorInstallerWf := operator.NewSingleClusterIntegratedServiceOperatorInstallerWorkflow()
+				worker.RegisterWorkflowWithOptions(singleClusterIntegratedServiceOperatorInstallerWf.Execute, workflow.RegisterOptions{Name: operator.SingleClusterIntegratedServiceOperatorInstallerWorkflowName})
+
+				isOpWf := operator.NewISOperatorWorkflow(config.IntegratedService.Operator)
+				worker.RegisterWorkflowWithOptions(isOpWf.Execute, workflow.RegisterOptions{Name: operator.IntegratedServiceOperatorInstallerWorkflowName})
+
+				nextClusterReferenceActivity := operator.NewNextClusterIDActivity(clusterService, clusterRepo.FindNextWithGreaterID)
+				worker.RegisterActivityWithOptions(nextClusterReferenceActivity.Execute, activity.RegisterOptions{Name: operator.GetNextClusterRefActivityName})
+
+				isOPInstallerActivity := operator.NewInstallerActivity(helmFacade, unifiedHelmReleaser, config.IntegratedService.Operator)
+				worker.RegisterActivityWithOptions(isOPInstallerActivity.Execute, activity.RegisterOptions{Name: operator.IntegratedServiceOperatorInstallerActivityName})
+			}
 		}
 
 		group.Add(appkitrun.CadenceWorkerRun(worker))

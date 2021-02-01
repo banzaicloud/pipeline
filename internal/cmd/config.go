@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
@@ -114,6 +115,8 @@ type Config struct {
 	// temporary switch to control the integrated service implementation
 	IntegratedService struct {
 		V2 bool
+		// Integrated Service Operator related configuration
+		Operator operator.Config
 	}
 }
 
@@ -900,4 +903,11 @@ traefik:
 	v.SetDefault("telemetry::debug", true)
 
 	v.SetDefault("integratedservice::v2", false)
+
+	// Integrated Service Operator
+	v.SetDefault("integratedservice::operator::chart", "banzaicloud-stable/integrated-service-operator")
+	v.SetDefault("integratedservice::operator::version", "0.4.0")
+	v.SetDefault("integratedservice::operator::release", "iso")
+	v.SetDefault("integratedservice::operator::namespace", "pipeline-system")
+	v.SetDefault("integratedservice::operator::batchsize", 100)
 }

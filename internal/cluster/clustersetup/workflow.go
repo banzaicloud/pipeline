@@ -17,8 +17,11 @@ package clustersetup
 import (
 	"time"
 
+	"emperror.dev/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 )
 
 // WorkflowName can be used to reference the cluster setup workflow.
@@ -28,6 +31,9 @@ const WorkflowName = "cluster-setup"
 type Workflow struct {
 	// InstallInit
 	InstallInitManifest bool
+
+	// Drives installation
+	IsIntegratedServicesV2 bool
 }
 
 // WorkflowInput is the input for a cluster setup workflow.
@@ -128,6 +134,16 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		err := workflow.ExecuteActivity(ctx, ConfigureNodePoolLabelsActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
+		}
+	}
+
+	{
+		if w.IsIntegratedServicesV2 {
+			// install / upgrade the  integrated service operator
+			input := operator.NewInstallerActivityInput(input.Organization.ID, input.Cluster.ID)
+			if err := workflow.ExecuteActivity(ctx, operator.IntegratedServiceOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
+				return errors.WrapIfWithDetails(err, "failed to install the  operator", "orgID", input.OrgID, "clusterID", input.ClusterID)
+			}
 		}
 	}
 
