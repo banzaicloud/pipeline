@@ -56,6 +56,45 @@ func (_m *Mockec2clientstub) AcceptReservedInstancesExchangeQuoteAsync(ctx inter
 	return r0
 }
 
+// AcceptTransitGatewayMulticastDomainAssociations provides a mock function.
+func (_m *Mockec2clientstub) AcceptTransitGatewayMulticastDomainAssociations(ctx internal.Context, input *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) (_result_0 *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AcceptTransitGatewayMulticastDomainAssociationsAsync provides a mock function.
+func (_m *Mockec2clientstub) AcceptTransitGatewayMulticastDomainAssociationsAsync(ctx internal.Context, input *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) (_result_0 *ec2stub.AcceptTransitGatewayMulticastDomainAssociationsFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.AcceptTransitGatewayMulticastDomainAssociationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) *ec2stub.AcceptTransitGatewayMulticastDomainAssociationsFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.AcceptTransitGatewayMulticastDomainAssociationsFuture)
+		}
+	}
+
+	return r0
+}
+
 // AcceptTransitGatewayPeeringAttachment provides a mock function.
 func (_m *Mockec2clientstub) AcceptTransitGatewayPeeringAttachment(ctx internal.Context, input *ec2.AcceptTransitGatewayPeeringAttachmentInput) (_result_0 *ec2.AcceptTransitGatewayPeeringAttachmentOutput, _result_1 error) {
 	ret := _m.Called(ctx, input)
@@ -2591,6 +2630,45 @@ func (_m *Mockec2clientstub) CreateNetworkAclEntryAsync(ctx internal.Context, in
 	return r0
 }
 
+// CreateNetworkInsightsPath provides a mock function.
+func (_m *Mockec2clientstub) CreateNetworkInsightsPath(ctx internal.Context, input *ec2.CreateNetworkInsightsPathInput) (_result_0 *ec2.CreateNetworkInsightsPathOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.CreateNetworkInsightsPathOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkInsightsPathInput) *ec2.CreateNetworkInsightsPathOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateNetworkInsightsPathOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.CreateNetworkInsightsPathInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateNetworkInsightsPathAsync provides a mock function.
+func (_m *Mockec2clientstub) CreateNetworkInsightsPathAsync(ctx internal.Context, input *ec2.CreateNetworkInsightsPathInput) (_result_0 *ec2stub.CreateNetworkInsightsPathFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.CreateNetworkInsightsPathFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateNetworkInsightsPathInput) *ec2stub.CreateNetworkInsightsPathFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.CreateNetworkInsightsPathFuture)
+		}
+	}
+
+	return r0
+}
+
 // CreateNetworkInterface provides a mock function.
 func (_m *Mockec2clientstub) CreateNetworkInterface(ctx internal.Context, input *ec2.CreateNetworkInterfaceInput) (_result_0 *ec2.CreateNetworkInterfaceOutput, _result_1 error) {
 	ret := _m.Called(ctx, input)
@@ -3248,6 +3326,84 @@ func (_m *Mockec2clientstub) CreateTransitGatewayAsync(ctx internal.Context, inp
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayFuture)
+		}
+	}
+
+	return r0
+}
+
+// CreateTransitGatewayConnect provides a mock function.
+func (_m *Mockec2clientstub) CreateTransitGatewayConnect(ctx internal.Context, input *ec2.CreateTransitGatewayConnectInput) (_result_0 *ec2.CreateTransitGatewayConnectOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.CreateTransitGatewayConnectOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayConnectInput) *ec2.CreateTransitGatewayConnectOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayConnectOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.CreateTransitGatewayConnectInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayConnectAsync provides a mock function.
+func (_m *Mockec2clientstub) CreateTransitGatewayConnectAsync(ctx internal.Context, input *ec2.CreateTransitGatewayConnectInput) (_result_0 *ec2stub.CreateTransitGatewayConnectFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.CreateTransitGatewayConnectFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayConnectInput) *ec2stub.CreateTransitGatewayConnectFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayConnectFuture)
+		}
+	}
+
+	return r0
+}
+
+// CreateTransitGatewayConnectPeer provides a mock function.
+func (_m *Mockec2clientstub) CreateTransitGatewayConnectPeer(ctx internal.Context, input *ec2.CreateTransitGatewayConnectPeerInput) (_result_0 *ec2.CreateTransitGatewayConnectPeerOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.CreateTransitGatewayConnectPeerOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayConnectPeerInput) *ec2.CreateTransitGatewayConnectPeerOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayConnectPeerOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.CreateTransitGatewayConnectPeerInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayConnectPeerAsync provides a mock function.
+func (_m *Mockec2clientstub) CreateTransitGatewayConnectPeerAsync(ctx internal.Context, input *ec2.CreateTransitGatewayConnectPeerInput) (_result_0 *ec2stub.CreateTransitGatewayConnectPeerFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.CreateTransitGatewayConnectPeerFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.CreateTransitGatewayConnectPeerInput) *ec2stub.CreateTransitGatewayConnectPeerFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.CreateTransitGatewayConnectPeerFuture)
 		}
 	}
 
@@ -4580,6 +4736,84 @@ func (_m *Mockec2clientstub) DeleteNetworkAclEntryAsync(ctx internal.Context, in
 	return r0
 }
 
+// DeleteNetworkInsightsAnalysis provides a mock function.
+func (_m *Mockec2clientstub) DeleteNetworkInsightsAnalysis(ctx internal.Context, input *ec2.DeleteNetworkInsightsAnalysisInput) (_result_0 *ec2.DeleteNetworkInsightsAnalysisOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.DeleteNetworkInsightsAnalysisOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkInsightsAnalysisInput) *ec2.DeleteNetworkInsightsAnalysisOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteNetworkInsightsAnalysisOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.DeleteNetworkInsightsAnalysisInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteNetworkInsightsAnalysisAsync provides a mock function.
+func (_m *Mockec2clientstub) DeleteNetworkInsightsAnalysisAsync(ctx internal.Context, input *ec2.DeleteNetworkInsightsAnalysisInput) (_result_0 *ec2stub.DeleteNetworkInsightsAnalysisFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.DeleteNetworkInsightsAnalysisFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkInsightsAnalysisInput) *ec2stub.DeleteNetworkInsightsAnalysisFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.DeleteNetworkInsightsAnalysisFuture)
+		}
+	}
+
+	return r0
+}
+
+// DeleteNetworkInsightsPath provides a mock function.
+func (_m *Mockec2clientstub) DeleteNetworkInsightsPath(ctx internal.Context, input *ec2.DeleteNetworkInsightsPathInput) (_result_0 *ec2.DeleteNetworkInsightsPathOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.DeleteNetworkInsightsPathOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkInsightsPathInput) *ec2.DeleteNetworkInsightsPathOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteNetworkInsightsPathOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.DeleteNetworkInsightsPathInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteNetworkInsightsPathAsync provides a mock function.
+func (_m *Mockec2clientstub) DeleteNetworkInsightsPathAsync(ctx internal.Context, input *ec2.DeleteNetworkInsightsPathInput) (_result_0 *ec2stub.DeleteNetworkInsightsPathFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.DeleteNetworkInsightsPathFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteNetworkInsightsPathInput) *ec2stub.DeleteNetworkInsightsPathFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.DeleteNetworkInsightsPathFuture)
+		}
+	}
+
+	return r0
+}
+
 // DeleteNetworkInterface provides a mock function.
 func (_m *Mockec2clientstub) DeleteNetworkInterface(ctx internal.Context, input *ec2.DeleteNetworkInterfaceInput) (_result_0 *ec2.DeleteNetworkInterfaceOutput, _result_1 error) {
 	ret := _m.Called(ctx, input)
@@ -5198,6 +5432,84 @@ func (_m *Mockec2clientstub) DeleteTransitGatewayAsync(ctx internal.Context, inp
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayFuture)
+		}
+	}
+
+	return r0
+}
+
+// DeleteTransitGatewayConnect provides a mock function.
+func (_m *Mockec2clientstub) DeleteTransitGatewayConnect(ctx internal.Context, input *ec2.DeleteTransitGatewayConnectInput) (_result_0 *ec2.DeleteTransitGatewayConnectOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.DeleteTransitGatewayConnectOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayConnectInput) *ec2.DeleteTransitGatewayConnectOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayConnectOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.DeleteTransitGatewayConnectInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayConnectAsync provides a mock function.
+func (_m *Mockec2clientstub) DeleteTransitGatewayConnectAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayConnectInput) (_result_0 *ec2stub.DeleteTransitGatewayConnectFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.DeleteTransitGatewayConnectFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayConnectInput) *ec2stub.DeleteTransitGatewayConnectFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayConnectFuture)
+		}
+	}
+
+	return r0
+}
+
+// DeleteTransitGatewayConnectPeer provides a mock function.
+func (_m *Mockec2clientstub) DeleteTransitGatewayConnectPeer(ctx internal.Context, input *ec2.DeleteTransitGatewayConnectPeerInput) (_result_0 *ec2.DeleteTransitGatewayConnectPeerOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.DeleteTransitGatewayConnectPeerOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayConnectPeerInput) *ec2.DeleteTransitGatewayConnectPeerOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayConnectPeerOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.DeleteTransitGatewayConnectPeerInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayConnectPeerAsync provides a mock function.
+func (_m *Mockec2clientstub) DeleteTransitGatewayConnectPeerAsync(ctx internal.Context, input *ec2.DeleteTransitGatewayConnectPeerInput) (_result_0 *ec2stub.DeleteTransitGatewayConnectPeerFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.DeleteTransitGatewayConnectPeerFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DeleteTransitGatewayConnectPeerInput) *ec2stub.DeleteTransitGatewayConnectPeerFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.DeleteTransitGatewayConnectPeerFuture)
 		}
 	}
 
@@ -8363,6 +8675,84 @@ func (_m *Mockec2clientstub) DescribeNetworkAclsAsync(ctx internal.Context, inpu
 	return r0
 }
 
+// DescribeNetworkInsightsAnalyses provides a mock function.
+func (_m *Mockec2clientstub) DescribeNetworkInsightsAnalyses(ctx internal.Context, input *ec2.DescribeNetworkInsightsAnalysesInput) (_result_0 *ec2.DescribeNetworkInsightsAnalysesOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.DescribeNetworkInsightsAnalysesOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInsightsAnalysesInput) *ec2.DescribeNetworkInsightsAnalysesOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeNetworkInsightsAnalysesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.DescribeNetworkInsightsAnalysesInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeNetworkInsightsAnalysesAsync provides a mock function.
+func (_m *Mockec2clientstub) DescribeNetworkInsightsAnalysesAsync(ctx internal.Context, input *ec2.DescribeNetworkInsightsAnalysesInput) (_result_0 *ec2stub.DescribeNetworkInsightsAnalysesFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.DescribeNetworkInsightsAnalysesFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInsightsAnalysesInput) *ec2stub.DescribeNetworkInsightsAnalysesFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.DescribeNetworkInsightsAnalysesFuture)
+		}
+	}
+
+	return r0
+}
+
+// DescribeNetworkInsightsPaths provides a mock function.
+func (_m *Mockec2clientstub) DescribeNetworkInsightsPaths(ctx internal.Context, input *ec2.DescribeNetworkInsightsPathsInput) (_result_0 *ec2.DescribeNetworkInsightsPathsOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.DescribeNetworkInsightsPathsOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInsightsPathsInput) *ec2.DescribeNetworkInsightsPathsOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeNetworkInsightsPathsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.DescribeNetworkInsightsPathsInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeNetworkInsightsPathsAsync provides a mock function.
+func (_m *Mockec2clientstub) DescribeNetworkInsightsPathsAsync(ctx internal.Context, input *ec2.DescribeNetworkInsightsPathsInput) (_result_0 *ec2stub.DescribeNetworkInsightsPathsFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.DescribeNetworkInsightsPathsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeNetworkInsightsPathsInput) *ec2stub.DescribeNetworkInsightsPathsFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.DescribeNetworkInsightsPathsFuture)
+		}
+	}
+
+	return r0
+}
+
 // DescribeNetworkInterfaceAttribute provides a mock function.
 func (_m *Mockec2clientstub) DescribeNetworkInterfaceAttribute(ctx internal.Context, input *ec2.DescribeNetworkInterfaceAttributeInput) (_result_0 *ec2.DescribeNetworkInterfaceAttributeOutput, _result_1 error) {
 	ret := _m.Called(ctx, input)
@@ -9605,6 +9995,84 @@ func (_m *Mockec2clientstub) DescribeTransitGatewayAttachmentsAsync(ctx internal
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewayAttachmentsFuture)
+		}
+	}
+
+	return r0
+}
+
+// DescribeTransitGatewayConnectPeers provides a mock function.
+func (_m *Mockec2clientstub) DescribeTransitGatewayConnectPeers(ctx internal.Context, input *ec2.DescribeTransitGatewayConnectPeersInput) (_result_0 *ec2.DescribeTransitGatewayConnectPeersOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.DescribeTransitGatewayConnectPeersOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayConnectPeersInput) *ec2.DescribeTransitGatewayConnectPeersOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayConnectPeersOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.DescribeTransitGatewayConnectPeersInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayConnectPeersAsync provides a mock function.
+func (_m *Mockec2clientstub) DescribeTransitGatewayConnectPeersAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayConnectPeersInput) (_result_0 *ec2stub.DescribeTransitGatewayConnectPeersFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.DescribeTransitGatewayConnectPeersFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayConnectPeersInput) *ec2stub.DescribeTransitGatewayConnectPeersFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewayConnectPeersFuture)
+		}
+	}
+
+	return r0
+}
+
+// DescribeTransitGatewayConnects provides a mock function.
+func (_m *Mockec2clientstub) DescribeTransitGatewayConnects(ctx internal.Context, input *ec2.DescribeTransitGatewayConnectsInput) (_result_0 *ec2.DescribeTransitGatewayConnectsOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.DescribeTransitGatewayConnectsOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayConnectsInput) *ec2.DescribeTransitGatewayConnectsOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayConnectsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.DescribeTransitGatewayConnectsInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayConnectsAsync provides a mock function.
+func (_m *Mockec2clientstub) DescribeTransitGatewayConnectsAsync(ctx internal.Context, input *ec2.DescribeTransitGatewayConnectsInput) (_result_0 *ec2stub.DescribeTransitGatewayConnectsFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.DescribeTransitGatewayConnectsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.DescribeTransitGatewayConnectsInput) *ec2stub.DescribeTransitGatewayConnectsFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.DescribeTransitGatewayConnectsFuture)
 		}
 	}
 
@@ -14798,6 +15266,45 @@ func (_m *Mockec2clientstub) RegisterTransitGatewayMulticastGroupSourcesAsync(ct
 	return r0
 }
 
+// RejectTransitGatewayMulticastDomainAssociations provides a mock function.
+func (_m *Mockec2clientstub) RejectTransitGatewayMulticastDomainAssociations(ctx internal.Context, input *ec2.RejectTransitGatewayMulticastDomainAssociationsInput) (_result_0 *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectTransitGatewayMulticastDomainAssociationsInput) *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RejectTransitGatewayMulticastDomainAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.RejectTransitGatewayMulticastDomainAssociationsInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RejectTransitGatewayMulticastDomainAssociationsAsync provides a mock function.
+func (_m *Mockec2clientstub) RejectTransitGatewayMulticastDomainAssociationsAsync(ctx internal.Context, input *ec2.RejectTransitGatewayMulticastDomainAssociationsInput) (_result_0 *ec2stub.RejectTransitGatewayMulticastDomainAssociationsFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.RejectTransitGatewayMulticastDomainAssociationsFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.RejectTransitGatewayMulticastDomainAssociationsInput) *ec2stub.RejectTransitGatewayMulticastDomainAssociationsFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.RejectTransitGatewayMulticastDomainAssociationsFuture)
+		}
+	}
+
+	return r0
+}
+
 // RejectTransitGatewayPeeringAttachment provides a mock function.
 func (_m *Mockec2clientstub) RejectTransitGatewayPeeringAttachment(ctx internal.Context, input *ec2.RejectTransitGatewayPeeringAttachmentInput) (_result_0 *ec2.RejectTransitGatewayPeeringAttachmentOutput, _result_1 error) {
 	ret := _m.Called(ctx, input)
@@ -16079,6 +16586,45 @@ func (_m *Mockec2clientstub) StartInstancesAsync(ctx internal.Context, input *ec
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*ec2stub.StartInstancesFuture)
+		}
+	}
+
+	return r0
+}
+
+// StartNetworkInsightsAnalysis provides a mock function.
+func (_m *Mockec2clientstub) StartNetworkInsightsAnalysis(ctx internal.Context, input *ec2.StartNetworkInsightsAnalysisInput) (_result_0 *ec2.StartNetworkInsightsAnalysisOutput, _result_1 error) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2.StartNetworkInsightsAnalysisOutput
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.StartNetworkInsightsAnalysisInput) *ec2.StartNetworkInsightsAnalysisOutput); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.StartNetworkInsightsAnalysisOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(internal.Context, *ec2.StartNetworkInsightsAnalysisInput) error); ok {
+		r1 = rf(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StartNetworkInsightsAnalysisAsync provides a mock function.
+func (_m *Mockec2clientstub) StartNetworkInsightsAnalysisAsync(ctx internal.Context, input *ec2.StartNetworkInsightsAnalysisInput) (_result_0 *ec2stub.StartNetworkInsightsAnalysisFuture) {
+	ret := _m.Called(ctx, input)
+
+	var r0 *ec2stub.StartNetworkInsightsAnalysisFuture
+	if rf, ok := ret.Get(0).(func(internal.Context, *ec2.StartNetworkInsightsAnalysisInput) *ec2stub.StartNetworkInsightsAnalysisFuture); ok {
+		r0 = rf(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2stub.StartNetworkInsightsAnalysisFuture)
 		}
 	}
 

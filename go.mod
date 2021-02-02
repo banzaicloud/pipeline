@@ -22,10 +22,10 @@ require (
 	github.com/antihax/optional v1.0.0
 	github.com/aokoli/goutils v1.1.0
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
-	github.com/aws/aws-sdk-go v1.35.20
+	github.com/aws/aws-sdk-go v1.37.1
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.6.0
-	github.com/banzaicloud/cadence-aws-sdk v0.0.0-20201104115745-5238cf77328b
+	github.com/banzaicloud/cadence-aws-sdk v0.0.0-20210202183218-71e19c6bbd35
 	github.com/banzaicloud/gin-utilz v0.3.1
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/integrated-service-sdk v0.0.0
@@ -52,7 +52,6 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1
-	github.com/jmespath/go-jmespath v0.4.0
 	github.com/jonboulle/clockwork v0.2.0
 	github.com/json-iterator/go v1.1.10
 	github.com/lestrrat-go/backoff v1.0.0
@@ -67,7 +66,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.10.0
 	github.com/prometheus/prom2json v1.3.0
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
@@ -86,7 +84,7 @@ require (
 	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
-	golang.org/x/net v0.0.0-20200822124328-c89045814202
+	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.15.1
@@ -120,7 +118,6 @@ require (
 
 replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
-	github.com/banzaicloud/cadence-aws-sdk => ./lib/cadence-aws-sdk
 	github.com/banzaicloud/integrated-service-sdk => github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.4.0
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 

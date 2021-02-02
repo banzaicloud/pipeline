@@ -19,6 +19,84 @@ type MockeksAPI struct {
 	mock.Mock
 }
 
+// CreateAddon provides a mock function.
+func (_m *MockeksAPI) CreateAddon(_parameter_0 *eks.CreateAddonInput) (_result_0 *eks.CreateAddonOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *eks.CreateAddonOutput
+	if rf, ok := ret.Get(0).(func(*eks.CreateAddonInput) *eks.CreateAddonOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateAddonOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.CreateAddonInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateAddonRequest provides a mock function.
+func (_m *MockeksAPI) CreateAddonRequest(_parameter_0 *eks.CreateAddonInput) (_result_0 *request.Request, _result_1 *eks.CreateAddonOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.CreateAddonInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.CreateAddonOutput
+	if rf, ok := ret.Get(1).(func(*eks.CreateAddonInput) *eks.CreateAddonOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.CreateAddonOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateAddonWithContext provides a mock function.
+func (_m *MockeksAPI) CreateAddonWithContext(_parameter_0 context.Context, _parameter_1 *eks.CreateAddonInput, _parameter_2 ...request.Option) (_result_0 *eks.CreateAddonOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *eks.CreateAddonOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateAddonInput, ...request.Option) *eks.CreateAddonOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateAddonOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreateAddonInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateCluster provides a mock function.
 func (_m *MockeksAPI) CreateCluster(_parameter_0 *eks.CreateClusterInput) (_result_0 *eks.CreateClusterOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -253,6 +331,84 @@ func (_m *MockeksAPI) CreateNodegroupWithContext(_parameter_0 context.Context, _
 	return r0, r1
 }
 
+// DeleteAddon provides a mock function.
+func (_m *MockeksAPI) DeleteAddon(_parameter_0 *eks.DeleteAddonInput) (_result_0 *eks.DeleteAddonOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *eks.DeleteAddonOutput
+	if rf, ok := ret.Get(0).(func(*eks.DeleteAddonInput) *eks.DeleteAddonOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteAddonOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.DeleteAddonInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteAddonRequest provides a mock function.
+func (_m *MockeksAPI) DeleteAddonRequest(_parameter_0 *eks.DeleteAddonInput) (_result_0 *request.Request, _result_1 *eks.DeleteAddonOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.DeleteAddonInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.DeleteAddonOutput
+	if rf, ok := ret.Get(1).(func(*eks.DeleteAddonInput) *eks.DeleteAddonOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.DeleteAddonOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteAddonWithContext provides a mock function.
+func (_m *MockeksAPI) DeleteAddonWithContext(_parameter_0 context.Context, _parameter_1 *eks.DeleteAddonInput, _parameter_2 ...request.Option) (_result_0 *eks.DeleteAddonOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *eks.DeleteAddonOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteAddonInput, ...request.Option) *eks.DeleteAddonOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteAddonOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteAddonInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteCluster provides a mock function.
 func (_m *MockeksAPI) DeleteCluster(_parameter_0 *eks.DeleteClusterInput) (_result_0 *eks.DeleteClusterOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -479,6 +635,198 @@ func (_m *MockeksAPI) DeleteNodegroupWithContext(_parameter_0 context.Context, _
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteNodegroupInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeAddon provides a mock function.
+func (_m *MockeksAPI) DescribeAddon(_parameter_0 *eks.DescribeAddonInput) (_result_0 *eks.DescribeAddonOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *eks.DescribeAddonOutput
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonInput) *eks.DescribeAddonOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeAddonOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.DescribeAddonInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeAddonRequest provides a mock function.
+func (_m *MockeksAPI) DescribeAddonRequest(_parameter_0 *eks.DescribeAddonInput) (_result_0 *request.Request, _result_1 *eks.DescribeAddonOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.DescribeAddonOutput
+	if rf, ok := ret.Get(1).(func(*eks.DescribeAddonInput) *eks.DescribeAddonOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.DescribeAddonOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeAddonVersions provides a mock function.
+func (_m *MockeksAPI) DescribeAddonVersions(_parameter_0 *eks.DescribeAddonVersionsInput) (_result_0 *eks.DescribeAddonVersionsOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *eks.DescribeAddonVersionsOutput
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonVersionsInput) *eks.DescribeAddonVersionsOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeAddonVersionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.DescribeAddonVersionsInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeAddonVersionsPages provides a mock function.
+func (_m *MockeksAPI) DescribeAddonVersionsPages(_parameter_0 *eks.DescribeAddonVersionsInput, _parameter_1 func(*eks.DescribeAddonVersionsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonVersionsInput, func(*eks.DescribeAddonVersionsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAddonVersionsPagesWithContext provides a mock function.
+func (_m *MockeksAPI) DescribeAddonVersionsPagesWithContext(_parameter_0 context.Context, _parameter_1 *eks.DescribeAddonVersionsInput, _parameter_2 func(*eks.DescribeAddonVersionsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonVersionsInput, func(*eks.DescribeAddonVersionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAddonVersionsRequest provides a mock function.
+func (_m *MockeksAPI) DescribeAddonVersionsRequest(_parameter_0 *eks.DescribeAddonVersionsInput) (_result_0 *request.Request, _result_1 *eks.DescribeAddonVersionsOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonVersionsInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.DescribeAddonVersionsOutput
+	if rf, ok := ret.Get(1).(func(*eks.DescribeAddonVersionsInput) *eks.DescribeAddonVersionsOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.DescribeAddonVersionsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeAddonVersionsWithContext provides a mock function.
+func (_m *MockeksAPI) DescribeAddonVersionsWithContext(_parameter_0 context.Context, _parameter_1 *eks.DescribeAddonVersionsInput, _parameter_2 ...request.Option) (_result_0 *eks.DescribeAddonVersionsOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *eks.DescribeAddonVersionsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonVersionsInput, ...request.Option) *eks.DescribeAddonVersionsOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeAddonVersionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeAddonVersionsInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeAddonWithContext provides a mock function.
+func (_m *MockeksAPI) DescribeAddonWithContext(_parameter_0 context.Context, _parameter_1 *eks.DescribeAddonInput, _parameter_2 ...request.Option) (_result_0 *eks.DescribeAddonOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *eks.DescribeAddonOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonInput, ...request.Option) *eks.DescribeAddonOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeAddonOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeAddonInput, ...request.Option) error); ok {
 		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
@@ -791,6 +1139,120 @@ func (_m *MockeksAPI) DescribeUpdateWithContext(_parameter_0 context.Context, _p
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeUpdateInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListAddons provides a mock function.
+func (_m *MockeksAPI) ListAddons(_parameter_0 *eks.ListAddonsInput) (_result_0 *eks.ListAddonsOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *eks.ListAddonsOutput
+	if rf, ok := ret.Get(0).(func(*eks.ListAddonsInput) *eks.ListAddonsOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListAddonsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.ListAddonsInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListAddonsPages provides a mock function.
+func (_m *MockeksAPI) ListAddonsPages(_parameter_0 *eks.ListAddonsInput, _parameter_1 func(*eks.ListAddonsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.ListAddonsInput, func(*eks.ListAddonsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListAddonsPagesWithContext provides a mock function.
+func (_m *MockeksAPI) ListAddonsPagesWithContext(_parameter_0 context.Context, _parameter_1 *eks.ListAddonsInput, _parameter_2 func(*eks.ListAddonsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAddonsInput, func(*eks.ListAddonsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListAddonsRequest provides a mock function.
+func (_m *MockeksAPI) ListAddonsRequest(_parameter_0 *eks.ListAddonsInput) (_result_0 *request.Request, _result_1 *eks.ListAddonsOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.ListAddonsInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.ListAddonsOutput
+	if rf, ok := ret.Get(1).(func(*eks.ListAddonsInput) *eks.ListAddonsOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.ListAddonsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListAddonsWithContext provides a mock function.
+func (_m *MockeksAPI) ListAddonsWithContext(_parameter_0 context.Context, _parameter_1 *eks.ListAddonsInput, _parameter_2 ...request.Option) (_result_0 *eks.ListAddonsOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *eks.ListAddonsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAddonsInput, ...request.Option) *eks.ListAddonsOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListAddonsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListAddonsInput, ...request.Option) error); ok {
 		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1489,6 +1951,84 @@ func (_m *MockeksAPI) UntagResourceWithContext(_parameter_0 context.Context, _pa
 	return r0, r1
 }
 
+// UpdateAddon provides a mock function.
+func (_m *MockeksAPI) UpdateAddon(_parameter_0 *eks.UpdateAddonInput) (_result_0 *eks.UpdateAddonOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *eks.UpdateAddonOutput
+	if rf, ok := ret.Get(0).(func(*eks.UpdateAddonInput) *eks.UpdateAddonOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateAddonOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.UpdateAddonInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateAddonRequest provides a mock function.
+func (_m *MockeksAPI) UpdateAddonRequest(_parameter_0 *eks.UpdateAddonInput) (_result_0 *request.Request, _result_1 *eks.UpdateAddonOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.UpdateAddonInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.UpdateAddonOutput
+	if rf, ok := ret.Get(1).(func(*eks.UpdateAddonInput) *eks.UpdateAddonOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.UpdateAddonOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateAddonWithContext provides a mock function.
+func (_m *MockeksAPI) UpdateAddonWithContext(_parameter_0 context.Context, _parameter_1 *eks.UpdateAddonInput, _parameter_2 ...request.Option) (_result_0 *eks.UpdateAddonOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *eks.UpdateAddonOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateAddonInput, ...request.Option) *eks.UpdateAddonOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateAddonOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateAddonInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateClusterConfig provides a mock function.
 func (_m *MockeksAPI) UpdateClusterConfig(_parameter_0 *eks.UpdateClusterConfigInput) (_result_0 *eks.UpdateClusterConfigOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -1799,6 +2339,76 @@ func (_m *MockeksAPI) UpdateNodegroupVersionWithContext(_parameter_0 context.Con
 	}
 
 	return r0, r1
+}
+
+// WaitUntilAddonActive provides a mock function.
+func (_m *MockeksAPI) WaitUntilAddonActive(_parameter_0 *eks.DescribeAddonInput) (_result_0 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonInput) error); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilAddonActiveWithContext provides a mock function.
+func (_m *MockeksAPI) WaitUntilAddonActiveWithContext(_parameter_0 context.Context, _parameter_1 *eks.DescribeAddonInput, _parameter_2 ...request.WaiterOption) (_result_0 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilAddonDeleted provides a mock function.
+func (_m *MockeksAPI) WaitUntilAddonDeleted(_parameter_0 *eks.DescribeAddonInput) (_result_0 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonInput) error); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilAddonDeletedWithContext provides a mock function.
+func (_m *MockeksAPI) WaitUntilAddonDeletedWithContext(_parameter_0 context.Context, _parameter_1 *eks.DescribeAddonInput, _parameter_2 ...request.WaiterOption) (_result_0 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // WaitUntilClusterActive provides a mock function.
