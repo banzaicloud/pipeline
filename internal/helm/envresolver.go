@@ -294,13 +294,17 @@ func (o orgEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) error 
 
 	missingRepos := make([]Repository, 0, len(persistedRepos))
 	for _, persistedRepo := range persistedRepos {
+		var found bool = false
 		for _, envRepo := range envRepos {
 			if persistedRepo == envRepo {
 				o.logger.Debug("repo already added")
+				found = true
 				continue
 			}
 		}
-		missingRepos = append(missingRepos, persistedRepo)
+		if !found {
+			missingRepos = append(missingRepos, persistedRepo)
+		}
 	}
 
 	if len(missingRepos) == 0 {
