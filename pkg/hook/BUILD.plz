@@ -1,0 +1,13 @@
+go_library(
+    name = "hook",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/values",
+        "//third_party/go:github.com__mitchellh__mapstructure",
+        "//third_party/go:github.com__spf13__viper",
+    ],
+)

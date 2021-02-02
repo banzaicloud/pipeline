@@ -1,0 +1,13 @@
+go_library(
+    name = "pke",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//pkg/common",
+        "//third_party/go:github.com__pkg__errors",
+    ],
+)

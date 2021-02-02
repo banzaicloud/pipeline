@@ -1,0 +1,15 @@
+go_library(
+    name = "awsmocks",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__aws__aws-sdk-go__service__ec2",
+        "//third_party/go:github.com__banzaicloud__cadence-aws-sdk__clients",
+        "//third_party/go:github.com__banzaicloud__cadence-aws-sdk__clients__ec2stub",
+        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:go.uber.org__cadence__workflow",
+    ],
+)

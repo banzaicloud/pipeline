@@ -1,8 +1,12 @@
 [please]
-version = 15.4.0
+version = 15.17.0
+
+[featureflags]
+PleaseGoInstall = true
 
 [go]
-importpath = github.com/banzaicloud/pipeline
+ImportPath = github.com/banzaicloud/pipeline
+GoTestRootCompat = True
 
 [buildconfig]
 golangci-lint-version = 1.30.0
@@ -13,6 +17,10 @@ licensei-version = 0.2.0
 migrate-version = 4.9.1
 kubectl-version = 1.17.4
 helm-version = 3.2.4
+
+[alias "tidy"]
+desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
+cmd = run //tools:plz-tidy
 
 [alias "make"]
 desc = Build and export the outputs of targets

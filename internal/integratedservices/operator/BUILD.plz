@@ -1,0 +1,15 @@
+go_library(
+    name = "operator",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster",
+        "//internal/helm",
+        "//internal/integratedservices",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:go.uber.org__cadence__workflow",
+    ],
+)

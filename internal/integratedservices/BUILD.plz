@@ -1,0 +1,83 @@
+go_library(
+    name = "integratedservices",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__banzaicloud__integrated-service-sdk__api__v1alpha1",
+        "//third_party/go:github.com__stretchr__testify__mock",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(
+        ["*_test.go"],
+        exclude = [
+            "functional_helpers_test.go",
+            "functional_suite_test.go",
+            "functional_test.go",
+        ],
+    ),
+    deps = [
+        ":integratedservices",
+        "//internal/common",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:github.com__stretchr__testify__suite",
+    ],
+)
+
+go_test(
+    name = "external_test",
+    srcs = [
+        "functional_helpers_test.go",
+        "functional_suite_test.go",
+        "functional_test.go",
+    ],
+    external = True,
+    deps = [
+        ":integratedservices",
+        "//internal/cluster",
+        "//internal/cluster/clusteradapter/clustermodel",
+        "//internal/cmd",
+        "//internal/common",
+        "//internal/common/commonadapter",
+        "//internal/global",
+        "//internal/helm/helmadapter",
+        "//internal/integratedservices/integratedserviceadapter",
+        "//internal/integratedservices/services",
+        "//internal/integratedservices/services/dns",
+        "//internal/platform/cadence",
+        "//internal/platform/database",
+        "//internal/platform/log",
+        "//internal/providers/kubernetes/kubernetesadapter",
+        "//internal/secret/secretadapter",
+        "//internal/secret/secrettype",
+        "//internal/secret/types",
+        "//pkg/cluster",
+        "//pkg/cluster/kubernetes",
+        "//pkg/hook",
+        "//pkg/k8sclient",
+        "//src/auth",
+        "//src/cluster",
+        "//src/model",
+        "//src/secret",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk__vault",
+        "//third_party/go:github.com__banzaicloud__integrated-service-sdk__api__v1alpha1__dns",
+        "//third_party/go:github.com__spf13__pflag",
+        "//third_party/go:github.com__spf13__viper",
+        "//third_party/go:github.com__stretchr__testify__suite",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__errors",
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+        "//third_party/go:logur.dev__integration__zap",
+    ],
+)

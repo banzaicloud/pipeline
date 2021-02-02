@@ -1,0 +1,37 @@
+go_library(
+    name = "k8sutil",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/helm/kube",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:k8s.io__api__core__v1",
+        "//third_party/go:k8s.io__api__rbac__v1",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__errors",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__resource",
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+        "//third_party/go:k8s.io__apimachinery__pkg__fields",
+        "//third_party/go:k8s.io__apimachinery__pkg__labels",
+        "//third_party/go:k8s.io__client-go__kubernetes",
+        "//third_party/go:k8s.io__client-go__kubernetes__typed__core__v1",
+        "//third_party/go:k8s.io__client-go__rest",
+        "//third_party/go:k8s.io__client-go__tools__clientcmd__api",
+        "//third_party/go:k8s.io__cluster-bootstrap__token__util",
+        "//third_party/go:k8s.io__kubernetes__cmd__kubeadm__app__apis__kubeadm",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*_test.go"]),
+    external = True,
+    deps = [
+        ":k8sutil",
+        "//third_party/go:k8s.io__client-go__tools__clientcmd",
+        "//third_party/go:k8s.io__client-go__tools__clientcmd__api",
+    ],
+)

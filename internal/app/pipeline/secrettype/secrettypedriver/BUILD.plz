@@ -1,0 +1,20 @@
+go_library(
+    name = "secrettypedriver",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/app/pipeline/secrettype",
+        "//internal/platform/appkit/transport/http",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:emperror.dev__errors__match",
+        "//third_party/go:github.com__go-kit__kit__endpoint",
+        "//third_party/go:github.com__go-kit__kit__transport__http",
+        "//third_party/go:github.com__gorilla__mux",
+        "//third_party/go:github.com__sagikazarmark__appkit__transport__http",
+        "//third_party/go:github.com__sagikazarmark__kitx__endpoint",
+        "//third_party/go:github.com__sagikazarmark__kitx__transport__http",
+    ],
+)

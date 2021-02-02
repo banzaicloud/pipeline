@@ -1,0 +1,19 @@
+go_library(
+    name = "sync",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark",
+        "//internal/ark/api",
+        "//pkg/cluster",
+        "//src/auth",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:github.com__vmware-tanzu__velero__pkg__apis__velero__v1",
+    ],
+)

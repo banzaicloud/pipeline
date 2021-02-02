@@ -1,7 +1,7 @@
 github_repo(
     name = "pleasings2",
     repo = "sagikazarmark/mypleasings",
-    revision = "e4fd643c798334dd577fc8bf28d599843bb94fc1",
+    revision = "f644350aab5e0090ab69022beeb2feadfcdc223e",
 )
 
 genrule(
@@ -61,4 +61,9 @@ remote_file(
     out = "bin/etcd",
     binary = True,
     url = "https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-%s-x86_64" % (_os[CONFIG.HOSTOS]),
+)
+
+http_archive(
+    name = "pleasegomod",
+    urls = [f"https://github.com/sagikazarmark/please-go-modules/releases/download/v0.0.19/godeps_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz"],
 )

@@ -1,0 +1,20 @@
+go_library(
+    name = "global",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/global/commonadapter",
+        "//internal/platform/log",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:emperror.dev__handler__logur",
+        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk__vault",
+        "//third_party/go:github.com__banzaicloud__logrus-runtime-formatter",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:logur.dev__adapter__logrus",
+    ],
+)

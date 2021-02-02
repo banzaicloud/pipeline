@@ -1,0 +1,23 @@
+go_library(
+    name = "backupservice",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark/api",
+        "//internal/global",
+        "//internal/helm",
+        "//internal/platform/gin/correlationid",
+        "//pkg/common",
+        "//pkg/providers",
+        "//src/api/ark/common",
+        "//src/auth",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__gin-gonic__gin",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+        "//third_party/go:k8s.io__apimachinery__pkg__labels",
+    ],
+)

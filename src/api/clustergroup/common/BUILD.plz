@@ -1,0 +1,17 @@
+go_library(
+    name = "common",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/clustergroup",
+        "//internal/clustergroup/deployment",
+        "//internal/platform/gin/utils",
+        "//pkg/common",
+        "//src/api",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:github.com__gin-gonic__gin",
+    ],
+)

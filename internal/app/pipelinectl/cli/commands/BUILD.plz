@@ -1,0 +1,13 @@
+go_library(
+    name = "commands",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/app/pipelinectl/cli/commands/drain",
+        "//internal/app/pipelinectl/cli/commands/telemetry",
+        "//third_party/go:github.com__spf13__cobra",
+    ],
+)

@@ -1,0 +1,27 @@
+go_library(
+    name = "dnsadapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//src/auth",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//internal/integratedservices/services",
+        "//src/auth",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

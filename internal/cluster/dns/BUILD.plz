@@ -1,0 +1,12 @@
+go_library(
+    name = "dns",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//src/dns",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)

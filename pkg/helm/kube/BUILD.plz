@@ -1,0 +1,13 @@
+go_library(
+    name = "kube",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:k8s.io__client-go__rest",
+        "//third_party/go:k8s.io__client-go__tools__portforward",
+        "//third_party/go:k8s.io__client-go__transport__spdy",
+    ],
+)

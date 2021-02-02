@@ -1,0 +1,35 @@
+go_library(
+    name = "adapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/clusteradapter/clustermodel",
+        "//internal/common",
+        "//internal/database/sql/json",
+        "//internal/pke",
+        "//internal/providers/azure/pke",
+        "//pkg/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/cluster/clusteradapter/clustermodel",
+        "//internal/common",
+        "//internal/database/sql/json",
+        "//internal/pke",
+        "//internal/providers/azure/pke",
+        "//pkg/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

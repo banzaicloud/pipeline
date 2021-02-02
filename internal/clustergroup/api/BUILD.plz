@@ -1,0 +1,12 @@
+go_library(
+    name = "api",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/cluster",
+        "//third_party/go:github.com__pkg__errors",
+    ],
+)

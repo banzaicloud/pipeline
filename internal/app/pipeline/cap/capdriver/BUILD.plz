@@ -1,0 +1,12 @@
+go_library(
+    name = "capdriver",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/app/pipeline/cap",
+        "//third_party/go:github.com__gin-gonic__gin",
+    ],
+)

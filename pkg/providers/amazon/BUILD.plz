@@ -1,0 +1,18 @@
+go_library(
+    name = "amazon",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/secret/secrettype",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__awserr",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__credentials",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__session",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__ec2",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__iam",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__iam__iamiface",
+    ],
+)

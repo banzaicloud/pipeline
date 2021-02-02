@@ -1,0 +1,33 @@
+go_library(
+    name = "commonadapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//pkg/sdk/brn",
+        "//src/secret",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:logur.dev__logur",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//internal/secret/secrettype",
+        "//pkg/sdk/brn",
+        "//src/secret",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:logur.dev__logur",
+        "//third_party/go:logur.dev__logur__conformance",
+        "//third_party/go:logur.dev__logur__logtesting",
+    ],
+)

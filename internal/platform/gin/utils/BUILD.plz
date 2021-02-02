@@ -1,0 +1,14 @@
+go_library(
+    name = "utils",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/platform/context",
+        "//internal/platform/gin/correlationid",
+        "//pkg/common",
+        "//third_party/go:github.com__gin-gonic__gin",
+    ],
+)

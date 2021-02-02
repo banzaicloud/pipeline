@@ -1,0 +1,24 @@
+go_library(
+    name = "common",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark",
+        "//internal/cluster/clusteradapter",
+        "//internal/global",
+        "//internal/platform/gin/utils",
+        "//internal/providers",
+        "//internal/secret/restricted",
+        "//pkg/common",
+        "//src/auth",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__gin-gonic__gin",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+    ],
+)

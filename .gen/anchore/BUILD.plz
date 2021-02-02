@@ -1,0 +1,9 @@
+go_library(
+    name = "anchore",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__antihax__optional",
+        "//third_party/go:golang.org__x__oauth2",
+    ],
+)

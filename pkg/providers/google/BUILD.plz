@@ -1,0 +1,21 @@
+go_library(
+    name = "google",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/secret/secrettype",
+        "//third_party/go:cloud.google.com__go__iam__credentials__apiv1",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__golang__protobuf__ptypes__duration",
+        "//third_party/go:golang.org__x__net__context",
+        "//third_party/go:golang.org__x__oauth2__google",
+        "//third_party/go:golang.org__x__oauth2__jwt",
+        "//third_party/go:google.golang.org__api__container__v1",
+        "//third_party/go:google.golang.org__api__option",
+        "//third_party/go:google.golang.org__api__serviceusage__v1",
+        "//third_party/go:google.golang.org__genproto__googleapis__iam__credentials__v1",
+    ],
+)

@@ -1,0 +1,12 @@
+go_library(
+    name = "adapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/distribution/eks/eksprovider/workflow",
+        "//src/cluster",
+    ],
+)

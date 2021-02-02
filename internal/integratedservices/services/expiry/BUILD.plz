@@ -1,0 +1,23 @@
+go_library(
+    name = "expiry",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/integratedservices",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//internal/integratedservices",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)

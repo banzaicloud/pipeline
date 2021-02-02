@@ -1,0 +1,40 @@
+go_library(
+    name = "autoscaler",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//internal/providers/azure/azureadapter",
+        "//internal/providers/azure/pke",
+        "//internal/secret/secrettype",
+        "//pkg/cluster",
+        "//pkg/k8sclient",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__Masterminds__semver__v3",
+        "//third_party/go:github.com__ghodss__yaml",
+        "//third_party/go:go.uber.org__cadence__activity",
+        "//third_party/go:go.uber.org__zap",
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/global",
+        "//internal/providers/azure/azureadapter",
+        "//internal/providers/azure/pke",
+        "//internal/secret/secrettype",
+        "//pkg/cluster",
+        "//pkg/k8sclient",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__Masterminds__semver__v3",
+        "//third_party/go:github.com__ghodss__yaml",
+        "//third_party/go:go.uber.org__cadence__activity",
+        "//third_party/go:go.uber.org__zap",
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+    ],
+)

@@ -1,0 +1,22 @@
+go_library(
+    name = "buckets",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark",
+        "//internal/ark/api",
+        "//internal/ark/sync",
+        "//internal/global",
+        "//internal/platform/gin/correlationid",
+        "//internal/platform/gin/utils",
+        "//pkg/providers",
+        "//src/api/ark/common",
+        "//src/auth",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__gin-gonic__gin",
+        "//third_party/go:github.com__jinzhu__gorm",
+    ],
+)

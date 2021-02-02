@@ -1,0 +1,14 @@
+go_library(
+    name = "project",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:google.golang.org__api__cloudresourcemanager__v1",
+        "//third_party/go:google.golang.org__api__option",
+    ],
+)

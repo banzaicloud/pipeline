@@ -1,0 +1,30 @@
+go_library(
+    name = "auth",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk__auth",
+        "//third_party/go:github.com__gofrs__uuid",
+        "//third_party/go:gopkg.in__square__go-jose.v2",
+        "//third_party/go:gopkg.in__square__go-jose.v2__jwt",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk__auth",
+        "//third_party/go:github.com__gofrs__uuid",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:gopkg.in__square__go-jose.v2",
+        "//third_party/go:gopkg.in__square__go-jose.v2__jwt",
+    ],
+)

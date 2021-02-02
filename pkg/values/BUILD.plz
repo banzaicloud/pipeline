@@ -1,0 +1,13 @@
+go_library(
+    name = "values",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__ghodss__yaml",
+        "//third_party/go:github.com__mitchellh__mapstructure",
+    ],
+)

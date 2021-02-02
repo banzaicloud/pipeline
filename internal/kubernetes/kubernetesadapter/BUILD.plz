@@ -1,0 +1,12 @@
+go_library(
+    name = "kubernetesadapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/clusteradapter",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)

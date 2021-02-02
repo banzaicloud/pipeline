@@ -1,0 +1,17 @@
+go_library(
+    name = "amazon",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark/providers",
+        "//internal/providers",
+        "//internal/secret/secrettype",
+        "//pkg/providers/amazon/objectstore",
+        "//src/secret",
+        "//third_party/go:github.com__pelletier__go-toml",
+        "//third_party/go:github.com__vmware-tanzu__velero__pkg__plugin__velero",
+    ],
+)
