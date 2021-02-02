@@ -299,7 +299,7 @@ func (o orgEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) error 
 			if persistedRepo == envRepo {
 				o.logger.Debug("repo already added")
 				found = true
-				continue
+				break
 			}
 		}
 		if !found {
