@@ -25,7 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
-	sdkgormtest "github.com/banzaicloud/pipeline/pkg/sdk/gorm/test"
+	pkggormtest "github.com/banzaicloud/pipeline/pkg/gorm/test"
 )
 
 type fakeImageSelector struct {
@@ -69,7 +69,7 @@ func TestNodePoolProcessorProcessNewNodePool(t *testing.T) {
 			caseDescription: "cluster not found error -> error",
 			input: inputType{
 				p: &nodePoolProcessor{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},
@@ -89,7 +89,7 @@ func TestNodePoolProcessorProcessNewNodePool(t *testing.T) {
 			caseDescription: "database error -> error",
 			input: inputType{
 				p: &nodePoolProcessor{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},
@@ -118,7 +118,7 @@ func TestNodePoolProcessorProcessNewNodePool(t *testing.T) {
 			caseDescription: "select image error -> error",
 			input: inputType{
 				p: &nodePoolProcessor{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},
@@ -149,7 +149,7 @@ func TestNodePoolProcessorProcessNewNodePool(t *testing.T) {
 			caseDescription: "subnet error -> error",
 			input: inputType{
 				p: &nodePoolProcessor{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},
@@ -183,7 +183,7 @@ func TestNodePoolProcessorProcessNewNodePool(t *testing.T) {
 			caseDescription: "success",
 			input: inputType{
 				p: &nodePoolProcessor{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},

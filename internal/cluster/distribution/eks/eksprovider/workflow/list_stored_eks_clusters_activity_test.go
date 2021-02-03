@@ -28,7 +28,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
-	sdkgormtest "github.com/banzaicloud/pipeline/pkg/sdk/gorm/test"
+	pkggormtest "github.com/banzaicloud/pipeline/pkg/gorm/test"
 )
 
 func newTestEKSCluster(
@@ -76,8 +76,8 @@ func newTestEKSCluster(
 	return eksCluster
 }
 
-func newTestEKSClusterDatabase(t *testing.T) *sdkgormtest.FakeDatabase {
-	return sdkgormtest.NewFakeDatabase(t).CreateTablesFromEntities(
+func newTestEKSClusterDatabase(t *testing.T) *pkggormtest.FakeDatabase {
+	return pkggormtest.NewFakeDatabase(t).CreateTablesFromEntities(
 		t,
 		&clustermodel.ClusterModel{},
 		&clustermodel.ScaleOptions{},

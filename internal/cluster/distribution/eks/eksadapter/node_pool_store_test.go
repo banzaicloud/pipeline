@@ -34,7 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
-	sdkgormtest "github.com/banzaicloud/pipeline/pkg/sdk/gorm/test"
+	pkggormtest "github.com/banzaicloud/pipeline/pkg/gorm/test"
 )
 
 func setUpDatabase(t *testing.T) *gorm.DB {
@@ -89,7 +89,7 @@ func TestNodePoolStoreCreateNodePool(t *testing.T) {
 			},
 			input: inputType{
 				s: &nodePoolStore{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(t, &eksmodel.EKSClusterModel{}).DB,
 				},
 				ctx:            context.Background(),
@@ -105,7 +105,7 @@ func TestNodePoolStoreCreateNodePool(t *testing.T) {
 			expectedError:   errors.New("fetching cluster from database failed: test error"),
 			input: inputType{
 				s: &nodePoolStore{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&clustermodel.ClusterModel{},
@@ -138,7 +138,7 @@ func TestNodePoolStoreCreateNodePool(t *testing.T) {
 			expectedError:   errors.New("creating node pool in database failed: no such table: amazon_node_pools"),
 			input: inputType{
 				s: &nodePoolStore{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&clustermodel.ClusterModel{},
@@ -170,7 +170,7 @@ func TestNodePoolStoreCreateNodePool(t *testing.T) {
 			expectedError:   nil,
 			input: inputType{
 				s: &nodePoolStore{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&clustermodel.ClusterModel{},
