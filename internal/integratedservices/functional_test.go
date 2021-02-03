@@ -225,7 +225,7 @@ func (s *Suite) TestActivateGoogleDNSWithFakeSecret() {
 				}
 			}
 			return false
-		}, time.Second*30, time.Second*2)
+		}, time.Second*60, time.Second*2)
 
 		details, err := integratedServicesService.Details(ctx, cluster.GetID(), integratedServiceDNS.IntegratedServiceName)
 		s.Require().NoError(err)
