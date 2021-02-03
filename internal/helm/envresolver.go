@@ -229,15 +229,14 @@ func (e ensuringEnvResolver) ResolveHelmEnv(ctx context.Context, organizationID 
 	}
 
 	// make sure the env is created on the filesystem
-	env, isNewEnv, err := e.envService.EnsureEnv(ctx, helmEnv, e.defaultRepos)
+	env, _, err := e.envService.EnsureEnv(ctx, helmEnv, e.defaultRepos)
 	if err != nil {
 		return HelmEnv{}, errors.WrapIf(err, "failed to ensure helm environment")
 	}
 
-	if isNewEnv {
-		if err := newOrgEnvReconciler(organizationID, e.envService, e.store, e.logger).Reconcile(ctx, helmEnv); err != nil {
-			return HelmEnv{}, errors.WrapIfWithDetails(err, "failed to reconcile persisted repositories")
-		}
+	// helm repositories are deliberately reconciled from the database on each call
+	if err := newOrgEnvReconciler(organizationID, e.envService, e.store, e.logger).Reconcile(ctx, helmEnv); err != nil {
+		return HelmEnv{}, errors.WrapIfWithDetails(err, "failed to reconcile persisted repositories")
 	}
 
 	e.logger.Debug("successfully resolved helm environment", map[string]interface{}{"orgID": organizationID, "helmEnv": helmEnv})
@@ -295,13 +294,17 @@ func (o orgEnvReconciler) Reconcile(ctx context.Context, helmEnv HelmEnv) error 
 
 	missingRepos := make([]Repository, 0, len(persistedRepos))
 	for _, persistedRepo := range persistedRepos {
+		var found bool = false
 		for _, envRepo := range envRepos {
 			if persistedRepo == envRepo {
 				o.logger.Debug("repo already added")
-				continue
+				found = true
+				break
 			}
 		}
-		missingRepos = append(missingRepos, persistedRepo)
+		if !found {
+			missingRepos = append(missingRepos, persistedRepo)
+		}
 	}
 
 	if len(missingRepos) == 0 {

@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
@@ -93,6 +94,9 @@ func (s *Suite) SetupSuite() {
 	s.Require().NoError(err)
 
 	err = integratedserviceadapter.Migrate(db, logger)
+	s.Require().NoError(err)
+
+	err = helmadapter.Migrate(db, common.NoopLogger{})
 	s.Require().NoError(err)
 
 	vaultClient, err := vault.NewClientWithOptions()
