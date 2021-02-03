@@ -15,8 +15,10 @@
 package ark
 
 import (
+	"encoding/json"
 	"fmt"
 
+	"emperror.dev/errors"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/client"
@@ -40,14 +42,15 @@ type ChartConfig struct {
 
 // ValueOverrides describes values to be overridden in a deployment
 type ValueOverrides struct {
-	Configuration   configuration   `json:"configuration"`
-	Credentials     credentials     `json:"credentials"`
-	Image           image           `json:"image"`
-	RBAC            rbac            `json:"rbac"`
-	InitContainers  []v1.Container  `json:"initContainers"`
-	CleanUpCRDs     bool            `json:"cleanUpCRDs"`
-	ServiceAccount  serviceAccount  `json:"serviceAccount"`
-	SecurityContext securityContext `json:"securityContext"`
+	Configuration   configuration          `json:"configuration"`
+	Credentials     credentials            `json:"credentials"`
+	Image           image                  `json:"image"`
+	RBAC            rbac                   `json:"rbac"`
+	InitContainers  []v1.Container         `json:"initContainers"`
+	CleanUpCRDs     bool                   `json:"cleanUpCRDs"`
+	ServiceAccount  serviceAccount         `json:"serviceAccount"`
+	SecurityContext securityContext        `json:"securityContext"`
+	Affinity        map[string]interface{} `json:"affinity"`
 }
 
 type securityContext struct {
@@ -275,6 +278,23 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		},
 		InitContainers: initContainers,
 		CleanUpCRDs:    true,
+		Affinity: map[string]interface{}{
+			"nodeAffinity": map[string]interface{}{
+				"requiredDuringSchedulingIgnoredDuringExecution": map[string]interface{}{
+					"nodeSelectorTerms": []map[string]interface{}{
+						{
+							"matchExpressions": []map[string]interface{}{
+								{
+									"key":      "kubernetes.io/arch",
+									"operator": "In",
+									"values":   []string{"amd64"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	if vsl.Provider == amazon.PersistentVolumeProvider && req.ServiceAccountRoleARN != "" {
@@ -293,6 +313,26 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 	}
 
 	return values, nil
+}
+
+func (req *ConfigRequest) getChartConfig() (config ChartConfig, err error) {
+	config = GetChartConfig()
+
+	arkConfig, err := req.Get()
+	if err != nil {
+		err = errors.Wrap(err, "error getting config")
+		return
+	}
+
+	arkJSON, err := json.Marshal(arkConfig)
+	if err != nil {
+		err = errors.Wrap(err, "json convert failed")
+		return
+	}
+
+	config.ValueOverrides = arkJSON
+
+	return
 }
 
 func (req ConfigRequest) getVolumeSnapshotLocation() (volumeSnapshotLocation, error) {
