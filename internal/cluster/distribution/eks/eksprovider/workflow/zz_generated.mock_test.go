@@ -97,6 +97,84 @@ func (_m *Mockec2API) AcceptReservedInstancesExchangeQuoteWithContext(_parameter
 	return r0, r1
 }
 
+// AcceptTransitGatewayMulticastDomainAssociations provides a mock function.
+func (_m *Mockec2API) AcceptTransitGatewayMulticastDomainAssociations(_parameter_0 *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) (_result_0 *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AcceptTransitGatewayMulticastDomainAssociationsRequest provides a mock function.
+func (_m *Mockec2API) AcceptTransitGatewayMulticastDomainAssociationsRequest(_parameter_0 *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) (_result_0 *request.Request, _result_1 *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AcceptTransitGatewayMulticastDomainAssociationsInput) *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AcceptTransitGatewayMulticastDomainAssociationsWithContext provides a mock function.
+func (_m *Mockec2API) AcceptTransitGatewayMulticastDomainAssociationsWithContext(_parameter_0 context.Context, _parameter_1 *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput, _parameter_2 ...request.Option) (_result_0 *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput, ...request.Option) *ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AcceptTransitGatewayMulticastDomainAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AcceptTransitGatewayMulticastDomainAssociationsInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AcceptTransitGatewayPeeringAttachment provides a mock function.
 func (_m *Mockec2API) AcceptTransitGatewayPeeringAttachment(_parameter_0 *ec2.AcceptTransitGatewayPeeringAttachmentInput) (_result_0 *ec2.AcceptTransitGatewayPeeringAttachmentOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -5167,6 +5245,84 @@ func (_m *Mockec2API) CreateNetworkAclWithContext(_parameter_0 context.Context, 
 	return r0, r1
 }
 
+// CreateNetworkInsightsPath provides a mock function.
+func (_m *Mockec2API) CreateNetworkInsightsPath(_parameter_0 *ec2.CreateNetworkInsightsPathInput) (_result_0 *ec2.CreateNetworkInsightsPathOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.CreateNetworkInsightsPathOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateNetworkInsightsPathInput) *ec2.CreateNetworkInsightsPathOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateNetworkInsightsPathOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateNetworkInsightsPathInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateNetworkInsightsPathRequest provides a mock function.
+func (_m *Mockec2API) CreateNetworkInsightsPathRequest(_parameter_0 *ec2.CreateNetworkInsightsPathInput) (_result_0 *request.Request, _result_1 *ec2.CreateNetworkInsightsPathOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateNetworkInsightsPathInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateNetworkInsightsPathOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateNetworkInsightsPathInput) *ec2.CreateNetworkInsightsPathOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateNetworkInsightsPathOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateNetworkInsightsPathWithContext provides a mock function.
+func (_m *Mockec2API) CreateNetworkInsightsPathWithContext(_parameter_0 context.Context, _parameter_1 *ec2.CreateNetworkInsightsPathInput, _parameter_2 ...request.Option) (_result_0 *ec2.CreateNetworkInsightsPathOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.CreateNetworkInsightsPathOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateNetworkInsightsPathInput, ...request.Option) *ec2.CreateNetworkInsightsPathOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateNetworkInsightsPathOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateNetworkInsightsPathInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateNetworkInterface provides a mock function.
 func (_m *Mockec2API) CreateNetworkInterface(_parameter_0 *ec2.CreateNetworkInterfaceInput) (_result_0 *ec2.CreateNetworkInterfaceOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -6431,6 +6587,162 @@ func (_m *Mockec2API) CreateTransitGateway(_parameter_0 *ec2.CreateTransitGatewa
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayInput) error); ok {
 		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayConnect provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayConnect(_parameter_0 *ec2.CreateTransitGatewayConnectInput) (_result_0 *ec2.CreateTransitGatewayConnectOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.CreateTransitGatewayConnectOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayConnectInput) *ec2.CreateTransitGatewayConnectOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayConnectOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayConnectInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayConnectPeer provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayConnectPeer(_parameter_0 *ec2.CreateTransitGatewayConnectPeerInput) (_result_0 *ec2.CreateTransitGatewayConnectPeerOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.CreateTransitGatewayConnectPeerOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayConnectPeerInput) *ec2.CreateTransitGatewayConnectPeerOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayConnectPeerOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayConnectPeerInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayConnectPeerRequest provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayConnectPeerRequest(_parameter_0 *ec2.CreateTransitGatewayConnectPeerInput) (_result_0 *request.Request, _result_1 *ec2.CreateTransitGatewayConnectPeerOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayConnectPeerInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateTransitGatewayConnectPeerOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayConnectPeerInput) *ec2.CreateTransitGatewayConnectPeerOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateTransitGatewayConnectPeerOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayConnectPeerWithContext provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayConnectPeerWithContext(_parameter_0 context.Context, _parameter_1 *ec2.CreateTransitGatewayConnectPeerInput, _parameter_2 ...request.Option) (_result_0 *ec2.CreateTransitGatewayConnectPeerOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.CreateTransitGatewayConnectPeerOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayConnectPeerInput, ...request.Option) *ec2.CreateTransitGatewayConnectPeerOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayConnectPeerOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayConnectPeerInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayConnectRequest provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayConnectRequest(_parameter_0 *ec2.CreateTransitGatewayConnectInput) (_result_0 *request.Request, _result_1 *ec2.CreateTransitGatewayConnectOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayConnectInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateTransitGatewayConnectOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayConnectInput) *ec2.CreateTransitGatewayConnectOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateTransitGatewayConnectOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayConnectWithContext provides a mock function.
+func (_m *Mockec2API) CreateTransitGatewayConnectWithContext(_parameter_0 context.Context, _parameter_1 *ec2.CreateTransitGatewayConnectInput, _parameter_2 ...request.Option) (_result_0 *ec2.CreateTransitGatewayConnectOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.CreateTransitGatewayConnectOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayConnectInput, ...request.Option) *ec2.CreateTransitGatewayConnectOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayConnectOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayConnectInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -9145,6 +9457,162 @@ func (_m *Mockec2API) DeleteNetworkAclWithContext(_parameter_0 context.Context, 
 	return r0, r1
 }
 
+// DeleteNetworkInsightsAnalysis provides a mock function.
+func (_m *Mockec2API) DeleteNetworkInsightsAnalysis(_parameter_0 *ec2.DeleteNetworkInsightsAnalysisInput) (_result_0 *ec2.DeleteNetworkInsightsAnalysisOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DeleteNetworkInsightsAnalysisOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteNetworkInsightsAnalysisInput) *ec2.DeleteNetworkInsightsAnalysisOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteNetworkInsightsAnalysisOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteNetworkInsightsAnalysisInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteNetworkInsightsAnalysisRequest provides a mock function.
+func (_m *Mockec2API) DeleteNetworkInsightsAnalysisRequest(_parameter_0 *ec2.DeleteNetworkInsightsAnalysisInput) (_result_0 *request.Request, _result_1 *ec2.DeleteNetworkInsightsAnalysisOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteNetworkInsightsAnalysisInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteNetworkInsightsAnalysisOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteNetworkInsightsAnalysisInput) *ec2.DeleteNetworkInsightsAnalysisOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteNetworkInsightsAnalysisOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteNetworkInsightsAnalysisWithContext provides a mock function.
+func (_m *Mockec2API) DeleteNetworkInsightsAnalysisWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DeleteNetworkInsightsAnalysisInput, _parameter_2 ...request.Option) (_result_0 *ec2.DeleteNetworkInsightsAnalysisOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DeleteNetworkInsightsAnalysisOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteNetworkInsightsAnalysisInput, ...request.Option) *ec2.DeleteNetworkInsightsAnalysisOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteNetworkInsightsAnalysisOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteNetworkInsightsAnalysisInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteNetworkInsightsPath provides a mock function.
+func (_m *Mockec2API) DeleteNetworkInsightsPath(_parameter_0 *ec2.DeleteNetworkInsightsPathInput) (_result_0 *ec2.DeleteNetworkInsightsPathOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DeleteNetworkInsightsPathOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteNetworkInsightsPathInput) *ec2.DeleteNetworkInsightsPathOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteNetworkInsightsPathOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteNetworkInsightsPathInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteNetworkInsightsPathRequest provides a mock function.
+func (_m *Mockec2API) DeleteNetworkInsightsPathRequest(_parameter_0 *ec2.DeleteNetworkInsightsPathInput) (_result_0 *request.Request, _result_1 *ec2.DeleteNetworkInsightsPathOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteNetworkInsightsPathInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteNetworkInsightsPathOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteNetworkInsightsPathInput) *ec2.DeleteNetworkInsightsPathOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteNetworkInsightsPathOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteNetworkInsightsPathWithContext provides a mock function.
+func (_m *Mockec2API) DeleteNetworkInsightsPathWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DeleteNetworkInsightsPathInput, _parameter_2 ...request.Option) (_result_0 *ec2.DeleteNetworkInsightsPathOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DeleteNetworkInsightsPathOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteNetworkInsightsPathInput, ...request.Option) *ec2.DeleteNetworkInsightsPathOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteNetworkInsightsPathOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteNetworkInsightsPathInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteNetworkInterface provides a mock function.
 func (_m *Mockec2API) DeleteNetworkInterface(_parameter_0 *ec2.DeleteNetworkInterfaceInput) (_result_0 *ec2.DeleteNetworkInterfaceOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -10331,6 +10799,162 @@ func (_m *Mockec2API) DeleteTransitGateway(_parameter_0 *ec2.DeleteTransitGatewa
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayInput) error); ok {
 		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayConnect provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayConnect(_parameter_0 *ec2.DeleteTransitGatewayConnectInput) (_result_0 *ec2.DeleteTransitGatewayConnectOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DeleteTransitGatewayConnectOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayConnectInput) *ec2.DeleteTransitGatewayConnectOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayConnectOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayConnectInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayConnectPeer provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayConnectPeer(_parameter_0 *ec2.DeleteTransitGatewayConnectPeerInput) (_result_0 *ec2.DeleteTransitGatewayConnectPeerOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DeleteTransitGatewayConnectPeerOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayConnectPeerInput) *ec2.DeleteTransitGatewayConnectPeerOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayConnectPeerOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayConnectPeerInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayConnectPeerRequest provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayConnectPeerRequest(_parameter_0 *ec2.DeleteTransitGatewayConnectPeerInput) (_result_0 *request.Request, _result_1 *ec2.DeleteTransitGatewayConnectPeerOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayConnectPeerInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteTransitGatewayConnectPeerOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayConnectPeerInput) *ec2.DeleteTransitGatewayConnectPeerOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteTransitGatewayConnectPeerOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayConnectPeerWithContext provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayConnectPeerWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DeleteTransitGatewayConnectPeerInput, _parameter_2 ...request.Option) (_result_0 *ec2.DeleteTransitGatewayConnectPeerOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DeleteTransitGatewayConnectPeerOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayConnectPeerInput, ...request.Option) *ec2.DeleteTransitGatewayConnectPeerOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayConnectPeerOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayConnectPeerInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayConnectRequest provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayConnectRequest(_parameter_0 *ec2.DeleteTransitGatewayConnectInput) (_result_0 *request.Request, _result_1 *ec2.DeleteTransitGatewayConnectOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayConnectInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteTransitGatewayConnectOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayConnectInput) *ec2.DeleteTransitGatewayConnectOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteTransitGatewayConnectOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayConnectWithContext provides a mock function.
+func (_m *Mockec2API) DeleteTransitGatewayConnectWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DeleteTransitGatewayConnectInput, _parameter_2 ...request.Option) (_result_0 *ec2.DeleteTransitGatewayConnectOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DeleteTransitGatewayConnectOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayConnectInput, ...request.Option) *ec2.DeleteTransitGatewayConnectOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayConnectOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayConnectInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -18223,6 +18847,234 @@ func (_m *Mockec2API) DescribeNetworkAclsWithContext(_parameter_0 context.Contex
 	return r0, r1
 }
 
+// DescribeNetworkInsightsAnalyses provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsAnalyses(_parameter_0 *ec2.DescribeNetworkInsightsAnalysesInput) (_result_0 *ec2.DescribeNetworkInsightsAnalysesOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DescribeNetworkInsightsAnalysesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeNetworkInsightsAnalysesInput) *ec2.DescribeNetworkInsightsAnalysesOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeNetworkInsightsAnalysesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeNetworkInsightsAnalysesInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeNetworkInsightsAnalysesPages provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsAnalysesPages(_parameter_0 *ec2.DescribeNetworkInsightsAnalysesInput, _parameter_1 func(*ec2.DescribeNetworkInsightsAnalysesOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeNetworkInsightsAnalysesInput, func(*ec2.DescribeNetworkInsightsAnalysesOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeNetworkInsightsAnalysesPagesWithContext provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsAnalysesPagesWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DescribeNetworkInsightsAnalysesInput, _parameter_2 func(*ec2.DescribeNetworkInsightsAnalysesOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInsightsAnalysesInput, func(*ec2.DescribeNetworkInsightsAnalysesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeNetworkInsightsAnalysesRequest provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsAnalysesRequest(_parameter_0 *ec2.DescribeNetworkInsightsAnalysesInput) (_result_0 *request.Request, _result_1 *ec2.DescribeNetworkInsightsAnalysesOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeNetworkInsightsAnalysesInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeNetworkInsightsAnalysesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeNetworkInsightsAnalysesInput) *ec2.DescribeNetworkInsightsAnalysesOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeNetworkInsightsAnalysesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeNetworkInsightsAnalysesWithContext provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsAnalysesWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DescribeNetworkInsightsAnalysesInput, _parameter_2 ...request.Option) (_result_0 *ec2.DescribeNetworkInsightsAnalysesOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DescribeNetworkInsightsAnalysesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInsightsAnalysesInput, ...request.Option) *ec2.DescribeNetworkInsightsAnalysesOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeNetworkInsightsAnalysesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeNetworkInsightsAnalysesInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeNetworkInsightsPaths provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsPaths(_parameter_0 *ec2.DescribeNetworkInsightsPathsInput) (_result_0 *ec2.DescribeNetworkInsightsPathsOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DescribeNetworkInsightsPathsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeNetworkInsightsPathsInput) *ec2.DescribeNetworkInsightsPathsOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeNetworkInsightsPathsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeNetworkInsightsPathsInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeNetworkInsightsPathsPages provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsPathsPages(_parameter_0 *ec2.DescribeNetworkInsightsPathsInput, _parameter_1 func(*ec2.DescribeNetworkInsightsPathsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeNetworkInsightsPathsInput, func(*ec2.DescribeNetworkInsightsPathsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeNetworkInsightsPathsPagesWithContext provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsPathsPagesWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DescribeNetworkInsightsPathsInput, _parameter_2 func(*ec2.DescribeNetworkInsightsPathsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInsightsPathsInput, func(*ec2.DescribeNetworkInsightsPathsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeNetworkInsightsPathsRequest provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsPathsRequest(_parameter_0 *ec2.DescribeNetworkInsightsPathsInput) (_result_0 *request.Request, _result_1 *ec2.DescribeNetworkInsightsPathsOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeNetworkInsightsPathsInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeNetworkInsightsPathsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeNetworkInsightsPathsInput) *ec2.DescribeNetworkInsightsPathsOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeNetworkInsightsPathsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeNetworkInsightsPathsWithContext provides a mock function.
+func (_m *Mockec2API) DescribeNetworkInsightsPathsWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DescribeNetworkInsightsPathsInput, _parameter_2 ...request.Option) (_result_0 *ec2.DescribeNetworkInsightsPathsOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DescribeNetworkInsightsPathsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInsightsPathsInput, ...request.Option) *ec2.DescribeNetworkInsightsPathsOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeNetworkInsightsPathsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeNetworkInsightsPathsInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeNetworkInterfaceAttribute provides a mock function.
 func (_m *Mockec2API) DescribeNetworkInterfaceAttribute(_parameter_0 *ec2.DescribeNetworkInterfaceAttributeInput) (_result_0 *ec2.DescribeNetworkInterfaceAttributeOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -21503,6 +22355,234 @@ func (_m *Mockec2API) DescribeTransitGatewayAttachmentsWithContext(_parameter_0 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewayAttachmentsInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayConnectPeers provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectPeers(_parameter_0 *ec2.DescribeTransitGatewayConnectPeersInput) (_result_0 *ec2.DescribeTransitGatewayConnectPeersOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DescribeTransitGatewayConnectPeersOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayConnectPeersInput) *ec2.DescribeTransitGatewayConnectPeersOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayConnectPeersOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayConnectPeersInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayConnectPeersPages provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectPeersPages(_parameter_0 *ec2.DescribeTransitGatewayConnectPeersInput, _parameter_1 func(*ec2.DescribeTransitGatewayConnectPeersOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayConnectPeersInput, func(*ec2.DescribeTransitGatewayConnectPeersOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeTransitGatewayConnectPeersPagesWithContext provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectPeersPagesWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DescribeTransitGatewayConnectPeersInput, _parameter_2 func(*ec2.DescribeTransitGatewayConnectPeersOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayConnectPeersInput, func(*ec2.DescribeTransitGatewayConnectPeersOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeTransitGatewayConnectPeersRequest provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectPeersRequest(_parameter_0 *ec2.DescribeTransitGatewayConnectPeersInput) (_result_0 *request.Request, _result_1 *ec2.DescribeTransitGatewayConnectPeersOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayConnectPeersInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeTransitGatewayConnectPeersOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayConnectPeersInput) *ec2.DescribeTransitGatewayConnectPeersOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeTransitGatewayConnectPeersOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayConnectPeersWithContext provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectPeersWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DescribeTransitGatewayConnectPeersInput, _parameter_2 ...request.Option) (_result_0 *ec2.DescribeTransitGatewayConnectPeersOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DescribeTransitGatewayConnectPeersOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayConnectPeersInput, ...request.Option) *ec2.DescribeTransitGatewayConnectPeersOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayConnectPeersOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewayConnectPeersInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayConnects provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnects(_parameter_0 *ec2.DescribeTransitGatewayConnectsInput) (_result_0 *ec2.DescribeTransitGatewayConnectsOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.DescribeTransitGatewayConnectsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayConnectsInput) *ec2.DescribeTransitGatewayConnectsOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayConnectsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayConnectsInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayConnectsPages provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectsPages(_parameter_0 *ec2.DescribeTransitGatewayConnectsInput, _parameter_1 func(*ec2.DescribeTransitGatewayConnectsOutput, bool) bool) (_result_0 error) {
+	ret := _m.Called(_parameter_0, _parameter_1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayConnectsInput, func(*ec2.DescribeTransitGatewayConnectsOutput, bool) bool) error); ok {
+		r0 = rf(_parameter_0, _parameter_1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeTransitGatewayConnectsPagesWithContext provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectsPagesWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DescribeTransitGatewayConnectsInput, _parameter_2 func(*ec2.DescribeTransitGatewayConnectsOutput, bool) bool, _parameter_3 ...request.Option) (_result_0 error) {
+	varParams := make([]interface{}, 3+len(_parameter_3))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	varParams[2] = _parameter_2
+	for varIndex, varParam := range _parameter_3 {
+		varParams[3+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayConnectsInput, func(*ec2.DescribeTransitGatewayConnectsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2, _parameter_3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeTransitGatewayConnectsRequest provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectsRequest(_parameter_0 *ec2.DescribeTransitGatewayConnectsInput) (_result_0 *request.Request, _result_1 *ec2.DescribeTransitGatewayConnectsOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayConnectsInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeTransitGatewayConnectsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayConnectsInput) *ec2.DescribeTransitGatewayConnectsOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeTransitGatewayConnectsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayConnectsWithContext provides a mock function.
+func (_m *Mockec2API) DescribeTransitGatewayConnectsWithContext(_parameter_0 context.Context, _parameter_1 *ec2.DescribeTransitGatewayConnectsInput, _parameter_2 ...request.Option) (_result_0 *ec2.DescribeTransitGatewayConnectsOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.DescribeTransitGatewayConnectsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayConnectsInput, ...request.Option) *ec2.DescribeTransitGatewayConnectsOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayConnectsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewayConnectsInput, ...request.Option) error); ok {
 		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
@@ -32863,6 +33943,84 @@ func (_m *Mockec2API) RegisterTransitGatewayMulticastGroupSourcesWithContext(_pa
 	return r0, r1
 }
 
+// RejectTransitGatewayMulticastDomainAssociations provides a mock function.
+func (_m *Mockec2API) RejectTransitGatewayMulticastDomainAssociations(_parameter_0 *ec2.RejectTransitGatewayMulticastDomainAssociationsInput) (_result_0 *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.RejectTransitGatewayMulticastDomainAssociationsInput) *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RejectTransitGatewayMulticastDomainAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.RejectTransitGatewayMulticastDomainAssociationsInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RejectTransitGatewayMulticastDomainAssociationsRequest provides a mock function.
+func (_m *Mockec2API) RejectTransitGatewayMulticastDomainAssociationsRequest(_parameter_0 *ec2.RejectTransitGatewayMulticastDomainAssociationsInput) (_result_0 *request.Request, _result_1 *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.RejectTransitGatewayMulticastDomainAssociationsInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.RejectTransitGatewayMulticastDomainAssociationsInput) *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.RejectTransitGatewayMulticastDomainAssociationsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// RejectTransitGatewayMulticastDomainAssociationsWithContext provides a mock function.
+func (_m *Mockec2API) RejectTransitGatewayMulticastDomainAssociationsWithContext(_parameter_0 context.Context, _parameter_1 *ec2.RejectTransitGatewayMulticastDomainAssociationsInput, _parameter_2 ...request.Option) (_result_0 *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RejectTransitGatewayMulticastDomainAssociationsInput, ...request.Option) *ec2.RejectTransitGatewayMulticastDomainAssociationsOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RejectTransitGatewayMulticastDomainAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RejectTransitGatewayMulticastDomainAssociationsInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RejectTransitGatewayPeeringAttachment provides a mock function.
 func (_m *Mockec2API) RejectTransitGatewayPeeringAttachment(_parameter_0 *ec2.RejectTransitGatewayPeeringAttachmentInput) (_result_0 *ec2.RejectTransitGatewayPeeringAttachmentOutput, _result_1 error) {
 	ret := _m.Called(_parameter_0)
@@ -35501,6 +36659,84 @@ func (_m *Mockec2API) StartInstancesWithContext(_parameter_0 context.Context, _p
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.StartInstancesInput, ...request.Option) error); ok {
+		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StartNetworkInsightsAnalysis provides a mock function.
+func (_m *Mockec2API) StartNetworkInsightsAnalysis(_parameter_0 *ec2.StartNetworkInsightsAnalysisInput) (_result_0 *ec2.StartNetworkInsightsAnalysisOutput, _result_1 error) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *ec2.StartNetworkInsightsAnalysisOutput
+	if rf, ok := ret.Get(0).(func(*ec2.StartNetworkInsightsAnalysisInput) *ec2.StartNetworkInsightsAnalysisOutput); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.StartNetworkInsightsAnalysisOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.StartNetworkInsightsAnalysisInput) error); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StartNetworkInsightsAnalysisRequest provides a mock function.
+func (_m *Mockec2API) StartNetworkInsightsAnalysisRequest(_parameter_0 *ec2.StartNetworkInsightsAnalysisInput) (_result_0 *request.Request, _result_1 *ec2.StartNetworkInsightsAnalysisOutput) {
+	ret := _m.Called(_parameter_0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.StartNetworkInsightsAnalysisInput) *request.Request); ok {
+		r0 = rf(_parameter_0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.StartNetworkInsightsAnalysisOutput
+	if rf, ok := ret.Get(1).(func(*ec2.StartNetworkInsightsAnalysisInput) *ec2.StartNetworkInsightsAnalysisOutput); ok {
+		r1 = rf(_parameter_0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.StartNetworkInsightsAnalysisOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// StartNetworkInsightsAnalysisWithContext provides a mock function.
+func (_m *Mockec2API) StartNetworkInsightsAnalysisWithContext(_parameter_0 context.Context, _parameter_1 *ec2.StartNetworkInsightsAnalysisInput, _parameter_2 ...request.Option) (_result_0 *ec2.StartNetworkInsightsAnalysisOutput, _result_1 error) {
+	varParams := make([]interface{}, 2+len(_parameter_2))
+	varParams[0] = _parameter_0
+	varParams[1] = _parameter_1
+	for varIndex, varParam := range _parameter_2 {
+		varParams[2+varIndex] = varParam
+	}
+
+	ret := _m.Called(varParams...)
+
+	var r0 *ec2.StartNetworkInsightsAnalysisOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.StartNetworkInsightsAnalysisInput, ...request.Option) *ec2.StartNetworkInsightsAnalysisOutput); ok {
+		r0 = rf(_parameter_0, _parameter_1, _parameter_2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.StartNetworkInsightsAnalysisOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.StartNetworkInsightsAnalysisInput, ...request.Option) error); ok {
 		r1 = rf(_parameter_0, _parameter_1, _parameter_2...)
 	} else {
 		r1 = ret.Error(1)
