@@ -632,7 +632,6 @@ func main() {
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
 	auth.Install(engine)
-	auth.StartTokenStoreGC(tokenStore)
 
 	enforcer := auth.NewRbacEnforcer(organizationStore, serviceAccountService, commonLogger)
 	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)

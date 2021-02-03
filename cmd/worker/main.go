@@ -21,6 +21,7 @@ import (
 	"os"
 	"syscall"
 	"text/template"
+	"time"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
@@ -110,8 +111,10 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cadence/awssdk"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/hook"
+	sdkcadence "github.com/banzaicloud/pipeline/pkg/sdk/cadence"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/auth/authdriver"
+	authworkflow "github.com/banzaicloud/pipeline/src/auth/workflow"
 	"github.com/banzaicloud/pipeline/src/cluster"
 	legacyclusteradapter "github.com/banzaicloud/pipeline/src/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/src/dns"
@@ -258,7 +261,21 @@ func main() {
 			clusteradapter.NewStore(db, clusterRepo),
 			releaseDeleter,
 		)
+
 		tokenStore := bauth.NewVaultTokenStore("pipeline")
+		err = registerAuthWorkflows(worker, tokenStore)
+		emperror.Panic(errors.WrapIf(err, "failed to register auth workflows"))
+		tokenStoreGCCronConfiguration := sdkcadence.NewCronConfiguration(
+			workflowClient,
+			sdkcadence.CronInstanceTypeDomain,
+			"0 0/12 * * *",
+			11*time.Hour,
+			taskList,
+			authworkflow.GarbageCollectTokenStoreWorkflowName,
+		)
+		err = tokenStoreGCCronConfiguration.StartCronWorkflow(context.Background())
+		emperror.Panic(errors.WrapIf(err, "failed to start token store garbage collection cron workflow"))
+
 		tokenManager := pkgAuth.NewTokenManager(
 			pkgAuth.NewJWTTokenGenerator(
 				config.Auth.Token.Issuer,
