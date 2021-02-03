@@ -176,7 +176,6 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 
 func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
 	eksCertPath := "/etc/ssl/certs/ca-bundle.crt"
-	nodeSelector := setArchNodeSelector(cluster.GetID(), cluster)
 
 	return &autoscalingInfo{
 		CloudProvider: cloudProviderAws,
@@ -194,7 +193,7 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 			},
 		},
 		SslCertPath:  &eksCertPath,
-		NodeSelector: nodeSelector,
+		NodeSelector: setArchNodeSelector(cluster),
 	}
 }
 
@@ -233,8 +232,6 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		return nil
 	}
 
-	nodeSelector := setArchNodeSelector(cluster.GetID(), cluster)
-
 	autoscalingInfo := &autoscalingInfo{
 		CloudProvider:     cloudProviderAzure,
 		AutoscalingGroups: groups,
@@ -250,7 +247,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			TenantID:       clusterSecret.Values[secrettype.AzureTenantID],
 			ClusterName:    cluster.GetName(),
 		},
-		NodeSelector: nodeSelector,
+		NodeSelector: setArchNodeSelector(cluster),
 	}
 
 	switch cluster.GetDistribution() {
@@ -453,19 +450,21 @@ func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
 	return selectedImageVersion
 }
 
-func setArchNodeSelector(clusterID uint, cluster interface{}) map[string]string {
+func setArchNodeSelector(cluster CommonCluster) map[string]string {
 	k8sVersion, err := getK8sVersion(cluster)
 	if err != nil {
-		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", clusterID))
-	} else {
-		compareVersion, err := semver.NewVersion("1.20.0")
-		if err != nil {
-			return nil
-		}
+		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", cluster.GetID()))
 
-		if k8sVersion.LessThan(compareVersion) {
-			return map[string]string{"kubernetes.io/arch": "amd64"}
-		}
+		return nil
+	}
+
+	compareVersion, err := semver.NewVersion("1.20.0")
+	if err != nil {
+		return nil
+	}
+
+	if k8sVersion.LessThan(compareVersion) {
+		return map[string]string{"kubernetes.io/arch": "amd64"}
 	}
 
 	return nil
