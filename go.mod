@@ -109,7 +109,6 @@ require (
 	logur.dev/integration/watermill v0.4.2
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.17.0
-	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/controller-runtime v0.6.3
 	sigs.k8s.io/kubefed v0.4.0
 	sigs.k8s.io/testing_frameworks v0.1.2
@@ -120,6 +119,10 @@ replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
 	github.com/banzaicloud/integrated-service-sdk => github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.4.0
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
+
+	// https://github.com/deislabs/oras/blob/237ac925cb6a308a5523cc048292bb53037f6975/go.mod
+	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
+	github.com/docker/docker => github.com/moby/moby v1.4.2-0.20200203170920-46ec8731fbce
 
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 
