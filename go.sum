@@ -204,6 +204,8 @@ github.com/banzaicloud/gin-utilz v0.3.1 h1:BnRW3oh6lK3jjyy0epTKDpMCFFR4c6zFHRbIY
 github.com/banzaicloud/gin-utilz v0.3.1/go.mod h1:HK5gehB/ipiFw7ousnH335vpkVnqEXysi5wzQhAWByc=
 github.com/banzaicloud/go-gin-prometheus v0.1.0 h1:zetacN1k3svVc7DtzGfpHA49uO0G8cwsiP5qSuUUQKs=
 github.com/banzaicloud/go-gin-prometheus v0.1.0/go.mod h1:1eXhK1Ld1vRFbNpqi8Eu1ktCCk5LARA1Tbdl8EsAfgE=
+github.com/banzaicloud/integrated-service-sdk v0.5.0 h1:fjD0jXQBzYbCiYDG4ZOtp8fF3tIgPqO3qOLUKomHGIk=
+github.com/banzaicloud/integrated-service-sdk v0.5.0/go.mod h1:tiRFYdXsaIGOr8TSA2db3Nri2g8BbyjJdHTcY/ifWHM=
 github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4 h1:nz020decQ0q8AkYzrnc/NZTbcuzw9B8N+s7LW5DA+3E=
 github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
 github.com/banzaicloud/k8s-objectmatcher v1.5.0 h1:mYrLzvRgxCHBlJZEcyIglDuoKpMhwHocgsAXl1nmm10=
@@ -214,8 +216,6 @@ github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a1856
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f/go.mod h1:2GxaTh0YYmhQEMQ4wJ8Izr7sBecWZtnXlDzybR1hSO8=
 github.com/banzaicloud/operator-tools v0.15.0 h1:BxtRBJlHntpAq4dtgCkhTImAUiT9sdKxwlcYKoKR+uM=
 github.com/banzaicloud/operator-tools v0.15.0/go.mod h1:544x65QDUmKMTrnMs0lbJ/0jvBSGKkaP2Z4fcmUZeLg=
-github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.4.0 h1:dk81HU8wUbefm63REjwM5QnMkuz+L1jaVCq/vWkCr3Y=
-github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.4.0/go.mod h1:tiRFYdXsaIGOr8TSA2db3Nri2g8BbyjJdHTcY/ifWHM=
 github.com/bazelbuild/bazel-gazelle v0.18.2/go.mod h1:D0ehMSbS+vesFsLGiD6JXu3mVEzOlfUl8wNnq+x/9p0=
 github.com/bazelbuild/bazel-gazelle v0.19.1-0.20191105222053-70208cbdc798/go.mod h1:rPwzNHUqEzngx1iVBfO/2X2npKaT3tqPqqHW6rVsn/A=
 github.com/bazelbuild/buildtools v0.0.0-20190731111112-f720930ceb60/go.mod h1:5JP0TXzWDHXv8qvxRC4InIazwdyDseBDbzESUMKk1yU=

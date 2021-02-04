@@ -28,7 +28,7 @@ require (
 	github.com/banzaicloud/cadence-aws-sdk v0.0.0-20210202183218-71e19c6bbd35
 	github.com/banzaicloud/gin-utilz v0.3.1
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
-	github.com/banzaicloud/integrated-service-sdk v0.0.0
+	github.com/banzaicloud/integrated-service-sdk v0.5.0
 	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.5.0
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
@@ -117,7 +117,6 @@ require (
 
 replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
-	github.com/banzaicloud/integrated-service-sdk => github.com/banzaicloud/pipeline/lib/integrated-service-sdk v0.4.0
 	github.com/banzaicloud/pipeline/pkg/sdk => ./pkg/sdk
 
 	// https://github.com/deislabs/oras/blob/237ac925cb6a308a5523cc048292bb53037f6975/go.mod
