@@ -17,7 +17,6 @@ WORKDIR /build
 
 COPY go.* /build/
 COPY pkg/sdk/go.* /build/pkg/sdk/
-COPY lib/integrated-service-sdk/go.* /build/lib/integrated-service-sdk/
 RUN go mod download
 
 ARG VERSION
