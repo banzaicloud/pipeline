@@ -338,9 +338,6 @@ generate-anchore-client: ## apis/anchore/swagger.yaml ## https://github.com/anch
 	@ sed -i~ 's/params,omitempty/params/' .gen/anchore/model_policy_rule.go && rm .gen/anchore/model_policy_rule.go~
 	$(call restore_backup_file,.gen/anchore/BUILD)
 
-snapshot:
-	./pleasew snapshot
-
 .PHONY: list
 list: ## List all make targets
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort

@@ -37,7 +37,3 @@ cmd = run :start
 [alias "stop"]
 desc = Stop the development environment
 cmd = run :stop
-
-[alias "snapshot"]
-desc = Create a new snapshot tag
-cmd = run :snapshot --
