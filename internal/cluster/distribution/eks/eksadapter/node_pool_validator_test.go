@@ -25,7 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
-	sdkgormtest "github.com/banzaicloud/pipeline/pkg/sdk/gorm/test"
+	pkggormtest "github.com/banzaicloud/pipeline/pkg/gorm/test"
 )
 
 func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
@@ -46,7 +46,7 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 			expectedError:   errors.New("cluster model is inconsistent"),
 			input: inputType{
 				v: &nodePoolValidator{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},
@@ -63,7 +63,7 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 			expectedError:   errors.New("failed to get cluster info: test error"),
 			input: inputType{
 				v: &nodePoolValidator{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},
@@ -81,7 +81,7 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 			expectedError:   errors.New("invalid node pool creation request"),
 			input: inputType{
 				v: &nodePoolValidator{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},
@@ -108,7 +108,7 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 			expectedError:   nil,
 			input: inputType{
 				v: &nodePoolValidator{
-					db: sdkgormtest.NewFakeDatabase(t).
+					db: pkggormtest.NewFakeDatabase(t).
 						CreateTablesFromEntities(
 							t,
 							&eksmodel.EKSClusterModel{},
