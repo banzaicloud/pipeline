@@ -330,8 +330,8 @@ dex:
 #
 #        charts:
 #            ark:
-#                chart: "banzaicloud-stable/ark"
-#                version: "1.2.2"
+#                chart: "banzaicloud-stable/velero"
+#                version: "2.13.3-bc.1"
 #
 #                # See https://github.com/banzaicloud/velero-helm-chart for details
 #                values: {}
