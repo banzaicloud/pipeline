@@ -42,16 +42,16 @@ const (
 
 const releaseName = "autoscaler"
 
-const (
-	install deploymentAction = "Install"
-	upgrade deploymentAction = "Upgrade"
-)
-
 // nolint: gochecknoglobals
 // Required for the newAMD64ArchNodeSelector func to compare k8s versions
 var comparedK8sSemver *semver.Version = semver.MustParse("1.20.0")
 
 type deploymentAction string
+
+const (
+	install deploymentAction = "Install"
+	upgrade deploymentAction = "Upgrade"
+)
 
 type nodeGroup struct {
 	Name    string `json:"name"`
