@@ -40,6 +40,7 @@ const (
 	AzureVirtualMachineScaleSet = "vmss"
 )
 
+// nolint: gochecknoglobals
 // Required for the selectArchNodeSelector func to compare k8s versions
 var comparedK8sSemver *semver.Version
 
