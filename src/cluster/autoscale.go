@@ -40,18 +40,18 @@ const (
 	AzureVirtualMachineScaleSet = "vmss"
 )
 
-// nolint: gochecknoglobals
-// Required for the selectArchNodeSelector func to compare k8s versions
-var comparedK8sSemver *semver.Version
-
 const releaseName = "autoscaler"
-
-type deploymentAction string
 
 const (
 	install deploymentAction = "Install"
 	upgrade deploymentAction = "Upgrade"
 )
+
+// nolint: gochecknoglobals
+// Required for the newAMD64ArchNodeSelector func to compare k8s versions
+var comparedK8sSemver *semver.Version = semver.MustParse("1.20.0")
+
+type deploymentAction string
 
 type nodeGroup struct {
 	Name    string `json:"name"`
@@ -91,10 +91,6 @@ type autoscalingInfo struct {
 	Image             map[string]string `json:"image,omitempty"`
 	NodeSelector      map[string]string `json:"nodeSelector,omitempty"`
 	azureInfo
-}
-
-func init() {
-	comparedK8sSemver, _ = semver.NewVersion("1.20.0")
 }
 
 func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
@@ -184,7 +180,7 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 
 func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
 	eksCertPath := "/etc/ssl/certs/ca-bundle.crt"
-	nodeSelector, err := selectArchNodeSelector(cluster)
+	nodeSelector, err := newAMD64ArchNodeSelector(cluster)
 	if err != nil {
 		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", cluster.GetID()))
 	}
@@ -244,7 +240,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		return nil
 	}
 
-	nodeSelector, err := selectArchNodeSelector(cluster)
+	nodeSelector, err := newAMD64ArchNodeSelector(cluster)
 	if err != nil {
 		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", cluster.GetID()))
 	}
@@ -468,7 +464,7 @@ func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
 }
 
 // ToDo: This need to be removed when we no longer support k8s versions under 1.20.
-func selectArchNodeSelector(cluster CommonCluster) (map[string]string, error) {
+func newAMD64ArchNodeSelector(cluster CommonCluster) (map[string]string, error) {
 	k8sVersion, err := getK8sVersion(cluster)
 	if err != nil {
 		return nil, err
