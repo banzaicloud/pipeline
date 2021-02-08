@@ -718,6 +718,11 @@ rbac:
 			"tag":        "v1.19.1",
 			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
 		},
+		map[string]interface{}{
+			"k8sVersion": ">=1.20",
+			"tag":        "v1.20.0",
+			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
+		},
 	})
 
 	v.SetDefault("cluster::autoscale::charts::hpaOperator::chart", "banzaicloud-stable/hpa-operator")

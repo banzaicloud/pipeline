@@ -42,6 +42,10 @@ const (
 
 const releaseName = "autoscaler"
 
+// nolint: gochecknoglobals
+// Required for the newAMD64ArchNodeSelector func to compare k8s versions
+var comparedK8sSemver *semver.Version = semver.MustParse("1.20.0")
+
 type deploymentAction string
 
 const (
@@ -85,6 +89,7 @@ type autoscalingInfo struct {
 	SslCertPath       *string           `json:"sslCertPath,omitempty"`
 	SslCertHostPath   *string           `json:"sslCertHostPath,omitempty"`
 	Image             map[string]string `json:"image,omitempty"`
+	NodeSelector      map[string]string `json:"nodeSelector,omitempty"`
 	azureInfo
 }
 
@@ -175,6 +180,11 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 
 func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
 	eksCertPath := "/etc/ssl/certs/ca-bundle.crt"
+	nodeSelector, err := newAMD64ArchNodeSelector(cluster)
+	if err != nil {
+		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", cluster.GetID()))
+	}
+
 	return &autoscalingInfo{
 		CloudProvider: cloudProviderAws,
 		ExtraArgs: map[string]string{
@@ -190,7 +200,8 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 				"kubernetes.io/cluster/" + cluster.GetName(),
 			},
 		},
-		SslCertPath: &eksCertPath,
+		SslCertPath:  &eksCertPath,
+		NodeSelector: nodeSelector,
 	}
 }
 
@@ -229,6 +240,11 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		return nil
 	}
 
+	nodeSelector, err := newAMD64ArchNodeSelector(cluster)
+	if err != nil {
+		log.Error(errors.WrapIfWithDetails(err, "unable to retrieve K8s version of cluster", "clusterID", cluster.GetID()))
+	}
+
 	autoscalingInfo := &autoscalingInfo{
 		CloudProvider:     cloudProviderAzure,
 		AutoscalingGroups: groups,
@@ -244,6 +260,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			TenantID:       clusterSecret.Values[secrettype.AzureTenantID],
 			ClusterName:    cluster.GetName(),
 		},
+		NodeSelector: nodeSelector,
 	}
 
 	switch cluster.GetDistribution() {
@@ -444,4 +461,18 @@ func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
 	}
 
 	return selectedImageVersion
+}
+
+// ToDo: This need to be removed when we no longer support k8s versions under 1.20.
+func newAMD64ArchNodeSelector(cluster CommonCluster) (map[string]string, error) {
+	k8sVersion, err := getK8sVersion(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	if k8sVersion.LessThan(comparedK8sSemver) {
+		return map[string]string{"kubernetes.io/arch": "amd64"}, nil
+	}
+
+	return nil, nil
 }
