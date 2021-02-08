@@ -16,7 +16,6 @@ package ark
 
 import (
 	"context"
-	"encoding/json"
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
@@ -127,7 +126,7 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 		}
 	}
 
-	config, err := s.getChartConfig(ConfigRequest{
+	req := ConfigRequest{
 		Cluster: clusterConfig{
 			Name:         s.cluster.GetName(),
 			Provider:     s.cluster.GetCloud(),
@@ -153,7 +152,8 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 		UseClusterSecret:      useClusterSecret,
 		ServiceAccountRoleARN: serviceAccountRoleARN,
 		RestoreMode:           restoreMode,
-	})
+	}
+	config, err := req.getChartConfig()
 	if err != nil {
 		return errors.Wrap(err, "error service getting config")
 	}
@@ -204,24 +204,4 @@ func (s *DeploymentsService) Remove(helmService HelmService) error {
 	}
 
 	return s.repository.Delete(deployment)
-}
-
-func (s *DeploymentsService) getChartConfig(req ConfigRequest) (config ChartConfig, err error) {
-	config = GetChartConfig()
-
-	arkConfig, err := req.Get()
-	if err != nil {
-		err = errors.Wrap(err, "error getting config")
-		return
-	}
-
-	arkJSON, err := json.Marshal(arkConfig)
-	if err != nil {
-		err = errors.Wrap(err, "json convert failed")
-		return
-	}
-
-	config.ValueOverrides = arkJSON
-
-	return
 }
