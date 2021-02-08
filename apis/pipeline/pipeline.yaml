@@ -4408,8 +4408,6 @@ components:
             allOf:
                 - $ref: '#/components/schemas/CreatePKEClusterRequestBase'
                 - type: object
-                  required:
-                        - resourceGroup
                   properties:
                         storageSecretId:
                             type: string
