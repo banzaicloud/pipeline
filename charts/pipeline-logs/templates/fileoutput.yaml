@@ -1,0 +1,11 @@
+{{- if .Values.fileOutput.enabled -}}
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Output
+metadata:
+  name: file
+  labels:
+    {{- include "pipeline-logs.labels" . | nindent 4 }}
+spec:
+  file:
+    {{- toYaml .Values.fileOutput.config | nindent 4 -}}
+{{- end -}}
