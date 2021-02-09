@@ -58,6 +58,8 @@ type CreateClusterWorkflowInput struct {
 	Nodes            []Node
 	HTTPProxy        intPKE.HTTPProxy
 	NodePoolLabels   map[string]map[string]string
+	PublicAddress    string
+	VIPInterface     string
 }
 
 func NewCreateClusterWorkflow() CreateClusterWorkflow {

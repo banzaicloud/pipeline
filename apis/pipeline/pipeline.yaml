@@ -4443,6 +4443,14 @@ components:
                             type: string
                             example: "192.168.23.150-192.168.23.180"
                             description: "IPv4 range to allocate addresses for LoadBalancer Services (MetalLB)"
+                        publicAddress:
+                            type: string
+                            example: "192.168.1.1"
+                            description: "IP address or host where the API server will be available (for multi-master)"
+                        vipInterface:
+                            type: string
+                            description: "Handle the publicAddress as a virtual IP on this networking interface (external load balancer is needed for HA clusters if unspecified)"
+                            example: eth0
 
         PKEOnVsphereNodePool:
             type: object
