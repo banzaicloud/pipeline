@@ -37,7 +37,7 @@ import (
 )
 
 const (
-	pkeVersion      = "0.7.2"
+	pkeVersion      = "keepalived-2"
 	MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 )
 
@@ -408,10 +408,10 @@ PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 PUBLIC_ADDRESS="{{ if .PublicAddress }}{{ .PublicAddress }}{{ else }}$PRIVATE_IP{{ end }}"
 
 export PATH=$PATH:/usr/local/bin/
-if ! command -v pke > /dev/null 2>&1; then
+#if ! command -v pke > /dev/null 2>&1; then
 	until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 	chmod +x /usr/local/bin/pke
-fi
+#fi
 
 if [ -r /etc/banzaicloud/pke.rc ]; then . /etc/banzaicloud/pke.rc; fi
 
