@@ -37,7 +37,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 type Config struct {
@@ -308,14 +307,6 @@ func (c *ClusterConfig) Process() error {
 type ClusterAutoscaleConfig struct {
 	Namespace string
 
-	HPA struct {
-		Prometheus struct {
-			ServiceName    string
-			ServiceContext string
-			LocalPort      int
-		}
-	}
-
 	Charts struct {
 		ClusterAutoscaler struct {
 			Chart                   string
@@ -325,12 +316,6 @@ type ClusterAutoscaleConfig struct {
 				Tag        string
 				Repository string
 			}
-		}
-
-		HPAOperator struct {
-			Chart   string
-			Version string
-			Values  values.Config
 		}
 	}
 }
@@ -671,9 +656,6 @@ rbac:
 `)
 
 	v.SetDefault("cluster::autoscale::namespace", "")
-	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-operato-prometheus")
-	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceContext", "prometheus")
-	v.SetDefault("cluster::autoscale::hpa::prometheus::localPort", 9090)
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::chart", "stable/cluster-autoscaler")
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::version", "7.1.0")
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::values", map[string]interface{}{})
@@ -724,10 +706,6 @@ rbac:
 			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
 		},
 	})
-
-	v.SetDefault("cluster::autoscale::charts::hpaOperator::chart", "banzaicloud-stable/hpa-operator")
-	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.3.0")
-	v.SetDefault("cluster::autoscale::charts::hpaOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::securityScan::enabled", true)
 	v.SetDefault("cluster::securityScan::anchore::enabled", false)

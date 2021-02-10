@@ -54,18 +54,6 @@ var Config struct {
 						Tag        string
 					}
 				}
-				HPAOperator struct {
-					Chart   string
-					Version string
-					Values  map[string]interface{}
-				}
-			}
-			HPA struct {
-				Prometheus struct {
-					LocalPort      int
-					ServiceContext string
-					ServiceName    string
-				}
 			}
 		}
 		DisasterRecovery struct {
@@ -118,9 +106,6 @@ var Config struct {
 				Enabled bool
 				Chart   string
 				Version string
-			}
-			HPA struct {
-				Enabled bool
 			}
 			Ingress struct {
 				Enabled bool

@@ -65,13 +65,12 @@ const (
 
 // constants for posthooks
 const (
-	InstallIngressControllerPostHook       = "InstallIngressControllerPostHook"
-	InstallKubernetesDashboardPostHook     = "InstallKubernetesDashboardPostHook"
-	InstallClusterAutoscalerPostHook       = "InstallClusterAutoscalerPostHook"
-	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
-	RestoreFromBackup                      = "RestoreFromBackup"
-	InitSpotConfig                         = "InitSpotConfig"
-	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
+	InstallIngressControllerPostHook   = "InstallIngressControllerPostHook"
+	InstallKubernetesDashboardPostHook = "InstallKubernetesDashboardPostHook"
+	InstallClusterAutoscalerPostHook   = "InstallClusterAutoscalerPostHook"
+	RestoreFromBackup                  = "RestoreFromBackup"
+	InitSpotConfig                     = "InitSpotConfig"
+	DeployInstanceTerminationHandler   = "DeployInstanceTerminationHandler"
 )
 
 // CreateClusterRequest describes a create cluster request
