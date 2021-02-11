@@ -175,32 +175,6 @@ func (ph *ClusterAutoscalerPostHook) Do(cluster CommonCluster) error {
 	return DeployClusterAutoscaler(cluster, ph.helmService)
 }
 
-func metricsServerIsInstalled(cluster CommonCluster) bool {
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Getting cluster config failed: %s", err.Error())
-		return false
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		log.Errorf("Getting K8s client failed: %s", err.Error())
-		return false
-	}
-
-	serverGroups, err := client.ServerGroups()
-	for _, group := range serverGroups.Groups {
-		if group.Name == "metrics.k8s.io" {
-			for _, v := range group.Versions {
-				if v.GroupVersion == "metrics.k8s.io/v1beta1" {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
 // make sure the injector interface is implemented
 var _ HookWithParamsFactory = &RestoreFromBackupPosthook{}
 
@@ -327,62 +301,6 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 	}
 	log.Info("finished initializing spot ConfigMap")
 	return nil
-}
-
-type HorizontalPodAutoscalerPostHook struct {
-	helmServiceInjector
-	Priority
-	ErrorHandler
-}
-
-func (hpa *HorizontalPodAutoscalerPostHook) Do(cluster CommonCluster) error {
-	config := global.Config.Cluster
-
-	if !config.PostHook.HPA.Enabled {
-		return nil
-	}
-
-	promServiceName := config.Autoscale.HPA.Prometheus.ServiceName
-	prometheusPort := global.Config.Cluster.Autoscale.HPA.Prometheus.LocalPort
-
-	infraNamespace := config.Autoscale.Namespace
-	serviceContext := config.Autoscale.HPA.Prometheus.ServiceContext
-
-	values := map[string]interface{}{
-		"kube-metrics-adapter": map[string]interface{}{
-			"prometheus": map[string]interface{}{
-				"url": fmt.Sprintf("http://%s.%s.svc:%d/%s", promServiceName, infraNamespace, prometheusPort, serviceContext),
-			},
-			"enableExternalMetricsApi": true,
-			"enableCustomMetricsApi":   false,
-		},
-	}
-
-	// install metricsServer only if metrics.k8s.io endpoint is not available already
-	if !metricsServerIsInstalled(cluster) {
-		log.Infof("Metrics Server is not installed, installing")
-
-		metricsServerValues := make(map[string]interface{}, 0)
-		metricsServerValues["enabled"] = true
-		metricsServerValues["apiService"] = map[string]interface{}{"create": true}
-
-		// use InternalIP on VSphere
-		if cluster.GetCloud() == pkgCluster.Vsphere {
-			metricsServerValues["args"] = []string{
-				"--kubelet-preferred-address-types=InternalIP",
-			}
-		}
-
-		values["metrics-server"] = metricsServerValues
-	} else {
-		log.Infof("Metrics Server is already installed")
-	}
-
-	mergedValues, err := mergeValues(values, config.Autoscale.Charts.HPAOperator.Values)
-	if err != nil {
-		return errors.WrapIf(err, "failed to merge hpa-operator chart values with config")
-	}
-	return hpa.helmService.ApplyDeployment(context.Background(), cluster.GetID(), infraNamespace, config.Autoscale.Charts.HPAOperator.Chart, "hpa-operator", mergedValues, config.Autoscale.Charts.HPAOperator.Version)
 }
 
 type InstanceTerminationHandlerPostHook struct {

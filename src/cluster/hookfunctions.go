@@ -30,9 +30,6 @@ var HookMap = map[string]PostFunctioner{
 	pkgCluster.InstallClusterAutoscalerPostHook: &ClusterAutoscalerPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallHorizontalPodAutoscalerPostHook: &HorizontalPodAutoscalerPostHook{
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.RestoreFromBackup: &RestoreFromBackupPosthook{
 		ErrorHandler: ErrorHandler{},
 	},
@@ -50,7 +47,6 @@ var BasePostHookFunctions = []string{
 	pkgCluster.InstallIngressControllerPostHook,
 	pkgCluster.InstallKubernetesDashboardPostHook,
 	pkgCluster.InstallClusterAutoscalerPostHook,
-	pkgCluster.InstallHorizontalPodAutoscalerPostHook,
 	pkgCluster.InitSpotConfig,
 	pkgCluster.DeployInstanceTerminationHandler,
 }
