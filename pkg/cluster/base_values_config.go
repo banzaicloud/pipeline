@@ -31,9 +31,6 @@ type PostHookConfig struct {
 	// Instance Termination Handler config
 	ITH BasePostHookConfig
 
-	// Horizontal Pod Autoscaler config
-	HPA BaseConfig
-
 	// Cluster Autoscaler config
 	Autoscaler BaseConfig
 }

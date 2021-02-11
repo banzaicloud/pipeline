@@ -756,9 +756,6 @@ traefik:
 	v.SetDefault("cluster::posthook::ith::chart", "banzaicloud-stable/instance-termination-handler")
 	v.SetDefault("cluster::posthook::ith::version", "0.0.9")
 
-	// Horizontal Pod Autoscaler
-	v.SetDefault("cluster::posthook::hpa::enabled", false)
-
 	// Cluster Autoscaler
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
 
