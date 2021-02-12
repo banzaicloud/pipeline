@@ -117,9 +117,9 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 			},
 		}
 
-		clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateSubnetActivityName)
+		requestToken := aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID))
 		createStackInput := &cloudformation.CreateStackInput{
-			ClientRequestToken: aws.String(input.AWSClientRequestTokenBase),
+			ClientRequestToken: requestToken,
 			DisableRollback:    aws.Bool(true),
 			StackName:          aws.String(input.StackName),
 			Parameters:         stackParams,
@@ -137,7 +137,7 @@ func (a *CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAc
 		err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 
 		if err != nil {
-			return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "failed to create subnet with cidr")
+			return nil, packageCFError(err, input.StackName, *requestToken, cloudformationClient, "failed to create subnet with cidr")
 		}
 
 		describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)

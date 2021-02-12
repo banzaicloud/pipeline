@@ -151,7 +151,7 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 			tags[k] = aws.String(v)
 		}
 
-		requestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateEksControlPlaneActivityName)
+		requestToken := aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID))
 
 		logger.Info("create EKS cluster")
 		logger.Debug("clientRequestToken: ", requestToken)
@@ -167,7 +167,7 @@ func (a *CreateEksControlPlaneActivity) Execute(ctx context.Context, input Creat
 		}
 
 		createClusterInput := &eks.CreateClusterInput{
-			ClientRequestToken: aws.String(requestToken),
+			ClientRequestToken: requestToken,
 			EncryptionConfig:   encryptionConfig,
 			Name:               aws.String(input.ClusterName),
 			ResourcesVpcConfig: vpcConfigRequest,

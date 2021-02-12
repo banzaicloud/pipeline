@@ -313,11 +313,11 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		),
 	}
 
-	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, UpdateAsgActivityName)
+	requestToken := aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID))
 
 	// we don't reuse the creation time template, since it may have changed
 	updateStackInput := &cloudformation.UpdateStackInput{
-		ClientRequestToken: aws.String(clientRequestToken),
+		ClientRequestToken: requestToken,
 		StackName:          aws.String(input.StackName),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		Parameters:         stackParams,
@@ -338,7 +338,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
 			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, *requestToken, cloudformationClient)
 				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 				if pkgCloudformation.IsErrorFinal(err) {
 					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
@@ -351,7 +351,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 	err = WaitUntilStackUpdateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
-		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
+		return nil, packageCFError(err, input.StackName, *requestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
 	}
 
 	// wait for ASG fulfillment
