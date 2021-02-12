@@ -30,7 +30,6 @@ import (
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
-	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
@@ -114,11 +113,10 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 	)
 
 	commonActivityInput := eksWorkflow.EKSActivityInput{
-		OrganizationID:            input.OrganizationID,
-		SecretID:                  input.SecretID,
-		Region:                    input.Region,
-		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
+		OrganizationID: input.OrganizationID,
+		SecretID:       input.SecretID,
+		Region:         input.Region,
+		ClusterName:    input.ClusterName,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)

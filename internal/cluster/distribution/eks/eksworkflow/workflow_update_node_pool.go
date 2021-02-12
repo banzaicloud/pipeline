@@ -33,7 +33,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
-	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkCloudFormation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 	"github.com/banzaicloud/pipeline/pkg/sdk/semver"
 )
@@ -128,11 +127,10 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 	}
 
 	eksActivityInput := eksWorkflow.EKSActivityInput{
-		OrganizationID:            input.OrganizationID,
-		SecretID:                  providerSecretID.ResourceID,
-		Region:                    input.Region,
-		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
+		OrganizationID: input.OrganizationID,
+		SecretID:       providerSecretID.ResourceID,
+		Region:         input.Region,
+		ClusterName:    input.ClusterName,
 	}
 
 	var currentTemplateVersion semver.Version

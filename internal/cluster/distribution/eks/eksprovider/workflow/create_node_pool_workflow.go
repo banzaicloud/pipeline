@@ -27,7 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
-	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 	sdkcloudformation "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon/cloudformation"
 )
 
@@ -110,9 +109,6 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		SecretID:       eksCluster.Cluster.SecretID,
 		Region:         eksCluster.Cluster.Location,
 		ClusterName:    eksCluster.Cluster.Name,
-		AWSClientRequestTokenBase: sdkamazon.NewNormalizedClientRequestToken(
-			workflow.GetInfo(ctx).WorkflowExecution.ID,
-		),
 	}
 
 	if eksCluster.NodeInstanceRoleId == "" {
