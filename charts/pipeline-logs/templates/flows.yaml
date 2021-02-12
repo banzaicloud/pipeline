@@ -12,7 +12,13 @@ spec:
     {{- toYaml $flow.match | nindent 4 }}
   {{- if $flow.filters }}
   filters:
+    {{- if $root.Values.flowPreFilters }}
+    {{- toYaml $root.Values.flowPreFilters | nindent 4 }}
+    {{- end }}
     {{- toYaml $flow.filters | nindent 4 }}
+    {{- if $root.Values.flowPostFilters }}
+    {{- toYaml $root.Values.flowPostFilters | nindent 4 }}
+    {{- end }}
   {{- end }}
   {{- if or $flow.localOutputRefs $root.Values.localOutputRefs }}
   localOutputRefs:

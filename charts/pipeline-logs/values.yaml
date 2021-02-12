@@ -11,6 +11,13 @@ fullnameOverride: ""
 #globalOutputRefs:
 #  - example
 
+flowPreFilters:
+  - sumologic:
+      source_name: kubernetes
+      log_format: fields
+      tracing_namespace: namespace_name
+      tracing_pod: pod_name
+
 flows:
   pipeline:
     match:
