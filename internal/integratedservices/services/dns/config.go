@@ -63,6 +63,7 @@ type ExternalDNSChartValuesConfig struct {
 }
 
 type ExternalDNSChartValuesImageConfig struct {
+	Registry   string
 	Repository string
 	Tag        string
 }

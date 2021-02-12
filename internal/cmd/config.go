@@ -636,7 +636,8 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::dns::charts::externalDns::version", "4.5.0")
 	v.SetDefault("cluster::dns::charts::externalDns::values", map[string]interface{}{
 		"image": map[string]interface{}{
-			"repository": "k8s.gcr.io/external-dns/external-dns",
+			"registry":   "k8s.gcr.io",
+			"repository": "external-dns/external-dns",
 			"tag":        "v0.7.5",
 		},
 	})
