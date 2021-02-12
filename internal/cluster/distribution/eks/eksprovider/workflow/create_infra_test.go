@@ -180,11 +180,10 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 	}
 
 	eksActivity := EKSActivityInput{
-		OrganizationID:            workflowInput.OrganizationID,
-		SecretID:                  workflowInput.SecretID,
-		Region:                    workflowInput.Region,
-		ClusterName:               workflowInput.ClusterName,
-		AWSClientRequestTokenBase: "default-test-workflow-id",
+		OrganizationID: workflowInput.OrganizationID,
+		SecretID:       workflowInput.SecretID,
+		Region:         workflowInput.Region,
+		ClusterName:    workflowInput.ClusterName,
 	}
 
 	s.env.OnActivity(ValidateIAMRoleActivityName, mock.Anything, ValidateIAMRoleActivityInput{
@@ -488,11 +487,10 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Fail_To_Create_VPC() {
 	}
 
 	eksActivity := EKSActivityInput{
-		OrganizationID:            workflowInput.OrganizationID,
-		SecretID:                  workflowInput.SecretID,
-		Region:                    workflowInput.Region,
-		ClusterName:               workflowInput.ClusterName,
-		AWSClientRequestTokenBase: "default-test-workflow-id",
+		OrganizationID: workflowInput.OrganizationID,
+		SecretID:       workflowInput.SecretID,
+		Region:         workflowInput.Region,
+		ClusterName:    workflowInput.ClusterName,
 	}
 
 	s.env.OnActivity(ValidateIAMRoleActivityName, mock.Anything, ValidateIAMRoleActivityInput{
