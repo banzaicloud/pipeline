@@ -57,7 +57,8 @@ func TestConfigure_DefaultValueBinding(t *testing.T) {
 							},
 							Values: dns.ExternalDNSChartValuesConfig{
 								Image: dns.ExternalDNSChartValuesImageConfig{
-									Repository: "k8s.gcr.io/external-dns/external-dns",
+									Registry:   "k8s.gcr.io",
+									Repository: "external-dns/external-dns",
 									Tag:        "v0.7.5",
 								},
 							},

@@ -163,6 +163,7 @@ func (op IntegratedServiceOperator) getChartValues(ctx context.Context, clusterI
 			Create: cl.RbacEnabled(),
 		},
 		Image: &externaldns.ImageSettings{
+			Registry:   op.config.Charts.ExternalDNS.Values.Image.Registry,
 			Repository: op.config.Charts.ExternalDNS.Values.Image.Repository,
 			Tag:        op.config.Charts.ExternalDNS.Values.Image.Tag,
 		},
