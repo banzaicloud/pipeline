@@ -183,6 +183,9 @@ func (i ISServiceV2) Update(ctx context.Context, clusterID uint, serviceName str
 func (i ISServiceV2) isManagedByPipeline(ctx context.Context, clusterID uint, serviceName string) error {
 	integratedService, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
 	if err != nil {
+		if IsIntegratedServiceNotFoundError(err) {
+			return nil
+		}
 		return errors.WrapIf(err, "failed to retrieve the integrated service")
 	}
 
