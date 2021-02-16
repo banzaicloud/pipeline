@@ -134,6 +134,10 @@ func (i ISServiceV2) Details(ctx context.Context, clusterID uint, serviceName st
 }
 
 func (i ISServiceV2) Deactivate(ctx context.Context, clusterID uint, serviceName string) error {
+	if err := i.isManagedByPipeline(ctx, clusterID, serviceName); err != nil {
+		return errors.WrapIf(err, "service is not managed by pipeline")
+	}
+
 	if _, err := i.managerRegistry.GetIntegratedServiceManager(serviceName); err != nil {
 		return errors.WrapIf(err, "failed to retrieve integrated service manager")
 	}
@@ -151,6 +155,10 @@ func (i ISServiceV2) Deactivate(ctx context.Context, clusterID uint, serviceName
 }
 
 func (i ISServiceV2) Update(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error {
+	if err := i.isManagedByPipeline(ctx, clusterID, serviceName); err != nil {
+		return errors.WrapIf(err, "service is not managed by pipeline")
+	}
+
 	integratedServiceManager, err := i.managerRegistry.GetIntegratedServiceManager(serviceName)
 	if err != nil {
 		return errors.WrapIf(err, "failed to retrieve integrated service manager")
@@ -167,6 +175,24 @@ func (i ISServiceV2) Update(ctx context.Context, clusterID uint, serviceName str
 
 	if err := i.dispatcher.DispatchApply(ctx, clusterID, serviceName, preparedSpec); err != nil {
 		return errors.WrapIf(err, "failed to start integrated service update")
+	}
+
+	return nil
+}
+
+func (i ISServiceV2) isManagedByPipeline(ctx context.Context, clusterID uint, serviceName string) error {
+	integratedService, err := i.repository.GetIntegratedService(ctx, clusterID, serviceName)
+	if err != nil {
+		return errors.WrapIf(err, "failed to retrieve the integrated service")
+	}
+
+	managedBy, ok := integratedService.Output["managed-by"]
+	if !ok {
+		// the managed-by flag is not set
+		return errors.WrapIf(err, "the service is not managed")
+	}
+	if managedBy != "pipeline" {
+		return errors.WrapIf(err, "the service is not managed by pipeline")
 	}
 
 	return nil
