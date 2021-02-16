@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
-	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 // DeleteNodePoolWorkflowName is the name of the EKS node pool deletion
@@ -110,9 +109,6 @@ func (w DeleteNodePoolWorkflow) Execute(ctx workflow.Context, input DeleteNodePo
 				SecretID:       input.SecretID,
 				Region:         input.Region,
 				ClusterName:    input.ClusterName,
-				AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(
-					workflow.GetInfo(ctx).WorkflowExecution.ID,
-				),
 			},
 			StackID:   nodePoolStackID,
 			StackName: GenerateNodePoolStackName(input.ClusterName, input.NodePoolName),

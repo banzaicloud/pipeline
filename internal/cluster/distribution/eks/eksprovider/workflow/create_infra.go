@@ -23,7 +23,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
-	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const CreateInfraWorkflowName = "eks-create-infra"
@@ -112,11 +111,10 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	}
 
 	commonActivityInput := EKSActivityInput{
-		OrganizationID:            input.OrganizationID,
-		SecretID:                  input.SecretID,
-		Region:                    input.Region,
-		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
+		OrganizationID: input.OrganizationID,
+		SecretID:       input.SecretID,
+		Region:         input.Region,
+		ClusterName:    input.ClusterName,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)

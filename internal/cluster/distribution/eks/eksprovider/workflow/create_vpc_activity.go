@@ -122,9 +122,9 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 	}
 	cloudformationClient := cloudformation.New(session)
 
-	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateVpcActivityName)
+	requestToken := aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID))
 	createStackInput := &cloudformation.CreateStackInput{
-		ClientRequestToken: aws.String(clientRequestToken),
+		ClientRequestToken: requestToken,
 		DisableRollback:    aws.Bool(true),
 		StackName:          aws.String(input.StackName),
 		Parameters:         stackParams,
@@ -143,7 +143,7 @@ func (a *CreateVpcActivity) Execute(ctx context.Context, input CreateVpcActivity
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
 			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, *requestToken, cloudformationClient)
 				if pkgCloudformation.IsErrorFinal(err) {
 					return nil, cadence.NewCustomError(ErrReasonStackFailed, err.Error())
 				}

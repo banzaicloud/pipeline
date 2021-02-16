@@ -77,11 +77,10 @@ func TestGetVPCConfig(t *testing.T) {
 			caseDescription: "success",
 			input: inputType{
 				eksActivityInput: EKSActivityInput{
-					OrganizationID:            1,
-					SecretID:                  "brn:1:secret:id",
-					Region:                    "region",
-					ClusterName:               "cluster-name",
-					AWSClientRequestTokenBase: "aws-client-request-token-base",
+					OrganizationID: 1,
+					SecretID:       "brn:1:secret:id",
+					Region:         "region",
+					ClusterName:    "cluster-name",
 				},
 				stackName: "stack-name",
 			},
@@ -98,11 +97,10 @@ func TestGetVPCConfig(t *testing.T) {
 			caseDescription: "error",
 			input: inputType{
 				eksActivityInput: EKSActivityInput{
-					OrganizationID:            1,
-					SecretID:                  "brn:1:secret:id",
-					Region:                    "region",
-					ClusterName:               "cluster-name",
-					AWSClientRequestTokenBase: "aws-client-request-token-base",
+					OrganizationID: 1,
+					SecretID:       "brn:1:secret:id",
+					Region:         "region",
+					ClusterName:    "cluster-name",
 				},
 				stackName: "stack-name",
 			},
@@ -175,11 +173,10 @@ func TestGetVPCConfigAsync(t *testing.T) {
 			caseDescription: "success",
 			input: inputType{
 				eksActivityInput: EKSActivityInput{
-					OrganizationID:            1,
-					SecretID:                  "brn:1:secret:id",
-					Region:                    "region",
-					ClusterName:               "cluster-name",
-					AWSClientRequestTokenBase: "aws-client-request-token-base",
+					OrganizationID: 1,
+					SecretID:       "brn:1:secret:id",
+					Region:         "region",
+					ClusterName:    "cluster-name",
 				},
 				stackName: "stack-name",
 			},
@@ -196,11 +193,10 @@ func TestGetVPCConfigAsync(t *testing.T) {
 			caseDescription: "error",
 			input: inputType{
 				eksActivityInput: EKSActivityInput{
-					OrganizationID:            1,
-					SecretID:                  "brn:1:secret:id",
-					Region:                    "region",
-					ClusterName:               "cluster-name",
-					AWSClientRequestTokenBase: "aws-client-request-token-base",
+					OrganizationID: 1,
+					SecretID:       "brn:1:secret:id",
+					Region:         "region",
+					ClusterName:    "cluster-name",
 				},
 				stackName: "stack-name",
 			},

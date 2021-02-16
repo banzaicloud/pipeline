@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"go.uber.org/cadence/activity"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
@@ -119,10 +120,10 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 
 	cloudformationClient := cloudformation.New(session)
 
-	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateIamRolesActivityName)
+	requestToken := aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID))
 
 	createStackInput := &cloudformation.CreateStackInput{
-		ClientRequestToken: aws.String(clientRequestToken),
+		ClientRequestToken: requestToken,
 		DisableRollback:    aws.Bool(true),
 		Capabilities: []*string{
 			aws.String(cloudformation.CapabilityCapabilityIam),
@@ -142,7 +143,7 @@ func (a *CreateIamRolesActivity) Execute(ctx context.Context, input CreateIamRol
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
-		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "failed to describe stack")
+		return nil, packageCFError(err, input.StackName, *requestToken, cloudformationClient, "failed to describe stack")
 	}
 
 	describeStacksOutput, err := cloudformationClient.DescribeStacks(describeStacksInput)

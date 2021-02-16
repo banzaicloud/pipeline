@@ -102,9 +102,9 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 
 	logger.Info("deleting stack")
 
-	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, DeleteStackActivityName)
+	requestToken := aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID))
 	deleteStackInput := &cloudformation.DeleteStackInput{
-		ClientRequestToken: aws.String(clientRequestToken),
+		ClientRequestToken: requestToken,
 		StackName:          aws.String(input.StackName),
 	}
 	_, err = cloudformationClient.DeleteStack(deleteStackInput)
@@ -122,7 +122,7 @@ func (a *DeleteStackActivity) Execute(ctx context.Context, input DeleteStackActi
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
 			if awsErr.Code() == request.WaiterResourceNotReadyErrorCode {
-				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, clientRequestToken, cloudformationClient)
+				err = pkgCloudformation.NewAwsStackFailure(err, input.StackName, *requestToken, cloudformationClient)
 				err = errors.WrapIff(err, "waiting for %q CF stack create operation to complete failed", input.StackName)
 				if pkgCloudformation.IsErrorFinal(err) {
 					return cadence.NewCustomError(ErrReasonStackFailed, err.Error())

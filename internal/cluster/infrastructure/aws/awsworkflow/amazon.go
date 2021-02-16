@@ -36,9 +36,6 @@ type AWSCommonActivityInput struct {
 	Region string
 
 	ClusterName string
-
-	// 64 chars length unique unique identifier that identifies the create CloudFormation
-	AWSClientRequestTokenBase string
 }
 
 type SecretStore interface {

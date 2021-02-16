@@ -28,7 +28,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cadence/awssdk"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
-	sdkAmazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 const DeleteInfraWorkflowName = "eks-delete-infra"
@@ -97,19 +96,17 @@ func (w DeleteInfrastructureWorkflow) Execute(ctx workflow.Context, input Delete
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	eksActivityInput := EKSActivityInput{
-		OrganizationID:            input.OrganizationID,
-		SecretID:                  input.SecretID,
-		Region:                    input.Region,
-		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
+		OrganizationID: input.OrganizationID,
+		SecretID:       input.SecretID,
+		Region:         input.Region,
+		ClusterName:    input.ClusterName,
 	}
 
 	awsCommonActivityInput := awsworkflow.AWSCommonActivityInput{
-		OrganizationID:            input.OrganizationID,
-		SecretID:                  input.SecretID,
-		Region:                    input.Region,
-		ClusterName:               input.ClusterName,
-		AWSClientRequestTokenBase: sdkAmazon.NewNormalizedClientRequestToken(workflow.GetInfo(ctx).WorkflowExecution.ID),
+		OrganizationID: input.OrganizationID,
+		SecretID:       input.SecretID,
+		Region:         input.Region,
+		ClusterName:    input.ClusterName,
 	}
 
 	// get VPC ID

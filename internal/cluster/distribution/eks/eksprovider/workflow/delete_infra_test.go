@@ -95,19 +95,17 @@ func (s *DeleteClusterInfraWorkflowTestSuite) Test_Successful_Delete_Infra() {
 	}
 
 	eksActivityInput := EKSActivityInput{
-		OrganizationID:            workflowInput.OrganizationID,
-		SecretID:                  workflowInput.SecretID,
-		Region:                    workflowInput.Region,
-		ClusterName:               workflowInput.ClusterName,
-		AWSClientRequestTokenBase: "default-test-workflow-id",
+		OrganizationID: workflowInput.OrganizationID,
+		SecretID:       workflowInput.SecretID,
+		Region:         workflowInput.Region,
+		ClusterName:    workflowInput.ClusterName,
 	}
 
 	awsCommonActivityInput := awsworkflow.AWSCommonActivityInput{
-		OrganizationID:            workflowInput.OrganizationID,
-		SecretID:                  workflowInput.SecretID,
-		Region:                    workflowInput.Region,
-		ClusterName:               workflowInput.ClusterName,
-		AWSClientRequestTokenBase: "default-test-workflow-id",
+		OrganizationID: workflowInput.OrganizationID,
+		SecretID:       workflowInput.SecretID,
+		Region:         workflowInput.Region,
+		ClusterName:    workflowInput.ClusterName,
 	}
 
 	s.env.OnActivity(GetVpcConfigActivityName, mock.Anything, GetVpcConfigActivityInput{

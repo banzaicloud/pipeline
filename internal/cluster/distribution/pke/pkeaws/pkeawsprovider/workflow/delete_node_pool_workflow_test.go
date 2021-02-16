@@ -30,7 +30,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
-	sdkamazon "github.com/banzaicloud/pipeline/pkg/sdk/providers/amazon"
 )
 
 type DeleteNodePoolWorkflowTestSuite struct {
@@ -134,9 +133,6 @@ func (workflowTestSuite *DeleteNodePoolWorkflowTestSuite) TestDeleteNodePoolWork
 						SecretID:       input.input.SecretID,
 						Region:         input.input.Region,
 						ClusterName:    input.input.ClusterName,
-						AWSClientRequestTokenBase: sdkamazon.NewNormalizedClientRequestToken(
-							"default-test-workflow-id",
-						),
 					},
 					StackID: "",
 					StackName: pkeaws.GenerateNodePoolStackName(

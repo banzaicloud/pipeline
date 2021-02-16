@@ -270,10 +270,10 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		},
 	}
 
-	clientRequestToken := sdkAmazon.NewNormalizedClientRequestToken(input.AWSClientRequestTokenBase, CreateAsgActivityName)
+	requestToken := aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID))
 
 	createStackInput := &cloudformation.CreateStackInput{
-		ClientRequestToken: aws.String(clientRequestToken),
+		ClientRequestToken: requestToken,
 		DisableRollback:    aws.Bool(true),
 		StackName:          aws.String(input.StackName),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
@@ -305,7 +305,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackName)}
 	err = WaitUntilStackCreateCompleteWithContext(cloudformationClient, ctx, describeStacksInput)
 	if err != nil {
-		return nil, packageCFError(err, input.StackName, clientRequestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
+		return nil, packageCFError(err, input.StackName, *requestToken, cloudformationClient, "waiting for CF stack create operation to complete failed")
 	}
 
 	// wait for ASG fulfillment

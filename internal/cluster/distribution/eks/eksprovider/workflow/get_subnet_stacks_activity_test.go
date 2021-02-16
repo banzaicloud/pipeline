@@ -42,11 +42,10 @@ func TestGetClusterSubnetStackNames(t *testing.T) {
 		{
 			caseDescription: "error",
 			inputEKSActivityInput: EKSActivityInput{
-				OrganizationID:            1,
-				SecretID:                  "secret-id",
-				Region:                    "region",
-				ClusterName:               "cluster-name",
-				AWSClientRequestTokenBase: "aws-client-request-token-base",
+				OrganizationID: 1,
+				SecretID:       "secret-id",
+				Region:         "region",
+				ClusterName:    "cluster-name",
 			},
 			output: outputType{
 				expectedError:      errors.New("test error"),
@@ -56,11 +55,10 @@ func TestGetClusterSubnetStackNames(t *testing.T) {
 		{
 			caseDescription: "success",
 			inputEKSActivityInput: EKSActivityInput{
-				OrganizationID:            1,
-				SecretID:                  "secret-id",
-				Region:                    "region",
-				ClusterName:               "cluster-name",
-				AWSClientRequestTokenBase: "aws-client-request-token-base",
+				OrganizationID: 1,
+				SecretID:       "secret-id",
+				Region:         "region",
+				ClusterName:    "cluster-name",
 			},
 			output: outputType{
 				expectedError: nil,
@@ -126,11 +124,10 @@ func TestGetClusterSubnetStackNamesAsync(t *testing.T) {
 		{
 			caseDescription: "error",
 			inputEKSActivityInput: EKSActivityInput{
-				OrganizationID:            1,
-				SecretID:                  "secret-id",
-				Region:                    "region",
-				ClusterName:               "cluster-name",
-				AWSClientRequestTokenBase: "aws-client-request-token-base",
+				OrganizationID: 1,
+				SecretID:       "secret-id",
+				Region:         "region",
+				ClusterName:    "cluster-name",
 			},
 			output: outputType{
 				expectedError:  errors.New("test error"),
@@ -140,11 +137,10 @@ func TestGetClusterSubnetStackNamesAsync(t *testing.T) {
 		{
 			caseDescription: "success",
 			inputEKSActivityInput: EKSActivityInput{
-				OrganizationID:            1,
-				SecretID:                  "secret-id",
-				Region:                    "region",
-				ClusterName:               "cluster-name",
-				AWSClientRequestTokenBase: "aws-client-request-token-base",
+				OrganizationID: 1,
+				SecretID:       "secret-id",
+				Region:         "region",
+				ClusterName:    "cluster-name",
 			},
 			output: outputType{
 				expectedError: nil,
