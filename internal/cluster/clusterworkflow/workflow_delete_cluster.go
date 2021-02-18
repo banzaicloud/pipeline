@@ -58,6 +58,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 		activityInput := workflow2.IntegratedServiceCleanActivityInput{
 			ClusterID: input.ClusterID,
+			Force:     input.Force,
 		}
 		err := workflow.ExecuteActivity(ctx, fmt.Sprintf("%s-v2", workflow2.IntegratedServiceCleanActivityName), activityInput).Get(ctx, nil)
 		if err != nil {

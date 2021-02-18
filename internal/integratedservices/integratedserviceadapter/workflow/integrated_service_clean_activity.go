@@ -18,24 +18,38 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
+	"github.com/sirupsen/logrus"
 )
 
 const IntegratedServiceCleanActivityName = "integrated-service-clean"
 
 type IntegratedServiceCleanActivityInput struct {
-	ClusterID             uint
+	ClusterID uint
+	Force     bool
 }
 
 type IntegratedServiceCleanActivity struct {
 	integratedServices integratedservices.IntegratedServiceOperatorRegistry
+	logger             logrus.FieldLogger
 }
 
-func MakeIntegratedServiceCleanActivity(integratedServices integratedservices.IntegratedServiceOperatorRegistry) IntegratedServiceCleanActivity {
+func MakeIntegratedServiceCleanActivity(integratedServices integratedservices.IntegratedServiceOperatorRegistry, logger logrus.FieldLogger) IntegratedServiceCleanActivity {
 	return IntegratedServiceCleanActivity{
 		integratedServices: integratedServices,
+		logger:             logger,
 	}
 }
 
-func (a IntegratedServiceCleanActivity) Execute(ctx context.Context, input IntegratedServiceDeleteActivityInput) error {
-	return a.integratedServices.DisableServiceInstance(ctx, input.ClusterID)
+func (a IntegratedServiceCleanActivity) Execute(ctx context.Context, input IntegratedServiceCleanActivityInput) error {
+	err := a.integratedServices.DisableServiceInstance(ctx, input.ClusterID)
+	if input.Force {
+		logger := a.logger.WithFields(logrus.Fields{
+			"clusterID": input.ClusterID,
+		})
+		logger.Error(err)
+
+		return nil
+	}
+
+	return err
 }

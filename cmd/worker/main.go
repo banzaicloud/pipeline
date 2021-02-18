@@ -730,8 +730,8 @@ func main() {
 				),
 			}, clusterManager.KubeConfigFunc())
 
-			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)
-			registerClusterFeatureWorkflows(worker, featureOperatorRegistryV2, featureRepositoryV2, clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name, true)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, logrusLogger, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistryV2, featureRepositoryV2, logrusLogger, clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name, true)
 
 			// integrated service operator setup
 			{
