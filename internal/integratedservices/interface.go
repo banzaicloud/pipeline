@@ -16,6 +16,7 @@ package integratedservices
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
@@ -234,4 +235,16 @@ func (e ClusterIsNotReadyError) ShouldRetry() bool {
 type SpecConversion interface {
 	// ConvertSpec converts in integrated service spec while keeping it's original structure
 	ConvertSpec(ctx context.Context, instance v1alpha1.ServiceInstance) (IntegratedServiceSpec, error)
+}
+
+type NotManagedIntegratedServiceError struct {
+	IntegratedServiceName string
+}
+
+func (NotManagedIntegratedServiceError) ServiceError() bool {
+	return true
+}
+
+func (n NotManagedIntegratedServiceError) Error() string {
+	return fmt.Sprintf("the %s integrated service is not managed by pipeline", n.IntegratedServiceName)
 }

@@ -63,6 +63,12 @@ func (c ServiceConversion) Convert(ctx context.Context, instance v1alpha1.Servic
 				return integratedservices.IntegratedService{}, errors.WrapIfWithDetails(err, "output resolution failed for service",
 					"name", instance.Name, "service", instance.Spec.Service)
 			}
+
+			// signal whether the resource is managed by pipeline in the output
+			if services.IsManagedByPipeline(instance.ObjectMeta) {
+				output["managed-by"] = "pipeline"
+			}
+
 			convertedService.Output = output
 		}
 		return convertedService, nil
