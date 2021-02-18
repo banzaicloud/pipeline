@@ -246,5 +246,5 @@ func (NotManagedIntegratedServiceError) ServiceError() bool {
 }
 
 func (n NotManagedIntegratedServiceError) Error() string {
-	return fmt.Sprintf("the integrated service [%s] is not managed by pipeline", n.IntegratedServiceName)
+	return fmt.Sprintf("the %s integrated service is not managed by pipeline", n.IntegratedServiceName)
 }
