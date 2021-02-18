@@ -15,8 +15,10 @@
 package clusterworkflow
 
 import (
+	"fmt"
 	"time"
 
+	workflow2 "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -41,6 +43,23 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			ClusterID: input.ClusterID,
 		}
 		err := workflow.ExecuteActivity(ctx, RemoveClusterFromGroupActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
+			return err
+		}
+	}
+
+	// Cleanup V2 Integrated Services
+	{
+		ctx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			ScheduleToStartTimeout: 5 * time.Minute,
+			StartToCloseTimeout:    30 * time.Minute,
+		})
+
+		activityInput := workflow2.IntegratedServiceCleanActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		err := workflow.ExecuteActivity(ctx, fmt.Sprintf("%s-v2", workflow2.IntegratedServiceCleanActivityName), activityInput).Get(ctx, nil)
 		if err != nil {
 			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
 			return err

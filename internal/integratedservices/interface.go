@@ -61,6 +61,8 @@ type IntegratedServiceManagerRegistry interface {
 type IntegratedServiceOperatorRegistry interface {
 	// GetIntegratedServiceOperator retrieves an integrated service operator by name.
 	GetIntegratedServiceOperator(integratedServiceName string) (IntegratedServiceOperator, error)
+
+	DisableServiceInstance(ctx context.Context, clusterID uint) error
 }
 
 // +testify:mock:testOnly=true

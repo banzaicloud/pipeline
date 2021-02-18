@@ -718,7 +718,7 @@ func main() {
 					unifiedHelmReleaser,
 					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
 				),
-			})
+			}, clusterManager.KubeConfigFunc())
 			featureOperatorRegistryV2 := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
 				integratedServiceDNS.NewDNSISOperator(
 					clusterGetter,
@@ -728,7 +728,7 @@ func main() {
 					config.Cluster.DNS.Config,
 					logger,
 				),
-			})
+			}, clusterManager.KubeConfigFunc())
 
 			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)
 			registerClusterFeatureWorkflows(worker, featureOperatorRegistryV2, featureRepositoryV2, clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name, true)

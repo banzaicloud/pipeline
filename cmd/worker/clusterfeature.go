@@ -66,4 +66,11 @@ func registerClusterFeatureWorkflows(worker worker.Worker, featureOperatorRegist
 			worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
 		}
 	}
+
+	// Integrated Service v2 cleanup
+	{
+		activityName := clusterfeatureworkflow.GetActivityName(clusterfeatureworkflow.IntegratedServiceCleanActivityName, isV2)
+		a := clusterfeatureworkflow.MakeIntegratedServiceCleanActivity(featureOperatorRegistry)
+		worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
+	}
 }
