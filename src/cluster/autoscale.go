@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/helm"
 )
 
@@ -93,7 +94,7 @@ type autoscalingInfo struct {
 	azureInfo
 }
 
-func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
+func getAmazonNodeGroups(cluster common.CommonCluster) ([]nodeGroup, error) {
 	var nodeGroups []nodeGroup
 
 	scaleOptions := cluster.GetScaleOptions()
@@ -136,7 +137,7 @@ func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	return nodeGroups, nil
 }
 
-func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
+func getAzureNodeGroups(cluster common.CommonCluster) ([]nodeGroup, error) {
 	var nodeGroups []nodeGroup
 
 	switch cluster.GetDistribution() {
@@ -178,7 +179,7 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	return nodeGroups, nil
 }
 
-func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
+func createAutoscalingForEks(cluster common.CommonCluster, groups []nodeGroup) *autoscalingInfo {
 	eksCertPath := "/etc/ssl/certs/ca-bundle.crt"
 	nodeSelector, err := newAMD64ArchNodeSelector(cluster)
 	if err != nil {
@@ -205,7 +206,7 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 	}
 }
 
-func getNodeResourceGroup(cluster CommonCluster) *string {
+func getNodeResourceGroup(cluster common.CommonCluster) *string {
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error getting config: %s", err.Error())
@@ -234,7 +235,7 @@ func getNodeResourceGroup(cluster CommonCluster) *string {
 	return nil
 }
 
-func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType string) *autoscalingInfo {
+func createAutoscalingForAzure(cluster common.CommonCluster, groups []nodeGroup, vmType string) *autoscalingInfo {
 	clusterSecret, err := cluster.GetSecretWithValidation()
 	if err != nil {
 		return nil
@@ -298,7 +299,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 }
 
 // DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
-func DeployClusterAutoscaler(cluster CommonCluster, helmService HelmService) error {
+func DeployClusterAutoscaler(cluster common.CommonCluster, helmService HelmService) error {
 	config := global.Config.Cluster.PostHook.Autoscaler
 	if !config.Enabled {
 		return nil
@@ -359,7 +360,7 @@ func isAutoscalerDeployedAlready(releaseName string, clusterId uint, helmDeploye
 	return true
 }
 
-func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, helmService HelmService, action deploymentAction) error {
+func deployAutoscalerChart(cluster common.CommonCluster, nodeGroups []nodeGroup, helmService HelmService, action deploymentAction) error {
 	var values *autoscalingInfo
 	switch cluster.GetDistribution() {
 	case pkgCluster.EKS:
@@ -464,7 +465,7 @@ func getImageVersion(clusterID uint, cluster interface{}) map[string]string {
 }
 
 // ToDo: This need to be removed when we no longer support k8s versions under 1.20.
-func newAMD64ArchNodeSelector(cluster CommonCluster) (map[string]string, error) {
+func newAMD64ArchNodeSelector(cluster common.CommonCluster) (map[string]string, error) {
 	k8sVersion, err := getK8sVersion(cluster)
 	if err != nil {
 		return nil, err

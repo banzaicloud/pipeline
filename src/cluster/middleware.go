@@ -27,6 +27,7 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/problems"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type notSupportedQueryError struct {
@@ -50,7 +51,7 @@ func NewClusterCheckMiddleware(manager *Manager, errorHandler emperror.Handler) 
 		}
 
 		var err error
-		var cl CommonCluster
+		var cl common.CommonCluster
 		switch field := c.DefaultQuery("field", "id"); field {
 		case "id":
 			clusterID, ok := ginutils.UintParam(c, "id")

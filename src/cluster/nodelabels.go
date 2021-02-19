@@ -23,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/global/globalcluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type NodePoolLabels struct {
@@ -62,7 +63,7 @@ func (n NodePoolLabels) GetLabels() map[string]string {
 // adding reserved labels like: head node, ondemand labels + cloudinfo to user defined labels in specified nodePools map.
 // All user labels are deleted in case Label map is empty in NodePoolLabels, however in case Label map is nil
 // no labels are returned to avoid overriding already exisisting user specified labels.
-func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePoolLabels []NodePoolLabels) (map[string]map[string]string, error) {
+func GetDesiredLabelsForCluster(ctx context.Context, cluster common.CommonCluster, nodePoolLabels []NodePoolLabels) (map[string]map[string]string, error) {
 	desiredLabels := make(map[string]map[string]string)
 
 	clusterStatus, err := cluster.GetStatus()

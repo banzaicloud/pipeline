@@ -44,6 +44,7 @@ import (
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type EksClusterCreator struct {
@@ -116,7 +117,7 @@ func getNodePoolsForSubnet(subnetMapping map[string][]*pkgEks.Subnet, eksSubnet 
 }
 
 // Create implements the clusterCreator interface.
-func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogger, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest) (cluster.CommonCluster, error) {
+func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogger, commonCluster common.CommonCluster, createRequest *pkgCluster.CreateClusterRequest) (common.CommonCluster, error) {
 	logger.Info("start creating EKS Cluster")
 	eksCluster, isOk := commonCluster.(*cluster.EKSCluster)
 	if !isOk {
@@ -305,7 +306,7 @@ func CreateAWSCredentialsFromSecret(eksCluster *cluster.EKSCluster) (*credential
 }
 
 // ValidateCreationFields validates all fields
-func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger logrus.FieldLogger, commonCluster cluster.CommonCluster) error {
+func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger logrus.FieldLogger, commonCluster common.CommonCluster) error {
 	eksCluster := commonCluster.(*cluster.EKSCluster)
 	modelCluster := eksCluster.GetModel()
 
@@ -545,7 +546,7 @@ func (c *EksClusterCreator) assertNotExists(orgID uint, name string) error {
 	return nil
 }
 
-func (c *EksClusterCreator) generateSSHkey(commonCluster cluster.CommonCluster) error {
+func (c *EksClusterCreator) generateSSHkey(commonCluster common.CommonCluster) error {
 	sshKey, err := ssh.NewKeyPairGenerator().Generate()
 	if err != nil {
 		_ = commonCluster.SetStatus(pkgCluster.Error, "internal error")
@@ -565,7 +566,7 @@ func (c *EksClusterCreator) generateSSHkey(commonCluster cluster.CommonCluster) 
 	return nil
 }
 
-func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster cluster.CommonCluster, createRequest *pkgCluster.CreateClusterRequest, organizationID uint, userID uint) (cluster.CommonCluster, error) {
+func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster common.CommonCluster, createRequest *pkgCluster.CreateClusterRequest, organizationID uint, userID uint) (common.CommonCluster, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"clusterName":    commonCluster.GetName(),
 		"clusterID":      commonCluster.GetID(),

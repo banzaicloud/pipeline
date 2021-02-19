@@ -17,10 +17,10 @@ package dnsadapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // CommonClusterGetter can be used to get a cluster by its ID
 type CommonClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (common.CommonCluster, error)
 }

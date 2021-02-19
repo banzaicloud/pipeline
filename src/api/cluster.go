@@ -44,6 +44,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/api/common"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	common2 "github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -118,7 +119,7 @@ func NewClusterAPI(
 
 // getClusterFromRequest just a simple getter to build commonCluster object this handles error messages directly
 // Deprecated: use internal.clusterGetter instead
-func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
+func getClusterFromRequest(c *gin.Context) (common2.CommonCluster, bool) {
 	// TODO: move these to a struct and create them only once upon application init
 	clusters := clusteradapter.NewClusters(global.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
@@ -255,7 +256,7 @@ func GetPodDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func describePods(ctx context.Context, commonCluster cluster.CommonCluster) (items []pkgCluster.PodDetailsResponse, err error) {
+func describePods(ctx context.Context, commonCluster common2.CommonCluster) (items []pkgCluster.PodDetailsResponse, err error) {
 	log.Info("get K8S config")
 	var kubeConfig []byte
 	kubeConfig, err = commonCluster.GetK8sConfig()

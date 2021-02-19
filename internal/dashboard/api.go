@@ -40,6 +40,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // DashboardAPI implements the Dashboard API actions.
@@ -101,7 +102,7 @@ func (d *DashboardAPI) GetDashboard(c *gin.Context) {
 
 	i := 0
 	for _, cl := range clusters {
-		go func(commonCluster cluster.CommonCluster) {
+		go func(commonCluster common.CommonCluster) {
 			logger := d.logger.WithField("clusterId", commonCluster.GetID())
 			cluster, partial := d.getClusterDashboardInfo(c.Request.Context(), logger, commonCluster, organizationID)
 			if partial {
@@ -178,7 +179,7 @@ func createNodeInfoMap(pods []v1.Pod, nodes []v1.Node) map[string]*schedulerfram
 	return nodeInfoMap
 }
 
-func (d *DashboardAPI) getClusterDashboardInfo(ctx context.Context, logger *logrus.Entry, commonCluster cluster.CommonCluster, orgID uint) (clusterInfo ClusterInfo, partialResponse bool) {
+func (d *DashboardAPI) getClusterDashboardInfo(ctx context.Context, logger *logrus.Entry, commonCluster common.CommonCluster, orgID uint) (clusterInfo ClusterInfo, partialResponse bool) {
 	logger.WithField("clusterName", commonCluster.GetName()).Debug("getClusterDashboardInfo for cluster")
 
 	nodeStates := make([]Node, 0)

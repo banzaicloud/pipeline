@@ -29,10 +29,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/backoff"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
-func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c common.CommonCluster) error {
 	m.logger.Debug("reconciling Remote Istio CR")
 	defer m.logger.Debug("Remote Istio CR reconciled")
 
@@ -91,7 +91,7 @@ func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client cli
 }
 
 // generateRemoteIstioCR generates istio-operator specific CR based on the given params
-func (m *MeshReconciler) generateRemoteIstioCR(config Config, c cluster.CommonCluster) v1beta1.RemoteIstio {
+func (m *MeshReconciler) generateRemoteIstioCR(config Config, c common.CommonCluster) v1beta1.RemoteIstio {
 	enabled := true
 	replicaCount := int32(1)
 

@@ -17,12 +17,12 @@ package securityscanadapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // CommonClusterGetter defines cluster getter methods that return a CommonCluster
 type CommonClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (common.CommonCluster, error)
 }
 
 type clusterService struct {

@@ -42,59 +42,11 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
 )
-
-// CommonCluster interface for clusters.
-type CommonCluster interface {
-	// Entity properties
-	GetID() uint
-	GetUID() string
-	GetOrganizationId() uint
-	GetName() string
-	GetCloud() string
-	GetDistribution() string
-	GetLocation() string
-
-	// Secrets
-	GetSecretId() string
-	GetSshSecretId() string
-	SaveSshSecretId(string) error
-	SaveConfigSecretId(string) error
-	GetConfigSecretId() string
-	GetSecretWithValidation() (*secret.SecretItemResponse, error)
-
-	// Persistence
-	Persist() error
-	DeleteFromDatabase() error
-
-	// Cluster management
-	CreateCluster() error
-	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
-	UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
-	UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error
-	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
-	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
-	DeleteCluster() error
-	GetScaleOptions() *pkgCluster.ScaleOptions
-	SetScaleOptions(*pkgCluster.ScaleOptions)
-
-	// Kubernetes
-	GetAPIEndpoint() (string, error)
-	GetK8sConfig() ([]byte, error)
-	GetK8sUserConfig() ([]byte, error)
-	RequiresSshPublicKey() bool
-	RbacEnabled() bool
-
-	// Cluster info
-	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
-	IsReady() (bool, error)
-	NodePoolExists(nodePoolName string) bool
-
-	SetStatus(status, statusMessage string) error
-}
 
 // CommonClusterBase holds the fields that is common to all cluster types
 // also provides default implementation for common interface methods.
@@ -114,7 +66,7 @@ func (c *CommonClusterBase) RequiresSshPublicKey() bool {
 	return false
 }
 
-func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
+func (c *CommonClusterBase) getSecret(cluster common.CommonCluster) (*secret.SecretItemResponse, error) {
 	if c.secret == nil {
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSecretId())
 		if err != nil {
@@ -130,7 +82,7 @@ func (c *CommonClusterBase) getSecret(cluster CommonCluster) (*secret.SecretItem
 	return c.secret, nil
 }
 
-func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretItemResponse, error) {
+func (c *CommonClusterBase) getSshSecret(cluster common.CommonCluster) (*secret.SecretItemResponse, error) {
 	if c.sshSecret == nil {
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSshSecretId())
 		if err != nil {
@@ -147,7 +99,7 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretI
 	return c.sshSecret, nil
 }
 
-func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
+func (c *CommonClusterBase) getConfig(cluster common.CommonCluster) ([]byte, error) {
 	if c.config == nil {
 		var loadedConfig []byte
 		secretId := cluster.GetConfigSecretId()
@@ -170,7 +122,7 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 }
 
 // StoreKubernetesConfig stores the given K8S config in vault
-func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
+func StoreKubernetesConfig(cluster common.CommonCluster, config []byte) error {
 	var configYaml string
 
 	if azurePKEClusterGetter, ok := cluster.(interface {
@@ -296,7 +248,7 @@ func getScaleOptionsFromModel(scaleOptions clustermodel.ScaleOptions) *pkgCluste
 }
 
 // GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
-func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
+func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (common.CommonCluster, error) {
 	db := global.DB()
 
 	if modelCluster.Distribution == pkgCluster.PKE {
@@ -357,7 +309,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 }
 
 // CreateCommonClusterFromRequest creates a CommonCluster from a request
-func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (CommonCluster, error) {
+func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (common.CommonCluster, error) {
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
 	}

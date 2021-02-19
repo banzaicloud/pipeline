@@ -26,7 +26,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 func init() {
@@ -67,29 +67,29 @@ func (m *MeshReconciler) init() error {
 	return nil
 }
 
-func (m *MeshReconciler) getMasterCluster() cluster.CommonCluster {
+func (m *MeshReconciler) getMasterCluster() common.CommonCluster {
 	for _, c := range m.Configuration.clusterGroup.Clusters {
 		if m.Configuration.MasterClusterID == c.GetID() {
-			return c.(cluster.CommonCluster)
+			return c.(common.CommonCluster)
 		}
 	}
 
 	return nil
 }
 
-func (m *MeshReconciler) getRemoteClusters() []cluster.CommonCluster {
-	remotes := make([]cluster.CommonCluster, 0)
+func (m *MeshReconciler) getRemoteClusters() []common.CommonCluster {
+	remotes := make([]common.CommonCluster, 0)
 
 	for _, c := range m.Configuration.clusterGroup.Clusters {
 		if m.Configuration.MasterClusterID != c.GetID() {
-			remotes = append(remotes, c.(cluster.CommonCluster))
+			remotes = append(remotes, c.(common.CommonCluster))
 		}
 	}
 
 	return remotes
 }
 
-func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clientset, error) {
+func (m *MeshReconciler) getK8sClient(c common.CommonCluster) (*kubernetes.Clientset, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get k8s config")
@@ -103,7 +103,7 @@ func (m *MeshReconciler) getK8sClient(c cluster.CommonCluster) (*kubernetes.Clie
 	return client, nil
 }
 
-func (m *MeshReconciler) getRuntimeK8sClient(c cluster.CommonCluster) (runtimeclient.Client, error) {
+func (m *MeshReconciler) getRuntimeK8sClient(c common.CommonCluster) (runtimeclient.Client, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get k8s config")

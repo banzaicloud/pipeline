@@ -23,6 +23,7 @@ import (
 
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // UpdateContext represents the data necessary to do generic cluster update steps/checks.
@@ -37,7 +38,7 @@ type clusterUpdater interface {
 	Validate(ctx context.Context) error
 
 	// Prepare prepares a cluster to be updated.
-	Prepare(ctx context.Context) (CommonCluster, error)
+	Prepare(ctx context.Context) (common.CommonCluster, error)
 
 	// Update updates a cluster.
 	Update(ctx context.Context) error
@@ -91,7 +92,7 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 	return nil
 }
 
-func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cluster CommonCluster, updater clusterUpdater) error {
+func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cluster common.CommonCluster, updater clusterUpdater) error {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": updateCtx.OrganizationID,
 		"user":         updateCtx.UserID,

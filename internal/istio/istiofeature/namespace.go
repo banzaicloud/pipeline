@@ -26,7 +26,7 @@ import (
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/backoff"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // waitForNamespaceBeDeleted wait for a k8s namespace to be deleted
@@ -52,7 +52,7 @@ func (m *MeshReconciler) waitForNamespaceBeDeleted(client runtimeclient.Client, 
 	return errors.WithStack(err)
 }
 
-func (m *MeshReconciler) reconcileNamespace(namespace string, desiredState DesiredState, c cluster.CommonCluster, labels map[string]string) error {
+func (m *MeshReconciler) reconcileNamespace(namespace string, desiredState DesiredState, c common.CommonCluster, labels map[string]string) error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   namespace,

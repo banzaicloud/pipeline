@@ -29,6 +29,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/dns"
 )
 
@@ -60,7 +61,7 @@ type IngressControllerPostHook struct {
 	ErrorHandler
 }
 
-func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
+func (i *IngressControllerPostHook) Do(cluster common.CommonCluster) error {
 	if i.helmService == nil {
 		return errors.New("missing helm service dependency")
 	}

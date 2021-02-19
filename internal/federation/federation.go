@@ -30,7 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type Config struct {
@@ -57,8 +57,8 @@ type Config struct {
 type FederationReconciler struct {
 	Configuration    Config
 	ClusterGroupName string
-	Host             cluster.CommonCluster
-	Members          []cluster.CommonCluster
+	Host             common.CommonCluster
+	Members          []common.CommonCluster
 	InfraNamespace   string
 
 	clusterGetter            api.ClusterGetter
@@ -143,21 +143,21 @@ func (m *FederationReconciler) init() error {
 	return nil
 }
 
-func (m *FederationReconciler) getHostCluster() cluster.CommonCluster {
+func (m *FederationReconciler) getHostCluster() common.CommonCluster {
 	for _, c := range m.Configuration.clusterGroup.Clusters {
 		if m.Configuration.HostClusterID == c.GetID() {
-			return c.(cluster.CommonCluster)
+			return c.(common.CommonCluster)
 		}
 	}
 
 	return nil
 }
 
-func (m *FederationReconciler) getMemberClusters() []cluster.CommonCluster {
-	remotes := make([]cluster.CommonCluster, 0)
+func (m *FederationReconciler) getMemberClusters() []common.CommonCluster {
+	remotes := make([]common.CommonCluster, 0)
 
 	for _, c := range m.Configuration.clusterGroup.Clusters {
-		remotes = append(remotes, c.(cluster.CommonCluster))
+		remotes = append(remotes, c.(common.CommonCluster))
 	}
 
 	return remotes
@@ -199,10 +199,10 @@ func (m *FederationReconciler) getRegisteredClusters() (*fedv1b1.KubeFedClusterL
 	return clusterList, nil
 }
 
-func (m *FederationReconciler) getExistingClusters() (map[uint]cluster.CommonCluster, error) {
-	clusters := make(map[uint]cluster.CommonCluster, 0)
+func (m *FederationReconciler) getExistingClusters() (map[uint]common.CommonCluster, error) {
+	clusters := make(map[uint]common.CommonCluster, 0)
 
-	clusterNameIdMap := make(map[string]cluster.CommonCluster, 0)
+	clusterNameIdMap := make(map[string]common.CommonCluster, 0)
 
 	for _, memberCluster := range m.getMemberClusters() {
 		clusterNameIdMap[memberCluster.GetName()] = memberCluster
@@ -235,7 +235,7 @@ func (m *FederationReconciler) getExistingClusters() (map[uint]cluster.CommonClu
 			continue
 		}
 
-		clusters[c.GetID()] = c.(cluster.CommonCluster)
+		clusters[c.GetID()] = c.(common.CommonCluster)
 	}
 
 	return clusters, nil
@@ -266,7 +266,7 @@ func (m *FederationReconciler) GetStatus() (map[uint]string, error) {
 	return statusMap, nil
 }
 
-func (m *FederationReconciler) getClientConfig(c cluster.CommonCluster) (*rest.Config, error) {
+func (m *FederationReconciler) getClientConfig(c common.CommonCluster) (*rest.Config, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get k8s config")

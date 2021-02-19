@@ -17,10 +17,10 @@ package istiofeature
 import (
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
-func (m *MeshReconciler) ReconcileBackyardsNamespace(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) ReconcileBackyardsNamespace(desiredState DesiredState, c common.CommonCluster) error {
 	m.logger.Debug("reconciling backyards namespace")
 	defer m.logger.Debug("backyards namespace reconciled")
 

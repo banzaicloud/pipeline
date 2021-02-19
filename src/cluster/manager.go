@@ -31,6 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
@@ -128,7 +129,7 @@ type clusterErrorHandler struct {
 	handler       emperror.Handler
 	status        string
 	statusMessage string
-	cluster       CommonCluster
+	cluster       common.CommonCluster
 }
 
 func (c clusterErrorHandler) Handle(err error) {
@@ -158,7 +159,7 @@ func (c clusterErrorHandler) WithStatus(status, statusMessage string) clusterErr
 	}
 }
 
-func (m *Manager) getClusterErrorHandler(ctx context.Context, commonCluster CommonCluster) clusterErrorHandler {
+func (m *Manager) getClusterErrorHandler(ctx context.Context, commonCluster common.CommonCluster) clusterErrorHandler {
 	return clusterErrorHandler{
 		handler: pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler),
 		cluster: commonCluster,
@@ -187,7 +188,7 @@ func (m *Manager) getClusterStatusChangeMetricTimer(provider, location, status s
 	return m.statusChangeDurationMetric.StartTimer(values), nil
 }
 
-func (m *Manager) GetKubeProxy(requestSchema string, requestHost string, apiProxyPrefix string, commonCluster CommonCluster) (*KubeAPIProxy, error) {
+func (m *Manager) GetKubeProxy(requestSchema string, requestHost string, apiProxyPrefix string, commonCluster common.CommonCluster) (*KubeAPIProxy, error) {
 	// Currently we do not lock this transaction of getting and optionally creating a KubeAPIProxy.
 	// The worst thing that could happen is that for a short period (a Go GC period) there will be
 	// an extra KubeAPIProxy object in memory, but we can keep this method lock-free I think this is a good trade-off.
@@ -206,7 +207,7 @@ func (m *Manager) GetKubeProxy(requestSchema string, requestHost string, apiProx
 	return kubeProxy, nil
 }
 
-func (m *Manager) DeleteKubeProxy(commonCluster CommonCluster) {
+func (m *Manager) DeleteKubeProxy(commonCluster common.CommonCluster) {
 	m.kubeProxyCache.Delete(commonCluster.GetUID())
 }
 

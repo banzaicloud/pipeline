@@ -26,12 +26,13 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/kubesecret"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // InstallSecrets installs or updates secrets that matches the query under the name into namespace of a Kubernetes cluster.
 // It returns the list of installed secret names and meta about how to mount them.
-func InstallSecrets(ctx context.Context, cc CommonCluster, query *secret.ListSecretsQuery, namespace string) ([]string, error) {
+func InstallSecrets(ctx context.Context, cc common.CommonCluster, query *secret.ListSecretsQuery, namespace string) ([]string, error) {
 	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Error during getting config: %s", err.Error())
@@ -222,7 +223,7 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 
 // MergeSecret merges a secret with an already existing one in a Kubernetes cluster.
 // It returns the installed secret name and meta about how to mount it.
-func MergeSecret(ctx context.Context, cc CommonCluster, secretName string, req InstallSecretRequest) (string, error) {
+func MergeSecret(ctx context.Context, cc common.CommonCluster, secretName string, req InstallSecretRequest) (string, error) {
 	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get k8s config")

@@ -18,10 +18,10 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
-func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState, c common.CommonCluster) error {
 	m.logger.Debug("reconciling canary-operator")
 	defer m.logger.Debug("canary-operator reconciled")
 
@@ -42,14 +42,14 @@ func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState, c cl
 }
 
 // uninstallCanaryOperator removes canary-operator from a cluster
-func (m *MeshReconciler) uninstallCanaryOperator(c cluster.CommonCluster) error {
+func (m *MeshReconciler) uninstallCanaryOperator(c common.CommonCluster) error {
 	m.logger.Debug("removing canary-operator")
 
 	return errors.WrapIf(m.helmService.Delete(c, canaryOperatorReleaseName, canaryOperatorNamespace), "could not remove canary-operator")
 }
 
 // installCanaryOperator installs canary-operator to a cluster
-func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, prometheusURL string) error {
+func (m *MeshReconciler) installCanaryOperator(c common.CommonCluster, prometheusURL string) error {
 	m.logger.Debug("installing canary-operator")
 
 	type operator struct {

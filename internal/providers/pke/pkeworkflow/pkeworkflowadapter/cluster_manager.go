@@ -23,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // ClusterManagerAdapter provides an adapter for pkeworkflow.Clusters.
@@ -47,7 +48,7 @@ func (a *ClusterManagerAdapter) GetCluster(ctx context.Context, id uint) (pkewor
 }
 
 type Cluster struct {
-	cluster.CommonCluster
+	common.CommonCluster
 }
 
 var _ pkeworkflow.AWSCluster = (*Cluster)(nil)

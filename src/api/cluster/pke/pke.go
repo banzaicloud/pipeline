@@ -21,7 +21,7 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/src/api/common"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	common2 "github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type TokenGenerator interface {
@@ -67,7 +67,7 @@ func NewAPI(
 	}
 }
 
-func (a *API) getCluster(c *gin.Context) (cluster.CommonCluster, logrus.FieldLogger, bool) {
+func (a *API) getCluster(c *gin.Context) (common2.CommonCluster, logrus.FieldLogger, bool) {
 	cluster, ok := a.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
 		return cluster, nil, ok

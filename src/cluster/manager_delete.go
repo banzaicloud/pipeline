@@ -29,11 +29,12 @@ import (
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // DeleteCluster deletes a cluster.
-func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
+func (m *Manager) DeleteCluster(ctx context.Context, cluster common.CommonCluster, force bool) error {
 	timer, err := m.getClusterStatusChangeMetricTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return err
@@ -108,7 +109,7 @@ func deleteServices(ctx context.Context, organizationID uint, clusterName string
 
 // deleteDnsRecordsOwnedByCluster deletes DNS records owned by the cluster. These are the DNS records
 // created for the public endpoints of the services hosted by the cluster.
-func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
+func deleteDnsRecordsOwnedByCluster(cluster common.CommonCluster) error {
 	deleter, err := intClusterDNS.MakeDefaultRecordsDeleter()
 	if err != nil {
 		return errors.WrapIf(err, "failed to create default cluster DNS records deleter")
@@ -117,7 +118,7 @@ func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 	return deleter.Delete(cluster.GetOrganizationId(), cluster.GetUID())
 }
 
-func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
+func deleteUnusedSecrets(cluster common.CommonCluster, logger *logrus.Entry) error {
 	logger.Info("deleting unused cluster secrets")
 	if err := secret.Store.DeleteByClusterUID(cluster.GetOrganizationId(), cluster.GetUID()); err != nil {
 		return errors.WrapIf(err, "deleting cluster secret failed")
@@ -133,7 +134,7 @@ func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
 	return nil
 }
 
-func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
+func (m *Manager) deleteCluster(ctx context.Context, cluster common.CommonCluster, force bool) error {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
 		"cluster":      cluster.GetName(),

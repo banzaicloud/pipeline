@@ -21,11 +21,12 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type commonNodepoolUpdater struct {
 	request *cluster.UpdateNodePoolsRequest
-	cluster CommonCluster
+	cluster common.CommonCluster
 	userID  uint
 }
 
@@ -49,7 +50,7 @@ func (e *commonNodepoolUpdateValidationError) IsPreconditionFailed() bool {
 }
 
 // NewCommonNodepoolUpdater returns a new cluster creator instance.
-func NewCommonNodepoolUpdater(request *cluster.UpdateNodePoolsRequest, cluster CommonCluster, userID uint) *commonNodepoolUpdater {
+func NewCommonNodepoolUpdater(request *cluster.UpdateNodePoolsRequest, cluster common.CommonCluster, userID uint) *commonNodepoolUpdater {
 	return &commonNodepoolUpdater{
 		request: request,
 		cluster: cluster,
@@ -91,7 +92,7 @@ func (c *commonNodepoolUpdater) Validate(ctx context.Context) error {
 }
 
 // Prepare implements the clusterUpdater interface.
-func (c *commonNodepoolUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
+func (c *commonNodepoolUpdater) Prepare(ctx context.Context) (common.CommonCluster, error) {
 	if err := c.cluster.SetStatus(cluster.Updating, cluster.UpdatingMessage); err != nil {
 		return nil, err
 	}

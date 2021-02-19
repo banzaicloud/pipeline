@@ -33,6 +33,7 @@ import (
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -240,7 +241,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 
 	var labelsMap map[string]map[string]string
 	{
-		var commonCluster cluster.CommonCluster
+		var commonCluster common.CommonCluster
 		commonCluster, err = commoncluster.MakeCommonClusterGetter(cc.secrets, cc.store).GetByID(cl.ID)
 		if err != nil {
 			_ = cc.handleError(cl.ID, err)

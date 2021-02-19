@@ -30,7 +30,7 @@ import (
 	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
 
 	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type OperatorImage struct {
@@ -255,7 +255,7 @@ func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 }
 
 // uninstallFederationController removes Federation controller from a cluster
-func (m *FederationReconciler) uninstallFederationController(c cluster.CommonCluster, logger logrus.FieldLogger) error {
+func (m *FederationReconciler) uninstallFederationController(c common.CommonCluster, logger logrus.FieldLogger) error {
 	logger.Debug("removing Federation controller")
 
 	err := m.helmService.Delete(c, federationReleaseName, m.Configuration.TargetNamespace)
@@ -267,7 +267,7 @@ func (m *FederationReconciler) uninstallFederationController(c cluster.CommonClu
 }
 
 // installFederationController installs Federation controller on a cluster
-func (m *FederationReconciler) installFederationController(c cluster.CommonCluster, logger logrus.FieldLogger) error {
+func (m *FederationReconciler) installFederationController(c common.CommonCluster, logger logrus.FieldLogger) error {
 	logger.Debug("installing Federation controller")
 	scope := apiextv1b1.ClusterScoped
 	if !m.Configuration.GlobalScope {

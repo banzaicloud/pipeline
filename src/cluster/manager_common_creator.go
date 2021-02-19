@@ -26,15 +26,16 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type commonCreator struct {
 	request *pkgCluster.CreateClusterRequest
-	cluster CommonCluster
+	cluster common.CommonCluster
 }
 
 // NewCommonClusterCreator returns a new cluster creator instance.
-func NewCommonClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonCluster) *commonCreator {
+func NewCommonClusterCreator(request *pkgCluster.CreateClusterRequest, cluster common.CommonCluster) *commonCreator {
 	return &commonCreator{
 		request: request,
 		cluster: cluster,
@@ -47,7 +48,7 @@ func (c *commonCreator) Validate(ctx context.Context) error {
 }
 
 // Prepare implements the clusterCreator interface.
-func (c *commonCreator) Prepare(ctx context.Context) (CommonCluster, error) {
+func (c *commonCreator) Prepare(ctx context.Context) (common.CommonCluster, error) {
 	if err := c.cluster.Persist(); err != nil {
 		return nil, err
 	}
@@ -69,7 +70,7 @@ type TokenGenerator interface {
 }
 
 // NewClusterCreator returns a new PKE or Common cluster creator instance depending on the cluster.
-func NewClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonCluster, workflowClient client.Client) clusterCreator {
+func NewClusterCreator(request *pkgCluster.CreateClusterRequest, cluster common.CommonCluster, workflowClient client.Client) clusterCreator {
 	common := NewCommonClusterCreator(request, cluster)
 
 	if strings.HasPrefix(cluster.GetDistribution(), pkgCluster.PKE) && cluster.GetCloud() == pkgCluster.Amazon {

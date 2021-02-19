@@ -24,11 +24,11 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	common2 "github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type ClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (common2.CommonCluster, error)
 }
 
 // CreateUnifiedHelmReleaser utility function for assembling the helm releaser

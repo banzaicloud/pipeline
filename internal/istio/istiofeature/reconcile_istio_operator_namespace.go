@@ -17,10 +17,10 @@ package istiofeature
 import (
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
-func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) ReconcileIstioOperatorNamespace(desiredState DesiredState, c common.CommonCluster) error {
 	m.logger.Debug("reconciling istio operator namespace")
 	defer m.logger.Debug("istio operator namespace reconciled")
 

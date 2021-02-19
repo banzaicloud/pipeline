@@ -30,10 +30,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/backoff"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
-func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState, c common.CommonCluster) error {
 	m.logger.Debug("reconciling Istio CR")
 	defer m.logger.Debug("Istio CR reconciled")
 

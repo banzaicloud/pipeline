@@ -18,10 +18,10 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
-func (m *MeshReconciler) ReconcileNodeExporter(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) ReconcileNodeExporter(desiredState DesiredState, c common.CommonCluster) error {
 	m.logger.Debug("reconciling Node exporter")
 	defer m.logger.Debug("Node exporter reconciled")
 
@@ -33,14 +33,14 @@ func (m *MeshReconciler) ReconcileNodeExporter(desiredState DesiredState, c clus
 }
 
 // uninstallNodeExporter removes node exporter from a cluster
-func (m *MeshReconciler) uninstallNodeExporter(c cluster.CommonCluster) error {
+func (m *MeshReconciler) uninstallNodeExporter(c common.CommonCluster) error {
 	m.logger.Debug("removing Node exporter")
 
 	return errors.WrapIf(m.helmService.Delete(c, nodeExporterReleaseName, backyardsNamespace), "could not remove Node exporter")
 }
 
 // installNodeExporter installs node exporter on a cluster
-func (m *MeshReconciler) installNodeExporter(c cluster.CommonCluster) error {
+func (m *MeshReconciler) installNodeExporter(c common.CommonCluster) error {
 	m.logger.Debug("installing Node exporter")
 
 	type Values struct {

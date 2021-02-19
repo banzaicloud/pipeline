@@ -18,7 +18,7 @@ import (
 	"context"
 
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type CommonClusterDeleterAdapter struct {
@@ -34,11 +34,11 @@ func NewCommonClusterDeleterAdapter(commonClusterDeleter CommonClusterDeleter, c
 }
 
 type CommonClusterDeleter interface {
-	DeleteCluster(ctx context.Context, cluster cluster.CommonCluster, force bool) error
+	DeleteCluster(ctx context.Context, cluster common.CommonCluster, force bool) error
 }
 
 type CommonClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (common.CommonCluster, error)
 }
 
 func (a CommonClusterDeleterAdapter) DeleteCluster(ctx context.Context, clusterID uint, options intCluster.DeleteClusterOptions) error {

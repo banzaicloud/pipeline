@@ -20,10 +20,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
-func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState, c common.CommonCluster) error {
 	m.logger.Debug("reconciling Istio operator")
 	defer m.logger.Debug("Istio operator reconciled")
 
@@ -35,14 +35,14 @@ func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState, c clu
 }
 
 // uninstallIstioOperator removes istio-operator from a cluster
-func (m *MeshReconciler) uninstallIstioOperator(c cluster.CommonCluster) error {
+func (m *MeshReconciler) uninstallIstioOperator(c common.CommonCluster) error {
 	m.logger.Debug("removing Istio operator")
 
 	return errors.WrapIf(m.helmService.Delete(c, istioOperatorReleaseName, istioOperatorNamespace), "could not remove Istio operator")
 }
 
 // installIstioOperator installs istio-operator on a cluster
-func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
+func (m *MeshReconciler) installIstioOperator(c common.CommonCluster) error {
 	m.logger.Debug("installing Istio operator")
 
 	type operator struct {

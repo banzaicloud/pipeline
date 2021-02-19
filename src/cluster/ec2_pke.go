@@ -45,13 +45,14 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
+	common2 "github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 const defaultK8sVersion = "1.17.5"
 
-var _ CommonCluster = (*EC2ClusterPKE)(nil)
+var _ common2.CommonCluster = (*EC2ClusterPKE)(nil)
 
 type EC2ClusterPKE struct {
 	db    *gorm.DB

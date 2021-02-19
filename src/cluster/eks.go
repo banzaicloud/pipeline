@@ -40,6 +40,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -766,7 +767,7 @@ func (c *EKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.
-func GetEKSNodePools(cluster CommonCluster) ([]*eksmodel.AmazonNodePoolsModel, error) {
+func GetEKSNodePools(cluster common.CommonCluster) ([]*eksmodel.AmazonNodePoolsModel, error) {
 	ekscluster, ok := cluster.(*EKSCluster)
 	if !ok {
 		return nil, ErrInvalidClusterInstance

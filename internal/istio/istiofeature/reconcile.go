@@ -17,7 +17,7 @@ package istiofeature
 import (
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 func (m *MeshReconciler) Reconcile() error {
@@ -35,7 +35,7 @@ func (m *MeshReconciler) Reconcile() error {
 			m.ReconcileIstioOperator,
 			m.ReconcileIstio,
 			m.ReconcileBackyardsNamespace,
-			func(desiredState DesiredState, c cluster.CommonCluster) error {
+			func(desiredState DesiredState, c common.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, false)
 			},
 			m.ReconcileCanaryOperatorNamespace,
@@ -46,7 +46,7 @@ func (m *MeshReconciler) Reconcile() error {
 	case DesiredStateAbsent:
 		reconcilers = []ReconcilerWithCluster{
 			m.ReconcileNodeExporter,
-			func(desiredState DesiredState, c cluster.CommonCluster) error {
+			func(desiredState DesiredState, c common.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, false)
 			},
 			m.ReconcileCanaryOperator,

@@ -17,7 +17,7 @@ package integratedserviceadapter
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // +testify:mock
@@ -40,7 +40,7 @@ type Cluster interface {
 
 // CommonClusterGetter defines cluster getter methods that return a CommonCluster
 type CommonClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (common.CommonCluster, error)
 }
 
 // MakeClusterGetter adapts a "CommonCluster" cluster getter to an integrated service cluster getter

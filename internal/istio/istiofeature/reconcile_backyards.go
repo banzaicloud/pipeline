@@ -26,7 +26,7 @@ import (
 
 	internalHelm "github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type monitoringConfig struct {
@@ -34,7 +34,7 @@ type monitoringConfig struct {
 	url      string
 }
 
-func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState, c cluster.CommonCluster, remote bool) error {
+func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState, c common.CommonCluster, remote bool) error {
 	m.logger.Debug("reconciling Backyards")
 	defer m.logger.Debug("Backyards reconciled")
 
@@ -163,14 +163,14 @@ func (m *MeshReconciler) waitForCRD(name string, client runtimeclient.Client) er
 }
 
 // uninstallIstioOperator removes istio-operator from a cluster
-func (m *MeshReconciler) uninstallBackyards(c cluster.CommonCluster) error {
+func (m *MeshReconciler) uninstallBackyards(c common.CommonCluster) error {
 	m.logger.Debug("removing Backyards")
 
 	return errors.WrapIf(m.helmService.Delete(c, backyardsReleaseName, backyardsNamespace), "could not remove Backyards")
 }
 
 // installIstioOperator installs istio-operator on a cluster
-func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring monitoringConfig, remote bool) error {
+func (m *MeshReconciler) installBackyards(c common.CommonCluster, monitoring monitoringConfig, remote bool) error {
 	m.logger.Debug("installing Backyards")
 
 	type istio struct {

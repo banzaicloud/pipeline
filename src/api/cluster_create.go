@@ -31,6 +31,7 @@ import (
 	clusterAPI "github.com/banzaicloud/pipeline/src/api/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -197,7 +198,7 @@ func (a *ClusterAPI) createCluster(
 	organizationID uint,
 	userID uint,
 	postHooks pkgCluster.PostHooks,
-) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
+) (common.CommonCluster, *pkgCommon.ErrorResponse) {
 	logger := a.logger.WithFields(logrus.Fields{
 		"organization": organizationID,
 		"user":         userID,

@@ -31,10 +31,10 @@ import (
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
-func (m *MeshReconciler) ReconcileRemoteIstios(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) ReconcileRemoteIstios(desiredState DesiredState, c common.CommonCluster) error {
 	m.logger.Debug("reconciling Remote Istios")
 	defer m.logger.Debug("Remote Istios reconciled")
 
@@ -68,7 +68,7 @@ func (m *MeshReconciler) ReconcileRemoteIstios(desiredState DesiredState, c clus
 	return nil
 }
 
-func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c common.CommonCluster) error {
 	logger := m.logger.WithField("remoteClusterID", c.GetID())
 
 	logger.Debug("reconciling Remote Istio")
@@ -87,7 +87,7 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 			m.ReconcileBackyardsNamespace,
 			m.reconcileRemoteIstioALSService,
 			m.reconcileRemoteIstioTracingService,
-			func(desiredState DesiredState, c cluster.CommonCluster) error {
+			func(desiredState DesiredState, c common.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, true)
 			},
 			m.ReconcileNodeExporter,
@@ -100,7 +100,7 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 			m.reconcileRemoteIstioClusterRole,
 			m.reconcileRemoteIstioServiceAccount,
 			m.reconcileRemoteIstioSecret,
-			func(desiredState DesiredState, c cluster.CommonCluster) error {
+			func(desiredState DesiredState, c common.CommonCluster) error {
 				return m.ReconcileBackyards(desiredState, c, true)
 			},
 			m.reconcileRemoteIstioALSService,
@@ -122,7 +122,7 @@ func (m *MeshReconciler) reconcileRemoteIstio(desiredState DesiredState, c clust
 	return nil
 }
 
-func (m *MeshReconciler) reconcileRemoteIstioSecret(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstioSecret(desiredState DesiredState, c common.CommonCluster) error {
 	secretName := c.GetName()
 
 	resource := &corev1.Secret{
@@ -152,7 +152,7 @@ func (m *MeshReconciler) reconcileRemoteIstioSecret(desiredState DesiredState, c
 	return errors.WithStack(m.applyResource(client, resource))
 }
 
-func (m *MeshReconciler) generateKubeconfig(c cluster.CommonCluster) ([]byte, error) {
+func (m *MeshReconciler) generateKubeconfig(c common.CommonCluster) ([]byte, error) {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not get k8s config")
@@ -233,11 +233,11 @@ users:
 	return []byte(yml), nil
 }
 
-func (m *MeshReconciler) reconcileRemoteIstioNamespace(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstioNamespace(desiredState DesiredState, c common.CommonCluster) error {
 	return errors.WithStack(m.reconcileNamespace(istioOperatorNamespace, desiredState, c, nil))
 }
 
-func (m *MeshReconciler) reconcileRemoteIstioServiceAccount(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstioServiceAccount(desiredState DesiredState, c common.CommonCluster) error {
 	resource := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "istio-operator",
@@ -257,7 +257,7 @@ func (m *MeshReconciler) reconcileRemoteIstioServiceAccount(desiredState Desired
 	return errors.WithStack(m.deleteResource(client, resource))
 }
 
-func (m *MeshReconciler) reconcileRemoteIstioClusterRole(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstioClusterRole(desiredState DesiredState, c common.CommonCluster) error {
 	resource := &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "istio-operator",
@@ -288,7 +288,7 @@ func (m *MeshReconciler) reconcileRemoteIstioClusterRole(desiredState DesiredSta
 	return errors.WithStack(m.deleteResource(client, resource))
 }
 
-func (m *MeshReconciler) reconcileRemoteIstioPrometheusService(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstioPrometheusService(desiredState DesiredState, c common.CommonCluster) error {
 	resource := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-prometheus", c.GetName()),
@@ -327,7 +327,7 @@ func (m *MeshReconciler) reconcileRemoteIstioPrometheusService(desiredState Desi
 	return errors.WithStack(m.deleteResource(client, resource))
 }
 
-func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState DesiredState, c common.CommonCluster) error {
 	resource := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "istio-operator",
@@ -359,7 +359,7 @@ func (m *MeshReconciler) reconcileRemoteIstioClusterRoleBinding(desiredState Des
 	return errors.WithStack(m.deleteResource(client, resource))
 }
 
-func (m *MeshReconciler) reconcileRemoteIstioALSService(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstioALSService(desiredState DesiredState, c common.CommonCluster) error {
 	resource := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "backyards-als",
@@ -390,7 +390,7 @@ func (m *MeshReconciler) reconcileRemoteIstioALSService(desiredState DesiredStat
 	return errors.WithStack(m.deleteResource(client, resource))
 }
 
-func (m *MeshReconciler) reconcileRemoteIstioTracingService(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *MeshReconciler) reconcileRemoteIstioTracingService(desiredState DesiredState, c common.CommonCluster) error {
 	resource := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "backyards-zipkin",
@@ -421,8 +421,8 @@ func (m *MeshReconciler) reconcileRemoteIstioTracingService(desiredState Desired
 	return errors.WithStack(m.deleteResource(client, resource))
 }
 
-func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs(c cluster.CommonCluster) (map[uint]cluster.CommonCluster, error) {
-	clusters := make(map[uint]cluster.CommonCluster, 0)
+func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs(c common.CommonCluster) (map[uint]common.CommonCluster, error) {
+	clusters := make(map[uint]common.CommonCluster, 0)
 
 	client, err := m.getRuntimeK8sClient(c)
 	if err != nil {
@@ -457,7 +457,7 @@ func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs(c cluster.Com
 			continue
 		}
 
-		clusters[c.GetID()] = c.(cluster.CommonCluster)
+		clusters[c.GetID()] = c.(common.CommonCluster)
 	}
 
 	return clusters, nil

@@ -28,10 +28,11 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type ClusterGetter interface {
-	GetClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool)
+	GetClusterFromRequest(c *gin.Context) (common.CommonCluster, bool)
 }
 
 type clusterGetter struct {
@@ -54,8 +55,8 @@ func NewClusterGetter(
 }
 
 // GetClusterFromRequest returns a cluster from an API request.
-func (g *clusterGetter) GetClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
-	var cl cluster.CommonCluster
+func (g *clusterGetter) GetClusterFromRequest(c *gin.Context) (common.CommonCluster, bool) {
+	var cl common.CommonCluster
 	var err error
 
 	logger := correlationid.LogrusLogger(g.logger, c)

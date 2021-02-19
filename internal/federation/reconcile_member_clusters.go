@@ -24,7 +24,7 @@ import (
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	"sigs.k8s.io/kubefed/pkg/kubefedctl"
 
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState) error {
@@ -75,7 +75,7 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 	return nil
 }
 
-func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState, c cluster.CommonCluster) error {
+func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState, c common.CommonCluster) error {
 	logger := m.logger.WithField("memberClusterID", c.GetID())
 
 	logger.Debug("start reconciling member cluster")
@@ -126,7 +126,7 @@ func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState,
 	return nil
 }
 
-func (m *FederationReconciler) labelRegisteredCluster(c cluster.CommonCluster) error {
+func (m *FederationReconciler) labelRegisteredCluster(c common.CommonCluster) error {
 	client, err := m.getGenericClient()
 	if err != nil {
 		return err

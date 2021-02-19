@@ -20,11 +20,12 @@ import (
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/model"
 )
 
 // GetClusters returns the cluster instances for an organization ID.
-func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]CommonCluster, error) {
+func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]common.CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 	})
@@ -34,7 +35,7 @@ func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]Commo
 		return nil, err
 	}
 
-	var clusters []CommonCluster
+	var clusters []common.CommonCluster
 
 	for _, clusterModel := range clusterModels {
 		logger := logger.WithField("cluster", clusterModel.Name)
@@ -53,7 +54,7 @@ func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]Commo
 }
 
 // GetAllClusters returns all cluster instances.
-func (m *Manager) GetAllClusters(ctx context.Context) ([]CommonCluster, error) {
+func (m *Manager) GetAllClusters(ctx context.Context) ([]common.CommonCluster, error) {
 	logger := m.getLogger(ctx)
 
 	clusterModels, err := m.clusters.All()
@@ -65,7 +66,7 @@ func (m *Manager) GetAllClusters(ctx context.Context) ([]CommonCluster, error) {
 }
 
 // GetClusterByID returns the cluster instance for an organization ID by cluster ID.
-func (m *Manager) GetClusterByID(ctx context.Context, organizationID uint, clusterID uint) (CommonCluster, error) {
+func (m *Manager) GetClusterByID(ctx context.Context, organizationID uint, clusterID uint) (common.CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 		"cluster":      clusterID,
@@ -87,7 +88,7 @@ func (m *Manager) GetClusterByID(ctx context.Context, organizationID uint, clust
 }
 
 // GetClusterByIDOnly returns the cluster instance by cluster ID.
-func (m *Manager) GetClusterByIDOnly(ctx context.Context, clusterID uint) (CommonCluster, error) {
+func (m *Manager) GetClusterByIDOnly(ctx context.Context, clusterID uint) (common.CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"cluster": clusterID,
 	})
@@ -108,7 +109,7 @@ func (m *Manager) GetClusterByIDOnly(ctx context.Context, clusterID uint) (Commo
 }
 
 // GetClusterByName returns the cluster instance for an organization ID by cluster name.
-func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clusterName string) (CommonCluster, error) {
+func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clusterName string) (common.CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 		"cluster":      clusterName,
@@ -130,7 +131,7 @@ func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clu
 }
 
 // GetClustersBySecretID returns the cluster instance for an organization ID by secret ID.
-func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint, secretID string) ([]CommonCluster, error) {
+func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint, secretID string) ([]common.CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 		"secret":       secretID,
@@ -146,12 +147,12 @@ func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint
 	return m.getClustersFromModels(clusterModels, logger), nil
 }
 
-func (m *Manager) getClusterFromModel(clusterModel *model.ClusterModel) (CommonCluster, error) {
+func (m *Manager) getClusterFromModel(clusterModel *model.ClusterModel) (common.CommonCluster, error) {
 	return GetCommonClusterFromModel(clusterModel)
 }
 
-func (m *Manager) getClustersFromModels(clusterModels []*model.ClusterModel, logger logrus.FieldLogger) []CommonCluster {
-	var clusters []CommonCluster
+func (m *Manager) getClustersFromModels(clusterModels []*model.ClusterModel, logger logrus.FieldLogger) []common.CommonCluster {
+	var clusters []common.CommonCluster
 
 	for _, clusterModel := range clusterModels {
 		logger := logger.WithField("cluster", clusterModel.Name)

@@ -32,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/kubernetes/custom/npls"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // DynamicClientFactory returns a dynamic Kubernetes client.
@@ -43,7 +44,7 @@ type DynamicClientFactory interface {
 type commonUpdater struct {
 	request                  *cluster.UpdateClusterRequest
 	clientFactory            DynamicClientFactory
-	cluster                  CommonCluster
+	cluster                  common.CommonCluster
 	userID                   uint
 	scaleOptionsChanged      bool
 	clusterPropertiesChanged bool
@@ -76,7 +77,7 @@ func (e *commonUpdateValidationError) IsPreconditionFailed() bool {
 func NewCommonClusterUpdater(
 	request *cluster.UpdateClusterRequest,
 	clientFactory DynamicClientFactory,
-	cluster CommonCluster,
+	cluster common.CommonCluster,
 	userID uint,
 	workflowClient client.Client,
 	externalBaseURL string,
@@ -123,7 +124,7 @@ func (c *commonUpdater) Validate(ctx context.Context) error {
 }
 
 // Prepare implements the clusterUpdater interface.
-func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
+func (c *commonUpdater) Prepare(ctx context.Context) (common.CommonCluster, error) {
 	c.cluster.AddDefaultsToUpdate(c.request)
 
 	c.scaleOptionsChanged = isDifferent(c.request.ScaleOptions, c.cluster.GetScaleOptions()) == nil
@@ -152,7 +153,7 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 	return c.cluster, c.cluster.Persist()
 }
 
-func buildNodePoolsLabelList(commonCluster CommonCluster, updateRequest *cluster.UpdateClusterRequest) ([]NodePoolLabels, error) {
+func buildNodePoolsLabelList(commonCluster common.CommonCluster, updateRequest *cluster.UpdateClusterRequest) ([]NodePoolLabels, error) {
 	// we need to retrieve existing node pools, as update request doesn't necessary contains instanceType, spot price etc.
 	clStatus, err := commonCluster.GetStatus()
 	if err != nil {
@@ -282,7 +283,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 }
 
 // labelNodesWithNodePoolName add node pool name labels for all nodes.
-func labelNodesWithNodePoolName(ctx context.Context, commonCluster CommonCluster) error {
+func labelNodesWithNodePoolName(ctx context.Context, commonCluster common.CommonCluster) error {
 	switch commonCluster.GetDistribution() {
 	case cluster.EKS, cluster.GKE, cluster.PKE, cluster.AKS:
 		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())

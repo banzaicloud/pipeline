@@ -33,6 +33,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 type EksClusterUpdater struct {
@@ -204,7 +205,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 
 func (c *EksClusterUpdater) UpdateCluster(ctx context.Context,
 	request *pkgCluster.UpdateClusterRequest,
-	commonCluster cluster.CommonCluster,
+	commonCluster common.CommonCluster,
 	userID uint) error {
 	eksCluster := commonCluster.(*cluster.EKSCluster)
 
@@ -342,7 +343,7 @@ func newNodePoolNamesFromRequestedDeletedNodePools(nodePoolModels map[string]*ek
 // Create-/Delete-/UpdateNodePoolWorkflow operations.
 func newNodePoolLabels(
 	ctx context.Context,
-	eksCluster cluster.CommonCluster,
+	eksCluster common.CommonCluster,
 	requestedDeletedNodePools map[string]*eksmodel.AmazonNodePoolsModel,
 	requestedNewNodePools map[string]*pkgEks.NodePool,
 	requestedUpdatedNodePools map[string]*pkgEks.NodePool,

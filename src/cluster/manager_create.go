@@ -30,6 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/ssh/sshdriver"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
@@ -59,7 +60,7 @@ type clusterCreator interface {
 	Validate(ctx context.Context) error
 
 	// Prepare prepares a cluster to be created.
-	Prepare(ctx context.Context) (CommonCluster, error)
+	Prepare(ctx context.Context) (common.CommonCluster, error)
 
 	// Create creates a cluster.
 	Create(ctx context.Context) error
@@ -70,7 +71,7 @@ func (m *Manager) CreateCluster(
 	ctx context.Context,
 	creationCtx CreationContext,
 	creator clusterCreator,
-) (CommonCluster, error) {
+) (common.CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": creationCtx.OrganizationID,
 		"user":         creationCtx.UserID,
@@ -177,7 +178,7 @@ func (m *Manager) assertNotExists(ctx CreationContext) error {
 // updates cluster status, but the caller logs the returned error
 func (m *Manager) createCluster(
 	ctx context.Context,
-	cluster CommonCluster,
+	cluster common.CommonCluster,
 	creator clusterCreator,
 	postHooks pkgCluster.PostHooks,
 	logger logrus.FieldLogger,

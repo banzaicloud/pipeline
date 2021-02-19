@@ -16,6 +16,7 @@ package cluster
 
 import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // HookMap for api hook endpoints
@@ -53,16 +54,16 @@ var BasePostHookFunctions = []string{
 
 // PostFunctioner manages posthook functions
 type PostFunctioner interface {
-	Do(CommonCluster) error
+	Do(common.CommonCluster) error
 	GetPriority() int
-	Error(CommonCluster, error)
+	Error(common.CommonCluster, error)
 }
 
 // ErrorHandler is the common struct which implement Error function
 type ErrorHandler struct {
 }
 
-func (*ErrorHandler) Error(c CommonCluster, err error) {
+func (*ErrorHandler) Error(c common.CommonCluster, err error) {
 	_ = c.SetStatus(pkgCluster.Error, err.Error())
 }
 

@@ -19,6 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 // ClusterManagerAdapter provides an adapter for clustersecret.Clusters.
@@ -44,7 +45,7 @@ func (a *ClusterManagerAdapter) GetCluster(ctx context.Context, id uint) (cluste
 }
 
 type clusterWrapper struct {
-	commonCluster cluster.CommonCluster
+	commonCluster common.CommonCluster
 }
 
 func (c *clusterWrapper) GetOrganizationID() uint {

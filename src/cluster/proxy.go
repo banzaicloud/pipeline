@@ -28,6 +28,7 @@ import (
 	"k8s.io/client-go/transport"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 const defaultProxyExpirationMinutes = 10
@@ -80,7 +81,7 @@ func defaultProxyTransport(requestSchema string, requestHost string, apiProxyPre
 }
 
 // NewKubeAPIProxy creates a new Kubernetes API Server Proxy to the given cluster with a well-defined keep-alive timeout.
-func NewKubeAPIProxy(requestSchema string, requestHost string, apiProxyPrefix string, cluster CommonCluster, keepalive time.Duration) (*KubeAPIProxy, error) {
+func NewKubeAPIProxy(requestSchema string, requestHost string, apiProxyPrefix string, cluster common.CommonCluster, keepalive time.Duration) (*KubeAPIProxy, error) {
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		return nil, err

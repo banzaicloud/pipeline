@@ -36,6 +36,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 func castToPostHookParam(data pkgCluster.PostHookParam, output interface{}) error {
@@ -48,7 +49,7 @@ type KubernetesDashboardPostHook struct {
 	ErrorHandler
 }
 
-func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
+func (ph *KubernetesDashboardPostHook) Do(cluster common.CommonCluster) error {
 	config := global.Config.Cluster.PostHook.Dashboard
 	if !config.Enabled {
 		return nil
@@ -168,7 +169,7 @@ type ClusterAutoscalerPostHook struct {
 }
 
 // InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
-func (ph *ClusterAutoscalerPostHook) Do(cluster CommonCluster) error {
+func (ph *ClusterAutoscalerPostHook) Do(cluster common.CommonCluster) error {
 	if ph.helmService == nil {
 		return errors.New("missing helm service dependency")
 	}
@@ -195,7 +196,7 @@ func (ph *RestoreFromBackupPosthook) Create(params pkgCluster.PostHookParam) Pos
 }
 
 // RestoreFromBackup restores an ARK backup
-func (ph *RestoreFromBackupPosthook) Do(cluster CommonCluster) error {
+func (ph *RestoreFromBackupPosthook) Do(cluster common.CommonCluster) error {
 	var params arkAPI.RestoreFromBackupParams
 	err := castToPostHookParam(ph.params, &params)
 	if err != nil {
@@ -220,7 +221,7 @@ type InitSpotConfigPostHook struct {
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
-func (ph *InitSpotConfigPostHook) Do(cluster CommonCluster) error {
+func (ph *InitSpotConfigPostHook) Do(cluster common.CommonCluster) error {
 	config := global.Config.Cluster.PostHook.Spotconfig
 	if !config.Enabled {
 		return nil
@@ -270,7 +271,7 @@ func (ph *InitSpotConfigPostHook) Do(cluster CommonCluster) error {
 	return nil
 }
 
-func isSpotCluster(cluster CommonCluster) (bool, error) {
+func isSpotCluster(cluster common.CommonCluster) (bool, error) {
 	status, err := cluster.GetStatus()
 	if err != nil {
 		return false, errors.WrapIf(err, "failed to get cluster status")
@@ -309,7 +310,7 @@ type InstanceTerminationHandlerPostHook struct {
 	ErrorHandler
 }
 
-func (ith InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
+func (ith InstanceTerminationHandlerPostHook) Do(cluster common.CommonCluster) error {
 	config := global.Config.Cluster.PostHook.ITH
 	if !global.Config.Pipeline.Enterprise || !config.Enabled {
 		return nil

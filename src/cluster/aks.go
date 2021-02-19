@@ -38,6 +38,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 	"github.com/banzaicloud/pipeline/src/model"
 	"github.com/banzaicloud/pipeline/src/secret"
 	"github.com/banzaicloud/pipeline/src/utils"
@@ -869,7 +870,7 @@ func CreateOrUpdateResourceGroup(orgID uint, secretID string, resourceGroupName,
 }
 
 // GetAKSNodePools returns AKS node pools from a common cluster.
-func GetAKSNodePools(cluster CommonCluster) ([]*azureadapter.AKSNodePoolModel, error) {
+func GetAKSNodePools(cluster common.CommonCluster) ([]*azureadapter.AKSNodePoolModel, error) {
 	akscluster, ok := cluster.(*AKSCluster)
 	if !ok {
 		return nil, ErrInvalidClusterInstance
@@ -879,7 +880,7 @@ func GetAKSNodePools(cluster CommonCluster) ([]*azureadapter.AKSNodePoolModel, e
 }
 
 // GetAKSResourceGroup returns AKS resource group from a common cluster.
-func GetAKSResourceGroup(cluster CommonCluster) (string, error) {
+func GetAKSResourceGroup(cluster common.CommonCluster) (string, error) {
 	akscluster, ok := cluster.(*AKSCluster)
 	if !ok {
 		return "", ErrInvalidClusterInstance

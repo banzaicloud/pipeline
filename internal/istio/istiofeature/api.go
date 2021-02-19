@@ -19,7 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
-	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/cluster/common"
 )
 
 const (
@@ -49,7 +49,7 @@ const (
 	backoffMaxretries   = 60
 )
 
-type ReconcilerWithCluster func(desiredState DesiredState, c cluster.CommonCluster) error
+type ReconcilerWithCluster func(desiredState DesiredState, c common.CommonCluster) error
 
 type DesiredState string
 
@@ -76,8 +76,8 @@ type Config struct {
 
 type MeshReconciler struct {
 	Configuration Config
-	Master        cluster.CommonCluster
-	Remotes       []cluster.CommonCluster
+	Master        common.CommonCluster
+	Remotes       []common.CommonCluster
 
 	helmService   HelmService
 	clusterGetter api.ClusterGetter
