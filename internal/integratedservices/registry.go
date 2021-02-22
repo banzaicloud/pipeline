@@ -110,28 +110,13 @@ func (r integratedServiceOperatorRegistry) DisableServiceInstance(ctx context.Co
 		return errors.Wrap(err, "failed to retrieve service instance list")
 	}
 
-	kubeConfig, err := r.kubeConfigFn.GetKubeConfig(ctx, clusterID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get K8S config")
-	}
-
-	restCfg, err := clientcmd.RESTConfigFromKubeConfig(kubeConfig)
-	if err != nil {
-		return errors.Wrap(err, "failed to create rest config from cluster configuration")
-	}
-
-	cli, err := client.New(restCfg, client.Options{Scheme: r.scheme})
-	if err != nil {
-		return errors.Wrap(err, "failed to create the client from rest configuration")
-	}
-
 	for _, item := range lookupISvcs.Items {
 
 		if item.ObjectMeta.Annotations["app.kubernetes.io/managed-by"] == "banzaicloud.io/pipeline" {
 
 			item.Spec.Enabled = utils.BoolPointer(false)
 
-			if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&item, reconciler.StatePresent); err != nil {
+			if _, err := reconciler.NewReconcilerWith(clusterClient).ReconcileResource(&item, reconciler.StatePresent); err != nil {
 				return errors.Wrap(err, "failed to reconcile the integrated service")
 			}
 
@@ -150,7 +135,7 @@ func (r integratedServiceOperatorRegistry) DisableServiceInstance(ctx context.Co
 			// wait till the status becomes uninstalled or uninstallFailed
 			for {
 				inactiveSI := v1alpha1.ServiceInstance{}
-				if err := cli.Get(ctx, key, &inactiveSI); err != nil {
+				if err := clusterClient.Get(ctx, key, &inactiveSI); err != nil {
 					if apiErrors.IsNotFound(err) {
 						// resource is not found
 						return nil
@@ -170,7 +155,7 @@ func (r integratedServiceOperatorRegistry) DisableServiceInstance(ctx context.Co
 				time.Sleep(2 * time.Second)
 			}
 
-			if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&item, reconciler.StatePresent); err != nil {
+			if _, err := reconciler.NewReconcilerWith(clusterClient).ReconcileResource(&item, reconciler.StatePresent); err != nil {
 				return errors.Wrap(err, "failed to reconcile the integrated service")
 			}
 		}
