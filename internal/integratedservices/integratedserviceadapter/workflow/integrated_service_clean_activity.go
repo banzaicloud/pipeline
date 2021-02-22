@@ -42,7 +42,7 @@ func MakeIntegratedServiceCleanActivity(integratedServices integratedservices.In
 
 func (a IntegratedServiceCleanActivity) Execute(ctx context.Context, input IntegratedServiceCleanActivityInput) error {
 	err := a.integratedServices.DisableServiceInstance(ctx, input.ClusterID)
-	if input.Force {
+	if err != nil && input.Force {
 		logger := a.logger.WithFields(logrus.Fields{
 			"clusterID": input.ClusterID,
 		})
