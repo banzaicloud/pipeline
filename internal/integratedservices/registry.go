@@ -126,51 +126,54 @@ func (r integratedServiceOperatorRegistry) DisableServiceInstance(ctx context.Co
 	}
 
 	for _, item := range lookupISvcs.Items {
-		item.Spec.Enabled = utils.BoolPointer(false)
 
-		if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&item, reconciler.StatePresent); err != nil {
-			return errors.Wrap(err, "failed to reconcile the integrated service")
-		}
+		if item.ObjectMeta.Annotations["app.kubernetes.io/managed-by"] == "banzaicloud.io/pipeline" {
 
-		incomingSI := v1alpha1.ServiceInstance{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: item.Namespace,
-				Name:      item.Spec.Service,
-			},
-		}
+			item.Spec.Enabled = utils.BoolPointer(false)
 
-		key, err := client.ObjectKeyFromObject(&incomingSI)
-		if err != nil {
-			return errors.Wrap(err, "failed to get object key for lookup")
-		}
+			if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&item, reconciler.StatePresent); err != nil {
+				return errors.Wrap(err, "failed to reconcile the integrated service")
+			}
 
-		// wait till the status becomes uninstalled or uninstallFailed
-		for {
-			inactiveSI := v1alpha1.ServiceInstance{}
-			if err := cli.Get(ctx, key, &inactiveSI); err != nil {
-				if apiErrors.IsNotFound(err) {
-					// resource is not found
-					return nil
+			incomingSI := v1alpha1.ServiceInstance{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: item.Namespace,
+					Name:      item.Spec.Service,
+				},
+			}
+
+			key, err := client.ObjectKeyFromObject(&incomingSI)
+			if err != nil {
+				return errors.Wrap(err, "failed to get object key for lookup")
+			}
+
+			// wait till the status becomes uninstalled or uninstallFailed
+			for {
+				inactiveSI := v1alpha1.ServiceInstance{}
+				if err := cli.Get(ctx, key, &inactiveSI); err != nil {
+					if apiErrors.IsNotFound(err) {
+						// resource is not found
+						return nil
+					}
+					return errors.Wrap(err, "failed to look up service instance")
 				}
-				return errors.Wrap(err, "failed to look up service instance")
+
+				if inactiveSI.Status.Phase == v1alpha1.UninstallFailed {
+					return errors.Wrap(err, "failed to uninstall integrated service")
+				}
+
+				if inactiveSI.Status.Phase == v1alpha1.Uninstalled {
+					break
+				}
+
+				// sleep a bit for the reconcile to proceed
+				time.Sleep(2 * time.Second)
 			}
 
-			if inactiveSI.Status.Phase == v1alpha1.UninstallFailed {
-				return errors.Wrap(err, "failed to uninstall integrated service")
+			if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&item, reconciler.StatePresent); err != nil {
+				return errors.Wrap(err, "failed to reconcile the integrated service")
 			}
-
-			if inactiveSI.Status.Phase == v1alpha1.Uninstalled {
-				break
-			}
-
-			// sleep a bit for the reconcile to proceed
-			time.Sleep(2 * time.Second)
 		}
-
-		if _, err := reconciler.NewReconcilerWith(cli).ReconcileResource(&item, reconciler.StatePresent); err != nil {
-			return errors.Wrap(err, "failed to reconcile the integrated service")
-		}
-
 	}
 
 	return nil
