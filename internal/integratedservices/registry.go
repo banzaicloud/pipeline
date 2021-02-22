@@ -20,12 +20,11 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
-	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/banzaicloud/operator-tools/pkg/utils"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -117,20 +116,13 @@ func (r integratedServiceOperatorRegistry) DisableServiceInstance(ctx context.Co
 
 			item.Spec.Enabled = utils.BoolPointer(false)
 
-			if _, err := reconciler.NewReconcilerWith(clusterClient).ReconcileResource(&item, reconciler.StatePresent); err != nil {
-				return errors.Wrap(err, "failed to reconcile the integrated service")
+			if err := clusterClient.Update(ctx, &item); err != nil {
+				return errors.Wrap(err, "failed to disable the integrated service")
 			}
 
-			incomingSI := v1alpha1.ServiceInstance{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: item.Namespace,
-					Name:      item.Spec.Service,
-				},
-			}
-
-			key, err := client.ObjectKeyFromObject(&incomingSI)
-			if err != nil {
-				return errors.Wrap(err, "failed to get object key for lookup")
+			key := types.NamespacedName{
+				Namespace: item.Namespace,
+				Name:      item.Name,
 			}
 
 			// wait till the status becomes uninstalled or uninstallFailed
@@ -154,10 +146,6 @@ func (r integratedServiceOperatorRegistry) DisableServiceInstance(ctx context.Co
 
 				// sleep a bit for the reconcile to proceed
 				time.Sleep(2 * time.Second)
-			}
-
-			if _, err := reconciler.NewReconcilerWith(clusterClient).ReconcileResource(&item, reconciler.StatePresent); err != nil {
-				return errors.Wrap(err, "failed to reconcile the integrated service")
 			}
 		}
 	}
