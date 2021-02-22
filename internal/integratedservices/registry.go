@@ -112,7 +112,8 @@ func (r integratedServiceOperatorRegistry) DisableServiceInstance(ctx context.Co
 
 	for _, item := range lookupISvcs.Items {
 
-		if item.ObjectMeta.Annotations["app.kubernetes.io/managed-by"] == "banzaicloud.io/pipeline" {
+		if item.ObjectMeta.Annotations["app.kubernetes.io/managed-by"] == "banzaicloud.io/pipeline" &&
+			item.Spec.Enabled == utils.BoolPointer(true) {
 
 			item.Spec.Enabled = utils.BoolPointer(false)
 
