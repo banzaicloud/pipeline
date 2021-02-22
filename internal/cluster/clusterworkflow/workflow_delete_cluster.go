@@ -53,7 +53,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	{
 		ctx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 			ScheduleToStartTimeout: 5 * time.Minute,
-			StartToCloseTimeout:    30 * time.Minute,
+			StartToCloseTimeout:    5 * time.Minute,
 		})
 
 		activityInput := workflow2.IntegratedServiceCleanActivityInput{
