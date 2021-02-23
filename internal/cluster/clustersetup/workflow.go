@@ -60,8 +60,6 @@ type Cluster struct {
 	UID          string
 	Name         string
 	Distribution string
-	Cloud        string
-	K8sVersion   string
 }
 
 // Organization contains information about the organization a cluster belongs to.
