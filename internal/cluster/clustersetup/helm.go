@@ -29,4 +29,15 @@ type HelmService interface {
 		chartVersion string,
 		wait bool,
 	) error
+
+	ApplyDeploymentReuseValues(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+		reuseValues bool,
+	) error
 }

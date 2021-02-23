@@ -270,10 +270,6 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return err
 	}
 
-	if err := DeployClusterAutoscaler(c.cluster, c.helmService); err != nil {
-		return errors.WrapIf(err, "deploying cluster autoscaler failed")
-	}
-
 	// on certain clouds we still need to add node pool name labels
 	if err := labelNodesWithNodePoolName(ctx, c.cluster); err != nil {
 		return errors.WrapIf(err, "adding labels to nodes failed")

@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2021 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cluster
+package autoscaler
 
 import (
 	"errors"
 	"testing"
+
+	"go.uber.org/zap"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 )
@@ -87,9 +89,15 @@ func TestGetImageVersion_Success(t *testing.T) {
 		},
 	}
 
+	logger := zap.NewNop().Sugar().With(
+		"clusterID", 1,
+		"workflowID", 1,
+		"workflowRunID", 1,
+	)
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			version := getImageVersion(1, tc.versioner)
+			version := getImageVersion(logger, tc.versioner)
 
 			if version["tag"] != tc.expectedVersion {
 				t.Errorf("Expected: %v, got: %v", tc.expectedVersion, version["tag"])

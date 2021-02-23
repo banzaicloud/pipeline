@@ -15,6 +15,7 @@
 package clustersetup
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -52,6 +53,13 @@ type WorkflowTestSuite struct {
 	env *testsuite.TestWorkflowEnvironment
 }
 
+type DeployClusterAutoscalerActivity struct {
+}
+
+func (a DeployClusterAutoscalerActivity) Execute(ctx context.Context, input DeployClusterAutoscalerActivityInput) error {
+	return nil
+}
+
 func TestWorkflowTestSuite(t *testing.T) {
 	suite.Run(t, new(WorkflowTestSuite))
 }
@@ -64,6 +72,7 @@ func (s *WorkflowTestSuite) SetupTest() {
 	s.env.RegisterActivityWithOptions(ConfigureNodePoolLabelsActivity{}.Execute, activity.RegisterOptions{Name: ConfigureNodePoolLabelsActivityName})
 	s.env.RegisterActivityWithOptions(CreatePipelineNamespaceActivity{}.Execute, activity.RegisterOptions{Name: CreatePipelineNamespaceActivityName})
 	s.env.RegisterActivityWithOptions(LabelKubeSystemNamespaceActivity{}.Execute, activity.RegisterOptions{Name: LabelKubeSystemNamespaceActivityName})
+	s.env.RegisterActivityWithOptions(DeployClusterAutoscalerActivity{}.Execute, activity.RegisterOptions{Name: DeployClusterAutoscalerActivityName})
 }
 
 func (s *WorkflowTestSuite) AfterTest(suiteName, testName string) {
@@ -99,6 +108,21 @@ func (s *WorkflowTestSuite) Test_Success() {
 			ConfigSecretID: "secret",
 			Labels:         testNodePoolLabels,
 		},
+	).Return(nil)
+
+	s.env.OnActivity(
+		ConfigureNodePoolLabelsActivityName,
+		mock.Anything,
+		ConfigureNodePoolLabelsActivityInput{
+			ConfigSecretID: "secret",
+			Labels:         testNodePoolLabels,
+		},
+	).Return(nil)
+
+	s.env.OnActivity(
+		DeployClusterAutoscalerActivityName,
+		mock.Anything,
+		DeployClusterAutoscalerActivityInput{ClusterID: 1},
 	).Return(nil)
 
 	workflowInput := WorkflowInput{
@@ -151,6 +175,12 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 			ConfigSecretID: "secret",
 			Labels:         testNodePoolLabels,
 		},
+	).Return(nil)
+
+	s.env.OnActivity(
+		DeployClusterAutoscalerActivityName,
+		mock.Anything,
+		DeployClusterAutoscalerActivityInput{ClusterID: 1},
 	).Return(nil)
 
 	workflowInput := WorkflowInput{

@@ -67,7 +67,6 @@ const (
 const (
 	InstallIngressControllerPostHook   = "InstallIngressControllerPostHook"
 	InstallKubernetesDashboardPostHook = "InstallKubernetesDashboardPostHook"
-	InstallClusterAutoscalerPostHook   = "InstallClusterAutoscalerPostHook"
 	RestoreFromBackup                  = "RestoreFromBackup"
 	InitSpotConfig                     = "InitSpotConfig"
 	DeployInstanceTerminationHandler   = "DeployInstanceTerminationHandler"
