@@ -61,8 +61,6 @@ type IntegratedServiceManagerRegistry interface {
 type IntegratedServiceOperatorRegistry interface {
 	// GetIntegratedServiceOperator retrieves an integrated service operator by name.
 	GetIntegratedServiceOperator(integratedServiceName string) (IntegratedServiceOperator, error)
-
-	DisableServiceInstance(ctx context.Context, clusterID uint) error
 }
 
 // +testify:mock:testOnly=true
@@ -86,6 +84,14 @@ type IntegratedServiceRepository interface {
 
 	// DeleteIntegratedService deletes an integrated service.
 	DeleteIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) error
+}
+
+type IntegratedSeriviceCleaner interface {
+	ServiceInstanceDisabler
+}
+
+type ServiceInstanceDisabler interface {
+	DisableServiceInstance(ctx context.Context, clusterID uint) error
 }
 
 // IsIntegratedServiceNotFoundError returns true when the specified error is a "integrated service not found" error

@@ -15,7 +15,6 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
@@ -24,14 +23,7 @@ import (
 	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 )
 
-func registerClusterFeatureWorkflows(
-	worker worker.Worker,
-	featureOperatorRegistry integratedservices.IntegratedServiceOperatorRegistry,
-	featureRepository integratedservices.IntegratedServiceRepository,
-	logger logrus.FieldLogger,
-	workflowName string,
-	isV2 bool,
-) {
+func registerClusterFeatureWorkflows(worker worker.Worker, featureOperatorRegistry integratedservices.IntegratedServiceOperatorRegistry, featureRepository integratedservices.IntegratedServiceRepository, workflowName string, isV2 bool) {
 	if isV2 {
 		worker.RegisterWorkflowWithOptions(clusterfeatureworkflow.IntegratedServiceJobWorkflowV2, workflow.RegisterOptions{Name: workflowName})
 	} else {
@@ -73,12 +65,5 @@ func registerClusterFeatureWorkflows(
 			a := clusterfeatureworkflow.MakeIntegratedServiceSetStatusActivity(featureRepository)
 			worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
 		}
-	}
-
-	// Integrated Service v2 cleanup
-	{
-		activityName := clusterfeatureworkflow.GetActivityName(clusterfeatureworkflow.IntegratedServiceCleanActivityName, isV2)
-		a := clusterfeatureworkflow.MakeIntegratedServiceCleanActivity(featureOperatorRegistry, logger)
-		worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: activityName})
 	}
 }

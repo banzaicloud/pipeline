@@ -29,19 +29,19 @@ type IntegratedServiceCleanActivityInput struct {
 }
 
 type IntegratedServiceCleanActivity struct {
-	integratedServices integratedservices.IntegratedServiceOperatorRegistry
-	logger             logrus.FieldLogger
+	integratedCleaner integratedservices.IntegratedSeriviceCleaner
+	logger            logrus.FieldLogger
 }
 
-func MakeIntegratedServiceCleanActivity(integratedServices integratedservices.IntegratedServiceOperatorRegistry, logger logrus.FieldLogger) IntegratedServiceCleanActivity {
+func MakeIntegratedServiceCleanActivity(integratedCleaner integratedservices.IntegratedSeriviceCleaner, logger logrus.FieldLogger) IntegratedServiceCleanActivity {
 	return IntegratedServiceCleanActivity{
-		integratedServices: integratedServices,
-		logger:             logger,
+		integratedCleaner: integratedCleaner,
+		logger:            logger,
 	}
 }
 
 func (a IntegratedServiceCleanActivity) Execute(ctx context.Context, input IntegratedServiceCleanActivityInput) error {
-	err := a.integratedServices.DisableServiceInstance(ctx, input.ClusterID)
+	err := a.integratedCleaner.DisableServiceInstance(ctx, input.ClusterID)
 	if err != nil && input.Force {
 		logger := a.logger.WithFields(logrus.Fields{
 			"clusterID": input.ClusterID,

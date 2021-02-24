@@ -718,7 +718,7 @@ func main() {
 					unifiedHelmReleaser,
 					intsvcingressadapter.NewOrgDomainService(config.Cluster.DNS.BaseDomain, orgGetter),
 				),
-			}, clusterManager.KubeConfigFunc())
+			})
 			featureOperatorRegistryV2 := integratedservices.MakeIntegratedServiceOperatorRegistry([]integratedservices.IntegratedServiceOperator{
 				integratedServiceDNS.NewDNSISOperator(
 					clusterGetter,
@@ -728,10 +728,10 @@ func main() {
 					config.Cluster.DNS.Config,
 					logger,
 				),
-			}, clusterManager.KubeConfigFunc())
+			})
 
-			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, logrusLogger, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)
-			registerClusterFeatureWorkflows(worker, featureOperatorRegistryV2, featureRepositoryV2, logrusLogger, clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name, true)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)
+			registerClusterFeatureWorkflows(worker, featureOperatorRegistryV2, featureRepositoryV2, clusterfeatureworkflow.IntegratedServiceJobWorkflowV2Name, true)
 
 			// integrated service operator setup
 			{
@@ -746,6 +746,15 @@ func main() {
 
 				isOPInstallerActivity := operator.NewInstallerActivity(helmFacade, unifiedHelmReleaser, config.IntegratedService.Operator)
 				worker.RegisterActivityWithOptions(isOPInstallerActivity.Execute, activity.RegisterOptions{Name: operator.IntegratedServiceOperatorInstallerActivityName})
+			}
+		}
+
+		{
+			// Integrated Service v2 cleanup
+			if config.IntegratedService.V2 {
+				isCleaner := integratedservices.NewIntegratedServiceClean(clusterManager.KubeConfigFunc())
+				a := clusterfeatureworkflow.MakeIntegratedServiceCleanActivity(isCleaner, logrusLogger)
+				worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceCleanActivityName})
 			}
 		}
 

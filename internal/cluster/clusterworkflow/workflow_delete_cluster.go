@@ -15,7 +15,6 @@
 package clusterworkflow
 
 import (
-	"fmt"
 	"time"
 
 	workflow2 "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
@@ -60,7 +59,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			ClusterID: input.ClusterID,
 			Force:     input.Force,
 		}
-		err := workflow.ExecuteActivity(ctx, fmt.Sprintf("%s-v2", workflow2.IntegratedServiceCleanActivityName), activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, workflow2.IntegratedServiceCleanActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
 			return err
