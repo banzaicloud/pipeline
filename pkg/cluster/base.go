@@ -65,7 +65,6 @@ const (
 
 // constants for posthooks
 const (
-	InstallIngressControllerPostHook   = "InstallIngressControllerPostHook"
 	InstallKubernetesDashboardPostHook = "InstallKubernetesDashboardPostHook"
 	RestoreFromBackup                  = "RestoreFromBackup"
 	InitSpotConfig                     = "InitSpotConfig"
