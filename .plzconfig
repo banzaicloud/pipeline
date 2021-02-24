@@ -1,6 +1,10 @@
 [please]
 version = 15.17.0
 
+[build]
+PassUnsafeEnv = VAULT_ADDR
+PassUnsafeEnv = VAULT_TOKEN
+
 [featureflags]
 PleaseGoInstall = true
 
