@@ -17,8 +17,9 @@ package workflow
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/internal/integratedservices"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
 const IntegratedServiceCleanActivityName = "integrated-service-clean"

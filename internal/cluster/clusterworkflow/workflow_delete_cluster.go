@@ -17,10 +17,10 @@ package clusterworkflow
 import (
 	"time"
 
-	workflow2 "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	workflow2 "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 )
 
