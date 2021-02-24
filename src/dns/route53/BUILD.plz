@@ -28,8 +28,10 @@ go_library(
 )
 
 go_test(
-    name = "test",
+    name = "integration_test",
     srcs = glob(["*.go"]),
+    flags = "-test.run ^TestIntegration$",
+    labels = ["integration"],
     deps = [
         "//internal/common",
         "//internal/global",

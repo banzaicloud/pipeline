@@ -34,3 +34,23 @@ go_test(
         "//third_party/go:google.golang.org__api__storage__v1",
     ],
 )
+
+go_test(
+    name = "integration_test",
+    srcs = glob(["*.go"]),
+    flags = "-test.run ^TestIntegration$",
+    labels = ["integration"],
+    deps = [
+        "//pkg/errors",
+        "//third_party/go:cloud.google.com__go__storage",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__pkg__errors",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:golang.org__x__oauth2__google",
+        "//third_party/go:google.golang.org__api__googleapi",
+        "//third_party/go:google.golang.org__api__iterator",
+        "//third_party/go:google.golang.org__api__option",
+        "//third_party/go:google.golang.org__api__storage__v1",
+    ],
+)
