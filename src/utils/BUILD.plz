@@ -1,0 +1,19 @@
+go_library(
+    name = "utils",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__sirupsen__logrus"],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//third_party/go:github.com__pkg__errors",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

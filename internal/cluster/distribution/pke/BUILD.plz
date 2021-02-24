@@ -1,0 +1,24 @@
+go_library(
+    name = "pke",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__stretchr__testify__mock",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

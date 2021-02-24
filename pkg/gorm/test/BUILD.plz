@@ -1,0 +1,11 @@
+go_library(
+    name = "test",
+    srcs = glob(["*.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__jinzhu__gorm__dialects__sqlite",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

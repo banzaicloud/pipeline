@@ -1,0 +1,21 @@
+go_library(
+    name = "clustergroup",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/clustergroup",
+        "//internal/clustergroup/api",
+        "//internal/clustergroup/deployment",
+        "//internal/platform/gin/utils",
+        "//src/api/clustergroup/common",
+        "//src/api/clustergroup/deployment",
+        "//src/api/clustergroup/feature",
+        "//src/auth",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:github.com__gin-gonic__gin",
+        "//third_party/go:github.com__sirupsen__logrus",
+    ],
+)

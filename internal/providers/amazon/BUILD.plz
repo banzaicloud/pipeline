@@ -1,0 +1,26 @@
+go_library(
+    name = "amazon",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//internal/network",
+        "//internal/objectstore",
+        "//internal/secret/secrettype",
+        "//pkg/objectstore",
+        "//pkg/providers",
+        "//pkg/providers/amazon",
+        "//pkg/providers/amazon/objectstore",
+        "//src/auth",
+        "//src/secret",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__cloudformation",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__ec2",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+    ],
+)

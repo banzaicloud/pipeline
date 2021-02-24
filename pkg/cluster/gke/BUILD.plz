@@ -1,0 +1,13 @@
+go_library(
+    name = "gke",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/common",
+        "//pkg/errors",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)

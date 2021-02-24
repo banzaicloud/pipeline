@@ -1,0 +1,18 @@
+go_library(
+    name = "clustermodel",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/database/sql/json",
+        "//internal/global",
+        "//pkg/gormhelper",
+        "//src/secret",
+        "//third_party/go:github.com__gofrs__uuid",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+    ],
+)

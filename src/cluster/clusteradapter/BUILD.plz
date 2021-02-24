@@ -1,0 +1,12 @@
+go_library(
+    name = "clusteradapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster",
+        "//src/cluster",
+    ],
+)

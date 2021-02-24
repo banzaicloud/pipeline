@@ -1,0 +1,22 @@
+go_library(
+    name = "common",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/platform/gin/correlationid",
+        "//internal/platform/gin/utils",
+        "//pkg/common",
+        "//src/auth",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:github.com__gin-gonic__gin",
+        "//third_party/go:github.com__pkg__errors",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:k8s.io__client-go__dynamic",
+        "//third_party/go:k8s.io__client-go__kubernetes",
+        "//third_party/go:k8s.io__client-go__rest",
+    ],
+)

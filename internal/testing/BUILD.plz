@@ -1,0 +1,13 @@
+go_library(
+    name = "testing",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+        "//third_party/go:k8s.io__apimachinery__pkg__util__wait",
+        "//third_party/go:k8s.io__client-go__kubernetes",
+    ],
+)

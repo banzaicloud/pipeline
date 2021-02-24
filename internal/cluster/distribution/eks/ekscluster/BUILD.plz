@@ -1,0 +1,17 @@
+go_library(
+    name = "ekscluster",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/distribution/eks",
+        "//internal/global/globaleks",
+        "//pkg/common",
+        "//pkg/errors",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__Masterminds__semver__v3",
+        "//third_party/go:github.com__ghodss__yaml",
+    ],
+)

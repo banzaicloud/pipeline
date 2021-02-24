@@ -1,6 +1,9 @@
 [cache]
-dir = .plz-cache
-dircompress = true
+# dir = .plz-cache
+# dircompress = true
+
+httpurl = http://127.0.0.1:8000
+httpwriteable = True
 
 [build]
 timeout = 900

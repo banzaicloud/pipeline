@@ -1,0 +1,32 @@
+go_library(
+    name = "authadapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//src/auth",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//src/auth",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__ThreeDotsLabs__watermill",
+        "//third_party/go:github.com__ThreeDotsLabs__watermill__components__cqrs",
+        "//third_party/go:github.com__ThreeDotsLabs__watermill__message__subscriber",
+        "//third_party/go:github.com__ThreeDotsLabs__watermill__pubsub__gochannel",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__jinzhu__gorm__dialects__sqlite",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

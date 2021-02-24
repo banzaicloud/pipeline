@@ -1,0 +1,25 @@
+go_library(
+    name = "oidc",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/auth",
+        "//src/auth",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*_test.go"]),
+    external = True,
+    deps = [
+        ":oidc",
+        "//internal/cluster/auth",
+        "//src/auth",
+        "//third_party/go:github.com__stretchr__testify__assert",
+    ],
+)

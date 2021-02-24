@@ -1,0 +1,24 @@
+go_library(
+    name = "pke",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/platform/gin/utils",
+        "//pkg/common",
+        "//src/api/common",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__emperror",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk__vault",
+        "//third_party/go:github.com__gin-gonic__gin",
+        "//third_party/go:github.com__hashicorp__vault__api",
+        "//third_party/go:github.com__mitchellh__mapstructure",
+        "//third_party/go:github.com__pkg__errors",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:go.uber.org__cadence__.gen__go__shared",
+        "//third_party/go:go.uber.org__cadence__client",
+    ],
+)

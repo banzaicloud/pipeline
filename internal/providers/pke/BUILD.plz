@@ -1,0 +1,32 @@
+go_library(
+    name = "pke",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/clusteradapter/clustermodel",
+        "//internal/database/sql/json",
+        "//pkg/providers/amazon",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:github.com__spf13__cast",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/cluster/clusteradapter/clustermodel",
+        "//internal/database/sql/json",
+        "//pkg/providers/amazon",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:github.com__spf13__cast",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

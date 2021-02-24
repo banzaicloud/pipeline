@@ -1,0 +1,9 @@
+go_library(
+    name = "providers",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = ["//pkg/objectstore"],
+)

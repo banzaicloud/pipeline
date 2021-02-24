@@ -1,0 +1,23 @@
+go_library(
+    name = "commonadapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//third_party/go:logur.dev__logur",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//internal/common",
+        "//third_party/go:logur.dev__logur",
+        "//third_party/go:logur.dev__logur__conformance",
+        "//third_party/go:logur.dev__logur__logtesting",
+    ],
+)

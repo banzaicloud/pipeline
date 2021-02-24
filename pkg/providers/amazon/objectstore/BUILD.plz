@@ -1,0 +1,34 @@
+go_library(
+    name = "objectstore",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/errors",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__awserr",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__credentials",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__session",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__s3",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__s3__s3manager",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//pkg/errors",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__awserr",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__credentials",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws__session",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__s3",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__s3__s3manager",
+        "//third_party/go:github.com__pkg__errors",
+    ],
+)

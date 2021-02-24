@@ -1,0 +1,34 @@
+go_library(
+    name = "kubernetes",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/backoff",
+        "//pkg/k8sclient",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:k8s.io__api__core__v1",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__errors",
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+        "//third_party/go:k8s.io__client-go__kubernetes",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//pkg/backoff",
+        "//pkg/k8sclient",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:k8s.io__api__core__v1",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__errors",
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+        "//third_party/go:k8s.io__client-go__kubernetes",
+        "//third_party/go:k8s.io__client-go__kubernetes__fake",
+    ],
+)

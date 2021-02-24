@@ -1,0 +1,25 @@
+go_library(
+    name = "azure",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/global",
+        "//internal/network",
+        "//internal/objectstore",
+        "//internal/secret/secrettype",
+        "//pkg/objectstore",
+        "//pkg/providers",
+        "//pkg/providers/azure",
+        "//pkg/providers/azure/objectstore",
+        "//src/auth",
+        "//src/secret",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__Azure__azure-sdk-for-go__services__network__mgmt__2018-10-01__network",
+        "//third_party/go:github.com__Azure__go-autorest__autorest__azure",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+    ],
+)

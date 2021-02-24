@@ -1,0 +1,21 @@
+go_library(
+    name = "pkeservicedriver",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/pipeline/pipeline",
+        "//internal/cluster",
+        "//internal/platform/appkit/transport/http",
+        "//src/api/cluster/pke/pkeservice",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__go-kit__kit__endpoint",
+        "//third_party/go:github.com__go-kit__kit__transport__http",
+        "//third_party/go:github.com__gorilla__mux",
+        "//third_party/go:github.com__mitchellh__mapstructure",
+        "//third_party/go:github.com__sagikazarmark__kitx__endpoint",
+        "//third_party/go:github.com__sagikazarmark__kitx__transport__http",
+    ],
+)

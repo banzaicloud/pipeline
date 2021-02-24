@@ -1,0 +1,16 @@
+go_library(
+    name = "adapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/integratedservices/services/expiry",
+        "//internal/integratedservices/services/expiry/adapter/workflow",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:go.uber.org__cadence__.gen__go__shared",
+        "//third_party/go:go.uber.org__cadence__client",
+    ],
+)

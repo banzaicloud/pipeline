@@ -1,0 +1,13 @@
+go_library(
+    name = "buildinfo",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/pipeline/pipeline",
+        "//internal/global",
+        "//third_party/go:github.com__pkg__errors",
+    ],
+)

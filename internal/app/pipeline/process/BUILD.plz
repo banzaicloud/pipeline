@@ -1,0 +1,15 @@
+go_library(
+    name = "process",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/pipeline/pipeline",
+        "//internal/common",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:go.uber.org__cadence__.gen__go__shared",
+    ],
+)

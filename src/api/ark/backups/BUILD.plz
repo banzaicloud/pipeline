@@ -1,0 +1,23 @@
+go_library(
+    name = "backups",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark",
+        "//internal/ark/api",
+        "//internal/ark/clustermanager",
+        "//internal/ark/sync",
+        "//internal/global",
+        "//internal/platform/gin/correlationid",
+        "//internal/platform/gin/utils",
+        "//src/api/ark/common",
+        "//src/auth",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__gin-gonic__gin",
+        "//third_party/go:github.com__sirupsen__logrus",
+    ],
+)

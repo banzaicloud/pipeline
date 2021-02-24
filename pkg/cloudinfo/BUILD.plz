@@ -1,0 +1,12 @@
+go_library(
+    name = "cloudinfo",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//.gen/cloudinfo",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)

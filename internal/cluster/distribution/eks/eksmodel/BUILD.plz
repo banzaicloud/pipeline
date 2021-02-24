@@ -1,0 +1,18 @@
+go_library(
+    name = "eksmodel",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster/clusteradapter/clustermodel",
+        "//internal/cluster/distribution/eks",
+        "//internal/common",
+        "//internal/global",
+        "//pkg/gormhelper",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+    ],
+)

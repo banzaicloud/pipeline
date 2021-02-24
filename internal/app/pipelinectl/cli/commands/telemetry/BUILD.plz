@@ -1,0 +1,34 @@
+go_library(
+    name = "telemetry",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__MakeNowJust__heredoc",
+        "//third_party/go:github.com__prometheus__client_model__go",
+        "//third_party/go:github.com__prometheus__prom2json",
+        "//third_party/go:github.com__spf13__cobra",
+        "//third_party/go:github.com__spf13__viper",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    data = [
+        "//internal/app/pipelinectl/cli/commands/telemetry/testdata",  # wollemi:keep
+    ],
+    deps = [
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__MakeNowJust__heredoc",
+        "//third_party/go:github.com__json-iterator__go",
+        "//third_party/go:github.com__prometheus__client_model__go",
+        "//third_party/go:github.com__prometheus__prom2json",
+        "//third_party/go:github.com__spf13__cobra",
+        "//third_party/go:github.com__spf13__viper",
+        "//third_party/go:github.com__stretchr__testify__assert",
+    ],
+)

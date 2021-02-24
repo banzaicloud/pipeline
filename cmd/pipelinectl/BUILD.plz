@@ -1,0 +1,13 @@
+go_binary(
+    name = "pipelinectl",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/app/pipelinectl/cli/commands",
+        "//third_party/go:github.com__spf13__cobra",
+        "//third_party/go:github.com__spf13__viper",
+    ],
+)

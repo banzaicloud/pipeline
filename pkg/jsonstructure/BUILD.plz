@@ -1,0 +1,25 @@
+go_library(
+    name = "jsonstructure",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pkg/any",
+        "//pkg/mirror",
+        "//third_party/go:emperror.dev__errors",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//pkg/any",
+        "//pkg/mirror",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

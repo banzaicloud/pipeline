@@ -1,0 +1,13 @@
+go_library(
+    name = "log",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/platform/gin/correlationid",
+        "//third_party/go:github.com__gin-gonic__gin",
+        "//third_party/go:github.com__sirupsen__logrus",
+    ],
+)

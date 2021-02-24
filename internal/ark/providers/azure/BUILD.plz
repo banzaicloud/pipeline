@@ -1,0 +1,19 @@
+go_library(
+    name = "azure",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark/providers",
+        "//internal/providers",
+        "//internal/secret/secrettype",
+        "//pkg/cluster",
+        "//pkg/providers/azure",
+        "//pkg/providers/azure/objectstore",
+        "//src/secret",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__vmware-tanzu__velero__pkg__plugin__velero",
+    ],
+)

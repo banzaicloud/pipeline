@@ -1,0 +1,12 @@
+go_library(
+    name = "clustermanager",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark/api",
+        "//src/cluster",
+    ],
+)

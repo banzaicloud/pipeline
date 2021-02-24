@@ -1,0 +1,13 @@
+go_library(
+    name = "googleadapter",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/common",
+        "//internal/providers/google",
+        "//internal/secret/secrettype",
+    ],
+)

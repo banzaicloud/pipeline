@@ -1,0 +1,15 @@
+go_library(
+    name = "clusterworkflow",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/cluster",
+        "//pkg/cadence",
+        "//pkg/kubernetes/custom/npls",
+        "//third_party/go:go.uber.org__cadence__workflow",
+        "//third_party/go:k8s.io__client-go__dynamic",
+    ],
+)
