@@ -47,6 +47,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup/autoscaler"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
@@ -342,6 +343,9 @@ func main() {
 				kubernetes.NewDynamicClientFactory(configFactory),
 			)
 			worker.RegisterActivityWithOptions(configureNodePoolLabelsActivity.Execute, activity.RegisterOptions{Name: clustersetup.ConfigureNodePoolLabelsActivityName})
+
+			deployClusterAutoscalerActivity := autoscaler.NewDeployClusterAutoscalerActivity(clusterManager, unifiedHelmReleaser)
+			worker.RegisterActivityWithOptions(deployClusterAutoscalerActivity.Execute, activity.RegisterOptions{Name: clustersetup.DeployClusterAutoscalerActivityName})
 		}
 
 		worker.RegisterWorkflowWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})

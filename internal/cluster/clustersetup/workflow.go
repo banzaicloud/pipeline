@@ -27,6 +27,8 @@ import (
 // WorkflowName can be used to reference the cluster setup workflow.
 const WorkflowName = "cluster-setup"
 
+const DeployClusterAutoscalerActivityName = "deploy-cluster-autoscaler"
+
 // Workflow orchestrates the post-creation cluster setup flow.
 type Workflow struct {
 	// InstallInit
@@ -46,6 +48,10 @@ type WorkflowInput struct {
 	Organization Organization
 
 	NodePoolLabels map[string]map[string]string
+}
+
+type DeployClusterAutoscalerActivityInput struct {
+	ClusterID uint
 }
 
 // Cluster represents a Kubernetes cluster.
@@ -132,6 +138,17 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 
 		err := workflow.ExecuteActivity(ctx, ConfigureNodePoolLabelsActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		activityInput := DeployClusterAutoscalerActivityInput{
+			ClusterID: input.Cluster.ID,
+		}
+
+		err := workflow.ExecuteActivity(ctx, DeployClusterAutoscalerActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}

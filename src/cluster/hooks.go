@@ -161,20 +161,6 @@ func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
 	return ph.helmService.ApplyDeployment(context.Background(), cluster.GetID(), k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version)
 }
 
-type ClusterAutoscalerPostHook struct {
-	helmServiceInjector
-	Priority
-	ErrorHandler
-}
-
-// InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
-func (ph *ClusterAutoscalerPostHook) Do(cluster CommonCluster) error {
-	if ph.helmService == nil {
-		return errors.New("missing helm service dependency")
-	}
-	return DeployClusterAutoscaler(cluster, ph.helmService)
-}
-
 // make sure the injector interface is implemented
 var _ HookWithParamsFactory = &RestoreFromBackupPosthook{}
 

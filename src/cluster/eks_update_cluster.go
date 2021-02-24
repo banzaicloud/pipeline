@@ -386,22 +386,6 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 		}
 	}
 
-	// redeploy autoscaler
-	{
-		activityInput := RunPostHookActivityInput{
-			ClusterID: input.ClusterID,
-			HookName:  pkgCluster.InstallClusterAutoscalerPostHook,
-			Status:    pkgCluster.Updating,
-		}
-
-		err := workflow.ExecuteActivity(ctx, RunPostHookActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			err = errors.WrapIff(pkgCadence.UnwrapError(err), "%q activity failed", RunPostHookActivityName)
-			eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
-			return err
-		}
-	}
-
 	_ = eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Running, pkgCluster.RunningMessage)
 	return nil
 }

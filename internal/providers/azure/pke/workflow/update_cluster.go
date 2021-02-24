@@ -26,7 +26,6 @@ import (
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
-	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 const UpdateClusterWorkflowName = "pke-azure-update-cluster"
@@ -341,17 +340,15 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			return err
 		}
 	}
-	// redeploy autoscaler
+
 	{
-		activityInput := cluster.RunPostHookActivityInput{
+		activityInput := clustersetup.DeployClusterAutoscalerActivityInput{
 			ClusterID: input.ClusterID,
-			HookName:  pkgCluster.InstallClusterAutoscalerPostHook,
-			Status:    pkgCluster.Updating,
 		}
 
-		err := workflow.ExecuteActivity(ctx, cluster.RunPostHookActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, clustersetup.DeployClusterAutoscalerActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			err = errors.WrapIff(pkgCadence.UnwrapError(err), "%q activity failed", cluster.RunPostHookActivityName)
+			err = errors.WrapIff(pkgCadence.UnwrapError(err), "%q activity failed", clustersetup.DeployClusterAutoscalerActivityName)
 			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 			return err
 		}

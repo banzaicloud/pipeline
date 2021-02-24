@@ -868,24 +868,9 @@ func CreateOrUpdateResourceGroup(orgID uint, secretID string, resourceGroupName,
 	return errors.WrapIf(err, "failed to create or update resource group")
 }
 
-// GetAKSNodePools returns AKS node pools from a common cluster.
-func GetAKSNodePools(cluster CommonCluster) ([]*azureadapter.AKSNodePoolModel, error) {
-	akscluster, ok := cluster.(*AKSCluster)
-	if !ok {
-		return nil, ErrInvalidClusterInstance
-	}
-
-	return akscluster.modelCluster.AKS.NodePools, nil
-}
-
-// GetAKSResourceGroup returns AKS resource group from a common cluster.
-func GetAKSResourceGroup(cluster CommonCluster) (string, error) {
-	akscluster, ok := cluster.(*AKSCluster)
-	if !ok {
-		return "", ErrInvalidClusterInstance
-	}
-
-	return akscluster.modelCluster.AKS.ResourceGroup, nil
+// GetAKSNodePools returns AKS node pools.
+func (c *AKSCluster) GetAKSNodePools() []*azureadapter.AKSNodePoolModel {
+	return c.modelCluster.AKS.NodePools
 }
 
 func (c *AKSCluster) onClusterCreateFailure(createError error, operationStartTime time.Time) error {
