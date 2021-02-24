@@ -45,3 +45,19 @@ go_test(
         "//pkg/k8sclient",
     ],
 )
+
+go_test(
+    name = "integration_test",
+    srcs = glob(["*_test.go"]),
+    external = True,
+    flags = "-test.run ^TestIntegration$",
+    labels = ["integration"],
+    deps = [
+        ":federation",
+        "//internal/cmd",
+        "//internal/helm",
+        "//internal/helm/testing",
+        "//internal/testing",
+        "//pkg/k8sclient",
+    ],
+)

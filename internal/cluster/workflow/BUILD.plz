@@ -42,3 +42,29 @@ go_test(
         "//third_party/go:sigs.k8s.io__testing_frameworks__integration",
     ],
 )
+
+go_test(
+    name = "integration_test",
+    srcs = glob(["*.go"]),
+    flags = "-test.run ^TestIntegration$",
+    labels = ["integration"],
+    deps = [
+        "//internal/helm",
+        "//pkg/k8sclient",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:github.com__stretchr__testify__suite",
+        "//third_party/go:go.uber.org__cadence__activity",
+        "//third_party/go:go.uber.org__cadence__testsuite",
+        "//third_party/go:go.uber.org__cadence__workflow",
+        "//third_party/go:k8s.io__api__core__v1",
+        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
+        "//third_party/go:k8s.io__apimachinery__pkg__types",
+        "//third_party/go:k8s.io__apimachinery__pkg__watch",
+        "//third_party/go:k8s.io__client-go__kubernetes",
+        "//third_party/go:k8s.io__client-go__tools__clientcmd",
+        "//third_party/go:k8s.io__client-go__tools__clientcmd__api",
+        "//third_party/go:sigs.k8s.io__testing_frameworks__integration",
+    ],
+)

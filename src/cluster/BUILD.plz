@@ -143,9 +143,11 @@ go_test(
 )
 
 go_test(
-    name = "external_test",
+    name = "integration_test",
     srcs = ["common_test.go"],
     external = True,
+    flags = "-test.run ^TestIntegration$",
+    labels = ["integration"],
     deps = [
         ":cluster",
         "//internal/common",
