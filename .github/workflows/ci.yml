@@ -69,7 +69,7 @@ jobs:
           profile: ci
 
       - name: Test
-        run: plz test //...
+        run: plz test --exclude integration //...
 
   integration-test:
     name: Integration Test
