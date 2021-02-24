@@ -7,9 +7,42 @@ on:
   pull_request:
 
 jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    services:
+      cache:
+        image: ghcr.io/sagikazarmark/blob-proxy:v0.1.1
+        ports:
+          - 8000:8000
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CACHE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CACHE_SECRET_ACCESS_KEY }}
+          BUCKET: ${{ secrets.CACHE_BUCKET }}
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Please
+        uses: sagikazarmark/setup-please-action@v0
+        with:
+          profile: ci
+
+      - name: Build
+        run: plz build //...
+
   test:
     name: Test
     runs-on: ubuntu-latest
+
+    needs: build
 
     services:
       cache:
@@ -42,7 +75,7 @@ jobs:
     name: Integration Test
     runs-on: ubuntu-latest
 
-    needs: test
+    needs: build
 
     services:
       vault:
