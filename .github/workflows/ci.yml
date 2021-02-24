@@ -53,45 +53,54 @@ jobs:
         ports:
           - 8200
 
+      cache:
+        image: ghcr.io/sagikazarmark/blob-proxy:v0.1.1
+        ports:
+          - 8000:8000
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CACHE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CACHE_SECRET_ACCESS_KEY }}
+          BUCKET: ${{ secrets.CACHE_BUCKET }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Please cache
-        uses: actions/cache@v2
+      - name: Set up Please
+        uses: sagikazarmark/setup-please-action@v0
         with:
-          path: |
-            .plz-cache
-          key: ${{ runner.os }}-plz-v4-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
-          restore-keys: |
-            ${{ runner.os }}-plz-v4-
+          profile: ci
 
       - name: Start kind cluster
         run: |
-          ./pleasew -p --profile ci run ///pleasings2//tools/kubernetes:kind -- create cluster --kubeconfig $HOME/.kube/config
+          plz run ///pleasings2//tools/kubernetes:kind -- create cluster --kubeconfig $HOME/.kube/config
           echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
 
       - name: Test
         run: |
-          ./pleasew -p --profile ci build :kube-apiserver :etcd
-          export TEST_ASSET_KUBE_APISERVER=$PWD/$(./pleasew -p --profile ci query output :kube-apiserver)
-          export TEST_ASSET_ETCD=$PWD/$(./pleasew -p --profile ci query output :etcd)
-          ./pleasew -p --profile ci test --include integration //...
+          plz build :kube-apiserver :etcd
+          export TEST_ASSET_KUBE_APISERVER=$PWD/$(plz query output :kube-apiserver)
+          export TEST_ASSET_ETCD=$PWD/$(plz query output :etcd)
+          plz test --include integration //...
         env:
           VAULT_ADDR: http://127.0.0.1:${{ job.services.vault.ports[8200] }}
           VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
-
-      - name: Save Please log output
-        uses: actions/upload-artifact@v1
-        with:
-          name: integration-test-log
-          path: plz-out/log
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
 
     needs: test
+
+    services:
+      cache:
+        image: ghcr.io/sagikazarmark/blob-proxy:v0.1.1
+        ports:
+          - 8000:8000
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CACHE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CACHE_SECRET_ACCESS_KEY }}
+          BUCKET: ${{ secrets.CACHE_BUCKET }}
 
     steps:
       - name: Set up Go
@@ -102,14 +111,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Please cache
-        uses: actions/cache@v2
+      - name: Set up Please
+        uses: sagikazarmark/setup-please-action@v0
         with:
-          path: |
-            .plz-cache
-          key: ${{ runner.os }}-plz-v4-${{ hashFiles('**/BUILD', '**/BUILD.plz', '**/.plzconfig*', '**/go.mod', '**/go.sum', '**/*.go') }}
-          restore-keys: |
-            ${{ runner.os }}-plz-v4-
+          profile: ci
 
       - name: Go module cache
         uses: actions/cache@v2
@@ -128,10 +133,4 @@ jobs:
             ${{ runner.os }}-go-build-
 
       - name: Lint
-        run: ./pleasew -p --profile ci lint
-
-      - name: Save Please log output
-        uses: actions/upload-artifact@v1
-        with:
-          name: lint-log
-          path: plz-out/log
+        run: plz lint
