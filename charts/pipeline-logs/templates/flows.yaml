@@ -1,0 +1,41 @@
+{{- $root := . -}}
+{{- range $name, $flow := .Values.flows }}
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  name: {{ include "pipeline-logs.fullname" $root }}-{{ $name }}
+  labels:
+    {{- include "pipeline-logs.labels" $root | nindent 4 }}
+spec:
+  match:
+    {{- toYaml $flow.match | nindent 4 }}
+  {{- if $flow.filters }}
+  filters:
+    {{- if $root.Values.flowPreFilters }}
+    {{- toYaml $root.Values.flowPreFilters | nindent 4 }}
+    {{- end }}
+    {{- toYaml $flow.filters | nindent 4 }}
+    {{- if $root.Values.flowPostFilters }}
+    {{- toYaml $root.Values.flowPostFilters | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if or $flow.localOutputRefs $root.Values.localOutputRefs }}
+  localOutputRefs:
+    {{- if $flow.localOutputRefs }}
+    {{- toYaml $flow.localOutputRefs | nindent 4 }}
+    {{- end }}
+    {{- if $root.Values.localOutputRefs }}
+    {{- toYaml $root.Values.localOutputRefs | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if or $flow.globalOutputRefs $root.Values.globalOutputRefs }}
+  globalOutputRefs:
+    {{- if $flow.globalOutputRefs }}
+    {{- toYaml $flow.globalOutputRefs | nindent 4 }}
+    {{- end }}
+    {{- if $root.Values.globalOutputRefs }}
+    {{- toYaml $root.Values.globalOutputRefs | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end -}}

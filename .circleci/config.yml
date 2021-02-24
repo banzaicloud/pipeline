@@ -323,4 +323,4 @@ workflows:
                         branches:
                             ignore: /.*/
                         tags:
-                            only: /chart\/pipeline\/\d+.\d+.\d+/
+                            only: /chart\/[0-9a-z-_]+\/\d+.\d+.\d+/

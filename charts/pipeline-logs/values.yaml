@@ -1,0 +1,127 @@
+# Default values for pipeline-logs.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+# outputs added to all the flows
+#localOutputRefs:
+#  - example
+#globalOutputRefs:
+#  - example
+
+flowPreFilters:
+  - sumologic:
+      source_name: kubernetes
+      log_format: fields
+      tracing_namespace: namespace_name
+      tracing_pod: pod_name
+
+flows:
+  pipeline:
+    match:
+      - select:
+          labels:
+            app.kubernetes.io/instance: pipeline
+    filters:
+      - parser:
+          reserve_time: true
+          reserve_data: true
+          remove_key_name_field: true
+          parse:
+            type: json
+    #localOutputRefs:
+    #  - example
+    #globalOutputRefs:
+    #  - example
+  ui:
+    match:
+      - select:
+          labels:
+            app.kubernetes.io/instance: pipeline-ui
+    filters:
+      - parser:
+          reserve_time: true
+          reserve_data: true
+          remove_key_name_field: true
+          parse:
+            type: nginx
+    #localOutputRefs:
+    #  - example
+    #globalOutputRefs:
+    #  - example
+  cadence:
+    match:
+      - select:
+          labels:
+            app.kubernetes.io/instance: cadence
+    filters:
+      - parser:
+          reserve_time: true
+          reserve_data: true
+          remove_key_name_field: true
+          parse:
+            type: json
+    #localOutputRefs:
+    #  - example
+    #globalOutputRefs:
+    #  - example
+  dex:
+    match:
+      - select:
+          labels:
+            app: dex
+    filters:
+      - parser:
+          reserve_time: true
+          reserve_data: true
+          remove_key_name_field: true
+          parse:
+            type: logfmt
+    #localOutputRefs:
+    #  - example
+    #globalOutputRefs:
+    #  - example
+  vault:
+    match:
+      - select:
+          labels:
+            app.kubernetes.io/instance: vault
+    #localOutputRefs:
+    #  - example
+    #globalOutputRefs:
+    #  - example
+  traefik:
+    match:
+      - select:
+          labels:
+            app: traefik
+    #localOutputRefs:
+    #  - example
+    #globalOutputRefs:
+    #  - example
+  mysql:
+    match:
+      - select:
+          labels:
+            app: mysql
+    #localOutputRefs:
+    #  - example
+    #globalOutputRefs:
+    #  - example
+
+# for testing purposes
+fileOutput:
+  enabled: false
+  config:
+    path: /tmp/pipeline-sink-${tag}
+    append: true
+    buffer:
+      tags: tag,time
+      timekey: 1m
+
+
+# default logging setup for development purposes
+logging:
+  enabled: false

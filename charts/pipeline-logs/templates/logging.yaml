@@ -1,0 +1,20 @@
+{{- if .Values.logging.enabled -}}
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Logging
+metadata:
+  name: default
+spec:
+  {{- if .Values.logging.fluentd }}
+  fluentd:
+    {{- toYaml .Values.logging.fluentd | nindent 4 }}
+  {{- else }}
+  fluentd: {}
+  {{- end }}
+  {{- if .Values.logging.fluentbit }}
+  fluentbit:
+    {{- toYaml .Values.logging.fluentbit | nindent 4 }}
+  {{- else }}
+  fluentbit: {}
+  {{- end }}
+  controlNamespace: {{ .Release.Namespace }}
+{{- end -}}
