@@ -76,7 +76,7 @@ services:
             - ./etc/config/dex.yml:/dex.yml
 
     cadence:
-        image: ubercadence/server:0.13.0-auto-setup
+        image: ubercadence/server:0.14.1-auto-setup
         environment:
             LOG_LEVEL: debug,info
             DB: mysql
