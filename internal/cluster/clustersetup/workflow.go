@@ -155,6 +155,19 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 	}
 
 	{
+		activityInput := DeployIngressControllerActivityInput{
+			ClusterID:    input.Cluster.ID,
+			OrgID:        input.Organization.ID,
+			Distribution: input.Cluster.Distribution,
+		}
+
+		err := workflow.ExecuteActivity(ctx, DeployIngressControllerActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
 		if w.IsIntegratedServicesV2 {
 			// install / upgrade the  integrated service operator
 			input := operator.NewInstallerActivityInput(input.Organization.ID, input.Cluster.ID)
