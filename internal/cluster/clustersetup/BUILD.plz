@@ -8,9 +8,16 @@ go_library(
     deps = [
         "//internal/cluster/clusterconfig",
         "//internal/integratedservices/operator",
+        "//internal/global",
+        "//internal/providers/amazon",
+        "//pkg/any",
+        "//pkg/cluster",
+        "//pkg/jsonstructure",
         "//pkg/k8sutil",
         "//pkg/kubernetes",
         "//pkg/kubernetes/custom/npls",
+        "//src/auth",
+        "//src/dns",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__ghodss__yaml",
         "//third_party/go:go.uber.org__cadence",
@@ -21,6 +28,7 @@ go_library(
         "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
         "//third_party/go:k8s.io__client-go__dynamic",
         "//third_party/go:k8s.io__client-go__kubernetes",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws",
     ],
 )
 
@@ -30,10 +38,16 @@ go_test(
     deps = [
         "//internal/cluster/clusterconfig",
         "//internal/integratedservices/operator",
+        "//internal/providers/amazon",
+        "//pkg/any",
+        "//pkg/cluster",
+        "//pkg/jsonstructure",
         "//pkg/k8sclient",
         "//pkg/k8sutil",
         "//pkg/kubernetes",
         "//pkg/kubernetes/custom/npls",
+        "//src/auth",
+        "//src/dns",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__ghodss__yaml",
         "//third_party/go:github.com__stretchr__testify__mock",
@@ -51,6 +65,7 @@ go_test(
         "//third_party/go:k8s.io__client-go__tools__clientcmd",
         "//third_party/go:k8s.io__client-go__tools__clientcmd__api",
         "//third_party/go:sigs.k8s.io__testing_frameworks__integration",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws",
     ],
 )
 
@@ -62,10 +77,16 @@ go_test(
     deps = [
         "//internal/cluster/clusterconfig",
         "//internal/integratedservices/operator",
+        "//internal/providers/amazon",
+        "//pkg/any",
+        "//pkg/cluster",
+        "//pkg/jsonstructure",
         "//pkg/k8sclient",
         "//pkg/k8sutil",
         "//pkg/kubernetes",
         "//pkg/kubernetes/custom/npls",
+        "//src/auth",
+        "//src/dns",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__ghodss__yaml",
         "//third_party/go:github.com__stretchr__testify__mock",
@@ -83,5 +104,6 @@ go_test(
         "//third_party/go:k8s.io__client-go__tools__clientcmd",
         "//third_party/go:k8s.io__client-go__tools__clientcmd__api",
         "//third_party/go:sigs.k8s.io__testing_frameworks__integration",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws",
     ],
 )
