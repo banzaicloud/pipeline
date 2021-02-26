@@ -30,23 +30,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type integratedServiceClean struct {
+type integratedServiceCleaner struct {
 	scheme       *runtime.Scheme
 	kubeConfigFn ClusterKubeConfigFunc
 }
 
-func NewIntegratedServiceClean(kubeConfigFn ClusterKubeConfigFunc) IntegratedSeriviceCleaner {
+func NewIntegratedServiceClean(kubeConfigFn ClusterKubeConfigFunc) IntegratedServiceCleaner {
 	scheme := runtime.NewScheme()
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = v1alpha1.AddToScheme(scheme)
 
-	return integratedServiceClean{
+	return integratedServiceCleaner{
 		scheme:       scheme,
 		kubeConfigFn: kubeConfigFn,
 	}
 }
 
-func (r integratedServiceClean) DisableServiceInstance(ctx context.Context, clusterID uint) error {
+func (r integratedServiceCleaner) DisableServiceInstance(ctx context.Context, clusterID uint) error {
 	clusterClient, err := r.k8sClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.Wrap(err, "failed to build cluster client")
@@ -102,7 +102,7 @@ func (r integratedServiceClean) DisableServiceInstance(ctx context.Context, clus
 	return nil
 }
 
-func (r integratedServiceClean) k8sClientForCluster(ctx context.Context, clusterID uint) (client.Client, error) {
+func (r integratedServiceCleaner) k8sClientForCluster(ctx context.Context, clusterID uint) (client.Client, error) {
 	kubeConfig, err := r.kubeConfigFn.GetKubeConfig(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to retrieve the k8s config")

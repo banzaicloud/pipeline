@@ -30,11 +30,11 @@ type IntegratedServiceCleanActivityInput struct {
 }
 
 type IntegratedServiceCleanActivity struct {
-	integratedCleaner integratedservices.IntegratedSeriviceCleaner
+	integratedCleaner integratedservices.IntegratedServiceCleaner
 	logger            logrus.FieldLogger
 }
 
-func MakeIntegratedServiceCleanActivity(integratedCleaner integratedservices.IntegratedSeriviceCleaner, logger logrus.FieldLogger) IntegratedServiceCleanActivity {
+func MakeIntegratedServiceCleanActivity(integratedCleaner integratedservices.IntegratedServiceCleaner, logger logrus.FieldLogger) IntegratedServiceCleanActivity {
 	return IntegratedServiceCleanActivity{
 		integratedCleaner: integratedCleaner,
 		logger:            logger,

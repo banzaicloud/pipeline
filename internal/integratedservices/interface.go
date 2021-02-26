@@ -86,7 +86,7 @@ type IntegratedServiceRepository interface {
 	DeleteIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) error
 }
 
-type IntegratedSeriviceCleaner interface {
+type IntegratedServiceCleaner interface {
 	ServiceInstanceDisabler
 }
 
