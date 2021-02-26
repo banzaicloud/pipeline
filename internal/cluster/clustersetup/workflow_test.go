@@ -73,6 +73,7 @@ func (s *WorkflowTestSuite) SetupTest() {
 	s.env.RegisterActivityWithOptions(CreatePipelineNamespaceActivity{}.Execute, activity.RegisterOptions{Name: CreatePipelineNamespaceActivityName})
 	s.env.RegisterActivityWithOptions(LabelKubeSystemNamespaceActivity{}.Execute, activity.RegisterOptions{Name: LabelKubeSystemNamespaceActivityName})
 	s.env.RegisterActivityWithOptions(DeployClusterAutoscalerActivity{}.Execute, activity.RegisterOptions{Name: DeployClusterAutoscalerActivityName})
+	s.env.RegisterActivityWithOptions(DeployIngressControllerActivity{}.Execute, activity.RegisterOptions{Name: DeployIngressControllerActivityName})
 }
 
 func (s *WorkflowTestSuite) AfterTest(suiteName, testName string) {
@@ -123,6 +124,16 @@ func (s *WorkflowTestSuite) Test_Success() {
 		DeployClusterAutoscalerActivityName,
 		mock.Anything,
 		DeployClusterAutoscalerActivityInput{ClusterID: 1},
+	).Return(nil)
+
+	s.env.OnActivity(
+		DeployIngressControllerActivityName,
+		mock.Anything,
+		DeployIngressControllerActivityInput{
+			ClusterID: 1,
+			OrgID:     1,
+			Cloud:     "",
+		},
 	).Return(nil)
 
 	workflowInput := WorkflowInput{
@@ -181,6 +192,16 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 		DeployClusterAutoscalerActivityName,
 		mock.Anything,
 		DeployClusterAutoscalerActivityInput{ClusterID: 1},
+	).Return(nil)
+
+	s.env.OnActivity(
+		DeployIngressControllerActivityName,
+		mock.Anything,
+		DeployIngressControllerActivityInput{
+			ClusterID: 1,
+			OrgID:     1,
+			Cloud:     "",
+		},
 	).Return(nil)
 
 	workflowInput := WorkflowInput{
