@@ -49,6 +49,7 @@ type CreateClusterWorkflowInput struct {
 	OrganizationName string
 	Distribution     string
 	NodePoolLabels   map[string]map[string]string
+	Cloud            string
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -86,6 +87,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				UID:          input.ClusterUID,
 				Name:         input.ClusterName,
 				Distribution: input.Distribution,
+				Cloud:        input.Cloud,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,

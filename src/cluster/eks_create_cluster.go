@@ -79,9 +79,10 @@ func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkfl
 		workflowInput := clustersetup.WorkflowInput{
 			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, infraOutput.ConfigSecretID).String(),
 			Cluster: clustersetup.Cluster{
-				ID:   input.ClusterID,
-				UID:  input.ClusterUID,
-				Name: input.ClusterName,
+				ID:    input.ClusterID,
+				UID:   input.ClusterUID,
+				Name:  input.ClusterName,
+				Cloud: pkgCluster.Amazon,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,
