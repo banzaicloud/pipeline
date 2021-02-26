@@ -61,8 +61,7 @@ func (r integratedServiceCleaner) DisableServiceInstance(ctx context.Context, cl
 	}
 
 	for _, item := range lookupISvcs.Items {
-		if item.ObjectMeta.Annotations["app.kubernetes.io/managed-by"] == "banzaicloud.io/pipeline" && item.Spec.Enabled != nil &&
-			*item.Spec.Enabled == true {
+		if utils.PointerToBool(item.Spec.Enabled) {
 			item.Spec.Enabled = utils.BoolPointer(false)
 
 			if err := clusterClient.Update(ctx, &item); err != nil {
