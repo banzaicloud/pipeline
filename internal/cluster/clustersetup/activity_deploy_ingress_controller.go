@@ -52,9 +52,9 @@ func NewDeployIngressControllerActivity(
 }
 
 type DeployIngressControllerActivityInput struct {
-	ClusterID    uint
-	OrgID        uint
-	Distribution string
+	ClusterID uint
+	OrgID     uint
+	Cloud     string
 }
 
 type ingressControllerValues struct {
@@ -144,7 +144,7 @@ func (a DeployIngressControllerActivity) Execute(ctx context.Context, input Depl
 	}
 
 	// TODO: once we move this to an integrated service we must find a way to append tags to user configured annotations
-	if input.Distribution == pkgCluster.EKS || input.Distribution == pkgCluster.PKE {
+	if input.Cloud == pkgCluster.Amazon {
 		var tags []string
 
 		for _, tag := range amazon.PipelineTags() {
