@@ -158,6 +158,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 				UID:          input.ClusterUID,
 				Name:         input.ClusterName,
 				Distribution: input.Distribution,
+				Cloud:        pkgCluster.Azure,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,
