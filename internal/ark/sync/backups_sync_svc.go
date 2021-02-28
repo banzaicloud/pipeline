@@ -117,6 +117,7 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 	if err != nil {
 		return errors.WrapIf(err, "could not list backups")
 	}
+	backupIDS := make([]int, 0)
 
 	for _, backup := range backups.Items {
 		log := s.logger.WithField("backup", backup.Name)
@@ -153,12 +154,20 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 			log.WithField("count", req.NodeCount).Debug("node count found")
 		}
 
-		_, err = s.backupsSvc.Persist(req)
+		syncedBackup, err := s.backupsSvc.Persist(req)
 		if err != nil {
 			return errors.WrapIf(err, "could not persist backup")
 		}
+		backupIDS = append(backupIDS, int(syncedBackup.ID))
 
 		log.Debug("backup synced")
+	}
+
+	log := s.logger.WithField("bucket", bucket.Name).WithField("clusterId", bucket.ClusterID)
+	log.Debug("removing backups not found on cluster")
+	err = s.backupsSvc.DeleteNonExistingBackupsByBucketAndKeys(bucket.ID, backupIDS)
+	if err != nil {
+		return err
 	}
 
 	return nil
