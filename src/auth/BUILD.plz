@@ -61,9 +61,9 @@ go_test(
 go_test(
     name = "integration_test",
     srcs = glob(["*.go"]),
+    data = ["//config/certs"],
     flags = "-test.run ^TestIntegration$",
     labels = ["integration"],
-    data = ["//config/certs"],
     deps = [
         "//internal/common",
         "//internal/global",

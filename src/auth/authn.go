@@ -219,21 +219,6 @@ func SyncOrgsForUser(
 	return organizationSyncer.SyncOrganizations(request.Context(), *user, idTokenClaims)
 }
 
-func StartTokenStoreGC(tokenStore bauth.TokenStore) {
-	ticker := time.NewTicker(time.Hour * 12)
-	go func() {
-		for tick := range ticker.C {
-			_ = tick
-			err := tokenStore.GC()
-			if err != nil {
-				errorHandler.Handle(errors.Wrap(err, "failed to garbage collect TokenStore"))
-			} else {
-				log.Info("TokenStore garbage collected")
-			}
-		}
-	}()
-}
-
 // Install the whole OAuth and JWT Token based authn/authz mechanism to the specified Gin Engine.
 func Install(engine *gin.Engine) {
 	authHandler := Auth.HandlerFunc()
