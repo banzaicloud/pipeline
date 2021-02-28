@@ -20,7 +20,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/src/api/ark/common"
@@ -31,24 +30,17 @@ func List(c *gin.Context) {
 	logger := correlationid.LogrusLogger(common.Log, c)
 	logger.Info("getting backups")
 
-	cluserID, ok := ginutils.UintParam(c, ClusterIDParamName)
+	clusterID, ok := ginutils.UintParam(c, ClusterIDParamName)
 	if !ok {
 		return
 	}
 
-	orgBackups, err := common.GetARKService(c.Request).GetBackupsService().List()
+	backups, err := common.GetARKService(c.Request).GetBackupsService().ListForACluster(clusterID)
 	if err != nil {
 		err = errors.WrapIf(err, "could not get backups")
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
-	}
-
-	backups := make([]*api.Backup, 0)
-	for _, backup := range orgBackups {
-		if backup.ClusterID == cluserID {
-			backups = append(backups, backup)
-		}
 	}
 
 	c.JSON(http.StatusOK, backups)

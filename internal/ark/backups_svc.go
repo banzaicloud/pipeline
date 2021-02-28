@@ -105,6 +105,23 @@ func (s *BackupsService) List() ([]*api.Backup, error) {
 	return backups, nil
 }
 
+// List returns Backup instances for a given cluster
+func (s *BackupsService) ListForACluster(clusterID uint) ([]*api.Backup, error) {
+	backups := make([]*api.Backup, 0)
+
+	items, err := s.repository.FindByClusterID(clusterID)
+	if err != nil {
+		return backups, err
+	}
+
+	for _, item := range items {
+		backup := item.ConvertModelToEntity()
+		backups = append(backups, backup)
+	}
+
+	return backups, nil
+}
+
 // FindByPersistRequest returns a ClusterBackupsModel by PersistBackupRequest
 func (s *BackupsService) FindByPersistRequest(req *api.PersistBackupRequest) (*ClusterBackupsModel, error) {
 	backup, err := s.repository.FindByPersistRequest(req)
