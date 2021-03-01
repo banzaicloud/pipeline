@@ -113,6 +113,7 @@ func (s *BackupsService) ListForACluster(clusterID uint) ([]*api.Backup, error) 
 	if err != nil {
 		return backups, err
 	}
+	backups = make([]*api.Backup, 0, len(items))
 
 	for _, item := range items {
 		backup := item.ConvertModelToEntity()
