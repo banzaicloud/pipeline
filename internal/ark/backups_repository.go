@@ -56,9 +56,13 @@ func (r *BackupsRepository) FindByClusterID(clusterID uint) (backups []*ClusterB
 		ClusterID:      clusterID,
 	}
 
-	err = r.db.Where(&query).Preload("Bucket").Preload("Bucket.Deployment").Preload("Organization").Find(&backups).Error
-
-	return
+	return r.db.
+	    Where(&query).
+	    Preload("Bucket").
+	    Preload("Bucket.Deployment").
+	    Preload("Organization").
+	    Find(&backups).
+	    Error
 }
 
 // FindOneByName returns a ClusterBackupsModel instance by name
