@@ -58,6 +58,11 @@ func (s *BucketsSyncService) SyncBackupsFromBuckets() error {
 
 	for _, bucket := range buckets {
 		log := s.logger.WithField("bucket", bucket.Name)
+
+		if bucket.InUse {
+			log.Debug("bucket is in use not syncing from objectstorage")
+			continue
+		}
 		log.Debug("syncing backups from bucket")
 		backupIDS, err := s.syncBackupsFromBucket(bucket)
 		if err != nil {
