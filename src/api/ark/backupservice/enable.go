@@ -122,6 +122,7 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 			TTL: metav1.Duration{
 				Duration: scheduleTTL,
 			},
+			Options: request.Options,
 		}
 
 		if spec.Labels == nil {
