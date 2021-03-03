@@ -11932,7 +11932,7 @@ paths:
       summary: Create ARK backup
       tags:
       - ark-backups
-  /api/v1/orgs/{orgId}/backups/{id}/sync:
+  /api/v1/orgs/{orgId}/clusters/{id}/backups/sync:
     put:
       description: Sync ARK backups of a cluster
       operationId: SyncARKBackupsOfACluster
@@ -13430,7 +13430,7 @@ paths:
       summary: Create ARK restore
       tags:
       - ark-restores
-  /api/v1/orgs/{orgId}/restores/{id}/sync:
+  /api/v1/orgs/{orgId}/clusters/{id}/restores/sync:
     put:
       description: Sync ARK restores of a cluster
       operationId: SyncARKRestoresOfACluster

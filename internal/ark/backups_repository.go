@@ -49,6 +49,23 @@ func (r *BackupsRepository) Find() (backups []*ClusterBackupsModel, err error) {
 	return
 }
 
+// Find returns ClusterBackupsModel instances
+func (r *BackupsRepository) FindByClusterID(clusterID uint) (backups []*ClusterBackupsModel, err error) {
+	query := ClusterBackupsModel{
+		OrganizationID: r.org.ID,
+		ClusterID:      clusterID,
+	}
+
+	err = r.db.
+		Where(&query).
+		Preload("Bucket").
+		Preload("Bucket.Deployment").
+		Preload("Organization").
+		Find(&backups).
+		Error
+	return
+}
+
 // FindOneByName returns a ClusterBackupsModel instance by name
 func (r *BackupsRepository) FindOneByName(name string) (*ClusterBackupsModel, error) {
 	var backup ClusterBackupsModel
