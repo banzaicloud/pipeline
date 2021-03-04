@@ -430,7 +430,8 @@ func main() {
 		cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 		clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
 		{
-			worker.RegisterWorkflowWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
+			deleteClusterWorkflow := clusterworkflow.NewDeleteClusterWorkflow(config.IntegratedService.V2)
+			worker.RegisterWorkflowWithOptions(deleteClusterWorkflow.Execute, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
 
 			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config, unifiedHelmReleaser)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler, deployment.NewHelmService(helmFacade, unifiedHelmReleaser))
@@ -746,6 +747,15 @@ func main() {
 
 				isOPInstallerActivity := operator.NewInstallerActivity(helmFacade, unifiedHelmReleaser, config.IntegratedService.Operator)
 				worker.RegisterActivityWithOptions(isOPInstallerActivity.Execute, activity.RegisterOptions{Name: operator.IntegratedServiceOperatorInstallerActivityName})
+			}
+		}
+
+		{
+			// Integrated Service v2 cleanup
+			if config.IntegratedService.V2 {
+				isCleaner := integratedservices.NewIntegratedServiceClean(clusterManager.KubeConfigFunc())
+				a := clusterfeatureworkflow.MakeIntegratedServiceCleanActivity(isCleaner, logrusLogger)
+				worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.IntegratedServiceCleanActivityName})
 			}
 		}
 

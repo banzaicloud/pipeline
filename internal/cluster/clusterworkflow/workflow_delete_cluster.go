@@ -20,6 +20,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	workflow2 "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
 )
 
@@ -30,7 +31,17 @@ type DeleteClusterWorkflowInput struct {
 	Force     bool
 }
 
-func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
+type DeleteClusterWorkflow struct {
+	v2IntegratedServiceEnabled bool
+}
+
+func NewDeleteClusterWorkflow(v2IntegratedServiceEnabled bool) *DeleteClusterWorkflow {
+	return &DeleteClusterWorkflow{
+		v2IntegratedServiceEnabled: v2IntegratedServiceEnabled,
+	}
+}
+
+func (w *DeleteClusterWorkflow) Execute(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
 	{
 		ctx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 			ScheduleToStartTimeout: 5 * time.Minute,
@@ -44,6 +55,26 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		if err != nil {
 			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
 			return err
+		}
+	}
+
+	// Cleanup V2 Integrated Services
+	{
+		if w.v2IntegratedServiceEnabled {
+			ctx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+				ScheduleToStartTimeout: 5 * time.Minute,
+				StartToCloseTimeout:    5 * time.Minute,
+			})
+
+			activityInput := workflow2.IntegratedServiceCleanActivityInput{
+				ClusterID: input.ClusterID,
+				Force:     input.Force,
+			}
+			err := workflow.ExecuteActivity(ctx, workflow2.IntegratedServiceCleanActivityName, activityInput).Get(ctx, nil)
+			if err != nil {
+				_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
+				return err
+			}
 		}
 	}
 

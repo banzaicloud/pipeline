@@ -86,6 +86,10 @@ type IntegratedServiceRepository interface {
 	DeleteIntegratedService(ctx context.Context, clusterID uint, integratedServiceName string) error
 }
 
+type IntegratedServiceCleaner interface {
+	DisableServiceInstance(ctx context.Context, clusterID uint) error
+}
+
 // IsIntegratedServiceNotFoundError returns true when the specified error is a "integrated service not found" error
 func IsIntegratedServiceNotFoundError(err error) bool {
 	var notFoundErr interface {

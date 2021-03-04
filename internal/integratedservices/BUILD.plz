@@ -9,7 +9,15 @@ go_library(
         "//internal/common",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__banzaicloud__integrated-service-sdk__api__v1alpha1",
+        "//third_party/go:github.com__banzaicloud__operator-tools__pkg__utils",
         "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__errors",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__meta",
+        "//third_party/go:k8s.io__apimachinery__pkg__runtime",
+        "//third_party/go:k8s.io__apimachinery__pkg__types",
+        "//third_party/go:k8s.io__client-go__kubernetes__scheme",
+        "//third_party/go:k8s.io__client-go__tools__clientcmd",
+        "//third_party/go:sigs.k8s.io__controller-runtime__pkg__client",
     ],
 )
 
