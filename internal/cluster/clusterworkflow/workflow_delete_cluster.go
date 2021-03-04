@@ -31,7 +31,17 @@ type DeleteClusterWorkflowInput struct {
 	Force     bool
 }
 
-func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
+type DeleteClusterWorkflow struct {
+	v2IntegratedServiceEnabled bool
+}
+
+func NewDeleteClusterWorkflow(v2IntegratedServiceEnabled bool) *DeleteClusterWorkflow {
+	return &DeleteClusterWorkflow{
+		v2IntegratedServiceEnabled: v2IntegratedServiceEnabled,
+	}
+}
+
+func (w *DeleteClusterWorkflow) Execute(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
 	{
 		ctx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 			ScheduleToStartTimeout: 5 * time.Minute,
@@ -50,19 +60,21 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	// Cleanup V2 Integrated Services
 	{
-		ctx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-			ScheduleToStartTimeout: 5 * time.Minute,
-			StartToCloseTimeout:    5 * time.Minute,
-		})
+		if w.v2IntegratedServiceEnabled {
+			ctx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+				ScheduleToStartTimeout: 5 * time.Minute,
+				StartToCloseTimeout:    5 * time.Minute,
+			})
 
-		activityInput := workflow2.IntegratedServiceCleanActivityInput{
-			ClusterID: input.ClusterID,
-			Force:     input.Force,
-		}
-		err := workflow.ExecuteActivity(ctx, workflow2.IntegratedServiceCleanActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
-			return err
+			activityInput := workflow2.IntegratedServiceCleanActivityInput{
+				ClusterID: input.ClusterID,
+				Force:     input.Force,
+			}
+			err := workflow.ExecuteActivity(ctx, workflow2.IntegratedServiceCleanActivityName, activityInput).Get(ctx, nil)
+			if err != nil {
+				_ = setClusterStatus(ctx, input.ClusterID, cluster.Error, pkgCadence.UnwrapError(err).Error())
+				return err
+			}
 		}
 	}
 

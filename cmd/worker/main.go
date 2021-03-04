@@ -430,7 +430,8 @@ func main() {
 		cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 		clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
 		{
-			worker.RegisterWorkflowWithOptions(clusterworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
+			deleteClusterWorkflow:=clusterworkflow.NewDeleteClusterWorkflow(config.IntegratedService.V2)
+			worker.RegisterWorkflowWithOptions(deleteClusterWorkflow.Execute, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
 
 			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config, unifiedHelmReleaser)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler, deployment.NewHelmService(helmFacade, unifiedHelmReleaser))
