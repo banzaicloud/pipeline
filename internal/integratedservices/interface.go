@@ -87,10 +87,6 @@ type IntegratedServiceRepository interface {
 }
 
 type IntegratedServiceCleaner interface {
-	ServiceInstanceDisabler
-}
-
-type ServiceInstanceDisabler interface {
 	DisableServiceInstance(ctx context.Context, clusterID uint) error
 }
 
