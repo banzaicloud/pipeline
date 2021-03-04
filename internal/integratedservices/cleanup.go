@@ -60,42 +60,19 @@ func (r integratedServiceCleaner) DisableServiceInstance(ctx context.Context, cl
 		return errors.Wrap(err, "failed to retrieve service instance list")
 	}
 
-	for _, item := range lookupISvcs.Items {
-		if utils.PointerToBool(item.Spec.Enabled) {
-			item.Spec.Enabled = utils.BoolPointer(false)
+	siClient := serviceInstanceClient{
+		clusterClient: clusterClient,
+		items:         lookupISvcs.Items,
+	}
 
-			if err := clusterClient.Update(ctx, &item); err != nil {
-				return errors.Wrap(err, "failed to disable the integrated service")
-			}
+	// disable all service instance
+	if err := siClient.disable(ctx); err != nil {
+		return errors.WrapIf(err, "failed to disable integrated service(s)")
+	}
 
-			key := types.NamespacedName{
-				Namespace: item.Namespace,
-				Name:      item.Name,
-			}
-
-			// wait till the status becomes uninstalled or uninstallFailed
-			for {
-				inactiveSI := v1alpha1.ServiceInstance{}
-				if err := clusterClient.Get(ctx, key, &inactiveSI); err != nil {
-					if apiErrors.IsNotFound(err) {
-						// resource is not found
-						return nil
-					}
-					return errors.Wrap(err, "failed to look up service instance")
-				}
-
-				if inactiveSI.Status.Phase == v1alpha1.UninstallFailed {
-					return errors.Wrap(err, "failed to uninstall integrated service")
-				}
-
-				if inactiveSI.Status.Phase == v1alpha1.Uninstalled {
-					break
-				}
-
-				// sleep a bit for the reconcile to proceed
-				time.Sleep(2 * time.Second)
-			}
-		}
+	// wait for all service instance status will be uninstalled
+	if err := siClient.wait(ctx); err != nil {
+		return errors.WrapIf(err, "failed to wait for integrated service(s) uninstalled")
 	}
 
 	return nil
@@ -118,4 +95,60 @@ func (r integratedServiceCleaner) k8sClientForCluster(ctx context.Context, clust
 	}
 
 	return cli, nil
+}
+
+type serviceInstanceClient struct {
+	clusterClient client.Client
+	items         []v1alpha1.ServiceInstance
+}
+
+func (c serviceInstanceClient) check(ctx context.Context, key types.NamespacedName) error {
+	// wait till the status becomes uninstalled or uninstallFailed
+	for {
+		inactiveSI := v1alpha1.ServiceInstance{}
+		if err := c.clusterClient.Get(ctx, key, &inactiveSI); err != nil {
+			if apiErrors.IsNotFound(err) {
+				// resource is not found
+				return nil
+			}
+			return errors.Wrap(err, "failed to look up service instance")
+		}
+
+		if inactiveSI.Status.Phase == v1alpha1.UninstallFailed {
+			return errors.New("failed to uninstall integrated service")
+		}
+
+		if inactiveSI.Status.Phase == v1alpha1.Uninstalled {
+			return nil
+		}
+
+		// sleep a bit for the reconcile to proceed
+		time.Sleep(2 * time.Second)
+	}
+}
+
+func (c serviceInstanceClient) disable(ctx context.Context) error {
+	var err error
+	for _, item := range c.items {
+		if utils.PointerToBool(item.Spec.Enabled) {
+			item.Spec.Enabled = utils.BoolPointer(false)
+			err = errors.Append(err, c.clusterClient.Update(ctx, &item))
+		}
+	}
+
+	return err
+}
+
+func (c serviceInstanceClient) wait(ctx context.Context) error {
+	var err error
+	for _, item := range c.items {
+		key := types.NamespacedName{
+			Namespace: item.Namespace,
+			Name:      item.Name,
+		}
+
+		err = errors.Append(err, c.check(ctx, key))
+	}
+
+	return err
 }
