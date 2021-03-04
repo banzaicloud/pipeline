@@ -30,6 +30,16 @@ type HelmService interface {
 		wait bool,
 	) error
 
+	ApplyDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+	) error
+
 	ApplyDeploymentReuseValues(
 		ctx context.Context,
 		clusterID uint,

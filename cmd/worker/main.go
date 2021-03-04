@@ -363,6 +363,14 @@ func main() {
 
 			deployClusterAutoscalerActivity := autoscaler.NewDeployClusterAutoscalerActivity(clusterManager, unifiedHelmReleaser)
 			worker.RegisterActivityWithOptions(deployClusterAutoscalerActivity.Execute, activity.RegisterOptions{Name: clustersetup.DeployClusterAutoscalerActivityName})
+
+			deployIngressControllerActivity := clustersetup.NewDeployIngressControllerActivity(
+				config.Cluster.Labels,
+				unifiedHelmReleaser,
+			)
+			worker.RegisterActivityWithOptions(
+				deployIngressControllerActivity.Execute,
+				activity.RegisterOptions{Name: clustersetup.DeployIngressControllerActivityName})
 		}
 
 		worker.RegisterWorkflowWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})

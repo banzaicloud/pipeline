@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2021 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cluster
+package clustersetup
 
 import (
 	"context"
@@ -23,6 +23,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/pkg/any"
@@ -32,13 +33,32 @@ import (
 	"github.com/banzaicloud/pipeline/src/dns"
 )
 
-type ingressControllerValues struct {
-	Traefik traefikValues `json:"traefik"`
+const DeployIngressControllerActivityName = "deploy-ingress-controller"
+
+type DeployIngressControllerActivity struct {
+	config      clusterconfig.LabelConfig
+	helmService HelmService
 }
 
-type traefikValues struct {
-	SSL     sslTraefikValues     `json:"ssl"`
-	Service serviceTraefikValues `json:"service,omitempty"`
+// NewDeployIngressControllerActivity returns a new DeployIngressControllerActivity.
+func NewDeployIngressControllerActivity(
+	config clusterconfig.LabelConfig,
+	helmService HelmService,
+) DeployIngressControllerActivity {
+	return DeployIngressControllerActivity{
+		config:      config,
+		helmService: helmService,
+	}
+}
+
+type DeployIngressControllerActivityInput struct {
+	ClusterID uint
+	OrgID     uint
+	Cloud     string
+}
+
+type ingressControllerValues struct {
+	Traefik traefikValues `json:"traefik"`
 }
 
 type sslTraefikValues struct {
@@ -54,14 +74,13 @@ type serviceTraefikValues struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
-type IngressControllerPostHook struct {
-	helmServiceInjector
-	Priority
-	ErrorHandler
+type traefikValues struct {
+	SSL     sslTraefikValues     `json:"ssl"`
+	Service serviceTraefikValues `json:"service,omitempty"`
 }
 
-func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
-	if i.helmService == nil {
+func (a DeployIngressControllerActivity) Execute(ctx context.Context, input DeployIngressControllerActivityInput) error {
+	if a.helmService == nil {
 		return errors.New("missing helm service dependency")
 	}
 	config := global.Config.Cluster.PostHook
@@ -69,10 +88,9 @@ func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
 		return nil
 	}
 
-	orgID := cluster.GetOrganizationId()
-	organization, err := auth.GetOrganizationById(orgID)
+	organization, err := auth.GetOrganizationById(input.OrgID)
 	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to get organization", "organizationId", orgID)
+		return errors.WrapIfWithDetails(err, "failed to get organization", "organizationId", input.OrgID)
 	}
 
 	var orgDomainName string
@@ -126,7 +144,7 @@ func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
 	}
 
 	// TODO: once we move this to an integrated service we must find a way to append tags to user configured annotations
-	if cluster.GetCloud() == pkgCluster.Amazon {
+	if input.Cloud == pkgCluster.Amazon {
 		var tags []string
 
 		for _, tag := range amazon.PipelineTags() {
@@ -145,7 +163,20 @@ func (i *IngressControllerPostHook) Do(cluster CommonCluster) error {
 
 	namespace := global.Config.Cluster.Namespace
 
-	return i.helmService.ApplyDeployment(context.Background(), cluster.GetID(), namespace, config.Ingress.Chart, "ingress", valuesBytes, config.Ingress.Version)
+	err = a.helmService.ApplyDeployment(
+		context.Background(),
+		input.ClusterID,
+		namespace, config.Ingress.Chart,
+		"ingress",
+		valuesBytes,
+		config.Ingress.Version,
+	)
+
+	if err != nil {
+		return errors.WrapIf(err, "ffailed to deploy ingress controller")
+	}
+
+	return nil
 }
 
 func mergeValues(chartValues interface{}, configValues interface{}) ([]byte, error) {

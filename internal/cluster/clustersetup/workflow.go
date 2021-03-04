@@ -60,6 +60,7 @@ type Cluster struct {
 	UID          string
 	Name         string
 	Distribution string
+	Cloud        string
 }
 
 // Organization contains information about the organization a cluster belongs to.
@@ -149,6 +150,19 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 
 		err := workflow.ExecuteActivity(ctx, DeployClusterAutoscalerActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		activityInput := DeployIngressControllerActivityInput{
+			ClusterID: input.Cluster.ID,
+			OrgID:     input.Organization.ID,
+			Cloud:     input.Cluster.Cloud,
+		}
+
+		err := workflow.ExecuteActivity(ctx, DeployIngressControllerActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
