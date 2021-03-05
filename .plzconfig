@@ -1,12 +1,9 @@
 [please]
-version = 15.17.0
+version = 16.0.0-prerelease.5
 
 [build]
 PassUnsafeEnv = VAULT_ADDR
 PassUnsafeEnv = VAULT_TOKEN
-
-[featureflags]
-PleaseGoInstall = true
 
 [go]
 ImportPath = github.com/banzaicloud/pipeline
