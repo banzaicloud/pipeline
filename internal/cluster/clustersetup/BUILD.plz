@@ -9,6 +9,7 @@ go_library(
         "//internal/cluster/clusterconfig",
         "//internal/global",
         "//internal/integratedservices/operator",
+        "//internal/hollowtrees",
         "//internal/providers/amazon",
         "//pkg/any",
         "//pkg/cluster",
@@ -38,6 +39,7 @@ go_test(
     deps = [
         "//internal/cluster/clusterconfig",
         "//internal/global",
+        "//internal/hollowtrees",
         "//internal/integratedservices/operator",
         "//internal/providers/amazon",
         "//pkg/any",
@@ -78,6 +80,7 @@ go_test(
     deps = [
         "//internal/cluster/clusterconfig",
         "//internal/global",
+        "//internal/hollowtrees",
         "//internal/integratedservices/operator",
         "//internal/providers/amazon",
         "//pkg/any",
