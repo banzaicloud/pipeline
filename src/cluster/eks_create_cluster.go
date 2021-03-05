@@ -34,6 +34,8 @@ type EKSCreateClusterWorkflowInput struct {
 	OrganizationName string
 	PostHooks        pkgCluster.PostHooks
 	NodePoolLabels   map[string]map[string]string
+
+	ScaleOptions *pkgCluster.ScaleOptions
 }
 
 // CreateClusterWorkflow executes the Cadence workflow responsible for creating and configuring an EKS cluster
@@ -79,10 +81,11 @@ func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkfl
 		workflowInput := clustersetup.WorkflowInput{
 			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, infraOutput.ConfigSecretID).String(),
 			Cluster: clustersetup.Cluster{
-				ID:    input.ClusterID,
-				UID:   input.ClusterUID,
-				Name:  input.ClusterName,
-				Cloud: pkgCluster.Amazon,
+				ID:           input.ClusterID,
+				UID:          input.ClusterUID,
+				Name:         input.ClusterName,
+				Cloud:        pkgCluster.Amazon,
+				ScaleOptions: input.ScaleOptions,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,

@@ -59,6 +59,7 @@ type CreateClusterWorkflowInput struct {
 	HTTPProxy                       intPKE.HTTPProxy
 	AccessPoints                    pke.AccessPoints
 	APIServerAccessPoints           pke.APIServerAccessPoints
+	ScaleOptions                    *pkgCluster.ScaleOptions
 }
 
 func NewCreateClusterWorkflow() CreateClusterWorkflow {
@@ -159,6 +160,7 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 				Name:         input.ClusterName,
 				Distribution: input.Distribution,
 				Cloud:        pkgCluster.Azure,
+				ScaleOptions: input.ScaleOptions,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,
