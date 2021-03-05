@@ -68,7 +68,6 @@ const (
 	InstallKubernetesDashboardPostHook = "InstallKubernetesDashboardPostHook"
 	RestoreFromBackup                  = "RestoreFromBackup"
 	InitSpotConfig                     = "InitSpotConfig"
-	DeployInstanceTerminationHandler   = "DeployInstanceTerminationHandler"
 )
 
 // CreateClusterRequest describes a create cluster request

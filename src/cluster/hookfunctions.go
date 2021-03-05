@@ -30,9 +30,6 @@ var HookMap = map[string]PostFunctioner{
 	pkgCluster.InitSpotConfig: &InitSpotConfigPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.DeployInstanceTerminationHandler: &InstanceTerminationHandlerPostHook{
-		ErrorHandler: ErrorHandler{},
-	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
@@ -40,7 +37,6 @@ var HookMap = map[string]PostFunctioner{
 var BasePostHookFunctions = []string{
 	pkgCluster.InstallKubernetesDashboardPostHook,
 	pkgCluster.InitSpotConfig,
-	pkgCluster.DeployInstanceTerminationHandler,
 }
 
 // PostFunctioner manages posthook functions
