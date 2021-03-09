@@ -154,6 +154,36 @@ var defaultImages = ImageSelectors{
 			"us-gov-west-1": "ami-0ffca549706b8e692", // GovCloud (US-West)
 		},
 	},
+	KubernetesVersionImageSelector{ // Kubernetes Version 1.19.6
+		Constraint: mustConstraint("1.19"),
+		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-05a0e96498d3cedd1", // Africa (Cape Town).
+			"ap-east-1":      "ami-09caada5b293192a0", // Asia Pacific (Hong Kong).
+			"ap-northeast-1": "ami-0bcaf6bd6bf21f59a", // Asia Pacific (Tokyo).
+			"ap-northeast-2": "ami-0483083b3970fca57", // Asia Pacific (Seoul).
+			"ap-northeast-3": "ami-06974895f827a52d1", // Asia Pacific (Osaka)
+			"ap-southeast-1": "ami-01d55e1350f38909d", // Asia Pacific (Singapore).
+			"ap-southeast-2": "ami-0e449349246caba58", // Asia Pacific (Sydney).
+			"ap-south-1":     "ami-0d445556347d57490", // Asia Pacific (Mumbai).
+			"ca-central-1":   "ami-04b15e94a9cefe78f", // Canada (Central).
+			"eu-central-1":   "ami-07451a60c207d2516", // EU (Frankfurt).
+			"eu-north-1":     "ami-0df502c9ff98451bf", // EU (Stockholm).
+			"eu-south-1":     "ami-0148520a5ce5f4a0b", // Europe (Milan).
+			"eu-west-1":      "ami-0b1f518179fbd9a6e", // EU (Ireland).
+			"eu-west-2":      "ami-02d0618fa4623bf3b", // EU (London).
+			"eu-west-3":      "ami-013e284adb8dbbf1f", // EU (Paris).
+			"me-south-1":     "ami-0f5cdd508ad921397", // Middle East (Bahrain).
+			"sa-east-1":      "ami-06fb74e43b669cb25", // South America (Sao Paulo).
+			"us-east-1":      "ami-006432b755baeb1c6", // US East (N. Virginia).
+			"us-east-2":      "ami-071fd4dd907408ea6", // US East (Ohio).
+			"us-west-1":      "ami-0bdeadbb197e2806a", // US West (N. California).
+			"us-west-2":      "ami-0d45bae218253b811", // US West (Oregon).
+
+			// AWS GovCloud (US) partition
+			"us-gov-east-1": "ami-05c448c0c5d4919fa", // GovCloud (US-East)
+			"us-gov-west-1": "ami-058971104981fbd4c", // GovCloud (US-West)
+		},
+	},
 }
 
 // DefaultImages returns an image selector that returns fallback images if no other images are found.
@@ -284,6 +314,36 @@ var defaultAcceleratedImages = ImageSelectors{
 			"us-gov-west-1": "ami-064058e89da66b2ea", // GovCloud (US-West)
 		},
 	},
+	KubernetesVersionImageSelector{ // Kubernetes Version 1.19.6
+		Constraint: mustConstraint("1.19"),
+		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-07aebccc8e2633625", // Africa (Cape Town).
+			"ap-east-1":      "ami-0a03c7e5333510b1e", // Asia Pacific (Hong Kong).
+			"ap-northeast-1": "ami-079178fd9ca61ed20", // Asia Pacific (Tokyo).
+			"ap-northeast-2": "ami-078b15719842f9db7", // Asia Pacific (Seoul).
+			"ap-northeast-3": "ami-06ff86e3ccfcc3ca4", // Asia Pacific (Osaka)
+			"ap-southeast-1": "ami-0694cdc67181ae9b4", // Asia Pacific (Singapore).
+			"ap-southeast-2": "ami-01f073f2fed0b69f5", // Asia Pacific (Sydney).
+			"ap-south-1":     "ami-0522171e6494ad953", // Asia Pacific (Mumbai).
+			"ca-central-1":   "ami-08798c1f2ac4c9484", // Canada (Central).
+			"eu-central-1":   "ami-0eedb97087500edcf", // EU (Frankfurt).
+			"eu-north-1":     "ami-02d13e28cf46fb941", // EU (Stockholm).
+			"eu-south-1":     "ami-04cd5ac9f427da459", // Europe (Milan).
+			"eu-west-1":      "ami-0865725bf535184c5", // EU (Ireland).
+			"eu-west-2":      "ami-042b3661a2a2bb831", // EU (London).
+			"eu-west-3":      "ami-09412f26ca09c78a1", // EU (Paris).
+			"me-south-1":     "ami-09a7a85eb27c80e2f", // Middle East (Bahrain).
+			"sa-east-1":      "ami-0e4ca7e0afcfcf8f8", // South America (Sao Paulo).
+			"us-east-1":      "ami-0a7a035cef97bbc43", // US East (N. Virginia).
+			"us-east-2":      "ami-01ba4ff6d77ff84db", // US East (Ohio).
+			"us-west-1":      "ami-0a9a741ad7ab673b2", // US West (N. California).
+			"us-west-2":      "ami-025940c3146dc26c9", // US West (Oregon).
+
+			// AWS GovCloud (US) partition
+			"us-gov-east-1": "ami-0fb327ee4d5c91e96", // GovCloud (US-East)
+			"us-gov-west-1": "ami-0dc270642bcf47354", // GovCloud (US-West)
+		},
+	},
 }
 
 // DefaultAcceleratedImages returns an image selector that returns fallback images if no other images are found.
@@ -412,6 +472,36 @@ var defaultARMImages = ImageSelectors{
 			// AWS GovCloud (US) partition
 			"us-gov-east-1": "ami-014120b28907d877f", // GovCloud (US-East)
 			"us-gov-west-1": "ami-0845f427bd4be8831", // GovCloud (US-West)
+		},
+	},
+	KubernetesVersionImageSelector{ // Kubernetes Version 1.19.6
+		Constraint: mustConstraint("1.19"),
+		ImageSelector: RegionMapImageSelector{
+			"af-south-1":     "ami-058661dfea9ddf8ff", // Africa (Cape Town).
+			"ap-east-1":      "ami-08ac2eac0ddd470c3", // Asia Pacific (Hong Kong).
+			"ap-northeast-1": "ami-0a2858cb12b0634fe", // Asia Pacific (Tokyo).
+			"ap-northeast-2": "ami-0dcd32a40af26a593", // Asia Pacific (Seoul).
+			"ap-northeast-3": "ami-0e460e47795d1494a", // Asia Pacific (Osaka)
+			"ap-southeast-1": "ami-08d8d21ead42bef4a", // Asia Pacific (Singapore).
+			"ap-southeast-2": "ami-085717042f3d0f43f", // Asia Pacific (Sydney).
+			"ap-south-1":     "ami-088e83dd1edb11e88", // Asia Pacific (Mumbai).
+			"ca-central-1":   "ami-017d01eefa8d77946", // Canada (Central).
+			"eu-central-1":   "ami-0ed742bbe9e765bcd", // EU (Frankfurt).
+			"eu-north-1":     "ami-00a46ec5dab424506", // EU (Stockholm).
+			"eu-south-1":     "ami-0ddf98fe6091eb3ec", // Europe (Milan).
+			"eu-west-1":      "ami-0330d34ecf715c13e", // EU (Ireland).
+			"eu-west-2":      "ami-0908a97d8ea946347", // EU (London).
+			"eu-west-3":      "ami-04530fb3d061ae878", // EU (Paris).
+			"me-south-1":     "ami-0e34f1bc38be738d4", // Middle East (Bahrain).
+			"sa-east-1":      "ami-0daed92662f4558c1", // South America (Sao Paulo).
+			"us-east-1":      "ami-0bb3cd37abd895c15", // US East (N. Virginia).
+			"us-east-2":      "ami-0cda388c785c2a220", // US East (Ohio).
+			"us-west-1":      "ami-058ce41ee3b9c1aa0", // US West (N. California).
+			"us-west-2":      "ami-06cce67762666221c", // US West (Oregon).
+
+			// AWS GovCloud (US) partition
+			"us-gov-east-1": "ami-0736cd802d6a89bde", // GovCloud (US-East)
+			"us-gov-west-1": "ami-05ef5576a80c7f1df", // GovCloud (US-West)
 		},
 	},
 }
