@@ -19,7 +19,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
@@ -131,6 +133,69 @@ func (p LoggingParam) String() string {
 
 // PostHooks describes a {cluster_id}/posthooks API request
 type PostHooks map[string]PostHookParam
+
+// RestoreFromBackupParams describes RestoreFromBackup posthook params
+type RestoreFromBackupParams struct {
+	BackupID              uint           `json:"backupId"`
+	Options               RestoreOptions `json:"options,omitempty"`
+	UseClusterSecret      bool           `json:"useClusterSecret,omitempty"`
+	ServiceAccountRoleARN string         `json:"serviceAccountRoleARN,omitempty"`
+}
+
+// RestoreOptions defines options specification for an Ark restore
+type RestoreOptions struct {
+	// IncludedNamespaces is a slice of namespace names to include objects
+	// from. If empty, all namespaces are included.
+	IncludedNamespaces []string `json:"includedNamespaces,omitempty"`
+
+	// ExcludedNamespaces contains a list of namespaces that are not
+	// included in the restore.
+	ExcludedNamespaces []string `json:"excludedNamespaces,omitempty"`
+
+	// IncludedResources is a slice of resource names to include
+	// in the restore. If empty, all resources in the backup are included.
+	IncludedResources []string `json:"includedResources,omitempty"`
+
+	// ExcludedResources is a slice of resource names that are not
+	// included in the restore.
+	ExcludedResources []string `json:"excludedResources,omitempty"`
+
+	// NamespaceMapping is a map of source namespace names
+	// to target namespace names to restore into. Any source
+	// namespaces not included in the map will be restored into
+	// namespaces of the same name.
+	NamespaceMapping map[string]string `json:"namespaceMapping,omitempty"`
+
+	// LabelSelector is a metav1.LabelSelector to filter with
+	// when restoring individual objects from the backup. If empty
+	// or nil, all objects are included. Optional.
+	LabelSelector *metav1.LabelSelector `json:"labelSelector,omitempty"`
+
+	// RestorePVs specifies whether to restore all included
+	// PVs from snapshot (via the cloudprovider).
+	RestorePVs *bool `json:"restorePVs,omitempty"`
+
+	// IncludeClusterResources specifies whether cluster-scoped resources
+	// should be included for consideration in the restore. If null, defaults
+	// to true.
+	IncludeClusterResources *bool `json:"includeClusterResources,omitempty"`
+}
+
+func GetRestoreBackupParams(postHooks PostHooks) (*RestoreFromBackupParams, error) {
+	if postHooks == nil {
+		return nil, nil
+	}
+	restoreBackupParams, ok := postHooks[RestoreFromBackup]
+	if !ok {
+		return nil, nil
+	}
+	var params RestoreFromBackupParams
+	err := mapstructure.Decode(restoreBackupParams, &params)
+	if err != nil {
+		return nil, err
+	}
+	return &params, nil
+}
 
 // GetClusterStatusResponse describes Pipeline's GetClusterStatus API response
 type GetClusterStatusResponse struct {

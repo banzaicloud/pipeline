@@ -78,6 +78,11 @@ func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkfl
 	}
 
 	{
+		restoreBackupParams, err := pkgCluster.GetRestoreBackupParams(input.PostHooks)
+		if err != nil {
+			_ = eksWorkflow.SetClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
 		workflowInput := clustersetup.WorkflowInput{
 			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, infraOutput.ConfigSecretID).String(),
 			Cluster: clustersetup.Cluster{
@@ -91,7 +96,8 @@ func EKSCreateClusterWorkflow(ctx workflow.Context, input EKSCreateClusterWorkfl
 				ID:   input.OrganizationID,
 				Name: input.OrganizationName,
 			},
-			NodePoolLabels: input.NodePoolLabels,
+			NodePoolLabels:      input.NodePoolLabels,
+			RestoreBackupParams: restoreBackupParams,
 		}
 
 		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)

@@ -255,6 +255,7 @@ func (m *Manager) createCluster(
 			OrganizationName: org.Name,
 			Distribution:     cluster.GetDistribution(),
 			NodePoolLabels:   labelsMap,
+			PostHooks:        postHooks,
 			Cloud:            cluster.GetCloud(),
 		}
 

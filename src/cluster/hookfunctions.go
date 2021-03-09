@@ -24,9 +24,6 @@ var HookMap = map[string]PostFunctioner{
 	pkgCluster.InstallKubernetesDashboardPostHook: &KubernetesDashboardPostHook{
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.RestoreFromBackup: &RestoreFromBackupPosthook{
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.InitSpotConfig: &InitSpotConfigPostHook{
 		ErrorHandler: ErrorHandler{},
 	},

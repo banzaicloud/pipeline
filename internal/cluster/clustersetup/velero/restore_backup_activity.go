@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2021 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package posthook
+package velero
 
 import (
+	"context"
 	"time"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/activity"
 	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/ark/sync"
+	"github.com/banzaicloud/pipeline/internal/cmd"
+	"github.com/banzaicloud/pipeline/internal/global"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 const (
@@ -42,30 +47,80 @@ var (
 	}
 )
 
-// RestoreFromBackup is a posthook for restoring a backup right after a new cluster is created
-func RestoreFromBackup(
-	params api.RestoreFromBackupParams,
-	cluster api.Cluster,
-	db *gorm.DB,
-	logger logrus.FieldLogger,
-	errorHandler emperror.Handler,
-	waitTimeout time.Duration,
-	helmService ark.HelmService,
-) error {
+// ClusterManager interface to access clusters.
+type ClusterManager interface {
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
+}
+
+type HelmService interface {
+	InstallDeployment(
+		ctx context.Context,
+		clusterID uint,
+		namespace string,
+		chartName string,
+		releaseName string,
+		values []byte,
+		chartVersion string,
+		wait bool,
+	) error
+
+	DeleteDeployment(ctx context.Context, clusterID uint, releaseName, namespace string) error
+}
+
+type RestoreBackupActivityInput struct {
+	ClusterID           uint
+	RestoreBackupParams pkgCluster.RestoreFromBackupParams
+}
+
+type RestoreBackupActivity struct {
+	manager                ClusterManager
+	helmService            HelmService
+	db                     *gorm.DB
+	disasterRecoveryConfig cmd.ClusterDisasterRecoveryConfig
+}
+
+func NewRestoreBackupActivity(manager ClusterManager, helmService HelmService, db *gorm.DB, disasterRecoveryConfig cmd.ClusterDisasterRecoveryConfig) *RestoreBackupActivity {
+	return &RestoreBackupActivity{
+		manager:                manager,
+		helmService:            helmService,
+		db:                     db,
+		disasterRecoveryConfig: disasterRecoveryConfig,
+	}
+}
+
+func (a RestoreBackupActivity) Execute(ctx context.Context, input RestoreBackupActivityInput) error {
+	if !a.disasterRecoveryConfig.Enabled {
+		return nil
+	}
+
+	cluster, err := a.manager.GetClusterByIDOnly(ctx, input.ClusterID)
+	if err != nil {
+		return err
+	}
+
 	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
 	if err != nil {
 		return err
 	}
 
-	svc := ark.NewARKService(org, cluster, db, logger)
+	info := activity.GetInfo(ctx)
+	logrusLogger := global.LogrusLogger()
+	logrusLogger.WithField("clusterID", input.ClusterID).
+		WithField("workflowID", info.WorkflowExecution.ID).
+		WithField("workflowRunID", info.WorkflowExecution.RunID).
+		WithField("backupID", input.RestoreBackupParams.BackupID).
+		Debug("restoring backup")
+
+	svc := ark.NewARKService(org, cluster, a.db, logrusLogger)
 	backupsSvc := svc.GetBackupsService()
 
-	backup, err := backupsSvc.GetModelByID(params.BackupID)
+	backup, err := backupsSvc.GetModelByID(input.RestoreBackupParams.BackupID)
 	if err != nil {
 		return err
 	}
 
-	err = svc.GetDeploymentsService().Deploy(helmService, &backup.Bucket, true, params.UseClusterSecret, params.ServiceAccountRoleARN)
+	err = svc.GetDeploymentsService().Deploy(a.helmService, &backup.Bucket, true,
+		input.RestoreBackupParams.UseClusterSecret, input.RestoreBackupParams.ServiceAccountRoleARN)
 	if err != nil {
 		return err
 	}
@@ -82,13 +137,14 @@ func RestoreFromBackup(
 		},
 	})
 	if err == nil {
-		err = WaitingForRestoreToFinish(restoresSvc, sync.NewRestoresSyncService(org, db, logger), cluster, restore, logger, waitTimeout)
+		err = WaitingForRestoreToFinish(restoresSvc, sync.NewRestoresSyncService(org, a.db, logrusLogger),
+			cluster, restore, logrusLogger, a.disasterRecoveryConfig.Ark.RestoreWaitTimeout)
 	}
 	if err != nil {
-		errorHandler.Handle(errors.WrapIf(err, "could not restore"))
+		return errors.WrapIf(err, "could not restore backup")
 	}
 
-	err = svc.GetDeploymentsService().Remove(helmService)
+	err = svc.GetDeploymentsService().Remove(a.helmService)
 	if err != nil {
 		return err
 	}

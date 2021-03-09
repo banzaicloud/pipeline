@@ -28,7 +28,10 @@ import (
 // WorkflowName can be used to reference the cluster setup workflow.
 const WorkflowName = "cluster-setup"
 
-const DeployClusterAutoscalerActivityName = "deploy-cluster-autoscaler"
+const (
+	DeployClusterAutoscalerActivityName = "deploy-cluster-autoscaler"
+	RestoreBackupActivityName           = "restore-backup"
+)
 
 // Workflow orchestrates the post-creation cluster setup flow.
 type Workflow struct {
@@ -48,11 +51,17 @@ type WorkflowInput struct {
 	Cluster      Cluster
 	Organization Organization
 
-	NodePoolLabels map[string]map[string]string
+	NodePoolLabels      map[string]map[string]string
+	RestoreBackupParams *pkgCluster.RestoreFromBackupParams
 }
 
 type DeployClusterAutoscalerActivityInput struct {
 	ClusterID uint
+}
+
+type RestoreBackupActivityInput struct {
+	ClusterID           uint
+	RestoreBackupParams pkgCluster.RestoreFromBackupParams
 }
 
 // Cluster represents a Kubernetes cluster.
@@ -152,6 +161,18 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 
 		err := workflow.ExecuteActivity(ctx, DeployClusterAutoscalerActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	if input.RestoreBackupParams != nil {
+		activityInput := RestoreBackupActivityInput{
+			ClusterID:           input.Cluster.ID,
+			RestoreBackupParams: *input.RestoreBackupParams,
+		}
+
+		err := workflow.ExecuteActivity(ctx, RestoreBackupActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}

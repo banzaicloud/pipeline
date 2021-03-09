@@ -59,6 +59,7 @@ type CreateClusterWorkflowInput struct {
 	HTTPProxy                       intPKE.HTTPProxy
 	AccessPoints                    pke.AccessPoints
 	APIServerAccessPoints           pke.APIServerAccessPoints
+	PostHooks                       pkgCluster.PostHooks
 	ScaleOptions                    *pkgCluster.ScaleOptions
 }
 

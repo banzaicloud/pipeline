@@ -21,25 +21,18 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/ghodss/yaml"
-	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
-	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
-
-func castToPostHookParam(data pkgCluster.PostHookParam, output interface{}) error {
-	return mapstructure.Decode(data, output)
-}
 
 type KubernetesDashboardPostHook struct {
 	helmServiceInjector
@@ -158,44 +151,6 @@ func (ph *KubernetesDashboardPostHook) Do(cluster CommonCluster) error {
 	}
 
 	return ph.helmService.ApplyDeployment(context.Background(), cluster.GetID(), k8sDashboardNameSpace, config.Chart, k8sDashboardReleaseName, valuesJson, config.Version)
-}
-
-// make sure the injector interface is implemented
-var _ HookWithParamsFactory = &RestoreFromBackupPosthook{}
-
-type RestoreFromBackupPosthook struct {
-	helmServiceInjector
-	Priority
-	ErrorHandler
-
-	params pkgCluster.PostHookParam
-}
-
-func (ph *RestoreFromBackupPosthook) Create(params pkgCluster.PostHookParam) PostFunctioner {
-	return &RestoreFromBackupPosthook{
-		Priority:     ph.Priority,
-		ErrorHandler: ErrorHandler{},
-		params:       params,
-	}
-}
-
-// RestoreFromBackup restores an ARK backup
-func (ph *RestoreFromBackupPosthook) Do(cluster CommonCluster) error {
-	var params arkAPI.RestoreFromBackupParams
-	err := castToPostHookParam(ph.params, &params)
-	if err != nil {
-		return err
-	}
-
-	return arkPosthook.RestoreFromBackup(
-		params,
-		cluster,
-		global.DB(),
-		log,
-		errorHandler,
-		global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout,
-		ph.helmService,
-	)
 }
 
 type InitSpotConfigPostHook struct {
