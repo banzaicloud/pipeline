@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2021 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
-const InstanceTerminationHandlerActivityName = "instance-termination-handler"
+const DeployInstanceTerminationHandlerActivityName = "deploy-instance-termination-handler"
 
-type InstanceTerminationHandlerActivity struct {
+type DeployInstanceTerminationHandlerActivity struct {
 	config      clusterconfig.LabelConfig
 	helmService HelmService
 }
 
-type InstanceTerminationHandlerActivityInput struct {
+type DeployInstanceTerminationHandlerActivityInput struct {
 	ClusterID    uint
 	OrgID        uint
 	ClusterName  string
@@ -42,18 +42,18 @@ type InstanceTerminationHandlerActivityInput struct {
 	ScaleOptions *pkgCluster.ScaleOptions
 }
 
-// NewInstanceTerminationHandlerActivity returns a new InstanceTerminationHandlerActivity.
-func NewInstanceTerminationHandlerActivity(
+// NewDeployInstanceTerminationHandlerActivity returns a new DeployInstanceTerminationHandlerActivity.
+func NewDeployInstanceTerminationHandlerActivity(
 	config clusterconfig.LabelConfig,
 	helmService HelmService,
-) InstanceTerminationHandlerActivity {
-	return InstanceTerminationHandlerActivity{
+) DeployInstanceTerminationHandlerActivity {
+	return DeployInstanceTerminationHandlerActivity{
 		config:      config,
 		helmService: helmService,
 	}
 }
 
-func (a InstanceTerminationHandlerActivity) Execute(ctx context.Context, input InstanceTerminationHandlerActivityInput) error {
+func (a DeployInstanceTerminationHandlerActivity) Execute(ctx context.Context, input DeployInstanceTerminationHandlerActivityInput) error {
 	config := global.Config.Cluster.PostHook.ITH
 	if !global.Config.Pipeline.Enterprise || !config.Enabled {
 		return nil

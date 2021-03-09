@@ -170,7 +170,7 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 	}
 	{
-		activityInput := InstanceTerminationHandlerActivityInput{
+		activityInput := DeployInstanceTerminationHandlerActivityInput{
 			ClusterID:    input.Cluster.ID,
 			OrgID:        input.Organization.ID,
 			Cloud:        input.Cluster.Cloud,
@@ -178,7 +178,7 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 			ScaleOptions: input.Cluster.ScaleOptions,
 		}
 
-		err := workflow.ExecuteActivity(ctx, InstanceTerminationHandlerActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, DeployInstanceTerminationHandlerActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
