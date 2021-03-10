@@ -8,8 +8,8 @@ go_library(
     deps = [
         "//internal/cluster/clusterconfig",
         "//internal/global",
-        "//internal/integratedservices/operator",
         "//internal/hollowtrees",
+        "//internal/integratedservices/operator",
         "//internal/providers/amazon",
         "//pkg/any",
         "//pkg/cluster",

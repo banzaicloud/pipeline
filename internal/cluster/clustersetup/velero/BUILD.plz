@@ -1,0 +1,20 @@
+go_library(
+    name = "velero",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//internal/ark",
+        "//internal/ark/api",
+        "//internal/ark/sync",
+        "//internal/cmd",
+        "//internal/global",
+        "//pkg/cluster",
+        "//src/auth",
+        "//src/cluster",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:go.uber.org__cadence__activity",
+        "//third_party/go:k8s.io__apimachinery__pkg__labels",
+    ],
+)
