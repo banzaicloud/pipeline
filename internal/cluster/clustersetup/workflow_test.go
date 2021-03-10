@@ -74,6 +74,7 @@ func (s *WorkflowTestSuite) SetupTest() {
 	s.env.RegisterActivityWithOptions(LabelKubeSystemNamespaceActivity{}.Execute, activity.RegisterOptions{Name: LabelKubeSystemNamespaceActivityName})
 	s.env.RegisterActivityWithOptions(DeployClusterAutoscalerActivity{}.Execute, activity.RegisterOptions{Name: DeployClusterAutoscalerActivityName})
 	s.env.RegisterActivityWithOptions(DeployIngressControllerActivity{}.Execute, activity.RegisterOptions{Name: DeployIngressControllerActivityName})
+	s.env.RegisterActivityWithOptions(DeployInstanceTerminationHandlerActivity{}.Execute, activity.RegisterOptions{Name: DeployInstanceTerminationHandlerActivityName})
 }
 
 func (s *WorkflowTestSuite) AfterTest(suiteName, testName string) {
@@ -133,6 +134,18 @@ func (s *WorkflowTestSuite) Test_Success() {
 			ClusterID: 1,
 			OrgID:     1,
 			Cloud:     "",
+		},
+	).Return(nil)
+
+	s.env.OnActivity(
+		DeployInstanceTerminationHandlerActivityName,
+		mock.Anything,
+		DeployInstanceTerminationHandlerActivityInput{
+			ClusterID:    1,
+			OrgID:        1,
+			Cloud:        "",
+			ClusterName:  "example-cluster",
+			ScaleOptions: nil,
 		},
 	).Return(nil)
 
@@ -201,6 +214,18 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 			ClusterID: 1,
 			OrgID:     1,
 			Cloud:     "",
+		},
+	).Return(nil)
+
+	s.env.OnActivity(
+		DeployInstanceTerminationHandlerActivityName,
+		mock.Anything,
+		DeployInstanceTerminationHandlerActivityInput{
+			ClusterID:    1,
+			OrgID:        1,
+			Cloud:        "",
+			ClusterName:  "example-cluster",
+			ScaleOptions: nil,
 		},
 	).Return(nil)
 

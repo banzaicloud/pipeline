@@ -31,7 +31,6 @@ import (
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -287,76 +286,6 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 	}
 	log.Info("finished initializing spot ConfigMap")
 	return nil
-}
-
-type InstanceTerminationHandlerPostHook struct {
-	helmServiceInjector
-	Priority
-	ErrorHandler
-}
-
-func (ith InstanceTerminationHandlerPostHook) Do(cluster CommonCluster) error {
-	config := global.Config.Cluster.PostHook.ITH
-	if !global.Config.Pipeline.Enterprise || !config.Enabled {
-		return nil
-	}
-
-	cloud := cluster.GetCloud()
-
-	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {
-		return nil
-	}
-
-	pipelineSystemNamespace := global.Config.Cluster.Namespace
-
-	values := map[string]interface{}{
-		"tolerations": []v1.Toleration{
-			{
-				Operator: v1.TolerationOpExists,
-			},
-		},
-		"hollowtreesNotifier": map[string]interface{}{
-			"enabled": false,
-		},
-	}
-
-	scaleOptions := cluster.GetScaleOptions()
-	if scaleOptions != nil && scaleOptions.Enabled == true {
-		tokenSigningKey := global.Config.Hollowtrees.TokenSigningKey
-		if tokenSigningKey == "" {
-			err := errors.New("no Hollowtrees token signkey specified")
-			errorHandler.Handle(err)
-			return err
-		}
-
-		generator := hollowtrees.NewTokenGenerator(
-			global.Config.Auth.Token.Issuer,
-			global.Config.Auth.Token.Audience,
-			global.Config.Hollowtrees.TokenSigningKey,
-		)
-		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
-		if err != nil {
-			err = errors.WrapIf(err, "could not generate JWT token for instance termination handler")
-			errorHandler.Handle(err)
-			return err
-		}
-
-		values["hollowtreesNotifier"] = map[string]interface{}{
-			"enabled":        true,
-			"URL":            global.Config.Hollowtrees.Endpoint + "/alerts",
-			"organizationID": cluster.GetOrganizationId(),
-			"clusterID":      cluster.GetID(),
-			"clusterName":    cluster.GetName(),
-			"jwtToken":       token,
-		}
-	}
-
-	marshalledValues, err := yaml.Marshal(values)
-	if err != nil {
-		return errors.WrapIf(err, "failed to marshal yaml values")
-	}
-
-	return ith.helmService.ApplyDeployment(context.Background(), cluster.GetID(), pipelineSystemNamespace, config.Chart, "ith", marshalledValues, config.Version)
 }
 
 // helmServiceInjector component implementing the helm service injector

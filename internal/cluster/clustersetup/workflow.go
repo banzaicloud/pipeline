@@ -22,6 +22,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // WorkflowName can be used to reference the cluster setup workflow.
@@ -61,6 +62,7 @@ type Cluster struct {
 	Name         string
 	Distribution string
 	Cloud        string
+	ScaleOptions *pkgCluster.ScaleOptions
 }
 
 // Organization contains information about the organization a cluster belongs to.
@@ -163,6 +165,20 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 
 		err := workflow.ExecuteActivity(ctx, DeployIngressControllerActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+	{
+		activityInput := DeployInstanceTerminationHandlerActivityInput{
+			ClusterID:    input.Cluster.ID,
+			OrgID:        input.Organization.ID,
+			Cloud:        input.Cluster.Cloud,
+			ClusterName:  input.Cluster.Name,
+			ScaleOptions: input.Cluster.ScaleOptions,
+		}
+
+		err := workflow.ExecuteActivity(ctx, DeployInstanceTerminationHandlerActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}

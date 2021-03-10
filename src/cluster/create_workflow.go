@@ -29,6 +29,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	pkgCadence "github.com/banzaicloud/pipeline/pkg/cadence"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
@@ -50,6 +51,7 @@ type CreateClusterWorkflowInput struct {
 	Distribution     string
 	NodePoolLabels   map[string]map[string]string
 	Cloud            string
+	ScaleOptions     *pkgCluster.ScaleOptions
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -88,6 +90,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				Name:         input.ClusterName,
 				Distribution: input.Distribution,
 				Cloud:        input.Cloud,
+				ScaleOptions: input.ScaleOptions,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,

@@ -166,6 +166,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 		},
 		PostHooks:        createRequest.PostHooks,
 		OrganizationName: org.Name,
+		ScaleOptions:     commonCluster.GetScaleOptions(),
 	}
 
 	encryptionConfig := make([]workflow.EncryptionConfig, 0, len(eksCluster.EncryptionConfig))

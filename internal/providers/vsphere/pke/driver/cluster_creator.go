@@ -280,6 +280,7 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		ResourcePoolName: cl.ResourcePool,
 		DatastoreName:    cl.Datastore,
 		FolderName:       cl.Folder,
+		ScaleOptions:     &cl.ScaleOptions,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",

@@ -371,6 +371,14 @@ func main() {
 			worker.RegisterActivityWithOptions(
 				deployIngressControllerActivity.Execute,
 				activity.RegisterOptions{Name: clustersetup.DeployIngressControllerActivityName})
+
+			deployInstanceTerminationHandlerActivity := clustersetup.NewDeployInstanceTerminationHandlerActivity(
+				config.Cluster.Labels,
+				unifiedHelmReleaser,
+			)
+			worker.RegisterActivityWithOptions(
+				deployInstanceTerminationHandlerActivity.Execute,
+				activity.RegisterOptions{Name: clustersetup.DeployInstanceTerminationHandlerActivityName})
 		}
 
 		worker.RegisterWorkflowWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})

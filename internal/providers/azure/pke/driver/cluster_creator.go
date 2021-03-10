@@ -433,6 +433,7 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 		HTTPProxy:                       cl.HTTPProxy,
 		AccessPoints:                    params.AccessPoints,
 		APIServerAccessPoints:           params.APIServerAccessPoints,
+		ScaleOptions:                    &cl.ScaleOptions,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
