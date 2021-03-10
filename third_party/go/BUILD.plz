@@ -1946,7 +1946,7 @@ go_mod_download(
     name = "github.com__banzaicloud__cadence-aws-sdk",
     _tag = "download",
     module = "github.com/banzaicloud/cadence-aws-sdk",
-    version = "v0.0.0-20210202183218-71e19c6bbd35",
+    version = "v0.1.0",
 )
 
 go_module(
@@ -8013,7 +8013,7 @@ go_mod_download(
     name = "go.uber.org__cadence",
     _tag = "download",
     module = "go.uber.org/cadence",
-    version = "v0.13.4",
+    version = "v0.14.1",
 )
 
 go_module(

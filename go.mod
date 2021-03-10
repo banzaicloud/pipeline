@@ -25,7 +25,7 @@ require (
 	github.com/aws/aws-sdk-go v1.37.1
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.6.0
-	github.com/banzaicloud/cadence-aws-sdk v0.0.0-20210202183218-71e19c6bbd35
+	github.com/banzaicloud/cadence-aws-sdk v0.1.0
 	github.com/banzaicloud/gin-utilz v0.3.1
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/integrated-service-sdk v0.5.0
@@ -80,7 +80,7 @@ require (
 	github.com/vmware-tanzu/velero v1.5.1
 	github.com/vmware/govmomi v0.22.0
 	go.opencensus.io v0.22.2
-	go.uber.org/cadence v0.13.4
+	go.uber.org/cadence v0.14.1
 	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
