@@ -57,6 +57,7 @@ var Config struct {
 			}
 		}
 		DisasterRecovery struct {
+			Enabled   bool
 			Namespace string
 			Ark       struct {
 				RestoreWaitTimeout time.Duration

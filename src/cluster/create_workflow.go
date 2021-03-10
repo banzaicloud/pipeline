@@ -50,6 +50,7 @@ type CreateClusterWorkflowInput struct {
 	OrganizationName string
 	Distribution     string
 	NodePoolLabels   map[string]map[string]string
+	PostHooks        pkgCluster.PostHooks
 	Cloud            string
 	ScaleOptions     *pkgCluster.ScaleOptions
 }
@@ -82,6 +83,10 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 
 	{
+		restoreBackupParams, err := pkgCluster.GetRestoreBackupParams(input.PostHooks)
+		if err != nil {
+			return err
+		}
 		workflowInput := clustersetup.WorkflowInput{
 			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
 			Cluster: clustersetup.Cluster{
@@ -96,7 +101,8 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				ID:   input.OrganizationID,
 				Name: input.OrganizationName,
 			},
-			NodePoolLabels: input.NodePoolLabels,
+			NodePoolLabels:      input.NodePoolLabels,
+			RestoreBackupParams: restoreBackupParams,
 		}
 
 		cwo := workflow.ChildWorkflowOptions{

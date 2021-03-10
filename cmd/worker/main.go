@@ -49,6 +49,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup/autoscaler"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup/velero"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterworkflow"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksadapter"
 	eksClusterAdapter "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/adapter"
@@ -363,6 +364,9 @@ func main() {
 
 			deployClusterAutoscalerActivity := autoscaler.NewDeployClusterAutoscalerActivity(clusterManager, unifiedHelmReleaser)
 			worker.RegisterActivityWithOptions(deployClusterAutoscalerActivity.Execute, activity.RegisterOptions{Name: clustersetup.DeployClusterAutoscalerActivityName})
+
+			restoreBackupActivity := velero.NewRestoreBackupActivity(clusterManager, unifiedHelmReleaser, global.DB(), config.Cluster.DisasterRecovery)
+			worker.RegisterActivityWithOptions(restoreBackupActivity.Execute, activity.RegisterOptions{Name: clustersetup.RestoreBackupActivityName})
 
 			deployIngressControllerActivity := clustersetup.NewDeployIngressControllerActivity(
 				config.Cluster.Labels,
