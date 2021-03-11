@@ -7762,6 +7762,10 @@ components:
                     type: string
                     example: "arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME"
                     description: "relevant only in case of Amazon clusters. This a third option to give permissions for volume snapshots to Velero, besides the default NodeInstance role or cluster secret deployment."
+                useBucketSecret:
+                    type: boolean
+                    example: false
+                    description: "relevant only in case of Amazon clusters. This a fourth option to give permissions for volume snapshots to Velero. Should you set to true Pipeline will configure your bucket secret (specified in secretId) for volume snapshot."
                 storageAccount:
                     type: string
                     example: "my-storage-account"
