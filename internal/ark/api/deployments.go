@@ -32,6 +32,7 @@ type EnableBackupServiceRequest struct {
 	Options               BackupOptions     `json:"options,omitempty"`
 	UseClusterSecret      bool              `json:"useClusterSecret,omitempty"`
 	ServiceAccountRoleARN string            `json:"serviceAccountRoleARN,omitempty"`
+	UseBucketSecret       bool              `json:"useBucketSecret,omitempty"`
 }
 
 // EnableBackupServiceResponse describes Pipeline's EnableBackupServiceRequest API response

@@ -104,6 +104,7 @@ type volumeSnapshotLocation struct {
 
 type volumeSnapshotLocationConfig struct {
 	Region        string `json:"region,omitempty"`
+	Profile       string `json:"profile,omitempty"`
 	ApiTimeout    string `json:"apiTimeout,omitempty"`
 	ResourceGroup string `json:"resourceGroup,omitempty"`
 }
@@ -136,6 +137,7 @@ type ConfigRequest struct {
 
 	UseClusterSecret      bool
 	ServiceAccountRoleARN string
+	UseBucketSecret       bool
 	RestoreMode           bool
 }
 
@@ -344,6 +346,9 @@ func (req ConfigRequest) getVolumeSnapshotLocation() (volumeSnapshotLocation, er
 	case providers.Amazon:
 		pvcProvider = amazon.PersistentVolumeProvider
 		vslconfig.Region = req.Cluster.Location
+		if req.UseBucketSecret {
+			vslconfig.Profile = "bucket"
+		}
 	case providers.Azure:
 		pvcProvider = azure.PersistentVolumeProvider
 		vslconfig.ApiTimeout = "3m0s"
