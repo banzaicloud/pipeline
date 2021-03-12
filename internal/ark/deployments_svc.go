@@ -100,7 +100,7 @@ func (s *DeploymentsService) GetActiveDeployment() (*ClusterBackupDeploymentsMod
 
 // Deploy deploys ARK with helm configured to use the given bucket and mode
 func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBackupBucketsModel,
-	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string) error {
+	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool) error {
 	var deployment *ClusterBackupDeploymentsModel
 	if !restoreMode {
 		_, err := s.GetActiveDeployment()
@@ -151,6 +151,7 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 		BucketSecret:          bucketSecret,
 		UseClusterSecret:      useClusterSecret,
 		ServiceAccountRoleARN: serviceAccountRoleARN,
+		UseProviderSecret:     useProviderSecret,
 		RestoreMode:           restoreMode,
 	}
 	config, err := req.getChartConfig()
