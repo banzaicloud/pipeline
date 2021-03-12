@@ -120,7 +120,8 @@ func (a RestoreBackupActivity) Execute(ctx context.Context, input RestoreBackupA
 	}
 
 	err = svc.GetDeploymentsService().Deploy(a.helmService, &backup.Bucket, true,
-		input.RestoreBackupParams.UseClusterSecret, input.RestoreBackupParams.ServiceAccountRoleARN)
+		input.RestoreBackupParams.UseClusterSecret, input.RestoreBackupParams.ServiceAccountRoleARN,
+		input.RestoreBackupParams.UseProviderSecret)
 	if err != nil {
 		return err
 	}

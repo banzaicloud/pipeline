@@ -22200,6 +22200,13 @@ components:
             NodeInstance role or cluster secret deployment.
           example: arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME
           type: string
+        useProviderSecret:
+          description: relevant only in case of Amazon clusters. This a fourth option
+            to give permissions for volume snapshots to Velero. Should you set to
+            true Pipeline will configure your provider secret (specified in secretId)
+            for volume snapshot.
+          example: false
+          type: boolean
         storageAccount:
           description: required only case of Azure
           example: my-storage-account
