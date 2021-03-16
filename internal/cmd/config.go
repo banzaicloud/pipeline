@@ -23,7 +23,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
-	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
@@ -205,8 +204,6 @@ type ClusterConfig struct {
 	DNS ClusterDNSConfig
 
 	Expiry ClusterExpiryConfig
-
-	Federation federation.StaticConfig
 
 	Ingress ClusterIngressConfig
 
@@ -838,26 +835,12 @@ traefik:
 	v.SetDefault("cluster::backyards::charts::nodeexporter::chart", "stable/prometheus-node-exporter")
 	v.SetDefault("cluster::backyards::charts::nodeexporter::version", "1.8.1")
 
-	v.SetDefault("cluster::federation::charts::kubefed::chart", "kubefed-charts/kubefed")
-	v.SetDefault("cluster::federation::charts::kubefed::version", "v0.4.0")
-	v.SetDefault("cluster::federation::charts::kubefed::values", map[string]interface{}{
-		"controllermanager": map[string]interface{}{
-			"controller": map[string]interface{}{
-				"tag": "v0.4.0",
-			},
-			"webhook": map[string]interface{}{
-				"tag": "v0.4.0",
-			},
-		},
-	})
-
 	// Helm configuration
 	v.SetDefault("helm::home", "./var/cache")
 	v.SetDefault("helm::repositories::stable", "https://charts.helm.sh/stable")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
 	v.SetDefault("helm::repositories::bitnami", "https://charts.bitnami.com/bitnami")
 	v.SetDefault("helm::repositories::loki", "https://grafana.github.io/loki/charts")
-	v.SetDefault("helm::repositories::kubefed-charts", "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts")
 	v.SetDefault("helm::repositories::prometheus-community", "https://prometheus-community.github.io/helm-charts")
 
 	// Cloud configuration

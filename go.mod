@@ -110,7 +110,6 @@ require (
 	logur.dev/integration/zap v0.3.2
 	logur.dev/logur v0.17.0
 	sigs.k8s.io/controller-runtime v0.6.3
-	sigs.k8s.io/kubefed v0.4.0
 	sigs.k8s.io/testing_frameworks v0.1.2
 	sigs.k8s.io/yaml v1.2.0
 )
