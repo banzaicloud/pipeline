@@ -180,7 +180,7 @@ jobs:
                     name: Install migra for PostgreSQL database diffs
                     command: |
                         apt-get install -y python3-pip
-                        cat > requirements.txt <<EOF
+                        cat > requirements.txt \<<EOF
                         asn1crypto==0.24.0
                         cryptography==2.1.4
                         greenlet==1.0.0
