@@ -356,14 +356,6 @@ dex:
 #
 #                values: {}
 #
-#    federation:
-#        charts:
-#            kubefed:
-#                chart: "kubefed-charts/kubefed"
-#                version: "v0.4.0"
-#
-#                # See https://github.com/kubernetes-sigs/kubefed/tree/master/charts/kubefed for details
-#                values: {}
 #
 #    posthook:
 #        ingress:
@@ -409,7 +401,6 @@ dex:
 #        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
 #        bitnami: "https://charts.bitnami.com/bitnami"
 #        loki: "https://grafana.github.io/loki/charts"
-#        kubefed-charts: "https://raw.githubusercontent.com/kubernetes-sigs/kubefed/master/charts"
 #        prometheus-community: "https://prometheus-community.github.io/helm-charts"
 
 #cloud:

@@ -65,7 +65,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
@@ -453,10 +452,8 @@ func main() {
 			deleteClusterWorkflow := clusterworkflow.NewDeleteClusterWorkflow(config.IntegratedService.V2)
 			worker.RegisterWorkflowWithOptions(deleteClusterWorkflow.Execute, workflow.RegisterOptions{Name: clusterworkflow.DeleteClusterWorkflowName})
 
-			federationHandler := federation.NewFederationHandler(cgroupAdapter, config.Cluster.Namespace, logrusLogger, errorHandler, config.Cluster.Federation, config.Cluster.DNS.Config, unifiedHelmReleaser)
 			deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler, deployment.NewHelmService(helmFacade, unifiedHelmReleaser))
 			serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler, config.Cluster.Backyards, unifiedHelmReleaser)
-			clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 			clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 			clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
 

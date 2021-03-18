@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//internal/cluster/clusterconfig",
         "//internal/common",
-        "//internal/federation",
         "//internal/helm",
         "//internal/helm/helmadapter",
         "//internal/integratedservices/operator",
@@ -38,7 +37,6 @@ go_test(
     deps = [
         "//internal/cluster/clusterconfig",
         "//internal/common",
-        "//internal/federation",
         "//internal/helm",
         "//internal/helm/helmadapter",
         "//internal/integratedservices/operator",
