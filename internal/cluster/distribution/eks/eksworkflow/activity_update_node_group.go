@@ -138,6 +138,17 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
+	tags := getNodePoolStackTags(input.ClusterName, input.ClusterTags)
+
+	var stackTagsBuilder strings.Builder
+	for tagIndex, tag := range tags {
+		if tagIndex != 0 {
+			_, _ = stackTagsBuilder.WriteString(",")
+		}
+
+		_, _ = stackTagsBuilder.WriteString(aws.StringValue(tag.Key) + "=" + aws.StringValue(tag.Value))
+	}
+
 	stackParams := []*cloudformation.Parameter{
 		{
 			ParameterKey:     aws.String("KeyName"),
@@ -199,6 +210,10 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			fmt.Sprintf("%d", input.NodeVolumeSize),
 		),
 		{
+			ParameterKey:   aws.String("StackTags"),
+			ParameterValue: aws.String(stackTagsBuilder.String()),
+		},
+		{
 			ParameterKey:     aws.String("ClusterName"),
 			UsePreviousValue: aws.Bool(true),
 		},
@@ -251,7 +266,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		StackName:          aws.String(input.StackName),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 		Parameters:         stackParams,
-		Tags:               getNodePoolStackTags(input.ClusterName, input.ClusterTags),
+		Tags:               tags,
 		TemplateBody:       aws.String(a.cloudFormationTemplate),
 	}
 

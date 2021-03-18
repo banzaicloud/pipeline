@@ -107,6 +107,7 @@ Resources:
             -
               Effect: "Allow"
               Action:
+              - ec2:CreateTags # Note: required for node pool custom and stack tag propagation to volumes.
               - ec2:Describe*
               - ecr:GetAuthorizationToken
               - ecr:BatchCheckLayerAvailability

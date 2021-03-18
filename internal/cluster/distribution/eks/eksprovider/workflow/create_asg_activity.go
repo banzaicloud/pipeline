@@ -171,6 +171,15 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
+	var stackTagsBuilder strings.Builder
+	for tagIndex, tag := range tags {
+		if tagIndex != 0 {
+			_, _ = stackTagsBuilder.WriteString(",")
+		}
+
+		_, _ = stackTagsBuilder.WriteString(aws.StringValue(tag.Key) + "=" + aws.StringValue(tag.Value))
+	}
+
 	var subnetIDs []string
 
 	for _, subnet := range input.Subnets {
@@ -219,6 +228,10 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		{
 			ParameterKey:   aws.String("NodeVolumeSize"),
 			ParameterValue: aws.String(fmt.Sprintf("%d", input.NodeVolumeSize)),
+		},
+		{
+			ParameterKey:   aws.String("StackTags"),
+			ParameterValue: aws.String(stackTagsBuilder.String()),
 		},
 		{
 			ParameterKey:   aws.String("ClusterName"),

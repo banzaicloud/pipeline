@@ -216,6 +216,15 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
+	var stackTagsBuilder strings.Builder
+	for tagIndex, tag := range tags {
+		if tagIndex != 0 {
+			_, _ = stackTagsBuilder.WriteString(",")
+		}
+
+		_, _ = stackTagsBuilder.WriteString(aws.StringValue(tag.Key) + "=" + aws.StringValue(tag.Value))
+	}
+
 	if input.Version != "" {
 		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.Version))
 	}
@@ -262,6 +271,10 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			input.NodeVolumeSize > 0,
 			fmt.Sprintf("%d", input.NodeVolumeSize),
 		),
+		{
+			ParameterKey:   aws.String("StackTags"),
+			ParameterValue: aws.String(stackTagsBuilder.String()),
+		},
 		{
 			ParameterKey:     aws.String("ClusterName"),
 			UsePreviousValue: aws.Bool(true),
