@@ -180,7 +180,29 @@ jobs:
                     name: Install migra for PostgreSQL database diffs
                     command: |
                         apt-get install -y python3-pip
-                        pip3 install migra[pg]
+                        cat > requirements.txt \<<EOF
+                        asn1crypto==0.24.0
+                        cryptography==2.1.4
+                        greenlet==1.0.0
+                        idna==2.6
+                        importlib-metadata==3.7.3
+                        keyring==10.6.0
+                        keyrings.alt==3.0
+                        migra==3.0.1615968929
+                        pathlib==1.0.1
+                        psycopg2-binary==2.8.6
+                        pycrypto==2.6.1
+                        pygobject==3.26.1
+                        pyxdg==0.25
+                        schemainspect==3.0.1616029793
+                        SecretStorage==2.3.1
+                        six==1.11.0
+                        SQLAlchemy==1.4.1
+                        sqlbag==0.1.1579049654
+                        typing-extensions==3.7.4.3
+                        zipp==3.4.1
+                        EOF
+                        pip3 install -r requirements.txt
 
             -
                 run:
