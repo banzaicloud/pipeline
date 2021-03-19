@@ -73,6 +73,7 @@ import (
 	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/backup"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
@@ -744,6 +745,8 @@ func main() {
 					config.Cluster.DNS.Config,
 					logger,
 				),
+				// TODO finalize this setup
+				backup.NewOperator(),
 			})
 
 			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)

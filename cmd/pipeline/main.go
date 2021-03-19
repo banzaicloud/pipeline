@@ -109,6 +109,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/backup"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
@@ -895,6 +896,10 @@ func main() {
 				{
 					if config.Cluster.DNS.Enabled {
 						integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
+					}
+
+					if config.Cluster.DisasterRecovery.Enabled { // TODO check whether this condition is to be used here or a new config entry is neede
+						integratedServiceManagers = append(integratedServiceManagers, backup.NewManager())
 					}
 
 					integratedServiceOperationDispatcher := integratedserviceadapter.NewCadenceOperationDispatcher(workflowClient, commonLogger)
