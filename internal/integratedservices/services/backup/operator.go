@@ -32,7 +32,6 @@ func NewOperator() Operator {
 }
 
 func (o Operator) Apply(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) error {
-
 	panic("implement me")
 }
 

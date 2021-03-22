@@ -23,8 +23,15 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/ark/client"
+	"github.com/banzaicloud/pipeline/internal/ark/providers/amazon"
+	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
+	"github.com/banzaicloud/pipeline/internal/ark/providers/google"
+	"github.com/banzaicloud/pipeline/internal/global"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
+	"github.com/banzaicloud/pipeline/src/cluster"
+	"github.com/banzaicloud/pipeline/src/secret"
 )
 
 // DeploymentsService is for managing ARK deployments
@@ -36,6 +43,8 @@ type DeploymentsService struct {
 
 	client *client.Client
 }
+
+type secretContents map[string]cluster.InstallSecretRequestSpecItem
 
 // DeploymentsServiceFactory creates and returns an initialized DeploymentsService instance
 func DeploymentsServiceFactory(
@@ -126,6 +135,7 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 		}
 	}
 
+	secretName := "velero"
 	req := ConfigRequest{
 		Cluster: clusterConfig{
 			Name:         s.cluster.GetName(),
@@ -148,17 +158,28 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 				ResourceGroup:  bucket.ResourceGroup,
 			},
 		},
+		SecretName:            secretName,
 		BucketSecret:          bucketSecret,
 		UseClusterSecret:      useClusterSecret,
 		ServiceAccountRoleARN: serviceAccountRoleARN,
 		UseProviderSecret:     useProviderSecret,
 		RestoreMode:           restoreMode,
 	}
+
+	secretContents, err := req.getCredentialsSecret()
+	if err != nil {
+		return err
+	}
+	// install secret
+	_, err = installSecret(s.cluster, global.Config.Cluster.DisasterRecovery.Namespace, "velero", secretContents)
+	if err != nil {
+		return errors.Wrap(err, "error installing Velero secret")
+	}
+
 	config, err := req.getChartConfig()
 	if err != nil {
 		return errors.Wrap(err, "error service getting config")
 	}
-
 	deployment, err = s.repository.Persist(&api.PersistDeploymentRequest{
 		BucketID:    bucket.ID,
 		Name:        config.Name,
@@ -168,6 +189,8 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 	if err != nil {
 		return errors.Wrap(err, "error persisting deployment")
 	}
+
+	// TODO activate Backup as integrated service instead of installing with helm directly
 
 	err = helmService.InstallDeployment(
 		context.Background(),
@@ -189,6 +212,95 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 	s.repository.UpdateStatus(deployment, "DEPLOYED", "") // nolint: errcheck
 
 	return nil
+}
+
+// installSecret installs a secret to the specified cluster
+func installSecret(cl interface {
+	GetK8sConfig() ([]byte, error)
+	GetOrganizationId() uint
+}, namespace string, secretName string, secretContent secretContents) (string, error) {
+	req := cluster.InstallSecretRequest{
+		// Note: leave the Source field empty as the secret needs to be transformed
+		Namespace: namespace,
+		Update:    true,
+		Spec:      secretContent,
+	}
+
+	k8sSecName, err := cluster.InstallSecret(cl, secretName, req)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to install secret to cluster")
+	}
+
+	return k8sSecName, nil
+}
+
+func (req ConfigRequest) getCredentialsSecret() (secretContents, error) {
+	var config secretContents
+	var BucketSecretContents string
+	var ClusterSecretContents string
+	var err error
+
+	switch req.Cluster.Provider {
+	case providers.Amazon:
+		// In case of Amazon we set up one credential file with different profiles for cluster & bucket secret.
+		// If UseClusterSecret is false there's no need for cluster secret, user will make sure node instance role has the right permissions
+		ClusterSecretContents = ""
+		if req.Bucket.Provider != providers.Amazon && req.UseClusterSecret {
+			ClusterSecretContents, err = amazon.GetSecret(req.ClusterSecret, nil)
+		}
+		if err != nil {
+			return config, nil
+		}
+	case providers.Google:
+		ClusterSecretContents, err = google.GetSecret(req.ClusterSecret)
+		if err != nil {
+			return config, err
+		}
+	case providers.Azure:
+		crgName := azure.GetAzureClusterResourceGroupName(req.Cluster.Distribution, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
+		ClusterSecretContents, err = azure.GetSecretForCluster(req.ClusterSecret, crgName)
+		if err != nil {
+			return config, err
+		}
+	default:
+		return config, pkgErrors.ErrorNotSupportedCloudType
+	}
+
+	switch req.Bucket.Provider {
+	case providers.Amazon:
+		var clusterSecret *secret.SecretItemResponse
+		// put cluster secret if useClusterSecret == true otherwise will fallback to instance profile
+		// which needs to be set up to contain snapshot permissions
+		if req.Cluster.Provider == providers.Amazon && req.UseClusterSecret {
+			clusterSecret = req.ClusterSecret
+		}
+		BucketSecretContents, err = amazon.GetSecret(clusterSecret, req.BucketSecret)
+		if err != nil {
+			return config, err
+		}
+	case providers.Google:
+		BucketSecretContents, err = google.GetSecret(req.BucketSecret)
+		if err != nil {
+			return config, err
+		}
+	case providers.Azure:
+		crgName := azure.GetAzureClusterResourceGroupName(req.Cluster.Distribution, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
+		BucketSecretContents, err = azure.GetSecretForBucket(req.BucketSecret, req.Bucket.StorageAccount, req.Bucket.ResourceGroup, crgName)
+		if err != nil {
+			return config, err
+		}
+	default:
+		return config, pkgErrors.ErrorNotSupportedCloudType
+	}
+
+	return secretContents{
+		"cluster": cluster.InstallSecretRequestSpecItem{
+			Value: ClusterSecretContents,
+		},
+		"cloud": cluster.InstallSecretRequestSpecItem{
+			Value: BucketSecretContents,
+		},
+	}, err
 }
 
 // Remove deletes an ARK deployment

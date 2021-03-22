@@ -40,6 +40,10 @@ type ChartConfig struct {
 	ValueOverrides []byte
 }
 
+type credentials struct {
+	ExistingSecret string `json:"existingSecret"`
+}
+
 // ValueOverrides describes values to be overridden in a deployment
 type ValueOverrides struct {
 	Configuration   configuration          `json:"configuration"`
@@ -75,17 +79,6 @@ type image struct {
 	Repository string `json:"repository"`
 	Tag        string `json:"tag"`
 	PullPolicy string `json:"pullPolicy"`
-}
-
-type credentials struct {
-	SecretContents secretContents `json:"secretContents"`
-}
-
-type secretContents struct {
-	azure.Secret
-	// formerly Bucket
-	Cloud   string `json:"cloud,omitempty"`
-	Cluster string `json:"cluster,omitempty"`
 }
 
 type configuration struct {
@@ -134,6 +127,7 @@ type ConfigRequest struct {
 	ClusterSecret *secret.SecretItemResponse
 	Bucket        bucketConfig
 	BucketSecret  *secret.SecretItemResponse
+	SecretName    string
 
 	UseClusterSecret      bool
 	ServiceAccountRoleARN string
@@ -203,11 +197,6 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		return values, err
 	}
 
-	cred, err := req.getCredentials()
-	if err != nil {
-		return values, err
-	}
-
 	initContainers := make([]v1.Container, 0, 2)
 
 	if bsp.Provider == amazon.BackupStorageProvider || vsl.Provider == amazon.PersistentVolumeProvider {
@@ -272,7 +261,9 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		RBAC: rbac{
 			Create: req.Cluster.RBACEnabled,
 		},
-		Credentials: cred,
+		Credentials: credentials{
+			ExistingSecret: req.SecretName,
+		},
 		Image: image{
 			Repository: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Repository,
 			Tag:        global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Tag,
@@ -393,73 +384,6 @@ func (req ConfigRequest) getBackupStorageLocation() (backupStorageLocation, erro
 	}
 
 	return config, nil
-}
-
-func (req ConfigRequest) getCredentials() (credentials, error) {
-	var config credentials
-	var BucketSecretContents string
-	var ClusterSecretContents string
-	var err error
-
-	switch req.Cluster.Provider {
-	case providers.Amazon:
-		// In case of Amazon we set up one credential file with different profiles for cluster & bucket secret.
-		// If UseClusterSecret is false there's no need for cluster secret, user will make sure node instance role has the right permissions
-		ClusterSecretContents = ""
-		if req.Bucket.Provider != providers.Amazon && req.UseClusterSecret {
-			ClusterSecretContents, err = amazon.GetSecret(req.ClusterSecret, nil)
-		}
-		if err != nil {
-			return config, nil
-		}
-	case providers.Google:
-		ClusterSecretContents, err = google.GetSecret(req.ClusterSecret)
-		if err != nil {
-			return config, err
-		}
-	case providers.Azure:
-		crgName := azure.GetAzureClusterResourceGroupName(req.Cluster.Distribution, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
-		ClusterSecretContents, err = azure.GetSecretForCluster(req.ClusterSecret, crgName)
-		if err != nil {
-			return config, err
-		}
-	default:
-		return config, pkgErrors.ErrorNotSupportedCloudType
-	}
-
-	switch req.Bucket.Provider {
-	case providers.Amazon:
-		var clusterSecret *secret.SecretItemResponse
-		// put cluster secret if useClusterSecret == true otherwise will fallback to instance profile
-		// which needs to be set up to contain snapshot permissions
-		if req.Cluster.Provider == providers.Amazon && req.UseClusterSecret {
-			clusterSecret = req.ClusterSecret
-		}
-		BucketSecretContents, err = amazon.GetSecret(clusterSecret, req.BucketSecret)
-		if err != nil {
-			return config, err
-		}
-	case providers.Google:
-		BucketSecretContents, err = google.GetSecret(req.BucketSecret)
-		if err != nil {
-			return config, err
-		}
-	case providers.Azure:
-		crgName := azure.GetAzureClusterResourceGroupName(req.Cluster.Distribution, req.Cluster.ResourceGroup, req.Cluster.Name, req.Cluster.Location)
-		BucketSecretContents, err = azure.GetSecretForBucket(req.BucketSecret, req.Bucket.StorageAccount, req.Bucket.ResourceGroup, crgName)
-		if err != nil {
-			return config, err
-		}
-	default:
-		return config, pkgErrors.ErrorNotSupportedCloudType
-	}
-
-	return credentials{
-		SecretContents: secretContents{
-			Cluster: ClusterSecretContents,
-			Cloud:   BucketSecretContents,
-		},
-	}, err
 }
 
 func getPullPolicy(pullPolicy string) v1.PullPolicy {

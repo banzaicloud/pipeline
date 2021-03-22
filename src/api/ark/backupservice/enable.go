@@ -117,6 +117,7 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 			return
 		}
 
+		// TODO move backup create to IS operator V2 activity
 		spec := &api.CreateBackupRequest{
 			Name:   svc.GetCluster().GetName(),
 			Labels: request.Labels,

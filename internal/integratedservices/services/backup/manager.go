@@ -31,7 +31,6 @@ func NewManager() Manager {
 }
 
 func (m Manager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
-
 	panic("implement me")
 }
 
