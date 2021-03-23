@@ -33,6 +33,7 @@ Metadata:
           - KubeletExtraArguments
           - UseInstanceStore
           - DisableIMDSv1
+          - StackTags
           - TemplateVersion
       - Label:
           default: Worker Network Configuration
@@ -475,13 +476,18 @@ Parameters:
     Default: 0
     Description: Node volume size
 
+  StackTags:
+    Type: "String"
+    Default: ""
+    Description: The tags of the stack.
+
   Subnets:
     Type: "List<AWS::EC2::Subnet::Id>"
     Description: The subnets where workers can be created.
 
   TemplateVersion:
     Type: String
-    Default: "2.2.0"
+    Default: "2.3.0"
     Description: Current version of the template structure as metainformation for created stacks.
 
   TerminationDetachEnabled:
@@ -691,6 +697,13 @@ Resources:
         KeyName: !If [ HasKeyName, !Ref KeyName, !Ref "AWS::NoValue" ]
         SecurityGroupIds:
           !If [NoCustomNodeSecurityGroups, [!Ref NodeSecurityGroup], !Split [ ",",  !Join [ ",", [ !Ref NodeSecurityGroup, !Ref CustomNodeSecurityGroups ] ]  ] ]
+        TagSpecifications:
+          - ResourceType: volume
+            Tags:
+              - Key: Name
+                Value: !Sub ${ClusterName}-${NodeGroupName}-Volume
+              - Key: !Sub kubernetes.io/cluster/${ClusterName}
+                Value: owned
         UserData:
             Fn::Base64:
                 Fn::Sub: |
@@ -735,6 +748,33 @@ Resources:
                         fi
                       else
                         /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '${KubeletExtraArguments}' ${BootstrapArguments}
+                      fi
+
+                      # Note: manually applying stack tags onto root EBS
+                      # volumes, because automatic tag propagation for Amazon
+                      # EBS volumes created from block device mappings is not
+                      # supported as of 2021-03-11, source:
+                      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html
+                      # > All stack-level tags, including automatically created
+                      # > tags, are propagated to resources that CloudFormation
+                      # > supports. Currently, tags aren't propagated to Amazon
+                      # > EBS volumes that are created from block device
+                      # > mappings.
+                      if [ "${StackTags}" != "" ]; then
+                        STACK_TAG_ARGUMENTS=""
+                        for TAG in $(echo -n "${StackTags}" | tr "," "\n"); do
+                          TAG_KEY=$(echo -n "$TAG" | cut -d "=" -f 1)
+                          TAG_VALUE=$(echo -n "$TAG" | cut -d "=" -f 2)
+
+                          STACK_TAG_ARGUMENTS="$STACK_TAG_ARGUMENTS Key=$TAG_KEY,Value=$TAG_VALUE"
+                        done
+
+                        AWS_AVAIL_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone)
+                        AWS_REGION="$(echo "$AWS_AVAIL_ZONE" | sed 's/[a-z]$//')"
+                        AWS_INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+                        ROOT_VOLUME_IDS=$(aws ec2 describe-instances --region $AWS_REGION --instance-id $AWS_INSTANCE_ID --output text --query Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId)
+                        # Note: the lack of quotes around the tag arguments is intentional.
+                        aws ec2 create-tags --resources $ROOT_VOLUME_IDS --region $AWS_REGION --tags $STACK_TAG_ARGUMENTS
                       fi
         MetadataOptions:
           HttpPutResponseHopLimit: 2
