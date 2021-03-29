@@ -17,7 +17,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.0
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/Masterminds/semver/v3 v3.1.0
+	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/ThreeDotsLabs/watermill v1.1.0
 	github.com/antihax/optional v1.0.0
 	github.com/aokoli/goutils v1.1.0
@@ -75,7 +75,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/vmware-tanzu/velero v1.5.1
 	github.com/vmware/govmomi v0.22.0
@@ -83,7 +83,7 @@ require (
 	go.uber.org/cadence v0.14.1
 	go.uber.org/yarpc v1.45.0
 	go.uber.org/zap v1.14.1
-	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.20.0
@@ -92,7 +92,7 @@ require (
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.3.0
-	helm.sh/helm/v3 v3.4.0
+	helm.sh/helm/v3 v3.5.3
 	k8s.io/api v0.20.5
 	k8s.io/apiextensions-apiserver v0.20.5
 	k8s.io/apimachinery v0.20.5
