@@ -74,7 +74,7 @@ func (d NamespaceServicesDeleter) Delete(ctx context.Context, organizationID uin
 			case "kubernetes":
 				continue
 			default:
-				logger.Infof("service %q still %s", svc.Name, svc.Status)
+				logger.Infof("service %q still %v", svc.Name, svc.Status)
 				left = append(left, svc.Name)
 			}
 		}
