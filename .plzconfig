@@ -1,5 +1,5 @@
 [please]
-version = 16.0.0-prerelease.14
+version = 16.0.0-prerelease.15
 
 [build]
 PassUnsafeEnv = VAULT_ADDR
@@ -16,8 +16,8 @@ gotestsum-version = 0.4.1
 mga-version = 0.4.2
 licensei-version = 0.2.0
 migrate-version = 4.9.1
-kubectl-version = 1.17.4
-helm-version = 3.2.4
+kubectl-version = 1.20.5
+helm-version = 3.5.3
 
 [alias "tidy"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.
