@@ -94,6 +94,7 @@ type Endpoints struct {
 	GetReleaseResources endpoint.Endpoint
 	InstallRelease      endpoint.Endpoint
 	ListCharts          endpoint.Endpoint
+	ListClusterCharts   endpoint.Endpoint
 	ListReleases        endpoint.Endpoint
 	ListRepositories    endpoint.Endpoint
 	ModifyRepository    endpoint.Endpoint
@@ -117,6 +118,7 @@ func MakeEndpoints(service helm.Service, middleware ...endpoint.Middleware) Endp
 		GetReleaseResources: kitxendpoint.OperationNameMiddleware("helm.GetReleaseResources")(mw(MakeGetReleaseResourcesEndpoint(service))),
 		InstallRelease:      kitxendpoint.OperationNameMiddleware("helm.InstallRelease")(mw(MakeInstallReleaseEndpoint(service))),
 		ListCharts:          kitxendpoint.OperationNameMiddleware("helm.ListCharts")(mw(MakeListChartsEndpoint(service))),
+		ListClusterCharts:   kitxendpoint.OperationNameMiddleware("helm.ListClusterCharts")(mw(MakeListClusterChartsEndpoint(service))),
 		ListReleases:        kitxendpoint.OperationNameMiddleware("helm.ListReleases")(mw(MakeListReleasesEndpoint(service))),
 		ListRepositories:    kitxendpoint.OperationNameMiddleware("helm.ListRepositories")(mw(MakeListRepositoriesEndpoint(service))),
 		ModifyRepository:    kitxendpoint.OperationNameMiddleware("helm.ModifyRepository")(mw(MakeModifyRepositoryEndpoint(service))),
@@ -523,6 +525,47 @@ func MakeListChartsEndpoint(service helm.Service) endpoint.Endpoint {
 		}
 
 		return ListChartsResponse{Charts: charts}, nil
+	}
+}
+
+// ListClusterChartsRequest is a request struct for ListClusterCharts endpoint.
+type ListClusterChartsRequest struct {
+	OrganizationID uint
+	Options        helm.Options
+}
+
+// ListClusterChartsResponse is a response struct for ListClusterCharts endpoint.
+type ListClusterChartsResponse struct {
+	Charts []interface{}
+	Err    error
+}
+
+func (r ListClusterChartsResponse) Failed() error {
+	return r.Err
+}
+
+// MakeListClusterChartsEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeListClusterChartsEndpoint(service helm.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ListClusterChartsRequest)
+
+		charts, err := service.ListClusterCharts(ctx, req.OrganizationID, req.Options)
+
+		if err != nil {
+			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
+				return ListClusterChartsResponse{
+					Charts: charts,
+					Err:    err,
+				}, nil
+			}
+
+			return ListClusterChartsResponse{
+				Charts: charts,
+				Err:    err,
+			}, err
+		}
+
+		return ListClusterChartsResponse{Charts: charts}, nil
 	}
 }
 

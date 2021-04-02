@@ -477,6 +477,7 @@ func main() {
 	securityInfoService := helmadapter.NewSecurityService(clusterSvc, anchore.NewSecurityResourceService(commonLogger), commonLogger)
 	unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 		config.Helm,
+		config.Cluster,
 		db,
 		commonSecretStore,
 		clusterSvc,
@@ -1122,6 +1123,8 @@ func main() {
 
 				// TODO using "chart" instead of  "charts" for backwards compatibility
 				orgs.GET("/:orgid/helm/chart/:reponame/:name", gin.WrapH(router))
+
+				orgs.GET("/:orgid/helm/cluster-charts", gin.WrapH(router))
 			}
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)

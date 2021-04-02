@@ -284,6 +284,29 @@ func (_m *MockService) ListCharts(ctx context.Context, organizationID uint, filt
 	return r0, r1
 }
 
+// ListClusterCharts provides a mock function.
+func (_m *MockService) ListClusterCharts(ctx context.Context, organizationID uint, options Options) (charts []interface{}, err error) {
+	ret := _m.Called(ctx, organizationID, options)
+
+	var r0 []interface{}
+	if rf, ok := ret.Get(0).(func(context.Context, uint, Options) []interface{}); ok {
+		r0 = rf(ctx, organizationID, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]interface{})
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint, Options) error); ok {
+		r1 = rf(ctx, organizationID, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListReleases provides a mock function.
 func (_m *MockService) ListReleases(ctx context.Context, organizationID uint, clusterID uint, filters ReleaseFilter, options Options) (_result_0 []Release, _result_1 error) {
 	ret := _m.Called(ctx, organizationID, clusterID, filters, options)

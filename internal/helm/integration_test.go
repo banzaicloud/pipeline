@@ -80,7 +80,15 @@ func testIntegration(t *testing.T) {
 	const testNamespace = "istiofeature-helm"
 
 	logger := common.NoopLogger{}
-	helmService, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+	helmService, _ := cmd.CreateUnifiedHelmReleaser(
+		config,
+		cmd.ClusterConfig{}, // Note: dummy cluster config value.
+		db,
+		secretStore,
+		clusterService,
+		helmadapter.NewOrgService(logger),
+		logger,
+	)
 
 	t.Run("testDeleteChartBeforeSuite", testDeleteChart(helmService, kubeConfig, testNamespace))
 	t.Run("testCreateChart", testCreateChart(helmService, kubeConfig, testNamespace))
@@ -107,7 +115,15 @@ func testIntegrationInstall(t *testing.T) {
 	const testNamespace = "helm-install"
 
 	logger := common.NoopLogger{}
-	releaser, _ := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmadapter.NewOrgService(logger), logger)
+	releaser, _ := cmd.CreateUnifiedHelmReleaser(
+		config,
+		cmd.ClusterConfig{}, // Note: dummy cluster config value.
+		db,
+		secretStore,
+		clusterService,
+		helmadapter.NewOrgService(logger),
+		logger,
+	)
 
 	err := releaser.InstallDeployment(
 		context.Background(),

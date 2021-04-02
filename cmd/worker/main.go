@@ -291,6 +291,7 @@ func main() {
 
 		unifiedHelmReleaser, helmFacade := cmd.CreateUnifiedHelmReleaser(
 			config.Helm,
+			config.Cluster,
 			db,
 			commonSecretStore,
 			clusterSvc,

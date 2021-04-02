@@ -16,10 +16,13 @@ package cmd
 
 import (
 	"context"
+	"sort"
+	"strings"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/helm"
@@ -34,6 +37,7 @@ type ClusterGetter interface {
 // CreateUnifiedHelmReleaser utility function for assembling the helm releaser
 func CreateUnifiedHelmReleaser(
 	helmConfig helm.Config,
+	clusterConfig ClusterConfig,
 	db *gorm.DB,
 	commonSecretStore common.SecretStore,
 	clusterService helm.ClusterService,
@@ -59,6 +63,7 @@ func CreateUnifiedHelmReleaser(
 
 	service := helm.NewService(
 		helmConfig,
+		newClusterChartsFromConfig(clusterConfig),
 		repoStore,
 		secretStore,
 		validator,
@@ -84,4 +89,126 @@ func CreateReleaseDeleter(helmConfig helm.Config, db *gorm.DB, secretStore helma
 
 	logger.Debug("assembled helm 3 release deleter")
 	return helmadapter.NewReleaseDeleter(ensuringEnvResolver, releaser, logger)
+}
+
+// isConfigEnabled determines whether the specified configuration is enabled.
+// Configurations which cannot be disabled return true.
+func isConfigEnabled(config interface{}) bool {
+	if config == nil {
+		return false
+	}
+
+	var enabledConfig struct {
+		Enabled *bool // Note: pointer indicates field existence, missing field yields zero value instead of error.
+	}
+	cannotBeDisabledError := mapstructure.Decode(config, &enabledConfig)
+
+	return cannotBeDisabledError != nil || // Note: not an associative type, no Enabled field, enabled by default.
+		enabledConfig.Enabled == nil || // Note: associative type, but no Enabled field, enabled by default.
+		*enabledConfig.Enabled // Note: associative type, has Enabled field, its value is used.
+}
+
+// newClusterChartsFromConfig creates the cluster chart collection from the
+// cluster configuration.
+func newClusterChartsFromConfig(clusterConfig ClusterConfig) (clusterChartConfigs []helm.ChartConfig) {
+	clusterChartConfigs = parseClusterChartConfigsRecursively(nil, nil, clusterConfig)
+
+	sort.Slice(clusterChartConfigs, func(firstIndex, secondIndex int) (isLessThan bool) {
+		return clusterChartConfigs[firstIndex].IsLessThan(clusterChartConfigs[secondIndex])
+	})
+
+	return clusterChartConfigs
+}
+
+// parseClusterChartConfigsRecursively collects the availbale cluster chart
+// configurations from the specified config map.
+//
+// For the initial call, decoder and decoderConfig MAY be nil, they are
+// automatically initialized.
+func parseClusterChartConfigsRecursively(
+	decoder *mapstructure.Decoder,
+	decoderConfig *mapstructure.DecoderConfig,
+	config interface{},
+) (clusterChartConfigs []helm.ChartConfig) {
+	if config == nil ||
+		!isConfigEnabled(config) { // Note: explicitly disabled configs are not parsed.
+		return nil
+	}
+
+	if decoderConfig == nil {
+		decoderConfig = &mapstructure.DecoderConfig{
+			DecodeHook:       nil,
+			ErrorUnused:      false,
+			ZeroFields:       false,
+			WeaklyTypedInput: false,
+			Squash:           false,
+			Metadata:         nil,
+			Result:           new(string), // Note: dummy value, gonna be overwritten.
+			TagName:          "chartConfig",
+		}
+	}
+
+	if decoder == nil {
+		decoder, _ = mapstructure.NewDecoder(decoderConfig) // Note: the hard coded configuration never panics.
+	}
+
+	var chart struct { // Note: pointers indicate field existence, missing field yields zero value instead of error.
+		Chart   *string
+		Version *string
+		Values  map[string]interface{}
+	}
+	decoderConfig.Result = &chart
+	err := decoder.Decode(config)
+	if err == nil &&
+		chart.Chart != nil &&
+		chart.Version != nil {
+		name := *chart.Chart
+		repo := ""
+		lastSeparatorIndex := strings.LastIndex(*chart.Chart, "/")
+		if lastSeparatorIndex != -1 {
+			repo = (*chart.Chart)[:lastSeparatorIndex]
+			name = (*chart.Chart)[lastSeparatorIndex+1:]
+		}
+
+		return []helm.ChartConfig{
+			{
+				Name:       name,
+				Repository: repo,
+				Version:    *chart.Version,
+				Values:     chart.Values,
+			},
+		}
+	}
+
+	var configMap map[string]interface{}
+	decoderConfig.Result = &configMap
+	err = decoder.Decode(config)
+	if err == nil &&
+		len(configMap) > 0 { // Note: map, struct or pointers to those.
+		for _, subconfig := range configMap {
+			clusterChartConfigs = append(
+				clusterChartConfigs,
+				parseClusterChartConfigsRecursively(decoder, decoderConfig, subconfig)...,
+			)
+		}
+
+		return clusterChartConfigs
+	}
+
+	var configs []interface{}
+	decoderConfig.Result = &configs
+	err = decoder.Decode(config)
+	if err == nil &&
+		len(configs) > 0 { // Note: slice or pointer to that.
+		for _, subconfig := range configs {
+			clusterChartConfigs = append(
+				clusterChartConfigs,
+				parseClusterChartConfigsRecursively(decoder, decoderConfig, subconfig)...,
+			)
+		}
+
+		return clusterChartConfigs
+	}
+
+	return nil // Note: else it is a basic type in which case there is nothing to do.
 }

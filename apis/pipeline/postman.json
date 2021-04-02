@@ -2688,7 +2688,7 @@
 		{
 			"name": "Cluster Groups",
 			"item": [
-					{
+				{
 					"name": "Deployments",
 					"item": [
 						{
@@ -7661,6 +7661,35 @@
 									"key": "chartName",
 									"value": "{{chartName}}",
 									"description": "Chart name"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cluster chart List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/helm/cluster-charts",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"helm",
+								"cluster-charts"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
 								}
 							]
 						}

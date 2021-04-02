@@ -85,6 +85,13 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 		kitxhttp.ErrorResponseEncoder(encodeChartDetailsHTTPResponse, errorEncoder),
 		options...,
 	))
+
+	router.Methods(http.MethodGet).Path("/cluster-charts").Handler(kithttp.NewServer(
+		endpoints.ListClusterCharts,
+		decodeListClusterChartsHTTPRequest,
+		kitxhttp.ErrorResponseEncoder(encodeListClusterChartsHTTPResponse, errorEncoder),
+		options...,
+	))
 }
 
 func RegisterReleaserHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
@@ -706,6 +713,40 @@ func encodeChartDetailsHTTPResponse(ctx context.Context, w http.ResponseWriter, 
 	}
 
 	return kitxhttp.JSONResponseEncoder(ctx, w, chart.ChartDetails)
+}
+
+func decodeListClusterChartsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	orgID, err := extractUintParamFromRequest("orgId", r)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode list cluster charts request")
+	}
+
+	return ListClusterChartsRequest{
+		OrganizationID: orgID,
+		Options:        helm.Options{},
+	}, nil
+}
+
+func encodeListClusterChartsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	charts, ok := response.(ListClusterChartsResponse)
+	if !ok {
+		return errors.New("invalid cluster charts list response")
+	}
+
+	if charts.Err != nil {
+		return errors.WrapIf(charts.Err, "failed to retrieve charts")
+	}
+
+	if len(charts.Charts) == 0 {
+		return kitxhttp.JSONResponseEncoder(ctx, w, "")
+	}
+
+	chartsResponse := make([]interface{}, 0, len(charts.Charts))
+	for _, repoCharts := range charts.Charts {
+		chartsResponse = append(chartsResponse, repoCharts)
+	}
+
+	return kitxhttp.JSONResponseEncoder(ctx, w, chartsResponse)
 }
 
 func extractStringParamFromRequest(key string, r *http.Request) (string, error) {

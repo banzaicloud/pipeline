@@ -102,6 +102,7 @@ func getHelmFacade(t *testing.T) helm.Service {
 
 	return helm.NewService(
 		helmConfig,
+		[]helm.ChartConfig{},
 		repoStore,
 		secretStore,
 		helm.NewHelmRepoValidator(),
