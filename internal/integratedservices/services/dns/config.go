@@ -59,11 +59,11 @@ type ExternalDNSChartConfig struct {
 }
 
 type ExternalDNSChartValuesConfig struct {
-	Image ExternalDNSChartValuesImageConfig
+	Image ExternalDNSChartValuesImageConfig `chartConfig:"image"`
 }
 
 type ExternalDNSChartValuesImageConfig struct {
-	Registry   string
-	Repository string
-	Tag        string
+	Registry   string `chartConfig:"registry"`
+	Repository string `chartConfig:"repository"`
+	Tag        string `chartConfig:"tag"`
 }
