@@ -62,6 +62,10 @@ type charter interface {
 	// GetChart retrieves the details for the given chart
 	GetChart(ctx context.Context, organizationID uint, chartFilter ChartFilter, options Options) (chartDetails ChartDetails, err error)
 
+	// ListClusterCharts lists the Helm charts (with details) currently
+	// available for Pipeline managed clusters.
+	ListClusterCharts(ctx context.Context, organizationID uint, options Options) (charts ChartList, err error)
+
 	CheckReleases(ctx context.Context, organizationID uint, releases []Release) (map[string]bool, error)
 }
 

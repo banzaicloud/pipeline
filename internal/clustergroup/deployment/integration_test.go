@@ -56,10 +56,18 @@ func testGetChartDesc(home string) func(*testing.T) {
 		}
 
 		logger := common.NoopLogger{}
-		releaser, facade := cmd.CreateUnifiedHelmReleaser(config, db, secretStore, clusterService, helmtesting.FakeOrg{
-			OrgId:   fakeOrgId,
-			OrgName: fakeOrgName,
-		}, logger)
+		releaser, facade := cmd.CreateUnifiedHelmReleaser(
+			config,
+			cmd.ClusterConfig{}, // Note: dummy cluster config value.
+			db,
+			secretStore,
+			clusterService,
+			helmtesting.FakeOrg{
+				OrgId:   fakeOrgId,
+				OrgName: fakeOrgName,
+			},
+			logger,
+		)
 
 		helmService := deployment.NewHelmService(facade, releaser)
 

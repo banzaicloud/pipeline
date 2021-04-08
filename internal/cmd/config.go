@@ -335,25 +335,25 @@ type ClusterDisasterRecoveryConfig struct {
 			Version string
 			Values  struct {
 				Image struct {
-					Repository string
-					Tag        string
-					PullPolicy string
-				}
+					Repository string `chartConfig:"repository"`
+					Tag        string `chartConfig:"tag"`
+					PullPolicy string `chartConfig:"pullPolicy"`
+				} `chartConfig:"image"`
 				AwsPluginImage struct {
-					Repository string
-					Tag        string
-					PullPolicy string
-				}
+					Repository string `chartConfig:"repository"`
+					Tag        string `chartConfig:"tag"`
+					PullPolicy string `chartConfig:"pullPolicy"`
+				} `chartConfig:"awsPluginImage"`
 				AzurePluginImage struct {
-					Repository string
-					Tag        string
-					PullPolicy string
-				}
+					Repository string `chartConfig:"repository"`
+					Tag        string `chartConfig:"tag"`
+					PullPolicy string `chartConfig:"pullPolicy"`
+				} `chartConfig:"azurePluginImage"`
 				GcpPluginImage struct {
-					Repository string
-					Tag        string
-					PullPolicy string
-				}
+					Repository string `chartConfig:"repository"`
+					Tag        string `chartConfig:"repository"`
+					PullPolicy string `chartConfig:"repository"`
+				} `chartConfig:"gcpPluginImage"`
 			}
 		}
 	}

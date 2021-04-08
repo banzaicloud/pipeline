@@ -292,7 +292,7 @@ validate-openapi: ## Validate the openapi description
 
 .PHONY: generate-openapi
 generate-openapi: validate-openapi ## Generate go server based on openapi description
-	$(call back_up_file,.gen/pipeline/pipeline/BUILD)
+	$(call back_up_file,.gen/pipeline/pipeline/BUILD.plz)
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./.gen/pipeline; else rm -rf ./.gen/pipeline/; fi
 	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=pipeline \
@@ -303,7 +303,7 @@ generate-openapi: validate-openapi ## Generate go server based on openapi descri
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
 	rm .gen/pipeline/{Dockerfile,go.*,README.md,main.go,go/api*.go,go/logger.go,go/routers.go}
 	mv .gen/pipeline/go .gen/pipeline/pipeline
-	$(call restore_backup_file,.gen/pipeline/pipeline/BUILD)
+	$(call restore_backup_file,.gen/pipeline/pipeline/BUILD.plz)
 
 define generate_openapi_client
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ${3}; else rm -rf ${3}; fi
@@ -323,20 +323,20 @@ apis/cloudinfo/openapi.yaml:
 
 .PHONY: generate-cloudinfo-client
 generate-cloudinfo-client: apis/cloudinfo/openapi.yaml ## Generate client from Cloudinfo OpenAPI spec
-	$(call back_up_file,.gen/cloudinfo/BUILD)
+	$(call back_up_file,.gen/cloudinfo/BUILD.plz)
 	$(call generate_openapi_client,apis/cloudinfo/openapi.yaml,cloudinfo,.gen/cloudinfo)
-	$(call restore_backup_file,.gen/cloudinfo/BUILD)
+	$(call restore_backup_file,.gen/cloudinfo/BUILD.plz)
 
 apis/anchore/swagger.yaml:
 	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
 
 .PHONY: generate-anchore-client
 generate-anchore-client: ## apis/anchore/swagger.yaml ## https://github.com/anchore/anchore-engine/pull/846 ## Generate client from Anchore OpenAPI spec
-	$(call back_up_file,.gen/anchore/BUILD)
+	$(call back_up_file,.gen/anchore/BUILD.plz)
 	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
 	@ sed -i~ 's/whitelist_ids,omitempty/whitelist_ids/' .gen/anchore/model_mapping_rule.go && rm .gen/anchore/model_mapping_rule.go~
 	@ sed -i~ 's/params,omitempty/params/' .gen/anchore/model_policy_rule.go && rm .gen/anchore/model_policy_rule.go~
-	$(call restore_backup_file,.gen/anchore/BUILD)
+	$(call restore_backup_file,.gen/anchore/BUILD.plz)
 
 .PHONY: list
 list: ## List all make targets

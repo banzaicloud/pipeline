@@ -241,6 +241,7 @@ func (c ClusterKubeConfigFunc) GetKubeConfig(ctx context.Context, clusterID uint
 
 type service struct {
 	config         Config
+	clusterCharts  []ChartConfig
 	store          Store
 	secretStore    SecretStore
 	repoValidator  RepoValidator
@@ -254,6 +255,7 @@ type service struct {
 // NewService returns a new Service.
 func NewService(
 	config Config,
+	clusterCharts []ChartConfig,
 	store Store,
 	secretStore SecretStore,
 	validator RepoValidator,
@@ -264,6 +266,7 @@ func NewService(
 	logger Logger) Service {
 	return service{
 		config:         config,
+		clusterCharts:  clusterCharts,
 		store:          store,
 		secretStore:    secretStore,
 		repoValidator:  validator,
@@ -584,6 +587,16 @@ func (s service) GetChart(ctx context.Context, organizationID uint, chartFilter 
 	}
 
 	return details, nil
+}
+
+// ListClusterCharts lists the Helm charts (with details) currently available
+// for Pipeline managed clusters.
+func (s service) ListClusterCharts(ctx context.Context, _ uint, _ Options) (charts ChartList, err error) {
+	for _, clusterChart := range s.clusterCharts {
+		charts = append(charts, clusterChart)
+	}
+
+	return charts, nil
 }
 
 func (s service) GetReleaseResources(ctx context.Context, organizationID uint, clusterID uint, release Release, options Options) ([]ReleaseResource, error) {

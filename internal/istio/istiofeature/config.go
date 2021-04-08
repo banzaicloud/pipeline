@@ -30,10 +30,10 @@ type StaticConfig struct {
 			Values  struct {
 				Operator struct {
 					Image struct {
-						Repository string
-						Tag        string
-					}
-				}
+						Repository string `chartConfig:"repository"`
+						Tag        string `chartConfig:"tag"`
+					} `chartConfig:"image"`
+				} `chartConfig:"operator"`
 			}
 		}
 
@@ -43,17 +43,17 @@ type StaticConfig struct {
 			Values  struct {
 				Application struct {
 					Image struct {
-						Repository string
-						Tag        string
-					}
-				}
+						Repository string `chartConfig:"repository"`
+						Tag        string `chartConfig:"tag"`
+					} `chartConfig:"image"`
+				} `chartConfig:"application"`
 
 				Web struct {
 					Image struct {
-						Repository string
-						Tag        string
-					}
-				}
+						Repository string `chartConfig:"repository"`
+						Tag        string `chartConfig:"tag"`
+					} `chartConfig:"image"`
+				} `chartConfig:"web"`
 			}
 		}
 
@@ -63,10 +63,10 @@ type StaticConfig struct {
 			Values  struct {
 				Operator struct {
 					Image struct {
-						Repository string
-						Tag        string
-					}
-				}
+						Repository string `chartConfig:"repository"`
+						Tag        string `chartConfig:"tag"`
+					} `chartConfig:"image"`
+				} `chartConfig:"operator"`
 			}
 		}
 

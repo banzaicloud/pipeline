@@ -3267,6 +3267,128 @@ paths:
       summary: Chart details
       tags:
       - helm
+  /api/v1/orgs/{orgId}/helm/cluster-charts:
+    get:
+      description: Get the list of Helm charts currently used for managed clusters
+      operationId: HelmCurrentClusterChartList
+      parameters:
+      - description: Organization identifier
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelmClusterChartsListResponse'
+        default:
+          content:
+            application/json:
+              examples:
+                BadRequest:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: Failed to parse request.
+                Unauthorized:
+                  value:
+                    code: 401
+                    message: Unauthorized
+                    error: Unauthorized
+                OrganizationNotFound:
+                  value:
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+            application/problem+json:
+              examples:
+                BadRequest:
+                  value:
+                    type: about:blank
+                    title: Invalid request
+                    status: 400
+                    detail: Failed to parse request.
+                    instance: ""
+                    code: 400
+                    message: Failed to parse request.
+                    error: Invalid request
+                Unauthorized:
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    detail: You are unauthorized to access this resource.
+                    instance: ""
+                    code: 401
+                    message: You are unauthorized to access this resource.
+                    error: Unauthorized
+                AccessDenied:
+                  value:
+                    type: about:blank
+                    title: Access denied
+                    status: 403
+                    detail: You are unauthorized to perform this action access this
+                      resource.
+                    instance: ""
+                    code: 403
+                    message: You are unauthorized to perform this action access this
+                      resource.
+                    error: Access denied
+                OrganizationNotFound:
+                  value:
+                    type: about:blank
+                    title: Organization not found
+                    status: 404
+                    detail: Organization not found
+                    instance: ""
+                    code: 404
+                    message: Organization not found
+                    error: Organization not found
+                SecretAlreadyExists:
+                  value:
+                    type: about:blank
+                    title: Secret already exists
+                    status: 409
+                    detail: Secret already exists
+                    instance: ""
+                    code: 409
+                    message: Secret already exists
+                    error: Secret already exists
+                InternalServerError:
+                  value:
+                    type: about:blank
+                    title: Internal server error
+                    status: 500
+                    detail: Something went wrong
+                    instance: ""
+                    code: 500
+                    message: Something went wrong
+                    error: Internal server error
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Current Chart List of Managed Clusters
+      tags:
+      - helm
   /api/v1/orgs/{orgId}/clusters/{id}/deployments:
     get:
       description: Listing Helm deployments
@@ -20117,6 +20239,10 @@ components:
           items:
             $ref: '#/components/schemas/HelmChartDetailsResponse_versions'
           type: array
+    HelmClusterChartsListResponse:
+      items:
+        $ref: '#/components/schemas/HelmChartDetailsResponse'
+      type: array
     InstallSecretsRequest:
       example:
         query:
