@@ -5,12 +5,11 @@ go 1.15
 require (
 	emperror.dev/errors v0.7.0
 	github.com/aws/aws-sdk-go v1.34.4
-	github.com/golang/mock v1.4.3 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/uber/tchannel-go v1.18.0 // indirect
-	go.uber.org/cadence v0.14.1
+	go.uber.org/cadence v0.15.0
 	go.uber.org/thriftrw v1.23.0 // indirect
 	go.uber.org/yarpc v1.45.0 // indirect
 	go.uber.org/zap v1.14.1 // indirect
