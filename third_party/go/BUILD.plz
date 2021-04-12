@@ -2049,7 +2049,7 @@ go_mod_download(
     name = "github.com__banzaicloud__integrated-service-sdk",
     _tag = "download",
     module = "github.com/banzaicloud/integrated-service-sdk",
-    version = "v0.5.0",
+    version = "v0.5.1-0.20210409192106-95d4d01a1472",
 )
 
 go_module(
@@ -2059,11 +2059,25 @@ go_module(
     module = "github.com/banzaicloud/integrated-service-sdk",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__banzaicloud__integrated-service-sdk__api__v1alpha1__backup",
         ":github.com__banzaicloud__integrated-service-sdk__api__v1alpha1__dns",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":sigs.k8s.io__controller-runtime__pkg__scheme",
+    ],
+)
+
+go_module(
+    name = "github.com__banzaicloud__integrated-service-sdk__api__v1alpha1__backup",
+    download = ":_github.com__banzaicloud__integrated-service-sdk#download",
+    install = ["api/v1alpha1/backup"],
+    module = "github.com/banzaicloud/integrated-service-sdk",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":emperror.dev__errors",
+        ":github.com__mitchellh__mapstructure",
+        ":k8s.io__api__core__v1",
     ],
 )
 
@@ -5580,7 +5594,7 @@ go_mod_download(
     name = "github.com__mitchellh__mapstructure",
     _tag = "download",
     module = "github.com/mitchellh/mapstructure",
-    version = "v1.3.3",
+    version = "v1.4.1",
 )
 
 go_module(

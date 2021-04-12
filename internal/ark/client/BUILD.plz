@@ -9,6 +9,7 @@ go_library(
         "//internal/ark/api",
         "//pkg/k8sclient",
         "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__banzaicloud__integrated-service-sdk__api__v1alpha1",
         "//third_party/go:github.com__sirupsen__logrus",
         "//third_party/go:github.com__vmware-tanzu__velero__pkg__apis__velero__v1",
         "//third_party/go:k8s.io__apimachinery__pkg__api__errors",
