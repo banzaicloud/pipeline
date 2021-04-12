@@ -166,18 +166,6 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		}
 	}
 
-	if input.RestoreBackupParams != nil {
-		activityInput := RestoreBackupActivityInput{
-			ClusterID:           input.Cluster.ID,
-			RestoreBackupParams: *input.RestoreBackupParams,
-		}
-
-		err := workflow.ExecuteActivity(ctx, RestoreBackupActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-	}
-
 	{
 		activityInput := DeployIngressControllerActivityInput{
 			ClusterID: input.Cluster.ID,
@@ -212,6 +200,18 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 			if err := workflow.ExecuteActivity(ctx, operator.IntegratedServiceOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
 				return errors.WrapIfWithDetails(err, "failed to install the  operator", "orgID", input.OrgID, "clusterID", input.ClusterID)
 			}
+		}
+	}
+
+	if input.RestoreBackupParams != nil {
+		activityInput := RestoreBackupActivityInput{
+			ClusterID:           input.Cluster.ID,
+			RestoreBackupParams: *input.RestoreBackupParams,
+		}
+
+		err := workflow.ExecuteActivity(ctx, RestoreBackupActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
 		}
 	}
 
