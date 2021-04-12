@@ -73,7 +73,7 @@ import (
 	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter/workflow"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/backup"
+	integratedServiceBackup "github.com/banzaicloud/pipeline/internal/integratedservices/services/backup"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
@@ -620,10 +620,12 @@ func main() {
 			// V2 setup
 			{
 				specConversions := map[string]integratedservices.SpecConversion{
-					integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
+					integratedServiceDNS.IntegratedServiceName:    integratedServiceDNS.NewSecretMapper(commonSecretStore),
+					integratedServiceBackup.IntegratedServiceName: integratedServiceBackup.SpecConverter{},
 				}
 				outputResolvers := map[string]integratedserviceadapter.OutputResolver{
-					integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.OutputResolver{},
+					integratedServiceDNS.IntegratedServiceName:    integratedServiceDNS.OutputResolver{},
+					integratedServiceBackup.IntegratedServiceName: integratedServiceBackup.OutputResolver{},
 				}
 				serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions, outputResolvers)
 				featureRepositoryV2 = integratedserviceadapter.NewCustomResourceRepository(clusterManager.KubeConfigFunc(), commonLogger, serviceConversion, config.Cluster.Namespace)
@@ -748,8 +750,12 @@ func main() {
 					config.Cluster.DNS.Config,
 					logger,
 				),
-				// TODO finalize this setup
-				backup.NewOperator(),
+				integratedServiceBackup.NewBackupOperator(
+					clusterGetter,
+					clusterService,
+					config.Cluster.DisasterRecovery.Namespace,
+					logger,
+				),
 			})
 
 			registerClusterFeatureWorkflows(worker, featureOperatorRegistry, featureRepository, clusterfeatureworkflow.IntegratedServiceJobWorkflowName, false)

@@ -17,29 +17,51 @@ package backup
 import (
 	"context"
 
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/backup"
+
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
 // Manager component implementing input / output manipulation as required for the backup integrated service
 type Manager struct {
-	// todo add collaborators as required
+	version string
 }
 
-func NewManager() Manager {
-	// todo add argumens as required to inject collaborators
-	return Manager{}
+func NewManager(version string) Manager {
+	return Manager{
+		version: version,
+	}
 }
 
 func (m Manager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
-	panic("implement me")
+	return map[string]interface{}{
+		"externalDns": map[string]interface{}{
+			"version": m.version,
+		},
+	}, nil
 }
 
 func (m Manager) ValidateSpec(ctx context.Context, spec integratedservices.IntegratedServiceSpec) error {
-	panic("implement me")
+	backupSpec, err := backup.BindIntegratedServiceSpec(spec)
+	if err != nil {
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: IntegratedServiceName,
+			Problem:               err.Error(),
+		}
+	}
+
+	if err := backupSpec.Validate(); err != nil {
+		return integratedservices.InvalidIntegratedServiceSpecError{
+			IntegratedServiceName: IntegratedServiceName,
+			Problem:               err.Error(),
+		}
+	}
+
+	return nil
 }
 
 func (m Manager) PrepareSpec(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceSpec, error) {
-	panic("implement me")
+	return spec, nil
 }
 
 func (m Manager) Name() string {

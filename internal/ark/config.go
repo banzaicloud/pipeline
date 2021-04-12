@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/backup"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark/client"
@@ -38,87 +39,6 @@ type ChartConfig struct {
 	Name           string
 	Version        string
 	ValueOverrides []byte
-}
-
-type credentials struct {
-	ExistingSecret string `json:"existingSecret"`
-}
-
-// ValueOverrides describes values to be overridden in a deployment
-type ValueOverrides struct {
-	Configuration   configuration          `json:"configuration"`
-	Credentials     credentials            `json:"credentials"`
-	Image           image                  `json:"image"`
-	RBAC            rbac                   `json:"rbac"`
-	InitContainers  []v1.Container         `json:"initContainers"`
-	CleanUpCRDs     bool                   `json:"cleanUpCRDs"`
-	ServiceAccount  serviceAccount         `json:"serviceAccount"`
-	SecurityContext securityContext        `json:"securityContext"`
-	Affinity        map[string]interface{} `json:"affinity"`
-}
-
-type securityContext struct {
-	FsGroup int `json:"fsGroup"`
-}
-
-type serviceAccount struct {
-	Server server `json:"server"`
-}
-
-type server struct {
-	Create      bool              `json:"create"`
-	Name        string            `json:"name"`
-	Annotations map[string]string `json:"annotations"`
-}
-
-type rbac struct {
-	Create bool `json:"create"`
-}
-
-type image struct {
-	Repository string `json:"repository"`
-	Tag        string `json:"tag"`
-	PullPolicy string `json:"pullPolicy"`
-}
-
-type configuration struct {
-	Provider               string                 `json:"provider"`
-	VolumeSnapshotLocation volumeSnapshotLocation `json:"volumeSnapshotLocation"`
-	BackupStorageLocation  backupStorageLocation  `json:"backupStorageLocation"`
-	RestoreOnlyMode        bool                   `json:"restoreOnlyMode"`
-	LogLevel               string                 `json:"logLevel"`
-}
-
-type volumeSnapshotLocation struct {
-	Name     string                       `json:"name"`
-	Provider string                       `json:"provider"`
-	Config   volumeSnapshotLocationConfig `json:"config,omitempty"`
-}
-
-type volumeSnapshotLocationConfig struct {
-	Region        string `json:"region,omitempty"`
-	Profile       string `json:"profile,omitempty"`
-	ApiTimeout    string `json:"apiTimeout,omitempty"`
-	ResourceGroup string `json:"resourceGroup,omitempty"`
-}
-
-type backupStorageLocation struct {
-	Name     string                      `json:"name"`
-	Provider string                      `json:"provider"`
-	Bucket   string                      `json:"bucket"`
-	Prefix   string                      `json:"prefix"`
-	Config   backupStorageLocationConfig `json:"config,omitempty"`
-}
-
-type backupStorageLocationConfig struct {
-	Region                  string `json:"region,omitempty"`
-	Profile                 string `json:"profile,omitempty"`
-	S3ForcePathStyle        string `json:"s3ForcePathStyle,omitempty"`
-	S3Url                   string `json:"s3Url,omitempty"`
-	KMSKeyId                string `json:"kmsKeyId,omitempty"`
-	ResourceGroup           string `json:"resourceGroup,omitempty"`
-	StorageAccount          string `json:"storageAccount,omitempty"`
-	StorageAccountKeyEnvVar string `json:"storageAccountKeyEnvVar,omitempty"`
 }
 
 // ConfigRequest describes an ARK config request
@@ -163,6 +83,18 @@ type azureBucketConfig struct {
 	ResourceGroup  string
 }
 
+type HelmValueOverrides struct {
+	backup.ValueOverrides
+	Image          Image          `json:"image,omitempty"`
+	InitContainers []v1.Container `json:"initContainers,omitempty"`
+}
+
+type Image struct {
+	Repository string `json:"repository"`
+	Tag        string `json:"tag"`
+	PullPolicy string `json:"pullPolicy"`
+}
+
 // GetChartConfig get a ChartConfig
 func GetChartConfig() ChartConfig {
 	return ChartConfig{
@@ -173,30 +105,7 @@ func GetChartConfig() ChartConfig {
 	}
 }
 
-// Get gets helm deployment value overrides
-func (req ConfigRequest) Get() (values ValueOverrides, err error) {
-	var provider string
-	switch req.Bucket.Provider {
-	case providers.Amazon:
-		provider = amazon.BackupStorageProvider
-	case providers.Azure:
-		provider = azure.BackupStorageProvider
-	case providers.Google:
-		provider = google.BackupStorageProvider
-	default:
-		return values, pkgErrors.ErrorNotSupportedCloudType
-	}
-
-	vsl, err := req.getVolumeSnapshotLocation()
-	if err != nil {
-		return values, err
-	}
-
-	bsp, err := req.getBackupStorageLocation()
-	if err != nil {
-		return values, err
-	}
-
+func (req ConfigRequest) getInitContainers(bsp backup.BackupStorageLocation, vsl backup.VolumeSnapshotLocation) []v1.Container {
 	initContainers := make([]v1.Container, 0, 2)
 
 	if bsp.Provider == amazon.BackupStorageProvider || vsl.Provider == amazon.PersistentVolumeProvider {
@@ -249,38 +158,59 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 			},
 		})
 	}
+	return initContainers
+}
 
-	values = ValueOverrides{
-		Configuration: configuration{
+// Get gets helm deployment value overrides
+func (req ConfigRequest) Get() (values backup.ValueOverrides, err error) {
+	var provider backup.Provider
+	switch req.Bucket.Provider {
+	case providers.Amazon:
+		provider = backup.AWSProvider
+	case providers.Azure:
+		provider = backup.AzureProvider
+	case providers.Google:
+		provider = backup.GCPProvider
+	default:
+		return values, pkgErrors.ErrorNotSupportedCloudType
+	}
+
+	vsl, err := req.getVolumeSnapshotLocation()
+	if err != nil {
+		return values, err
+	}
+
+	bsp, err := req.getBackupStorageLocation()
+	if err != nil {
+		return values, err
+	}
+
+	values = backup.ValueOverrides{
+		Configuration: backup.Configuration{
 			Provider:               provider,
 			VolumeSnapshotLocation: vsl,
 			BackupStorageLocation:  bsp,
 			RestoreOnlyMode:        req.RestoreMode,
 			LogLevel:               "debug",
 		},
-		RBAC: rbac{
+		RBAC: backup.Rbac{
 			Create: req.Cluster.RBACEnabled,
 		},
-		Credentials: credentials{
+		Credentials: backup.Credentials{
 			ExistingSecret: req.SecretName,
 		},
-		Image: image{
-			Repository: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Repository,
-			Tag:        global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Tag,
-			PullPolicy: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.PullPolicy,
-		},
-		InitContainers: initContainers,
-		CleanUpCRDs:    true,
-		Affinity: map[string]interface{}{
-			"nodeAffinity": map[string]interface{}{
-				"requiredDuringSchedulingIgnoredDuringExecution": map[string]interface{}{
-					"nodeSelectorTerms": []map[string]interface{}{
+		// cleanup crd's only in restore mode
+		CleanUpCRDs: req.RestoreMode,
+		Affinity: v1.Affinity{
+			NodeAffinity: &v1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+					NodeSelectorTerms: []v1.NodeSelectorTerm{
 						{
-							"matchExpressions": []map[string]interface{}{
+							MatchExpressions: []v1.NodeSelectorRequirement{
 								{
-									"key":      "kubernetes.io/arch",
-									"operator": "In",
-									"values":   []string{"amd64"},
+									Key:      "kubernetes.io/arch",
+									Operator: "In",
+									Values:   []string{"amd64"},
 								},
 							},
 						},
@@ -288,11 +218,16 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 				},
 			},
 		},
+		ServiceAccount: backup.ServiceAccount{
+			Server: backup.Server{
+				Create: true,
+			},
+		},
 	}
 
 	if vsl.Provider == amazon.PersistentVolumeProvider && req.ServiceAccountRoleARN != "" {
-		values.ServiceAccount = serviceAccount{
-			Server: server{
+		values.ServiceAccount = backup.ServiceAccount{
+			Server: backup.Server{
 				Create: true,
 				Name:   "velero-sa",
 				Annotations: map[string]string{
@@ -300,7 +235,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 				},
 			},
 		}
-		values.SecurityContext = securityContext{
+		values.SecurityContext = backup.SecurityContext{
 			FsGroup: 1337,
 		}
 	}
@@ -317,21 +252,34 @@ func (req *ConfigRequest) getChartConfig() (config ChartConfig, err error) {
 		return
 	}
 
-	arkJSON, err := json.Marshal(arkConfig)
+	helmConfig := HelmValueOverrides{
+		ValueOverrides: arkConfig,
+	}
+
+	// in case of deploying as an integrated service, image versions below are set by IS operator
+	helmConfig.Image = Image{
+		Repository: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Repository,
+		Tag:        global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Tag,
+		PullPolicy: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.PullPolicy,
+	}
+	helmConfig.InitContainers = req.getInitContainers(helmConfig.Configuration.BackupStorageLocation,
+		helmConfig.Configuration.VolumeSnapshotLocation)
+
+	json, err := json.Marshal(helmConfig)
 	if err != nil {
 		err = errors.Wrap(err, "json convert failed")
 		return
 	}
 
-	config.ValueOverrides = arkJSON
+	config.ValueOverrides = json
 
 	return
 }
 
-func (req ConfigRequest) getVolumeSnapshotLocation() (volumeSnapshotLocation, error) {
-	var config volumeSnapshotLocation
-	var vslconfig volumeSnapshotLocationConfig
-	var pvcProvider string
+func (req ConfigRequest) getVolumeSnapshotLocation() (backup.VolumeSnapshotLocation, error) {
+	var config backup.VolumeSnapshotLocation
+	var vslconfig backup.VolumeSnapshotLocationConfig
+	var pvcProvider backup.Provider
 
 	switch req.Cluster.Provider {
 	case providers.Amazon:
@@ -350,15 +298,15 @@ func (req ConfigRequest) getVolumeSnapshotLocation() (volumeSnapshotLocation, er
 		return config, pkgErrors.ErrorNotSupportedCloudType
 	}
 
-	return volumeSnapshotLocation{
+	return backup.VolumeSnapshotLocation{
 		Name:     client.DefaultVolumeSnapshotLocationName,
 		Provider: pvcProvider,
 		Config:   vslconfig,
 	}, nil
 }
 
-func (req ConfigRequest) getBackupStorageLocation() (backupStorageLocation, error) {
-	config := backupStorageLocation{
+func (req ConfigRequest) getBackupStorageLocation() (backup.BackupStorageLocation, error) {
+	config := backup.BackupStorageLocation{
 		Name:   client.DefaultBackupStorageLocationName,
 		Bucket: req.Bucket.Name,
 		Prefix: req.Bucket.Prefix,

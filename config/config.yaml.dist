@@ -307,6 +307,8 @@ dex:
 #    disasterRecovery:
 #        enabled: true
 #
+#        runAsIntegratedServiceV2: false
+#
 #        # Inherited from cluster.namespace when empty
 #        namespace: ""
 #

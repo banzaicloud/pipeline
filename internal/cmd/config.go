@@ -318,8 +318,9 @@ type ClusterAutoscaleConfig struct {
 }
 
 type ClusterDisasterRecoveryConfig struct {
-	Enabled   bool
-	Namespace string
+	Enabled                  bool
+	RunAsIntegratedServiceV2 bool
+	Namespace                string
 
 	Ark struct {
 		SyncEnabled         bool

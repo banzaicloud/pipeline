@@ -109,7 +109,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedservicesdriver"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/backup"
+	integratedServiceBackup "github.com/banzaicloud/pipeline/internal/integratedservices/services/backup"
 	integratedServiceDNS "github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
@@ -688,6 +688,7 @@ func main() {
 	)
 
 	v1 := base.Group("api/v1")
+	var isServiceV2 integratedservices.Service
 	apiRouter := router.PathPrefix("/api/v1").Subrouter()
 	{
 		apiRouter.NotFoundHandler = problems.StatusProblemHandler(problems.NewStatusProblem(http.StatusNotFound))
@@ -887,7 +888,7 @@ func main() {
 			}
 
 			// Cluster IntegratedService API
-			var isServiceV1, isServiceV2, isRouter integratedservices.Service
+			var isServiceV1, isRouter integratedservices.Service
 			{
 				// common setup (for both legacy and V2 IS)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
@@ -901,17 +902,19 @@ func main() {
 						integratedServiceManagers = append(integratedServiceManagers, integratedServiceDNS.NewIntegratedServicesManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 					}
 
-					if config.Cluster.DisasterRecovery.Enabled { // TODO check whether this condition is to be used here or a new config entry is neede
-						integratedServiceManagers = append(integratedServiceManagers, backup.NewManager())
+					if config.Cluster.DisasterRecovery.RunAsIntegratedServiceV2 {
+						integratedServiceManagers = append(integratedServiceManagers, integratedServiceBackup.NewManager(config.Cluster.DisasterRecovery.Charts.Ark.Version))
 					}
 
 					integratedServiceOperationDispatcher := integratedserviceadapter.NewCadenceOperationDispatcher(workflowClient, commonLogger)
 					integratedServiceManagerRegistry := integratedservices.MakeIntegratedServiceManagerRegistry(integratedServiceManagers)
 					specConversions := map[string]integratedservices.SpecConversion{
-						integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.NewSecretMapper(commonSecretStore),
+						integratedServiceDNS.IntegratedServiceName:    integratedServiceDNS.NewSecretMapper(commonSecretStore),
+						integratedServiceBackup.IntegratedServiceName: integratedServiceBackup.SpecConverter{},
 					}
 					outputResolvers := map[string]integratedserviceadapter.OutputResolver{
-						integratedServiceDNS.IntegratedServiceName: integratedServiceDNS.OutputResolver{},
+						integratedServiceDNS.IntegratedServiceName:    integratedServiceDNS.OutputResolver{},
+						integratedServiceBackup.IntegratedServiceName: integratedServiceBackup.OutputResolver{},
 					}
 					serviceConversion := integratedserviceadapter.NewServiceConversion(services.NewServiceStatusMapper(), specConversions, outputResolvers)
 					repository := integratedserviceadapter.NewCustomResourceRepository(clusterManager.KubeConfigFunc(), commonLogger, serviceConversion, config.Cluster.Namespace)
@@ -1236,7 +1239,13 @@ func main() {
 		}
 
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
-		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"), unifiedHelmReleaser)
+
+		if config.Cluster.DisasterRecovery.RunAsIntegratedServiceV2 {
+			backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"), isServiceV2)
+		} else {
+			backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"), unifiedHelmReleaser)
+		}
+
 		restores.AddRoutes(orgs.Group("/:orgid/clusters/:id/restores"))
 		schedules.AddRoutes(orgs.Group("/:orgid/clusters/:id/schedules"))
 		buckets.AddRoutes(orgs.Group("/:orgid/backupbuckets"))

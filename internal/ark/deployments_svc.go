@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
@@ -27,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/google"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/integratedservices/services/backup"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/auth"
@@ -107,25 +109,125 @@ func (s *DeploymentsService) GetActiveDeployment() (*ClusterBackupDeploymentsMod
 	return s.repository.FindFirst()
 }
 
-// Deploy deploys ARK with helm configured to use the given bucket and mode
 func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBackupBucketsModel,
 	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool) error {
 	var deployment *ClusterBackupDeploymentsModel
+	req, err := s.deploy(bucket, restoreMode, useClusterSecret, serviceAccountRoleARN, useProviderSecret)
+	if err != nil {
+		return errors.Wrap(err, "error getting config request")
+	}
+
+	config, err := req.getChartConfig()
+	if err != nil {
+		return errors.Wrap(err, "error service getting config")
+	}
+	deployment, err = s.repository.Persist(&api.PersistDeploymentRequest{
+		BucketID:    bucket.ID,
+		Name:        config.Name,
+		Namespace:   config.Namespace,
+		RestoreMode: restoreMode,
+	})
+	if err != nil {
+		return errors.Wrap(err, "error persisting deployment")
+	}
+
+	err = helmService.InstallDeployment(
+		context.Background(),
+		s.cluster.GetID(),
+		config.Namespace,
+		config.Chart,
+		config.Name,
+		config.ValueOverrides,
+		config.Version,
+		true,
+	)
+	if err != nil {
+		err = errors.Wrap(err, "error deploying backup service")
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		_ = s.repository.Delete(deployment)
+		return err
+	}
+
+	s.repository.UpdateStatus(deployment, "DEPLOYED", "") // nolint: errcheck
+
+	return nil
+}
+
+func (s *DeploymentsService) Activate(service api.Service, bucket *ClusterBackupBucketsModel,
+	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool) error {
+	var deployment *ClusterBackupDeploymentsModel
+	req, err := s.deploy(bucket, restoreMode, useClusterSecret, serviceAccountRoleARN, useProviderSecret)
+	if err != nil {
+		return errors.Wrap(err, "error getting config request")
+	}
+
+	config := GetChartConfig()
+	deployment, err = s.repository.Persist(&api.PersistDeploymentRequest{
+		BucketID:    bucket.ID,
+		Name:        config.Name,
+		Namespace:   config.Namespace,
+		RestoreMode: restoreMode,
+	})
+	if err != nil {
+		return errors.Wrap(err, "error persisting deployment")
+	}
+
+	valueOverrides, err := req.Get()
+	if err != nil {
+		return errors.Wrap(err, "error getting config values")
+	}
+	err = service.Activate(context.TODO(), s.cluster.GetID(),
+		backup.IntegratedServiceName,
+		map[string]interface{}{
+			"chartValues": valueOverrides,
+		},
+	)
+
+	if err != nil {
+		err = errors.Wrap(err, "error activating backup service")
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		_ = s.repository.Delete(deployment)
+		return err
+	}
+
+	client, err := s.GetClient()
+	if err != nil {
+		err = errors.Wrap(err, "error activating backup service")
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		_ = s.repository.Delete(deployment)
+		return err
+	}
+
+	err = client.WaitForActivationPhase(backup.IntegratedServiceName, v1alpha1.Installed)
+	if err != nil {
+		err = errors.Wrap(err, "error activating backup service")
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		_ = s.repository.Delete(deployment)
+		return err
+	}
+
+	s.repository.UpdateStatus(deployment, "DEPLOYED", "") // nolint: errcheck
+
+	return nil
+}
+
+func (s *DeploymentsService) deploy(bucket *ClusterBackupBucketsModel,
+	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool) (*ConfigRequest, error) {
 	if !restoreMode {
 		_, err := s.GetActiveDeployment()
 		if err == nil {
-			return errors.New("already deployed")
+			return nil, errors.New("already deployed")
 		}
 	}
 
 	clusterSecret, err := s.cluster.GetSecretWithValidation()
 	if err != nil {
-		return errors.Wrap(err, "error getting cluster secret")
+		return nil, errors.Wrap(err, "error getting cluster secret")
 	}
 
 	bucketSecret, err := GetSecretWithValidation(bucket.SecretID, s.org.ID, bucket.Cloud)
 	if err != nil {
-		return errors.Wrap(err, "error getting bucket secret")
+		return nil, errors.Wrap(err, "error getting bucket secret")
 	}
 
 	var resourceGroup string
@@ -168,50 +270,15 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 
 	secretContents, err := req.getCredentialsSecret()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// install secret
 	_, err = installSecret(s.cluster, global.Config.Cluster.DisasterRecovery.Namespace, "velero", secretContents)
 	if err != nil {
-		return errors.Wrap(err, "error installing Velero secret")
+		return nil, errors.Wrap(err, "error installing Velero secret")
 	}
 
-	config, err := req.getChartConfig()
-	if err != nil {
-		return errors.Wrap(err, "error service getting config")
-	}
-	deployment, err = s.repository.Persist(&api.PersistDeploymentRequest{
-		BucketID:    bucket.ID,
-		Name:        config.Name,
-		Namespace:   config.Namespace,
-		RestoreMode: restoreMode,
-	})
-	if err != nil {
-		return errors.Wrap(err, "error persisting deployment")
-	}
-
-	// TODO activate Backup as integrated service instead of installing with helm directly
-
-	err = helmService.InstallDeployment(
-		context.Background(),
-		s.cluster.GetID(),
-		config.Namespace,
-		config.Chart,
-		config.Name,
-		config.ValueOverrides,
-		config.Version,
-		true,
-	)
-	if err != nil {
-		err = errors.Wrap(err, "error deploying velero")
-		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
-		_ = s.repository.Delete(deployment)
-		return err
-	}
-
-	s.repository.UpdateStatus(deployment, "DEPLOYED", "") // nolint: errcheck
-
-	return nil
+	return &req, nil
 }
 
 // installSecret installs a secret to the specified cluster
@@ -301,6 +368,35 @@ func (req ConfigRequest) getCredentialsSecret() (secretContents, error) {
 			Value: BucketSecretContents,
 		},
 	}, err
+}
+
+// Remove deletes an ARK deployment
+func (s *DeploymentsService) Deactivate(service api.Service) error {
+	deployment, err := s.GetActiveDeployment()
+	if err == gorm.ErrRecordNotFound {
+		return errors.New("not deployed")
+	}
+
+	err = service.Deactivate(context.TODO(), s.cluster.GetID(), "backup")
+	if err != nil {
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		return errors.Wrap(err, "error deleting deployment")
+	}
+
+	client, err := s.GetClient()
+	if err != nil {
+		err = errors.Wrap(err, "error activating backup service")
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		return err
+	}
+	err = client.WaitForActivationPhase(backup.IntegratedServiceName, v1alpha1.Installed)
+	if err != nil {
+		err = errors.Wrap(err, "error activating backup service")
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		return err
+	}
+
+	return s.repository.Delete(deployment)
 }
 
 // Remove deletes an ARK deployment

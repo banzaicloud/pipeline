@@ -16,12 +16,15 @@ package client
 
 import (
 	"context"
+	"fmt"
+	"time"
+	"emperror.dev/errors"
 
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
@@ -117,4 +120,37 @@ func (c *Client) CreateDeleteBackupRequestByName(name string) error {
 	}
 
 	return c.Client.Create(context.Background(), &deleteRequest)
+}
+
+// GetBackupByName gets an ARK backup by name
+func (c *Client) WaitForActivationPhase(name string, phase v1alpha1.Phase) error {
+
+	backupSI := &v1alpha1.ServiceInstance{}
+
+	// wait for the status of the newly created resource
+	for count := 0; count < 60; count++ {
+
+		err := c.Client.Get(context.Background(), types.NamespacedName{
+			Name:      name,
+			//TODO retrive somehow IS namespace
+			Namespace: "pipeline-system",
+		}, backupSI)
+
+		if err != nil {
+			fmt.Println(errors.Wrap(err, "failed to look up service instance"))
+		} else {
+			// TODO use a specific error to signal shouldRetry
+			if backupSI != nil && backupSI.Status.Status == v1alpha1.StatusManaged &&
+				backupSI.Status.Phase == phase {
+				//is.logger.Debug("Service instance status populated.")
+				// step forward
+				return nil
+			}
+		}
+
+		// sleep a bit for the reconcile to proceed
+		time.Sleep(2 * time.Second)
+	}
+
+	return errors.New(fmt.Sprintf("timeout waiting for ServiceInstance phase: %s", phase))
 }
