@@ -15,3 +15,8 @@
 package backup
 
 const IntegratedServiceName = "backup"
+
+// Config contains configuration for the dns integrated service.
+type Config struct {
+	Namespace string
+}

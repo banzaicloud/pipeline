@@ -44,3 +44,13 @@ type Cluster interface {
 type ClusterManager interface {
 	GetClusters(context.Context, uint) ([]Cluster, error)
 }
+
+// Service manages integrated services on Kubernetes clusters.
+type Service interface {
+
+	// Activate activates a integrated service.
+	Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error
+
+	// Deactivate deactivates a integrated service.
+	Deactivate(ctx context.Context, clusterID uint, serviceName string) error
+}

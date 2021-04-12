@@ -32,7 +32,7 @@ import (
 )
 
 // Enable create an ARK service deployment and adding a base scheduled full backup
-func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
+func Enable(service interface{}) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		logger := correlationid.LogrusLogger(common.Log, c)
 		logger.Debug("deploying backup service to cluster")
@@ -108,8 +108,14 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 			return
 		}
 
-		err = svc.GetDeploymentsService().Deploy(helmService, bucket, false,
-			request.UseClusterSecret, request.ServiceAccountRoleARN, request.UseProviderSecret)
+		if is2Service, ok := service.(api.Service); ok {
+			err = svc.GetDeploymentsService().Activate(is2Service, bucket, false,
+				request.UseClusterSecret, request.ServiceAccountRoleARN, request.UseProviderSecret)
+		} else if helmReleaser, ok := service.(helm.UnifiedReleaser); ok {
+			err = svc.GetDeploymentsService().Deploy(helmReleaser, bucket, false,
+				request.UseClusterSecret, request.ServiceAccountRoleARN, request.UseProviderSecret)
+		}
+
 		if err != nil {
 			err = errors.WrapIf(err, "could not deploy backup service")
 			common.ErrorHandler.Handle(err)
@@ -117,7 +123,6 @@ func Enable(helmService helm.UnifiedReleaser) func(c *gin.Context) {
 			return
 		}
 
-		// TODO move backup create to IS operator V2 activity
 		spec := &api.CreateBackupRequest{
 			Name:   svc.GetCluster().GetName(),
 			Labels: request.Labels,

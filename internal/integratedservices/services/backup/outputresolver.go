@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2021 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package backupservice
+package backup
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
 
-	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/src/api/ark/common"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
+
+	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-// AddRoutes adds ARK backups related API routes
-func AddRoutes(group *gin.RouterGroup, service interface{}) {
-	group.Use(common.ARKMiddleware(global.DB(), common.Log))
-	group.HEAD("/status", StatusDeprecated)
-	group.GET("/status", Status)
-	group.POST("/enable", Enable(service))
-	group.POST("/disable", Disable(service))
+type OutputResolver struct{}
+
+func (o OutputResolver) Resolve(ctx context.Context, instance v1alpha1.ServiceInstance) (integratedservices.IntegratedServiceOutput, error) {
+	return integratedservices.IntegratedServiceOutput{
+		"backup": map[string]string{
+			"version": instance.Status.Version,
+		},
+	}, nil
 }
