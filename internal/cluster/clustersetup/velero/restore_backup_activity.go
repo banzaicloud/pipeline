@@ -44,6 +44,7 @@ const (
 var (
 	nonRestorableNamespaces = []string{
 		"kube-system",
+		"pipeline-system",
 	}
 )
 
@@ -126,7 +127,6 @@ func (a RestoreBackupActivity) Execute(ctx context.Context, input RestoreBackupA
 		return err
 	}
 
-	// TODO move backup create to IS operator V2 activity
 	labels := make(labels.Set)
 	labels[restoredByLabelKey] = restoredByLabelValue
 
