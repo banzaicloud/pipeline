@@ -54,7 +54,7 @@ func Create(c *gin.Context) {
 	spec.Labels[api.LabelKeyDistribution] = svc.GetDeploymentsService().GetCluster().GetDistribution()
 	spec.Labels[api.LabelKeyCloud] = svc.GetDeploymentsService().GetCluster().GetCloud()
 
-	err := svc.GetSchedulesService().Create(spec, request.Schedule)
+	err := svc.GetSchedulesService().CreateOrUpdateSchedule(spec, request.Schedule)
 	if err != nil {
 		err = errors.WrapIf(err, "could not create schedule")
 		common.ErrorHandler.Handle(err)
