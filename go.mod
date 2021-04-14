@@ -29,7 +29,6 @@ require (
 	github.com/banzaicloud/gin-utilz v0.3.1
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/banzaicloud/integrated-service-sdk v0.6.0
-	github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4
 	github.com/banzaicloud/logging-operator/pkg/sdk v0.5.0
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/banzaicloud/operator-tools v0.15.0
