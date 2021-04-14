@@ -136,8 +136,6 @@
         "github.com/banzaicloud/go-gin-prometheus": "//third_party/go:github.com__banzaicloud__go-gin-prometheus",
         "github.com/banzaicloud/integrated-service-sdk/api/v1alpha1": "//third_party/go:github.com__banzaicloud__integrated-service-sdk__api__v1alpha1",
         "github.com/banzaicloud/integrated-service-sdk/api/v1alpha1/dns": "//third_party/go:github.com__banzaicloud__integrated-service-sdk__api__v1alpha1__dns",
-        "github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1": "//third_party/go:github.com__banzaicloud__istio-operator__pkg__apis__istio__v1beta1",
-        "github.com/banzaicloud/istio-operator/pkg/util": "//third_party/go:github.com__banzaicloud__istio-operator__pkg__util",
         "github.com/banzaicloud/k8s-objectmatcher/patch": "//third_party/go:github.com__banzaicloud__k8s-objectmatcher__patch",
         "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1": "//third_party/go:github.com__banzaicloud__logging-operator__pkg__sdk__api__v1beta1",
         "github.com/banzaicloud/logging-operator/pkg/sdk/model/common": "//third_party/go:github.com__banzaicloud__logging-operator__pkg__sdk__model__common",

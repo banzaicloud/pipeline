@@ -31,7 +31,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
-	"github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
@@ -196,8 +195,6 @@ func (c CloudinfoConfig) Validate() error {
 // ClusterConfig contains cluster configuration.
 type ClusterConfig struct {
 	Autoscale ClusterAutoscaleConfig
-
-	Backyards istiofeature.StaticConfig
 
 	DisasterRecovery ClusterDisasterRecoveryConfig
 
@@ -790,38 +787,6 @@ traefik:
 		},
 	})
 
-	// v.SetDefault("cluster::backyards::enabled", true)
-	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
-	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.5.1-bzc.3")
-	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.5.1-bzc.3")
-	v.SetDefault("cluster::backyards::istio::proxyImage", "banzaicloud/istio-proxyv2:1.5.1-bzc.3")
-	v.SetDefault("cluster::backyards::istio::sidecarInjectorImage", "banzaicloud/istio-sidecar-injector:1.5.1-bzc.3")
-	v.SetDefault("cluster::backyards::charts::istioOperator::chart", "banzaicloud-stable/istio-operator")
-	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.45")
-	v.SetDefault("cluster::backyards::charts::istioOperator::values", map[string]interface{}{
-		"operator": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/istio-operator",
-				"tag":        "0.5.5",
-			},
-		},
-	})
-	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
-	v.SetDefault("cluster::backyards::charts::backyards::version", "1.2.12")
-	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
-		"application": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/backyards",
-				"tag":        "1.2.3",
-			},
-		},
-		"web": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/backyards-web",
-				"tag":        "1.2.3",
-			},
-		},
-	})
 	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.11")
 	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
