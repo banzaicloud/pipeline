@@ -35,7 +35,7 @@ func NewManager(version string) Manager {
 
 func (m Manager) GetOutput(ctx context.Context, clusterID uint, spec integratedservices.IntegratedServiceSpec) (integratedservices.IntegratedServiceOutput, error) {
 	return map[string]interface{}{
-		"externalDns": map[string]interface{}{
+		"backup": map[string]interface{}{
 			"version": m.version,
 		},
 	}, nil
