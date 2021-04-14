@@ -787,19 +787,6 @@ traefik:
 		},
 	})
 
-	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
-	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.11")
-	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
-		"operator": map[string]interface{}{
-			"image": map[string]interface{}{
-				"repository": "banzaicloud/canary-operator",
-				"tag":        "0.1.9",
-			},
-		},
-	})
-	v.SetDefault("cluster::backyards::charts::nodeexporter::chart", "stable/prometheus-node-exporter")
-	v.SetDefault("cluster::backyards::charts::nodeexporter::version", "1.8.1")
-
 	// Helm configuration
 	v.SetDefault("helm::home", "./var/cache")
 	v.SetDefault("helm::repositories::stable", "https://charts.helm.sh/stable")
