@@ -12,7 +12,7 @@
     "enabled": true
   },
   "serviceMesh": {
-    "enabled": true
+    "enabled": false
   },
   "disasterRecovery": {
     "enabled": true
