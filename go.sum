@@ -213,8 +213,6 @@ github.com/banzaicloud/go-gin-prometheus v0.1.0 h1:zetacN1k3svVc7DtzGfpHA49uO0G8
 github.com/banzaicloud/go-gin-prometheus v0.1.0/go.mod h1:1eXhK1Ld1vRFbNpqi8Eu1ktCCk5LARA1Tbdl8EsAfgE=
 github.com/banzaicloud/integrated-service-sdk v0.5.0 h1:fjD0jXQBzYbCiYDG4ZOtp8fF3tIgPqO3qOLUKomHGIk=
 github.com/banzaicloud/integrated-service-sdk v0.5.0/go.mod h1:tiRFYdXsaIGOr8TSA2db3Nri2g8BbyjJdHTcY/ifWHM=
-github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4 h1:nz020decQ0q8AkYzrnc/NZTbcuzw9B8N+s7LW5DA+3E=
-github.com/banzaicloud/istio-operator v0.0.0-20200330114955-d15bdd228ae4/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
 github.com/banzaicloud/k8s-objectmatcher v1.5.0 h1:mYrLzvRgxCHBlJZEcyIglDuoKpMhwHocgsAXl1nmm10=
 github.com/banzaicloud/k8s-objectmatcher v1.5.0/go.mod h1:9MWY5HsM/OaTmoTirczhlO8UALbH722WgdpaaR7Y8OE=
 github.com/banzaicloud/logging-operator/pkg/sdk v0.5.0 h1:ILhyUcRpjCtphDMmIpt+6YT0caHo6hu3a26hqMdCWME=

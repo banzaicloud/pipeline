@@ -325,38 +325,6 @@ dex:
 #                # See https://github.com/banzaicloud/velero-helm-chart for details
 #                values: {}
 #
-#    backyards:
-#        enabled: true
-#
-#        istio:
-#            # TODO: improve this
-#            # See https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards
-#            grafanaDashboardLocation: ./etc/dashboards/istio
-#
-#            pilotImage: "banzaicloud/istio-pilot:1.4.2-bzc"
-#            mixerImage: "banzaicloud/istio-mixer:1.4.2-bzc"
-#
-#        charts:
-#            istioOperator:
-#                chart: "banzaicloud-stable/istio-operator"
-#                version: "0.0.32"
-#
-#                # See https://github.com/banzaicloud/istio-operator/tree/release-1.3/deploy/charts/istio-operator for details
-#                values: {}
-#
-#            backyards:
-#                chart: "banzaicloud-stable/backyards"
-#                version: "1.1.0"
-#
-#                values: {}
-#
-#            canaryOperator:
-#                chart: "banzaicloud-stable/canary-operator"
-#                version: "0.1.7"
-#
-#                values: {}
-#
-#
 #    posthook:
 #        ingress:
 #            enabled: true

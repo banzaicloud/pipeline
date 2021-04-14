@@ -2080,40 +2080,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__banzaicloud__istio-operator",
-    _tag = "download",
-    module = "github.com/banzaicloud/istio-operator",
-    version = "v0.0.0-20200330114955-d15bdd228ae4",
-)
-
-go_module(
-    name = "github.com__banzaicloud__istio-operator__pkg__apis__istio__v1beta1",
-    download = ":_github.com__banzaicloud__istio-operator#download",
-    install = ["pkg/apis/istio/v1beta1"],
-    module = "github.com/banzaicloud/istio-operator",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__banzaicloud__istio-operator__pkg__util",
-        ":k8s.io__api__core__v1",
-        ":k8s.io__apimachinery__pkg__api__resource",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__runtime",
-        ":k8s.io__apimachinery__pkg__runtime__schema",
-        ":k8s.io__apimachinery__pkg__util__intstr",
-        ":sigs.k8s.io__controller-runtime__pkg__runtime__scheme",
-    ],
-)
-
-go_module(
-    name = "github.com__banzaicloud__istio-operator__pkg__util",
-    download = ":_github.com__banzaicloud__istio-operator#download",
-    install = ["pkg/util"],
-    module = "github.com/banzaicloud/istio-operator",
-    visibility = ["PUBLIC"],
-    deps = [":k8s.io__apimachinery__pkg__util__intstr"],
-)
-
-go_mod_download(
     name = "github.com__banzaicloud__k8s-objectmatcher",
     _tag = "download",
     module = "github.com/banzaicloud/k8s-objectmatcher",
