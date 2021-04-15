@@ -34,6 +34,7 @@ jobs:
         uses: sagikazarmark/setup-please-action@v0
         with:
           profile: ci
+          verbosity: debug
 
       - name: Build
         run: plz build //...
