@@ -2049,7 +2049,7 @@ go_mod_download(
     name = "github.com__banzaicloud__integrated-service-sdk",
     _tag = "download",
     module = "github.com/banzaicloud/integrated-service-sdk",
-    version = "v0.5.1-0.20210409192106-95d4d01a1472",
+    version = "v0.6.0",
 )
 
 go_module(
