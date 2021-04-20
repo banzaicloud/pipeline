@@ -824,7 +824,7 @@ traefik:
 
 	// Integrated Service Operator
 	v.SetDefault("integratedservice::operator::chart", "banzaicloud-stable/integrated-service-operator")
-	v.SetDefault("integratedservice::operator::version", "0.4.0")
+	v.SetDefault("integratedservice::operator::version", "0.5.0")
 	v.SetDefault("integratedservice::operator::release", "iso")
 	v.SetDefault("integratedservice::operator::namespace", "pipeline-system")
 	v.SetDefault("integratedservice::operator::batchsize", 100)
