@@ -44,6 +44,7 @@ const (
 var (
 	nonRestorableNamespaces = []string{
 		"kube-system",
+		"pipeline-system",
 	}
 )
 

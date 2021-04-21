@@ -16,8 +16,10 @@ package client
 
 import (
 	"emperror.dev/errors"
+	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	"github.com/sirupsen/logrus"
 	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/kubernetes/scheme"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -26,6 +28,8 @@ import (
 
 func init() {
 	_ = arkAPI.AddToScheme(scheme.Scheme)
+	_ = v1alpha1.AddToScheme(scheme.Scheme)
+	_ = clientgoscheme.AddToScheme(scheme.Scheme)
 }
 
 // ClientService is an interface for a implementation which gives back an initialized ARK client

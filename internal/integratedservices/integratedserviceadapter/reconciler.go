@@ -128,6 +128,7 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 
 	existingSI.Spec.Version = incomingSI.Spec.Version
 	existingSI.Spec.DNS = incomingSI.Spec.DNS
+	existingSI.Spec.Backup = incomingSI.Spec.Backup
 	// make sure the version is populated / set the latest available version by default
 	if incomingSI.Spec.Version == "" {
 		latestVersion, err := getLatestVersion(*existingSI)

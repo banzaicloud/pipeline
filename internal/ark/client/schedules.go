@@ -26,32 +26,60 @@ import (
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
-// CreateSchedule creates an ARK schedule by a CreateScheduleRequest
-func (c *Client) CreateSchedule(req *api.CreateScheduleRequest) error {
+func (c *Client) getScheduleSpec(req *api.CreateScheduleRequest) arkAPI.ScheduleSpec {
+	return arkAPI.ScheduleSpec{
+		Template: arkAPI.BackupSpec{
+			IncludedNamespaces:      req.Options.IncludedNamespaces,
+			ExcludedNamespaces:      req.Options.ExcludedNamespaces,
+			IncludedResources:       req.Options.IncludedResources,
+			ExcludedResources:       req.Options.ExcludedResources,
+			LabelSelector:           req.Options.LabelSelector,
+			IncludeClusterResources: req.Options.IncludeClusterResources,
+			SnapshotVolumes:         req.Options.SnapshotVolumes,
+			TTL:                     req.TTL,
+		},
+		Schedule: req.Schedule,
+	}
+}
+
+// CreateOrUpdateSchedule creates an ARK schedule by a CreateScheduleRequest
+func (c *Client) CreateOrUpdateSchedule(req *api.CreateScheduleRequest) error {
+
 	schedule := arkAPI.Schedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,
 			Name:      req.Name,
 			Labels:    req.Labels,
 		},
-		Spec: arkAPI.ScheduleSpec{
-			Template: arkAPI.BackupSpec{
-				IncludedNamespaces:      req.Options.IncludedNamespaces,
-				ExcludedNamespaces:      req.Options.ExcludedNamespaces,
-				IncludedResources:       req.Options.IncludedResources,
-				ExcludedResources:       req.Options.ExcludedResources,
-				LabelSelector:           req.Options.LabelSelector,
-				IncludeClusterResources: req.Options.IncludeClusterResources,
-				SnapshotVolumes:         req.Options.SnapshotVolumes,
-				TTL:                     req.TTL,
-			},
-			Schedule: req.Schedule,
-		},
 	}
 
-	err := c.Client.Create(context.Background(), &schedule)
+	err := c.Client.Get(context.Background(), types.NamespacedName{
+		Name:      req.Name,
+		Namespace: c.Namespace,
+	}, &schedule)
+
+	notFound := false
 	if err != nil {
-		return err
+		if k8serrors.IsNotFound(err) {
+			notFound = true
+		} else {
+			return err
+		}
+	}
+
+	if notFound {
+		schedule.Spec = c.getScheduleSpec(req)
+		err = c.Client.Create(context.Background(), &schedule)
+		if err != nil {
+			return err
+		}
+	} else {
+		schedule.Labels = req.Labels
+		schedule.Spec = c.getScheduleSpec(req)
+		err = c.Client.Update(context.Background(), &schedule)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

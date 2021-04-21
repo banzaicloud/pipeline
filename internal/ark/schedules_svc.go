@@ -48,7 +48,7 @@ func NewSchedulesService(
 }
 
 // Create creates a schedule by a CreateBackupRequest
-func (s *SchedulesService) Create(backupRequest *api.CreateBackupRequest, schedule string) error {
+func (s *SchedulesService) CreateOrUpdateSchedule(backupRequest *api.CreateBackupRequest, schedule string) error {
 	req := &api.CreateScheduleRequest{
 		Name:     backupRequest.Name,
 		TTL:      backupRequest.TTL,
@@ -62,7 +62,7 @@ func (s *SchedulesService) Create(backupRequest *api.CreateBackupRequest, schedu
 		return err
 	}
 
-	return client.CreateSchedule(req)
+	return client.CreateOrUpdateSchedule(req)
 }
 
 // GetByName gets a schedule by name
