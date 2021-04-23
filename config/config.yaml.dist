@@ -362,8 +362,18 @@ dex:
 #
 #        autoscaler:
 #            enabled: true
-
-
+#
+#    charts:
+#        - enabled: false
+#          chartName: ingress-nginx/ingress-nginx
+#          chartVersion: "3.34.0"
+#          releaseName: ingress
+#          values: |
+#              controller:
+#                  ingressClassResource: # Note: only available from K8s 1.18.
+#                      enabled: true
+#                      default: true
+#
 #helm:
 #    home: "./var/cache"
 #    repositories:
