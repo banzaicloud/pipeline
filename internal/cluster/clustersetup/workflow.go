@@ -71,7 +71,6 @@ type Cluster struct {
 	Name         string
 	Distribution string
 	Cloud        string
-	ScaleOptions *pkgCluster.ScaleOptions
 }
 
 // Organization contains information about the organization a cluster belongs to.
