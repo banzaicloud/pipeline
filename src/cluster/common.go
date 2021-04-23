@@ -19,14 +19,12 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"strings"
 	"time"
 
 	"emperror.dev/errors"
 	"k8s.io/client-go/tools/clientcmd"
 	logrusadapter "logur.dev/adapter/logrus"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter/clustermodel"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -78,8 +76,6 @@ type CommonCluster interface {
 	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
 	DeleteCluster() error
-	GetScaleOptions() *pkgCluster.ScaleOptions
-	SetScaleOptions(*pkgCluster.ScaleOptions)
 
 	// Kubernetes
 	GetAPIEndpoint() (string, error)
@@ -261,38 +257,6 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse, error) {
 	return secret.Store.Get(organizationId, secretId)
-}
-
-func updateScaleOptions(scaleOptions *clustermodel.ScaleOptions, requestScaleOptions *pkgCluster.ScaleOptions) {
-	if scaleOptions == nil || requestScaleOptions == nil {
-		return
-	}
-	excludes := strings.Join(requestScaleOptions.Excludes, clustermodel.InstanceTypeSeparator)
-	scaleOptions.Enabled = requestScaleOptions.Enabled
-	scaleOptions.DesiredCpu = requestScaleOptions.DesiredCpu
-	scaleOptions.DesiredMem = requestScaleOptions.DesiredMem
-	scaleOptions.DesiredGpu = requestScaleOptions.DesiredGpu
-	scaleOptions.OnDemandPct = requestScaleOptions.OnDemandPct
-	scaleOptions.Excludes = excludes
-	scaleOptions.KeepDesiredCapacity = requestScaleOptions.KeepDesiredCapacity
-}
-
-func getScaleOptionsFromModel(scaleOptions clustermodel.ScaleOptions) *pkgCluster.ScaleOptions {
-	if scaleOptions.ID != 0 {
-		scaleOpt := &pkgCluster.ScaleOptions{
-			Enabled:             scaleOptions.Enabled,
-			DesiredCpu:          scaleOptions.DesiredCpu,
-			DesiredMem:          scaleOptions.DesiredMem,
-			DesiredGpu:          scaleOptions.DesiredGpu,
-			OnDemandPct:         scaleOptions.OnDemandPct,
-			KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
-		}
-		if len(scaleOptions.Excludes) > 0 {
-			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, clustermodel.InstanceTypeSeparator)
-		}
-		return scaleOpt
-	}
-	return nil
 }
 
 // GetCommonClusterFromModel extracts CommonCluster from a ClusterModel

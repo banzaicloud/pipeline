@@ -148,7 +148,6 @@ type ClusterCreationParams struct {
 	NodePools             []NodePool
 	OrganizationID        uint
 	ResourceGroup         string
-	ScaleOptions          pkgCluster.ScaleOptions
 	SecretID              string
 	SSHSecretID           string
 	HTTPProxy             intPKE.HTTPProxy
@@ -217,7 +216,6 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 		SSHSecretID:           params.SSHSecretID,
 		RBAC:                  params.Kubernetes.RBAC,
 		OIDC:                  params.Kubernetes.OIDC.Enabled,
-		ScaleOptions:          params.ScaleOptions,
 		ResourceGroupName:     params.ResourceGroup,
 		NodePools:             nodePools,
 		VirtualNetworkName:    params.Network.Name,
@@ -433,7 +431,6 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 		HTTPProxy:                       cl.HTTPProxy,
 		AccessPoints:                    params.AccessPoints,
 		APIServerAccessPoints:           params.APIServerAccessPoints,
-		ScaleOptions:                    &cl.ScaleOptions,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",

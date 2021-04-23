@@ -129,7 +129,7 @@ func (c *Clusters) findOneBy(cluster model.ClusterModel) (*model.ClusterModel, e
 		return nil, errors.New("no cluster identifying field specified")
 	}
 	var result model.ClusterModel
-	err := c.db.Where(cluster).Preload("ScaleOptions").First(&result).Error
+	err := c.db.Where(cluster).First(&result).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return nil, errors.WithStack(&clusterModelNotFoundError{
 			cluster: cluster,

@@ -98,8 +98,6 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		cluster.model.Cluster.Tags = request.Properties.CreateClusterEKS.Tags
 	}
 
-	updateScaleOptions(&cluster.model.Cluster.ScaleOptions, request.ScaleOptions)
-
 	// subnet mapping
 	cluster.SubnetMapping = createSubnetMappingFromRequest(request.Properties.CreateClusterEKS)
 
@@ -331,7 +329,7 @@ func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, e
 		ClusterID: clusterModel.ID,
 	}
 
-	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Subnets").Preload("Cluster.ScaleOptions").First(&m).Error
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Subnets").First(&m).Error
 	if err != nil {
 		return nil, err
 	}
@@ -753,16 +751,6 @@ func (c *EKSCluster) RequiresSshPublicKey() bool {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *EKSCluster) RbacEnabled() bool {
 	return c.model.Cluster.RbacEnabled
-}
-
-// GetScaleOptions returns scale options for the cluster
-func (c *EKSCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
-}
-
-// SetScaleOptions sets scale options for the cluster
-func (c *EKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
-	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.

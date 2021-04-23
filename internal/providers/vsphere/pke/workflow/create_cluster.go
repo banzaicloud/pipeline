@@ -58,7 +58,6 @@ type CreateClusterWorkflowInput struct {
 	Nodes            []Node
 	HTTPProxy        intPKE.HTTPProxy
 	NodePoolLabels   map[string]map[string]string
-	ScaleOptions     *pkgCluster.ScaleOptions
 }
 
 func NewCreateClusterWorkflow() CreateClusterWorkflow {

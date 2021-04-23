@@ -51,10 +51,9 @@ type ClusterModel struct {
 	SSHSecretID    string
 	Status         string
 	RbacEnabled    bool
-	OidcEnabled    bool         `gorm:"default:false;not null"`
-	StatusMessage  string       `sql:"type:text;"`
-	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
-	Tags           ClusterTags  `gorm:"type:json"`
+	OidcEnabled    bool        `gorm:"default:false;not null"`
+	StatusMessage  string      `sql:"type:text;"`
+	Tags           ClusterTags `gorm:"type:json"`
 }
 
 type ClusterTags map[string]string

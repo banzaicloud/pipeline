@@ -74,15 +74,14 @@ const (
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
-	Name         string                   `json:"name" yaml:"name" binding:"required"`
-	Location     string                   `json:"location" yaml:"location"`
-	Cloud        string                   `json:"cloud" yaml:"cloud" binding:"required"`
-	SecretId     string                   `json:"secretId" yaml:"secretId"`
-	SecretIds    []string                 `json:"secretIds,omitempty" yaml:"secretIds,omitempty"`
-	SecretName   string                   `json:"secretName" yaml:"secretName"`
-	PostHooks    PostHooks                `json:"postHooks" yaml:"postHooks"`
-	Properties   *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
-	ScaleOptions *ScaleOptions            `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
+	Name       string                   `json:"name" yaml:"name" binding:"required"`
+	Location   string                   `json:"location" yaml:"location"`
+	Cloud      string                   `json:"cloud" yaml:"cloud" binding:"required"`
+	SecretId   string                   `json:"secretId" yaml:"secretId"`
+	SecretIds  []string                 `json:"secretIds,omitempty" yaml:"secretIds,omitempty"`
+	SecretName string                   `json:"secretName" yaml:"secretName"`
+	PostHooks  PostHooks                `json:"postHooks" yaml:"postHooks"`
+	Properties *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
 }
 
 // CreateClusterProperties contains the cluster flavor specific properties.
@@ -92,17 +91,6 @@ type CreateClusterProperties struct {
 	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
 	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
 	CreateClusterPKE        *pke.CreateClusterPKE               `json:"pke,omitempty" yaml:"pke,omitempty"`
-}
-
-// ScaleOptions describes scale options
-type ScaleOptions struct {
-	Enabled             bool     `json:"enabled"`
-	DesiredCpu          float64  `json:"desiredCpu" binding:"min=1"`
-	DesiredMem          float64  `json:"desiredMem" binding:"min=1"`
-	DesiredGpu          int      `json:"desiredGpu" binding:"min=0"`
-	OnDemandPct         int      `json:"onDemandPct,omitempty" binding:"min=0,max=100"`
-	Excludes            []string `json:"excludes,omitempty"`
-	KeepDesiredCapacity bool     `json:"keepDesiredCapacity"`
 }
 
 // PostHookParam describes posthook params in create request
@@ -245,7 +233,6 @@ type GetClusterConfigResponse struct {
 
 // GetNodePoolsResponse describes node pools of a cluster
 type GetNodePoolsResponse struct {
-	ScaleEnabled            bool                             `json:"scaleEnabled"`
 	NodePools               map[string]*ActualNodePoolStatus `json:"nodePools,omitempty"`
 	ClusterTotalResources   map[string]float64               `json:"clusterTotalResources,omitempty"`
 	ClusterDesiredResources map[string]float64               `json:"clusterDesiredResources,omitempty"`
@@ -274,7 +261,6 @@ type NodePoolData struct {
 type UpdateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
-	ScaleOptions     *ScaleOptions `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
 }
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
@@ -374,11 +360,7 @@ func (r *CreateClusterRequest) validateMainFields() error {
 			return pkgErrors.ErrorLocationEmpty
 		}
 	}
-	if r.ScaleOptions != nil && r.ScaleOptions.Enabled {
-		if len(r.Location) == 0 {
-			return pkgErrors.ErrorLocationEmpty
-		}
-	}
+
 	return nil
 }
 

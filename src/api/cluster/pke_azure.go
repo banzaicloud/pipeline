@@ -19,7 +19,6 @@ import (
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 const PKEOnAzure = pke.PKEOnAzure
@@ -42,17 +41,8 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 		OrganizationID: organizationID,
 		CreatedBy:      userID,
 		ResourceGroup:  req.ResourceGroup,
-		ScaleOptions: cluster.ScaleOptions{
-			Enabled:             req.ScaleOptions.Enabled,
-			DesiredCpu:          req.ScaleOptions.DesiredCpu,
-			DesiredMem:          req.ScaleOptions.DesiredMem,
-			DesiredGpu:          int(req.ScaleOptions.DesiredGpu),
-			OnDemandPct:         int(req.ScaleOptions.OnDemandPct),
-			Excludes:            req.ScaleOptions.Excludes,
-			KeepDesiredCapacity: req.ScaleOptions.KeepDesiredCapacity,
-		},
-		SecretID:    req.SecretId,
-		SSHSecretID: req.SshSecretId,
+		SecretID:       req.SecretId,
+		SSHSecretID:    req.SshSecretId,
 		Kubernetes: intPKE.Kubernetes{
 			Version: req.Kubernetes.Version,
 			RBAC:    req.Kubernetes.Rbac,

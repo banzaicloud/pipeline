@@ -12,7 +12,6 @@ go_library(
         "//internal/providers/azure/pke/driver",
         "//internal/providers/vsphere/pke",
         "//internal/providers/vsphere/pke/driver",
-        "//pkg/cluster",
         "//src/secret",
     ],
 )
@@ -27,7 +26,6 @@ go_test(
         "//internal/providers/azure/pke/driver",
         "//internal/providers/vsphere/pke",
         "//internal/providers/vsphere/pke/driver",
-        "//pkg/cluster",
         "//src/secret",
         "//third_party/go:github.com__stretchr__testify__assert",
     ],

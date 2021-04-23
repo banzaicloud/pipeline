@@ -9,7 +9,6 @@ go_library(
         "//internal/common",
         "//internal/database/sql/json",
         "//internal/global",
-        "//pkg/gormhelper",
         "//src/secret",
         "//third_party/go:github.com__gofrs__uuid",
         "//third_party/go:github.com__jinzhu__gorm",

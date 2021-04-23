@@ -52,7 +52,6 @@ type CreateClusterWorkflowInput struct {
 	NodePoolLabels   map[string]map[string]string
 	PostHooks        pkgCluster.PostHooks
 	Cloud            string
-	ScaleOptions     *pkgCluster.ScaleOptions
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {

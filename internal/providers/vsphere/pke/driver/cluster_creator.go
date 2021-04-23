@@ -135,7 +135,6 @@ type VspherePKEClusterCreationParams struct {
 	Name                string
 	NodePools           []NodePool
 	OrganizationID      uint
-	ScaleOptions        pkgCluster.ScaleOptions
 	SecretID            string
 	StorageSecretID     string
 	SSHSecretID         string
@@ -188,7 +187,6 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		SSHSecretID:         params.SSHSecretID,
 		RBAC:                params.Kubernetes.RBAC,
 		OIDC:                params.Kubernetes.OIDC.Enabled,
-		ScaleOptions:        params.ScaleOptions,
 		NodePools:           nodePools,
 		HTTPProxy:           params.HTTPProxy,
 		ResourcePoolName:    params.ResourcePoolName,
@@ -280,7 +278,6 @@ func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKE
 		ResourcePoolName: cl.ResourcePool,
 		DatastoreName:    cl.Datastore,
 		FolderName:       cl.Folder,
-		ScaleOptions:     &cl.ScaleOptions,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",

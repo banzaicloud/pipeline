@@ -63,16 +63,6 @@ type EC2ClusterPKE struct {
 	CommonClusterBase
 }
 
-// GetScaleOptions returns scale options for the cluster
-func (c *EC2ClusterPKE) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
-}
-
-// SetScaleOptions sets scale options for the cluster
-func (c *EC2ClusterPKE) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
-	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
-}
-
 func (c *EC2ClusterPKE) GetID() uint {
 	return c.model.Cluster.ID
 }

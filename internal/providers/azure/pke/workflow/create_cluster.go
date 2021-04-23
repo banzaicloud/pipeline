@@ -59,7 +59,6 @@ type CreateClusterWorkflowInput struct {
 	HTTPProxy                       intPKE.HTTPProxy
 	AccessPoints                    pke.AccessPoints
 	APIServerAccessPoints           pke.APIServerAccessPoints
-	ScaleOptions                    *pkgCluster.ScaleOptions
 }
 
 func NewCreateClusterWorkflow() CreateClusterWorkflow {

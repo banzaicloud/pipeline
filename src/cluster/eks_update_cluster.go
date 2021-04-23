@@ -45,7 +45,6 @@ type EKSUpdateClusterstructureWorkflowInput struct {
 
 	ClusterID     uint
 	ClusterName   string
-	ScaleEnabled  bool
 	Tags          map[string]string
 	UpdaterUserID uint
 
@@ -331,7 +330,6 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 			activityInput := eksWorkflow.UpdateAsgActivityInput{
 				EKSActivityInput:       commonActivityInput,
 				StackName:              eksWorkflow.GenerateNodePoolStackName(input.ClusterName, updatedNodePool.Name),
-				ScaleEnabled:           input.ScaleEnabled,
 				Name:                   updatedNodePool.Name,
 				Version:                nodePoolVersion,
 				NodeSpotPrice:          updatedNodePool.NodeSpotPrice,

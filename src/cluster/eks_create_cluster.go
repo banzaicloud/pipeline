@@ -34,8 +34,6 @@ type EKSCreateClusterWorkflowInput struct {
 	OrganizationName string
 	PostHooks        pkgCluster.PostHooks
 	NodePoolLabels   map[string]map[string]string
-
-	ScaleOptions *pkgCluster.ScaleOptions
 }
 
 // CreateClusterWorkflow executes the Cadence workflow responsible for creating and configuring an EKS cluster

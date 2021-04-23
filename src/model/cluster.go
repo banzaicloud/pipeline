@@ -52,7 +52,6 @@ type ClusterModel struct {
 	SshSecretId    string
 	Status         string
 	RbacEnabled    bool
-	ScaleOptions   clustermodel.ScaleOptions                `gorm:"foreignkey:ClusterID"`
 	StatusMessage  string                                   `sql:"type:text;"`
 	AKS            azureadapter.AKSClusterModel             `gorm:"foreignkey:ID"`
 	Kubernetes     kubernetesadapter.KubernetesClusterModel `gorm:"foreignkey:ID"`

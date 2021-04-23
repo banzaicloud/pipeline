@@ -88,7 +88,6 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 
 	cluster.log = log.WithField("cluster", request.Name)
 
-	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 	return &cluster, nil
 }
 
@@ -825,16 +824,6 @@ func (c *AKSCluster) RequiresSshPublicKey() bool {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *AKSCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
-}
-
-// GetScaleOptions returns scale options for the cluster
-func (c *AKSCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
-}
-
-// SetScaleOptions sets scale options for the cluster
-func (c *AKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
-	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
 }
 
 // ListResourceGroups returns all resource group

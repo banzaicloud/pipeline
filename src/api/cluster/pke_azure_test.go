@@ -23,7 +23,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/pke"
 	azurePke "github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 const (
@@ -72,15 +71,6 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			ProviderConfig: nil,
 			ServiceCIDR:    "11.11.1.1/16",
 		}
-		scaleOptions = pipeline.ScaleOptions{
-			Enabled:             false,
-			DesiredCpu:          2,
-			DesiredMem:          2048,
-			DesiredGpu:          0,
-			OnDemandPct:         55,
-			Excludes:            nil,
-			KeepDesiredCapacity: false,
-		}
 	)
 
 	conversionTest := []struct {
@@ -103,7 +93,6 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				Name:          Name,
 				SecretId:      SecretID,
 				SshSecretId:   SSHSecretID,
-				ScaleOptions:  scaleOptions,
 				Type:          PKEOnAzure,
 				Location:      Location,
 				ResourceGroup: ResourceGroup,
@@ -160,17 +149,8 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 						Max:         int(Nodepool.MaxCount),
 					},
 				},
-				OrganizationID: orgID,
-				ResourceGroup:  ResourceGroup,
-				ScaleOptions: cluster.ScaleOptions{
-					Enabled:             scaleOptions.Enabled,
-					DesiredCpu:          scaleOptions.DesiredCpu,
-					DesiredMem:          scaleOptions.DesiredMem,
-					DesiredGpu:          int(scaleOptions.DesiredGpu),
-					OnDemandPct:         int(scaleOptions.OnDemandPct),
-					Excludes:            scaleOptions.Excludes,
-					KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
-				},
+				OrganizationID:        orgID,
+				ResourceGroup:         ResourceGroup,
 				SecretID:              SecretID,
 				SSHSecretID:           SSHSecretID,
 				AccessPoints:          azurePke.AccessPoints{{Name: "private"}, {Name: "public"}},

@@ -17,7 +17,6 @@ package driver
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"sort"
 	"time"
 
@@ -66,15 +65,6 @@ func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Clien
 	}
 }
 
-// isDifferent compares x and y interfaces with deep equal
-func isDifferent(x interface{}, y interface{}) error {
-	if reflect.DeepEqual(x, y) {
-		return pkgErrors.ErrorNotDifferentInterfaces
-	}
-
-	return nil
-}
-
 func (c *EksClusterUpdater) validate(ctx context.Context, eksCluster *cluster.EKSCluster) error {
 	status, err := eksCluster.GetStatus()
 	if err != nil {
@@ -97,24 +87,11 @@ func (c *EksClusterUpdater) validate(ctx context.Context, eksCluster *cluster.EK
 func (c *EksClusterUpdater) prepare(ctx context.Context, eksCluster *cluster.EKSCluster, request *pkgCluster.UpdateClusterRequest) error {
 	eksCluster.AddDefaultsToUpdate(request)
 
-	scaleOptionsChanged := isDifferent(request.ScaleOptions, eksCluster.GetScaleOptions()) == nil
-	if scaleOptionsChanged {
-		eksCluster.SetScaleOptions(request.ScaleOptions)
-	}
-
-	clusterPropertiesChanged := true
 	if err := eksCluster.CheckEqualityToUpdate(request); err != nil {
-		clusterPropertiesChanged = false
-		if !scaleOptionsChanged {
-			return &updateValidationError{
-				msg:            err.Error(),
-				invalidRequest: true,
-			}
+		return &updateValidationError{
+			msg:            err.Error(),
+			invalidRequest: true,
 		}
-	}
-
-	if !clusterPropertiesChanged && !scaleOptionsChanged {
-		return nil
 	}
 
 	if err := request.Validate(); err != nil {
@@ -175,7 +152,6 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 		ConfigSecretID:         eksCluster.GetConfigSecretId(),
 		ClusterID:              eksCluster.GetID(),
 		ClusterName:            eksCluster.GetName(),
-		ScaleEnabled:           eksCluster.GetScaleOptions() != nil && eksCluster.GetScaleOptions().Enabled,
 		Tags:                   modelCluster.Cluster.Tags,
 		UpdaterUserID:          userID,
 		DeletableNodePoolNames: newNodePoolNamesFromRequestedDeletedNodePools(requestedDeletedNodePools),
