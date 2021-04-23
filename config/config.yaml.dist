@@ -407,11 +407,6 @@ cloudinfo:
     # Format: {baseUrl}/api/v1
     endpoint: ""
 
-hollowtrees:
-    # Format: {baseUrl}/api/v1
-    endpoint: ""
-    tokenSigningKey: ""
-
 #secret:
 #    tls:
 #        defaultValidity: 8760h # 1 year

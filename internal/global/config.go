@@ -152,10 +152,6 @@ var Config struct {
 			}
 		}
 	}
-	Hollowtrees struct {
-		Endpoint        string
-		TokenSigningKey string
-	}
 	Kubernetes struct {
 		Client struct {
 			ForceGlobal bool
