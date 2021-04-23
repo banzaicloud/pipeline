@@ -131,7 +131,6 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	}
 
 	clusterAutoscalerEnabled := false
-	terminationDetachEnabled := false
 
 	if input.Autoscaling {
 		clusterAutoscalerEnabled = true
@@ -140,7 +139,6 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools
 	if input.ScaleEnabled {
 		clusterAutoscalerEnabled = false
-		terminationDetachEnabled = true
 	}
 
 	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
@@ -271,7 +269,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		},
 		{
 			ParameterKey:   aws.String("TerminationDetachEnabled"),
-			ParameterValue: aws.String(fmt.Sprint(terminationDetachEnabled)),
+			ParameterValue: aws.String("false"), // Note: removed as part of the ScaleOptions cleanup.
 		},
 		{
 			ParameterKey:   aws.String("KubeletExtraArguments"),
