@@ -19,7 +19,6 @@ import (
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -34,18 +33,9 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 	}
 
 	return driver.VspherePKEClusterCreationParams{
-		Name:           req.Name,
-		OrganizationID: organizationID,
-		CreatedBy:      userID,
-		ScaleOptions: cluster.ScaleOptions{
-			Enabled:             req.ScaleOptions.Enabled,
-			DesiredCpu:          req.ScaleOptions.DesiredCpu,
-			DesiredMem:          req.ScaleOptions.DesiredMem,
-			DesiredGpu:          int(req.ScaleOptions.DesiredGpu),
-			OnDemandPct:         int(req.ScaleOptions.OnDemandPct),
-			Excludes:            req.ScaleOptions.Excludes,
-			KeepDesiredCapacity: req.ScaleOptions.KeepDesiredCapacity,
-		},
+		Name:            req.Name,
+		OrganizationID:  organizationID,
+		CreatedBy:       userID,
 		SecretID:        req.SecretId,
 		StorageSecretID: storagetSecretID,
 		SSHSecretID:     req.SshSecretId,

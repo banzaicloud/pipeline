@@ -52,7 +52,6 @@ type CreateClusterWorkflowInput struct {
 	NodePoolLabels   map[string]map[string]string
 	PostHooks        pkgCluster.PostHooks
 	Cloud            string
-	ScaleOptions     *pkgCluster.ScaleOptions
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -95,7 +94,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				Name:         input.ClusterName,
 				Distribution: input.Distribution,
 				Cloud:        input.Cloud,
-				ScaleOptions: input.ScaleOptions,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,

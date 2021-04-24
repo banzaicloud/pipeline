@@ -57,8 +57,7 @@ type CreateAsgActivityInput struct {
 	// name of the cloud formation template stack
 	StackName string
 
-	ScaleEnabled bool
-	SSHKeyName   string
+	SSHKeyName string
 
 	Name                 string
 	NodeSpotPrice        string
@@ -128,19 +127,6 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	spotPriceParam := ""
 	if p, err := strconv.ParseFloat(input.NodeSpotPrice, 64); err == nil && p > 0.0 {
 		spotPriceParam = input.NodeSpotPrice
-	}
-
-	clusterAutoscalerEnabled := false
-	terminationDetachEnabled := false
-
-	if input.Autoscaling {
-		clusterAutoscalerEnabled = true
-	}
-
-	// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools
-	if input.ScaleEnabled {
-		clusterAutoscalerEnabled = false
-		terminationDetachEnabled = true
 	}
 
 	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
@@ -267,11 +253,11 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		},
 		{
 			ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
-			ParameterValue: aws.String(fmt.Sprint(clusterAutoscalerEnabled)),
+			ParameterValue: aws.String(fmt.Sprint(input.Autoscaling)),
 		},
 		{
 			ParameterKey:   aws.String("TerminationDetachEnabled"),
-			ParameterValue: aws.String(fmt.Sprint(terminationDetachEnabled)),
+			ParameterValue: aws.String("false"), // Note: removed as part of the ScaleOptions cleanup.
 		},
 		{
 			ParameterKey:   aws.String("KubeletExtraArguments"),
@@ -403,8 +389,7 @@ func createASGAsync(
 
 		StackName: GenerateNodePoolStackName(eksCluster.Cluster.Name, nodePool.Name),
 
-		ScaleEnabled: eksCluster.Cluster.ScaleOptions.Enabled,
-		SSHKeyName:   sshKeyName,
+		SSHKeyName: sshKeyName,
 
 		Name:                 nodePool.Name,
 		NodeSpotPrice:        nodePool.SpotPrice,

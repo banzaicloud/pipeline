@@ -52,7 +52,7 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
 		},
 	}
-	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
+
 	return &cluster, nil
 }
 
@@ -293,16 +293,6 @@ func (c *KubeCluster) GetK8sUserConfig() ([]byte, error) {
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *KubeCluster) RbacEnabled() bool {
 	return c.modelCluster.RbacEnabled
-}
-
-// getScaleOptionsFromModelV1 returns scale options for the cluster
-func (c *KubeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
-}
-
-// SetScaleOptions sets scale options for the cluster
-func (c *KubeCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
-	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
 }
 
 // isRBACEnabled determines if RBAC is enabled on the Kubernetes cluster by investigating if list of

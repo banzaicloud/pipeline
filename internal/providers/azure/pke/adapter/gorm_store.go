@@ -252,14 +252,6 @@ func (m clusterModel) intoEntity(e *pke.Cluster) {
 	e.StatusMessage = m.Cluster.StatusMessage
 	e.UID = m.Cluster.UID
 
-	e.ScaleOptions.DesiredCpu = m.Cluster.ScaleOptions.DesiredCpu
-	e.ScaleOptions.DesiredGpu = m.Cluster.ScaleOptions.DesiredGpu
-	e.ScaleOptions.DesiredMem = m.Cluster.ScaleOptions.DesiredMem
-	e.ScaleOptions.Enabled = m.Cluster.ScaleOptions.Enabled
-	_ = json.Scan(m.Cluster.ScaleOptions.Excludes, &e.ScaleOptions.Excludes)
-	e.ScaleOptions.KeepDesiredCapacity = m.Cluster.ScaleOptions.KeepDesiredCapacity
-	e.ScaleOptions.OnDemandPct = m.Cluster.ScaleOptions.OnDemandPct
-
 	e.Kubernetes.RBAC = m.Cluster.RbacEnabled
 	e.Kubernetes.OIDC.Enabled = m.Cluster.OidcEnabled
 
@@ -336,21 +328,6 @@ func (s ClusterStore) Create(params pke.CreateParams) (pke.Cluster, error) {
 		nodePools[i].fromEntity(np)
 	}
 
-	excludesValue, err := json.Value(params.ScaleOptions.Excludes)
-	if err != nil {
-		return pke.Cluster{}, errors.WrapIf(err, "failed to jsonify scale options excludes")
-	}
-
-	var excludes string
-	switch e := excludesValue.(type) {
-	case string:
-		excludes = e
-	case []byte:
-		excludes = string(e)
-	default:
-		return pke.Cluster{}, errors.Errorf("cannot convert type %T to string", e)
-	}
-
 	model := clusterModel{
 		Cluster: clustermodel.ClusterModel{
 			CreatedBy:      params.CreatedBy,
@@ -365,15 +342,6 @@ func (s ClusterStore) Create(params pke.CreateParams) (pke.Cluster, error) {
 			StatusMessage:  pkgCluster.CreatingMessage,
 			RbacEnabled:    params.RBAC,
 			OidcEnabled:    params.OIDC,
-			ScaleOptions: clustermodel.ScaleOptions{
-				Enabled:             params.ScaleOptions.Enabled,
-				DesiredCpu:          params.ScaleOptions.DesiredCpu,
-				DesiredMem:          params.ScaleOptions.DesiredMem,
-				DesiredGpu:          params.ScaleOptions.DesiredGpu,
-				OnDemandPct:         params.ScaleOptions.OnDemandPct,
-				Excludes:            excludes,
-				KeepDesiredCapacity: params.ScaleOptions.KeepDesiredCapacity,
-			},
 		},
 		KubernetesVersion:      params.KubernetesVersion,
 		ResourceGroupName:      params.ResourceGroupName,

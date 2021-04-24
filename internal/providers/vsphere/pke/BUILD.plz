@@ -9,7 +9,6 @@ go_library(
         "//internal/cluster/clusterbase",
         "//internal/global",
         "//internal/pke",
-        "//pkg/cluster",
         "//pkg/cluster/pke",
         "//third_party/go:emperror.dev__errors",
     ],

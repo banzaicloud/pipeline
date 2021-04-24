@@ -26,7 +26,5 @@ type CreateClusterRequest struct {
 
 	PostHooks map[string]interface{} `json:"postHooks,omitempty"`
 
-	ScaleOptions ScaleOptions `json:"scaleOptions,omitempty"`
-
 	Properties map[string]interface{} `json:"properties"`
 }

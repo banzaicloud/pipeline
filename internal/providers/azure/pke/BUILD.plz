@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//internal/cluster/clusterbase",
         "//internal/pke",
-        "//pkg/cluster",
         "//third_party/go:emperror.dev__errors",
     ],
 )

@@ -141,11 +141,10 @@ func (s *WorkflowTestSuite) Test_Success() {
 		DeployInstanceTerminationHandlerActivityName,
 		mock.Anything,
 		DeployInstanceTerminationHandlerActivityInput{
-			ClusterID:    1,
-			OrgID:        1,
-			Cloud:        "",
-			ClusterName:  "example-cluster",
-			ScaleOptions: nil,
+			ClusterID:   1,
+			OrgID:       1,
+			Cloud:       "",
+			ClusterName: "example-cluster",
 		},
 	).Return(nil)
 
@@ -221,11 +220,10 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 		DeployInstanceTerminationHandlerActivityName,
 		mock.Anything,
 		DeployInstanceTerminationHandlerActivityInput{
-			ClusterID:    1,
-			OrgID:        1,
-			Cloud:        "",
-			ClusterName:  "example-cluster",
-			ScaleOptions: nil,
+			ClusterID:   1,
+			OrgID:       1,
+			Cloud:       "",
+			ClusterName: "example-cluster",
 		},
 	).Return(nil)
 

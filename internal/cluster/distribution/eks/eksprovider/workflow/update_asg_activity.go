@@ -59,7 +59,6 @@ type UpdateAsgActivityInput struct {
 
 	// name of the cloud formation template stack
 	StackName            string
-	ScaleEnabled         bool
 	Name                 string
 	Version              string
 	NodeSpotPrice        string
@@ -178,20 +177,6 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 
 	logger.With("stackName", input.StackName).Info("updating stack")
 
-	// update stack
-	clusterAutoscalerEnabled := false
-	terminationDetachEnabled := false
-
-	if input.Autoscaling {
-		clusterAutoscalerEnabled = true
-	}
-
-	// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools
-	if input.ScaleEnabled {
-		clusterAutoscalerEnabled = false
-		terminationDetachEnabled = true
-	}
-
 	tags := getNodePoolStackTags(input.ClusterName, input.Tags)
 
 	nodeLabels := []string{
@@ -309,11 +294,11 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		},
 		{
 			ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
-			ParameterValue: aws.String(fmt.Sprint(clusterAutoscalerEnabled)),
+			ParameterValue: aws.String(fmt.Sprint(input.Autoscaling)),
 		},
 		{
 			ParameterKey:   aws.String("TerminationDetachEnabled"),
-			ParameterValue: aws.String(fmt.Sprint(terminationDetachEnabled)),
+			ParameterValue: aws.String("false"), // Note: removed as part of the ScaleOptions cleanup.
 		},
 		{
 			ParameterKey:   aws.String("KubeletExtraArguments"),

@@ -161,13 +161,6 @@ func (a *VspherePkeCluster) DeleteCluster() error {
 	return errors.New("VspherePkeCluster.DeleteCluster is not implemented")
 }
 
-func (a *VspherePkeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return nil
-}
-
-func (a *VspherePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
-}
-
 func (a *VspherePkeCluster) GetAPIEndpoint() (string, error) {
 	config, err := a.GetK8sConfig()
 	if err != nil {

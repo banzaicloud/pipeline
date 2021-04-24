@@ -58,7 +58,6 @@ type CreateClusterWorkflowInput struct {
 	Nodes            []Node
 	HTTPProxy        intPKE.HTTPProxy
 	NodePoolLabels   map[string]map[string]string
-	ScaleOptions     *pkgCluster.ScaleOptions
 }
 
 func NewCreateClusterWorkflow() CreateClusterWorkflow {
@@ -248,11 +247,10 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		workflowInput := clustersetup.WorkflowInput{
 			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
 			Cluster: clustersetup.Cluster{
-				ID:           input.ClusterID,
-				UID:          input.ClusterUID,
-				Name:         input.ClusterName,
-				Cloud:        pkgCluster.Vsphere,
-				ScaleOptions: input.ScaleOptions,
+				ID:    input.ClusterID,
+				UID:   input.ClusterUID,
+				Name:  input.ClusterName,
+				Cloud: pkgCluster.Vsphere,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,

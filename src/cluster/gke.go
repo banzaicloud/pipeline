@@ -114,8 +114,6 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		Subnet:        request.Properties.CreateClusterGKE.Subnet,
 	}
 
-	updateScaleOptions(&c.model.Cluster.ScaleOptions, request.ScaleOptions)
-
 	return &c, nil
 }
 
@@ -1390,7 +1388,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 		ClusterID: clusterModel.ID,
 	}
 
-	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").First(&m).Error
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").First(&m).Error
 	if err != nil {
 		return nil, err
 	}
@@ -1999,16 +1997,6 @@ func waitForOperation(getter operationInfoer, operationName string, logger logru
 // RbacEnabled returns true if rbac enabled on the cluster
 func (c *GKECluster) RbacEnabled() bool {
 	return c.model.Cluster.RbacEnabled
-}
-
-// GetScaleOptions returns scale options for the cluster
-func (c *GKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
-}
-
-// SetScaleOptions sets scale options for the cluster
-func (c *GKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
-	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
 }
 
 func hasTag(cluster *gke.Cluster, tagKey, tagValue string) bool {

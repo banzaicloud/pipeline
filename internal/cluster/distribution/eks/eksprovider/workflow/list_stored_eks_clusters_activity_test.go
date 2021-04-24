@@ -80,7 +80,6 @@ func newTestEKSClusterDatabase(t *testing.T) *pkggormtest.FakeDatabase {
 	return pkggormtest.NewFakeDatabase(t).CreateTablesFromEntities(
 		t,
 		&clustermodel.ClusterModel{},
-		&clustermodel.ScaleOptions{},
 		&eksmodel.AmazonNodePoolsModel{},
 		&eksmodel.EKSClusterModel{},
 		&eksmodel.EKSSubnetModel{},

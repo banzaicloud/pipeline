@@ -16,8 +16,6 @@ package clusterbase
 
 import (
 	"time"
-
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // ClusterBase defines common cluster fields
@@ -28,7 +26,6 @@ type ClusterBase struct {
 	K8sSecretID    string
 	Name           string
 	OrganizationID uint
-	ScaleOptions   pkgCluster.ScaleOptions
 	SecretID       string
 	SSHSecretID    string
 	Status         string

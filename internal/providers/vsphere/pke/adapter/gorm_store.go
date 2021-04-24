@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"strings"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -134,14 +133,6 @@ func fillClusterFromClusterModel(cl *pke.PKEOnVsphereCluster, model clustermodel
 	cl.StatusMessage = model.StatusMessage
 	cl.UID = model.UID
 
-	cl.ScaleOptions.DesiredCpu = model.ScaleOptions.DesiredCpu
-	cl.ScaleOptions.DesiredGpu = model.ScaleOptions.DesiredGpu
-	cl.ScaleOptions.DesiredMem = model.ScaleOptions.DesiredMem
-	cl.ScaleOptions.Enabled = model.ScaleOptions.Enabled
-	cl.ScaleOptions.Excludes = unmarshalStringSlice(model.ScaleOptions.Excludes)
-	cl.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
-	cl.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
-
 	cl.Kubernetes.RBAC = model.RbacEnabled
 	cl.Kubernetes.OIDC.Enabled = model.OidcEnabled
 }
@@ -214,15 +205,6 @@ func (s gormVspherePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOn
 			StatusMessage:  pkgCluster.CreatingMessage,
 			RbacEnabled:    params.RBAC,
 			OidcEnabled:    params.OIDC,
-			ScaleOptions: clustermodel.ScaleOptions{
-				Enabled:             params.ScaleOptions.Enabled,
-				DesiredCpu:          params.ScaleOptions.DesiredCpu,
-				DesiredMem:          params.ScaleOptions.DesiredMem,
-				DesiredGpu:          params.ScaleOptions.DesiredGpu,
-				OnDemandPct:         params.ScaleOptions.OnDemandPct,
-				Excludes:            marshalStringSlice(params.ScaleOptions.Excludes),
-				KeepDesiredCapacity: params.ScaleOptions.KeepDesiredCapacity,
-			},
 		},
 		Spec: ProviderSpec{
 			ResourcePoolName: params.ResourcePoolName,
@@ -477,23 +459,4 @@ func getError(db *gorm.DB, message string, args ...interface{}) error {
 		err = errors.WrapIff(err, message, args...)
 	}
 	return err
-}
-
-func marshalStringSlice(s []string) string {
-	data, err := json.Marshal(s)
-	emperror.Panic(errors.WrapIf(err, "failed to marshal string slice"))
-	return string(data)
-}
-
-func unmarshalStringSlice(s string) (result []string) {
-	if s == "" {
-		// empty list in legacy format
-		return nil
-	}
-	err := errors.WrapIf(json.Unmarshal([]byte(s), &result), "failed to unmarshal string slice")
-	if err != nil {
-		// try to parse legacy format
-		result = strings.Split(s, ",")
-	}
-	return
 }

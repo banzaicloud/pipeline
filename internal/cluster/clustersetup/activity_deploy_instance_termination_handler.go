@@ -23,7 +23,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clusterconfig"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -35,11 +34,10 @@ type DeployInstanceTerminationHandlerActivity struct {
 }
 
 type DeployInstanceTerminationHandlerActivityInput struct {
-	ClusterID    uint
-	OrgID        uint
-	ClusterName  string
-	Cloud        string
-	ScaleOptions *pkgCluster.ScaleOptions
+	ClusterID   uint
+	OrgID       uint
+	ClusterName string
+	Cloud       string
 }
 
 // NewDeployInstanceTerminationHandlerActivity returns a new DeployInstanceTerminationHandlerActivity.
@@ -71,38 +69,6 @@ func (a DeployInstanceTerminationHandlerActivity) Execute(ctx context.Context, i
 				Operator: v1.TolerationOpExists,
 			},
 		},
-		"hollowtreesNotifier": map[string]interface{}{
-			"enabled": false,
-		},
-	}
-
-	scaleOptions := input.ScaleOptions
-	if scaleOptions != nil && scaleOptions.Enabled == true {
-		tokenSigningKey := global.Config.Hollowtrees.TokenSigningKey
-		if tokenSigningKey == "" {
-			err := errors.New("no Hollowtrees token signkey specified")
-			return err
-		}
-
-		generator := hollowtrees.NewTokenGenerator(
-			global.Config.Auth.Token.Issuer,
-			global.Config.Auth.Token.Audience,
-			global.Config.Hollowtrees.TokenSigningKey,
-		)
-		_, token, err := generator.Generate(input.ClusterID, input.OrgID, nil)
-		if err != nil {
-			err = errors.WrapIf(err, "could not generate JWT token for instance termination handler")
-			return err
-		}
-
-		values["hollowtreesNotifier"] = map[string]interface{}{
-			"enabled":        true,
-			"URL":            global.Config.Hollowtrees.Endpoint + "/alerts",
-			"organizationID": input.OrgID,
-			"clusterID":      input.ClusterID,
-			"clusterName":    input.ClusterName,
-			"jwtToken":       token,
-		}
 	}
 
 	marshalledValues, err := yaml.Marshal(values)

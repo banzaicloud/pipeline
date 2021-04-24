@@ -4073,9 +4073,6 @@ components:
                         #         $ref: '#/components/schemas/BasePostHook'
                     example:
                         InstallIngressController:
-
-                scaleOptions:
-                    $ref: '#/components/schemas/ScaleOptions'
                 properties:
                     type: object
                     # additionalProperties:
@@ -4116,39 +4113,8 @@ components:
                 sshSecretId:
                     type: string
                     example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
-                scaleOptions:
-                    $ref: '#/components/schemas/ScaleOptions'
                 type:
                     type: string
-
-        ScaleOptions:
-            type: object
-            required:
-                - enabled
-            properties:
-                enabled:
-                    type: boolean
-                desiredCpu:
-                    type: number
-                    format: double
-                    minimum: 1
-                desiredMem:
-                    type: number
-                    format: double
-                    minimum: 1
-                desiredGpu:
-                    type: integer
-                    minimum: 0
-                onDemandPct:
-                    type: integer
-                    minimum: 0
-                    maximum: 100
-                excludes:
-                    type: array
-                    items:
-                        type: string
-                keepDesiredCapacity:
-                    type: boolean
 
         CreatePKEClusterKubernetes:
             type: object
@@ -4953,8 +4919,8 @@ components:
                                 example:
                                     customTagKey: customTagValue
                             description: User defined tags to be added to created AWS resources. Empty keys and values are not permitted.
-       
-      
+
+
         CreateAKSProperties:
             type: object
             required:

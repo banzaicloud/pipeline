@@ -161,13 +161,6 @@ func (a *AzurePkeCluster) DeleteCluster() error {
 	return errors.New("AzurePkeCluster.DeleteCluster is not implemented")
 }
 
-func (a *AzurePkeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return nil
-}
-
-func (a *AzurePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
-}
-
 func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 	config, err := a.GetK8sConfig()
 	if err != nil {

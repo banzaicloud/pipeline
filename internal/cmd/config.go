@@ -86,11 +86,6 @@ type Config struct {
 
 	Helm helm.Config
 
-	Hollowtrees struct {
-		Endpoint        string
-		TokenSigningKey string
-	}
-
 	Kubernetes struct {
 		Client struct {
 			ForceGlobal bool
@@ -808,8 +803,6 @@ traefik:
 	v.SetDefault("distribution::pke::amazon::defaultNetworkProvider", "cilium")
 
 	v.SetDefault("cloudinfo::endpoint", "")
-	v.SetDefault("hollowtrees::endpoint", "")
-	v.SetDefault("hollowtrees::tokenSigningKey", "")
 
 	v.SetDefault("secret::tls::defaultValidity", "8760h") // 1 year
 

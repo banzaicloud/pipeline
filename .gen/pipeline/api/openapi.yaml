@@ -18517,8 +18517,6 @@ components:
           example:
             InstallIngressController: null
           type: object
-        scaleOptions:
-          $ref: '#/components/schemas/ScaleOptions'
         properties:
           example:
             gke:
@@ -18550,41 +18548,11 @@ components:
         sshSecretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string
-        scaleOptions:
-          $ref: '#/components/schemas/ScaleOptions'
         type:
           type: string
       required:
       - name
       - type
-      type: object
-    ScaleOptions:
-      properties:
-        enabled:
-          type: boolean
-        desiredCpu:
-          format: double
-          minimum: 1
-          type: number
-        desiredMem:
-          format: double
-          minimum: 1
-          type: number
-        desiredGpu:
-          minimum: 0
-          type: integer
-        onDemandPct:
-          maximum: 100
-          minimum: 0
-          type: integer
-        excludes:
-          items:
-            type: string
-          type: array
-        keepDesiredCapacity:
-          type: boolean
-      required:
-      - enabled
       type: object
     CreatePKEClusterKubernetes:
       properties:

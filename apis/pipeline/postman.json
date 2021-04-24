@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "5183c777-4f59-4b7b-a0c7-8ff1d40b5f33",
+		"_postman_id": "7156d285-2685-4baa-b622-60d5395b8f6d",
 		"name": "Pipeline API",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -18,7 +18,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "7f6aa4f0-6b6d-4b49-a50e-170897f158f3",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -88,7 +87,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "7f6aa4f0-6b6d-4b49-a50e-170897f158f3",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -158,7 +156,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "09340e49-184c-4bc6-ae8e-abc07c155616",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -233,7 +230,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "09340e49-184c-4bc6-ae8e-abc07c155616",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -296,9 +292,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Integrated Services",
@@ -544,9 +538,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Kubernetes",
@@ -560,7 +552,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "fa33d46e-c32a-425e-882b-d156fc682ebe",
 												"exec": [
 													""
 												],
@@ -615,13 +606,9 @@
 									},
 									"response": []
 								}
-							],
-							"protocolProfileBehavior": {},
-							"_postman_isSubFolder": true
+							]
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Distributions",
@@ -635,7 +622,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "f28a263a-0d98-4e3d-b40a-c38b473541a4",
 												"exec": [
 													"if (responseCode.code === 202) {",
 													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
@@ -672,7 +658,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"name\":\"ekscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secretIdAmazon}}\",\n  \"properties\": {\n        \"eks\": {\n\t\t\t\"version\":\"1.11\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"t2.medium\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false,\n\t                \"minCount\": 1,\n\t                \"maxCount\": 1,\n            \t\t\"count\": 1,\n\t                \"image\": \"{{eksNodeImage}}\",\n\t                \"labels\": {\n                \t\t\"custom\": \"value\"\n                \t}\n            \t}\n            },\n  \t\t    \"tags\": {\n\t  \t      \t\"customTag1\": \"customValue1\",\n\t  \t      \t\"customTag2\": \"customValue2\"\n  \t\t    }\n        }\n    }\n}"
+											"raw": "{\n    \"name\": \"ekscluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-west-2\",\n    \"cloud\": \"amazon\",\n    \"secretId\": \"{{secretIdAmazon}}\",\n    \"properties\": {\n        \"eks\": {\n            \"version\": \"1.11\",\n            \"encryptionConfig\": [\n                {\n                    \"provider\": {\n                        \"keyARN\": \"{{eksCustomerMasterKeyARN}}\"\n                    },\n                    \"resources\": [\n                        \"secrets\"\n                    ]\n                }\n            ],\n            \"nodePools\": {\n                \"pool1\": {\n                    \"instanceType\": \"t2.medium\",\n                    \"spotPrice\": \"0.2\",\n                    \"autoscaling\": false,\n                    \"minCount\": 1,\n                    \"maxCount\": 1,\n                    \"count\": 1,\n                    \"image\": \"{{eksNodeImage}}\",\n                    \"labels\": {\n                        \"custom\": \"value\"\n                    }\n                }\n            },\n            \"tags\": {\n                \"customTag1\": \"customValue1\",\n                \"customTag2\": \"customValue2\"\n            }\n        }\n    }\n}"
 										},
 										"url": {
 											"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
@@ -699,80 +685,11 @@
 									"response": []
 								},
 								{
-									"name": "Create cluster with Scale options",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "f28a263a-0d98-4e3d-b40a-c38b473541a4",
-												"exec": [
-													"if (responseCode.code === 202) {",
-													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
-													"",
-													"    pm.environment.set(\"timestampHeader\", new Date());",
-													"    var dataJSON = JSON.parse(responseBody);",
-													"    pm.environment.set(\"clusterId\", dataJSON.id);",
-													"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
-													"",
-													"    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)",
-													"",
-													"    postman.setNextRequest(\"Cluster Status\");",
-													"} else {",
-													"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-													"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-													"    console.warn(responseBody);",
-													"    postman.setNextRequest(null);",
-													"}",
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Content-Type",
-												"name": "Content-Type",
-												"value": "application/json",
-												"type": "text"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n  \"name\":\"ekscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secretIdAmazon}}\",\n  \"properties\": {\n        \"eks\": {\n\t\t\t\"version\":\"1.11\",\n            {\n    \"encryptionConfig\": [\n        { \n            \"provider\": {\n                \"keyARN\": \"{{eksCustomerMasterKeyARN}}\"\n            },\n            \"resources\": [\n                \"secrets\"\n            ]\n        }\n    ]\n}\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"t2.medium\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false,\n\t                \"minCount\": 1,\n\t                \"maxCount\": 1,\n            \t\t\"count\": 1,\n\t                \"image\": \"{{eksNodeImage}}\"\n            \t}\n            }\n        }\n    },\n    \"scaleOptions\": {\n    \t\"enabled\": true,\n\t\t\"desiredCpu\":8,\n\t\t\"desiredMem\":40,\n\t\t\"desiredGpu\":0,\n\t\t\"onDemandPct\":25,\n\t\t\"keepDesiredCapacity\": true,\n\t\t\"excludes\": [\n\t\t\t\"c4.xlarge\"\n\t\t]\n    }\n}"
-										},
-										"url": {
-											"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
-											"host": [
-												"{{url}}"
-											],
-											"path": [
-												"api",
-												"v1",
-												"orgs",
-												":orgId",
-												"clusters"
-											],
-											"variable": [
-												{
-													"key": "orgId",
-													"value": "{{orgId}}",
-													"description": "Organization identifier"
-												}
-											]
-										}
-									},
-									"response": []
-								},
-								{
 									"name": "Update cluster",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "5fcc4749-27c9-40ed-a840-bd4f22f43e12",
 												"exec": [
 													"",
 													"if (responseCode.code === 202) {",
@@ -827,69 +744,6 @@
 											]
 										},
 										"description": "Updates a Kubernetes cluster on AWS"
-									},
-									"response": []
-								},
-								{
-									"name": "Update cluster with Scale options",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "5fcc4749-27c9-40ed-a840-bd4f22f43e12",
-												"exec": [
-													"",
-													"if (responseCode.code === 202) {",
-													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
-													"} else {",
-													"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-													"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-													"    postman.setNextRequest(null);",
-													"}",
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "PUT",
-										"header": [
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"autoscaling\": true, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 3\n            \t},\n            \t\"newpool1\": {\n            \t\t\"autoscaling\": true, \n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"{{eksNodeImage}}\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t},\n\t\"scaleOptions\": {\n    \t\"enabled\": true,\n\t\t\"desiredCpu\":16,\n\t\t\"desiredMem\":40,\n\t\t\"desiredGpu\":0,\n\t\t\"onDemandPct\":25,\n\t\t\"keepDesiredCapacity\": true,\n\t\t\"excludes\": [\n\t\t\t\"c4.xlarge\"\n\t\t]\n    }\n}"
-										},
-										"url": {
-											"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
-											"host": [
-												"{{url}}"
-											],
-											"path": [
-												"api",
-												"v1",
-												"orgs",
-												":orgId",
-												"clusters",
-												":clusterId"
-											],
-											"variable": [
-												{
-													"key": "orgId",
-													"value": "{{orgId}}",
-													"description": "Organization identifier"
-												},
-												{
-													"key": "clusterId",
-													"value": "{{clusterId}}",
-													"description": "Cluster identifier"
-												}
-											]
-										}
 									},
 									"response": []
 								},
@@ -1112,9 +966,7 @@
 									},
 									"response": []
 								}
-							],
-							"protocolProfileBehavior": {},
-							"_postman_isSubFolder": true
+							]
 						},
 						{
 							"name": "Amazon PKE",
@@ -1125,7 +977,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "503b7a30-118b-4023-aa47-c71fbcafa0e8",
 												"exec": [
 													"if (responseCode.code === 202) {",
 													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
@@ -1190,7 +1041,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "5fcc4749-27c9-40ed-a840-bd4f22f43e12",
 												"exec": [
 													"",
 													"if (responseCode.code === 202) {",
@@ -1248,9 +1098,7 @@
 									},
 									"response": []
 								}
-							],
-							"protocolProfileBehavior": {},
-							"_postman_isSubFolder": true
+							]
 						},
 						{
 							"name": "Azure AKS",
@@ -1261,7 +1109,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "35b4aa8f-4731-4602-b3ec-3b36361d4a70",
 												"exec": [
 													"if (responseCode.code === 202) {",
 													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
@@ -1326,7 +1173,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "4bd543fe-4cbc-4390-9d91-964685eb3af2",
 												"exec": [
 													"",
 													"if (responseCode.code === 202) {",
@@ -1384,9 +1230,7 @@
 									},
 									"response": []
 								}
-							],
-							"protocolProfileBehavior": {},
-							"_postman_isSubFolder": true
+							]
 						},
 						{
 							"name": "Azure PKE",
@@ -1397,7 +1241,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "503b7a30-118b-4023-aa47-c71fbcafa0e8",
 												"exec": [
 													"if (responseCode.code === 202) {",
 													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
@@ -1456,9 +1299,7 @@
 									},
 									"response": []
 								}
-							],
-							"protocolProfileBehavior": {},
-							"_postman_isSubFolder": true
+							]
 						},
 						{
 							"name": "Google GKE",
@@ -1469,7 +1310,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "80517477-36ff-4c32-83a6-515b96df7005",
 												"exec": [
 													"if (responseCode.code === 202) {",
 													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
@@ -1534,7 +1374,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "6a7ff20f-3517-4ca8-a018-245ad8ad61d2",
 												"exec": [
 													"",
 													"if (responseCode.code === 202) {",
@@ -1592,9 +1431,7 @@
 									},
 									"response": []
 								}
-							],
-							"protocolProfileBehavior": {},
-							"_postman_isSubFolder": true
+							]
 						},
 						{
 							"name": "vSphere PKE",
@@ -1605,7 +1442,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "f28a263a-0d98-4e3d-b40a-c38b473541a4",
 												"exec": [
 													"if (responseCode.code === 202) {",
 													"    tests[\"Response Code 202\"] = responseCode.code == 202;",
@@ -1674,7 +1510,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "20fd8550-787b-4cc6-a7ad-644a2e7b93d4",
 												"exec": [
 													"",
 													"if (responseCode.code === 202) {",
@@ -1731,13 +1566,9 @@
 									},
 									"response": []
 								}
-							],
-							"protocolProfileBehavior": {},
-							"_postman_isSubFolder": true
+							]
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Import an existing cluster",
@@ -2682,8 +2513,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Cluster Groups",
@@ -2697,7 +2527,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -2765,7 +2594,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -2838,7 +2666,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -2914,7 +2741,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -2988,7 +2814,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -3061,7 +2886,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -3126,9 +2950,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Create Cluster Group",
@@ -3136,7 +2958,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
 								"exec": [
 									"",
 									"if (responseCode.code === 201) {",
@@ -3205,7 +3026,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
 								"exec": [
 									"",
 									"if (responseCode.code === 200) {",
@@ -3278,7 +3098,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
 								"exec": [
 									"",
 									"if (responseCode.code === 200) {",
@@ -3354,7 +3173,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
 								"exec": [
 									"",
 									"if (responseCode.code === 200) {",
@@ -3424,7 +3242,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
 								"exec": [
 									"",
 									"if (responseCode.code === 200) {",
@@ -3496,7 +3313,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "e28e334d-a5da-4ab0-9fd7-92b2e794734d",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -3506,15 +3322,13 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "68b7cb53-fcb1-405a-adb1-76bd5d22121f",
 						"type": "text/javascript",
 						"exec": [
 							""
 						]
 					}
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Deployments",
@@ -3525,7 +3339,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0eaa2399-26d9-4444-9e69-81b0cab2e045",
 								"exec": [
 									"if (responseCode.code === 201) {",
 									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -3789,8 +3602,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Deployment",
@@ -4274,8 +4086,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Secrets",
@@ -4350,7 +4161,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "0d4a9acd-3257-4327-a9ec-806b7b9b644c",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -4538,9 +4348,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Azure",
@@ -4612,7 +4420,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "56d2ef54-8fed-4d0a-934a-79c57e20ab58",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -4800,9 +4607,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Google",
@@ -4874,7 +4679,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "920008bb-a579-470b-9f1f-3222ee346935",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -5062,9 +4866,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Kubernetes",
@@ -5136,7 +4938,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "5f36d492-9ecd-471b-8aff-5ef0621d39d7",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -5288,9 +5089,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "TLS",
@@ -5362,7 +5161,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "4d31c431-ebd2-42df-b138-b3783965ae2c",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -5515,9 +5313,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Password",
@@ -5589,7 +5385,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "ad1adc27-f583-4943-97bd-6e923bea3304",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -5742,9 +5537,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Generic",
@@ -5816,7 +5609,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "150f951a-b88d-4bfa-a98b-f151f5c109e8",
 										"exec": [
 											"if (responseCode.code === 200) {",
 											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
@@ -5969,9 +5761,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "SSH",
@@ -6128,9 +5918,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Vault",
@@ -6141,7 +5929,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "5ede97a8-3c22-48d7-a9e7-063075ff33b6",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -6236,7 +6023,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "f5d0d35a-59fb-4be2-a13f-e4ac1c0fea04",
 										"exec": [
 											"if (responseCode.code === 204) {",
 											"    tests[\"Response Code 204\"] = responseCode.code == 204;",
@@ -6287,9 +6073,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Slack",
@@ -6300,7 +6084,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "5ede97a8-3c22-48d7-a9e7-063075ff33b6",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -6395,7 +6178,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "f5d0d35a-59fb-4be2-a13f-e4ac1c0fea04",
 										"exec": [
 											"if (responseCode.code === 204) {",
 											"    tests[\"Response Code 204\"] = responseCode.code == 204;",
@@ -6446,9 +6228,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "PagerDuty",
@@ -6459,7 +6239,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "5ede97a8-3c22-48d7-a9e7-063075ff33b6",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -6554,7 +6333,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "f5d0d35a-59fb-4be2-a13f-e4ac1c0fea04",
 										"exec": [
 											"if (responseCode.code === 204) {",
 											"    tests[\"Response Code 204\"] = responseCode.code == 204;",
@@ -6605,9 +6383,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "vSphere",
@@ -6618,7 +6394,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "3e431145-1a1f-4061-ab99-245f653d77a7",
 										"exec": [
 											"if (responseCode.code === 201) {",
 											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -6674,9 +6449,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "List secret",
@@ -6770,8 +6543,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Organization",
@@ -6866,7 +6638,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8972f9fd-d079-46a7-a52b-31c7ff0cb64c",
 								"exec": [
 									""
 								],
@@ -6951,8 +6722,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Auth",
@@ -7007,8 +6777,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "User",
@@ -7073,8 +6842,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "ObjectStore",
@@ -7584,8 +7352,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Helm",
@@ -7888,8 +7655,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Resource groups",
@@ -8042,8 +7808,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Security",
@@ -8645,8 +8410,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Internal",
@@ -8783,8 +8547,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Images",
@@ -8873,8 +8636,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Nodepool labels",
@@ -8885,7 +8647,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9d482635-68ed-483b-abd7-96ac540a0c31",
 								"exec": [
 									"",
 									"if (responseCode.code === 200) {",
@@ -8951,7 +8712,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9d482635-68ed-483b-abd7-96ac540a0c31",
 								"exec": [
 									"",
 									"if (responseCode.code === 200) {",
@@ -9017,8 +8777,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Get API Endpoints",
@@ -9096,7 +8855,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "26f20bb1-5ac6-458e-80be-b9fcf661cc56",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -9106,13 +8864,11 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "271a7622-2015-4790-a3ab-bd1e345c9746",
 				"type": "text/javascript",
 				"exec": [
 					""
 				]
 			}
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

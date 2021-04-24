@@ -71,7 +71,6 @@ type Cluster struct {
 	Name         string
 	Distribution string
 	Cloud        string
-	ScaleOptions *pkgCluster.ScaleOptions
 }
 
 // Organization contains information about the organization a cluster belongs to.
@@ -180,11 +179,10 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 	}
 	{
 		activityInput := DeployInstanceTerminationHandlerActivityInput{
-			ClusterID:    input.Cluster.ID,
-			OrgID:        input.Organization.ID,
-			Cloud:        input.Cluster.Cloud,
-			ClusterName:  input.Cluster.Name,
-			ScaleOptions: input.Cluster.ScaleOptions,
+			ClusterID:   input.Cluster.ID,
+			OrgID:       input.Organization.ID,
+			Cloud:       input.Cluster.Cloud,
+			ClusterName: input.Cluster.Name,
 		}
 
 		err := workflow.ExecuteActivity(ctx, DeployInstanceTerminationHandlerActivityName, activityInput).Get(ctx, nil)

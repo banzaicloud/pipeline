@@ -18,7 +18,6 @@ import (
 	"emperror.dev/errors"
 
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 type CreateParams struct {
@@ -31,7 +30,6 @@ type CreateParams struct {
 	RBAC              bool
 	OIDC              bool
 	KubernetesVersion string
-	ScaleOptions      pkgCluster.ScaleOptions
 	NodePools         []NodePool
 	HTTPProxy         intPKE.HTTPProxy
 

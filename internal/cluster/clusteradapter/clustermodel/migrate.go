@@ -20,15 +20,12 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/pkg/gormhelper"
 )
 
 // Migrate executes the table migrations for the cluster module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ClusterModel{},
-		&ScaleOptions{},
 		&StatusHistoryModel{},
 	}
 
@@ -42,11 +39,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}).Info("migrating model tables")
 
 	err := db.AutoMigrate(tables...).Error
-	if err != nil {
-		return err
-	}
-
-	err = gormhelper.AddForeignKey(db, logger, &ClusterModel{}, &ScaleOptions{}, "ClusterID")
 	if err != nil {
 		return err
 	}
