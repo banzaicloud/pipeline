@@ -13,7 +13,7 @@ executors:
             image: ubuntu-1604:201903-01
         environment:
             GOPATH: /home/circleci/go
-            GO_VERSION: '1.15'
+            GO_VERSION: '1.16.3'
             VAULT_VERSION: '1.4.2'
             KIND_VERSION: 'v0.7.0'
 
@@ -22,7 +22,7 @@ jobs:
         resource_class: large
         docker:
             -
-                image: banzaicloud/golang:1.15
+                image: banzaicloud/golang:1.16
                 environment:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
