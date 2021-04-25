@@ -1,6 +1,6 @@
 module github.com/banzaicloud/pipeline/pkg/sdk
 
-go 1.15
+go 1.16
 
 require (
 	emperror.dev/errors v0.7.0
