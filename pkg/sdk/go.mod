@@ -9,7 +9,7 @@ require (
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/uber/tchannel-go v1.18.0 // indirect
-	go.uber.org/cadence v0.15.0
+	go.uber.org/cadence v0.16.0
 	go.uber.org/thriftrw v1.23.0 // indirect
 	go.uber.org/yarpc v1.45.0 // indirect
 	go.uber.org/zap v1.14.1 // indirect
