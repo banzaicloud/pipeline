@@ -26,7 +26,6 @@ ARG BUILD_DATE
 COPY . /build
 RUN make build-release
 
-
 FROM alpine:3.12 AS iamauth
 
 WORKDIR /tmp
@@ -40,6 +39,19 @@ RUN set -xe \
     && chmod +x aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 \
     && mv aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 aws-iam-authenticator
 
+FROM alpine:3.12 AS helms3
+
+WORKDIR /tmp
+
+ENV HELM_S3_PLUGIN_VERSION 0.10.0
+
+ENV HELM_S3_PLUGIN_URL "https://github.com/hypnoglow/helm-s3/releases/download/v${HELM_S3_PLUGIN_VERSION}"
+RUN set -xe \
+    && mkdir -p helm-plugins/helm-s3 \
+    && wget ${HELM_S3_PLUGIN_URL}/helm-s3_${HELM_S3_PLUGIN_VERSION}_linux_amd64.tar.gz \
+    && wget ${HELM_S3_PLUGIN_URL}/helm-s3_${HELM_S3_PLUGIN_VERSION}_checksums.txt \
+    && cat helm-s3_${HELM_S3_PLUGIN_VERSION}_checksums.txt | grep "_linux_amd64.tar.gz" | sha256sum -c - \
+    && tar xzf "helm-s3_${HELM_S3_PLUGIN_VERSION}_linux_amd64.tar.gz" -C "helm-plugins/helm-s3"
 
 FROM alpine:3.12 AS migrate
 
@@ -53,10 +65,13 @@ RUN set -xe && \
 
 FROM ${FROM_IMAGE}
 
+ENV HELM_PLUGINS=/usr/share/helm/plugins
+
 COPY --from=builder /etc/nsswitch.conf.build /etc/nsswitch.conf
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=iamauth /tmp/aws-iam-authenticator /usr/bin/
+COPY --from=helms3 /tmp/helm-plugins /usr/share/helm/plugins
 COPY --from=migrate /tmp/migrate /usr/bin/
 COPY --from=builder /build/database/migrations /migrations/
 COPY --from=builder /build/templates /templates/

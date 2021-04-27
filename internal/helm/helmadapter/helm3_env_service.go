@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -420,16 +421,23 @@ func (h helm3EnvService) listCharts(_ context.Context, helmEnv helm.HelmEnv, fil
 
 // getDetailedChart gets the chart details from the chart archive
 func (h helm3EnvService) getDetailedCharts(_ context.Context, helmEnv helm.HelmEnv, repoVersions repo.ChartVersions) (map[string]*chart.Chart, error) {
-	// set up a "fake" chart repo to use it's getter capabilities
-	chartRepo, err := repo.NewChartRepository(&repo.Entry{URL: "http://test"}, getter.All(h.processEnvSettings(helmEnv)))
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to setup downloader")
-	}
+	getters := getter.All(h.processEnvSettings(helmEnv))
 
 	detailedCharts := make(map[string]*chart.Chart)
 	for _, repoChartVersionPtr := range repoVersions {
 		// todo check the other urls, other checks?
-		buffer, err := chartRepo.Client.Get(repoChartVersionPtr.URLs[0])
+		repoUrl := repoChartVersionPtr.URLs[0]
+		u, err := url.Parse(repoUrl)
+		if err != nil {
+			return nil, errors.Errorf("invalid chart URL format: %s", repoUrl)
+		}
+
+		client, err := getters.ByScheme(u.Scheme)
+		if err != nil {
+			return nil, errors.Errorf("could not find protocol handler for: %s", u.Scheme)
+		}
+
+		buffer, err := client.Get(repoUrl)
 		if err != nil {
 			return nil, errors.WrapIf(err, "failed to get archive")
 		}
