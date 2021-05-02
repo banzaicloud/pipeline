@@ -5,5 +5,4 @@ go_library(
         exclude = ["*_test.go"],
     ),
     visibility = ["PUBLIC"],
-    deps = [],
 )
