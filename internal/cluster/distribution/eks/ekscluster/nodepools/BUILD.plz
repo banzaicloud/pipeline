@@ -8,8 +8,7 @@ go_library(
     deps = [
         "//pkg/providers/amazon/autoscaling",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__awserr",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__session",
+        "//third_party/go:github.com__aws__aws-sdk-go",
         "//third_party/go:github.com__sirupsen__logrus",
         "//third_party/go:logur.dev__adapter__logrus",
     ],

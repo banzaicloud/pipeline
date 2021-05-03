@@ -20,9 +20,8 @@ go_library(
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__jinzhu__gorm",
         "//third_party/go:github.com__sirupsen__logrus",
-        "//third_party/go:golang.org__x__oauth2__google",
-        "//third_party/go:google.golang.org__api__compute__v1",
-        "//third_party/go:google.golang.org__api__serviceusage__v1",
+        "//third_party/go:golang.org__x__oauth2",
+        "//third_party/go:google.golang.org__api",
     ],
 )
 
@@ -44,8 +43,7 @@ go_test(
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__jinzhu__gorm",
         "//third_party/go:github.com__sirupsen__logrus",
-        "//third_party/go:golang.org__x__oauth2__google",
-        "//third_party/go:google.golang.org__api__compute__v1",
-        "//third_party/go:google.golang.org__api__serviceusage__v1",
+        "//third_party/go:golang.org__x__oauth2",
+        "//third_party/go:google.golang.org__api",
     ],
 )

@@ -8,13 +8,9 @@ go_library(
     deps = [
         "//internal/global",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
-        "//third_party/go:k8s.io__apimachinery__pkg__util__yaml",
-        "//third_party/go:k8s.io__client-go__kubernetes",
-        "//third_party/go:k8s.io__client-go__rest",
-        "//third_party/go:k8s.io__client-go__tools__clientcmd",
-        "//third_party/go:k8s.io__client-go__tools__clientcmd__api",
-        "//third_party/go:sigs.k8s.io__controller-runtime__pkg__client",
+        "//third_party/go:k8s.io__apimachinery",
+        "//third_party/go:k8s.io__client-go",
+        "//third_party/go:sigs.k8s.io__controller-runtime",
     ],
 )
 
@@ -24,15 +20,11 @@ go_test(
     deps = [
         "//internal/global",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__stretchr__testify__suite",
-        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
-        "//third_party/go:k8s.io__apimachinery__pkg__util__yaml",
-        "//third_party/go:k8s.io__client-go__kubernetes",
-        "//third_party/go:k8s.io__client-go__rest",
-        "//third_party/go:k8s.io__client-go__tools__clientcmd",
-        "//third_party/go:k8s.io__client-go__tools__clientcmd__api",
-        "//third_party/go:sigs.k8s.io__controller-runtime__pkg__client",
-        "//third_party/go:sigs.k8s.io__testing_frameworks__integration",
+        "//third_party/go:github.com__stretchr__testify",
+        "//third_party/go:k8s.io__apimachinery",
+        "//third_party/go:k8s.io__client-go",
+        "//third_party/go:sigs.k8s.io__controller-runtime",
+        "//third_party/go:sigs.k8s.io__testing_frameworks",
     ],
 )
 
@@ -44,14 +36,10 @@ go_test(
     deps = [
         "//internal/global",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__stretchr__testify__suite",
-        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
-        "//third_party/go:k8s.io__apimachinery__pkg__util__yaml",
-        "//third_party/go:k8s.io__client-go__kubernetes",
-        "//third_party/go:k8s.io__client-go__rest",
-        "//third_party/go:k8s.io__client-go__tools__clientcmd",
-        "//third_party/go:k8s.io__client-go__tools__clientcmd__api",
-        "//third_party/go:sigs.k8s.io__controller-runtime__pkg__client",
-        "//third_party/go:sigs.k8s.io__testing_frameworks__integration",
+        "//third_party/go:github.com__stretchr__testify",
+        "//third_party/go:k8s.io__apimachinery",
+        "//third_party/go:k8s.io__client-go",
+        "//third_party/go:sigs.k8s.io__controller-runtime",
+        "//third_party/go:sigs.k8s.io__testing_frameworks",
     ],
 )

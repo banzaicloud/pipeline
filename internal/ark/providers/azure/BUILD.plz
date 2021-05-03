@@ -14,6 +14,6 @@ go_library(
         "//pkg/providers/azure/objectstore",
         "//src/secret",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__vmware-tanzu__velero__pkg__plugin__velero",
+        "//third_party/go:github.com__vmware-tanzu__velero",
     ],
 )

@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:go.uber.org__cadence",
-        "//third_party/go:go.uber.org__cadence__workflow",
     ],
 )
 
@@ -17,9 +16,7 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__stretchr__testify__assert",
-        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:github.com__stretchr__testify",
         "//third_party/go:go.uber.org__cadence",
-        "//third_party/go:go.uber.org__cadence__workflow",
     ],
 )

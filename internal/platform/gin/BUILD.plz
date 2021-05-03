@@ -9,6 +9,6 @@ go_library(
         "//third_party/go:emperror.dev__emperror",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__gin-gonic__gin",
-        "//third_party/go:github.com__prometheus__client_golang__prometheus",
+        "//third_party/go:github.com__prometheus__client_golang",
     ],
 )

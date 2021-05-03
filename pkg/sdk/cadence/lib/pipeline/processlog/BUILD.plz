@@ -8,6 +8,5 @@ go_library(
     deps = [
         "//pkg/sdk/brn",
         "//third_party/go:go.uber.org__cadence",
-        "//third_party/go:go.uber.org__cadence__workflow",
     ],
 )

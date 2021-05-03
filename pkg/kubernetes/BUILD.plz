@@ -7,8 +7,8 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__stretchr__testify__mock",
-        "//third_party/go:k8s.io__apimachinery__pkg__util__validation",
+        "//third_party/go:github.com__stretchr__testify",
+        "//third_party/go:k8s.io__apimachinery",
     ],
 )
 
@@ -17,9 +17,7 @@ go_test(
     srcs = glob(["*.go"]),
     deps = [
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__stretchr__testify__assert",
-        "//third_party/go:github.com__stretchr__testify__mock",
-        "//third_party/go:github.com__stretchr__testify__require",
-        "//third_party/go:k8s.io__apimachinery__pkg__util__validation",
+        "//third_party/go:github.com__stretchr__testify",
+        "//third_party/go:k8s.io__apimachinery",
     ],
 )

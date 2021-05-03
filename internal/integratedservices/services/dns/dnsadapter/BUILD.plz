@@ -22,6 +22,6 @@ go_test(
         "//src/auth",
         "//src/cluster",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )

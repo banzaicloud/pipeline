@@ -27,7 +27,6 @@ go_library(
         "//src/utils",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:go.uber.org__cadence",
-        "//third_party/go:go.uber.org__cadence__client",
-        "//third_party/go:k8s.io__api__core__v1",
+        "//third_party/go:k8s.io__api",
     ],
 )

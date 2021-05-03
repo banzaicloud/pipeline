@@ -17,7 +17,5 @@ go_test(
     deps = [
         "//internal/common",
         "//third_party/go:logur.dev__logur",
-        "//third_party/go:logur.dev__logur__conformance",
-        "//third_party/go:logur.dev__logur__logtesting",
     ],
 )

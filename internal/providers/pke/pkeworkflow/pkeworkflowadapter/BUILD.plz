@@ -9,7 +9,7 @@ go_library(
         "//internal/providers/pke/pkeworkflow",
         "//src/cluster",
         "//src/secret",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__session",
+        "//third_party/go:github.com__aws__aws-sdk-go",
         "//third_party/go:github.com__pkg__errors",
     ],
 )

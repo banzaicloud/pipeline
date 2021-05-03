@@ -6,10 +6,8 @@ go_library(
     ),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk__db",
+        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk",
         "//third_party/go:github.com__jinzhu__gorm",
-        "//third_party/go:github.com__jinzhu__gorm__dialects__mysql",
-        "//third_party/go:github.com__jinzhu__gorm__dialects__postgres",
         "//third_party/go:github.com__pkg__errors",
     ],
 )
@@ -18,10 +16,8 @@ go_test(
     name = "test",
     srcs = glob(["*.go"]),
     deps = [
-        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk__db",
+        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk",
         "//third_party/go:github.com__jinzhu__gorm",
-        "//third_party/go:github.com__jinzhu__gorm__dialects__mysql",
-        "//third_party/go:github.com__jinzhu__gorm__dialects__postgres",
         "//third_party/go:github.com__pkg__errors",
     ],
 )

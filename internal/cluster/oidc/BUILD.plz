@@ -20,6 +20,6 @@ go_test(
         ":oidc",
         "//internal/cluster/auth",
         "//src/auth",
-        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )

@@ -11,7 +11,7 @@ go_library(
         "//internal/platform/log",
         "//third_party/go:emperror.dev__emperror",
         "//third_party/go:emperror.dev__handler__logur",
-        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk__vault",
+        "//third_party/go:github.com__banzaicloud__bank-vaults__pkg__sdk",
         "//third_party/go:github.com__banzaicloud__logrus-runtime-formatter",
         "//third_party/go:github.com__jinzhu__gorm",
         "//third_party/go:github.com__sirupsen__logrus",

@@ -30,8 +30,7 @@ go_test(
         ":helm",
         "//internal/common",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__stretchr__testify__mock",
-        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )
 
@@ -54,11 +53,9 @@ go_test(
         "//internal/testing",
         "//pkg/k8sclient",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__jinzhu__gorm__dialects__sqlite",
-        "//third_party/go:github.com__stretchr__testify__assert",
-        "//third_party/go:github.com__stretchr__testify__mock",
-        "//third_party/go:github.com__stretchr__testify__require",
-        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
-        "//third_party/go:k8s.io__client-go__kubernetes",
+        "//third_party/go:github.com__jinzhu__gorm",
+        "//third_party/go:github.com__stretchr__testify",
+        "//third_party/go:k8s.io__apimachinery",
+        "//third_party/go:k8s.io__client-go",
     ],
 )

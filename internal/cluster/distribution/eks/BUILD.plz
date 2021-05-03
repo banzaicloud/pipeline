@@ -11,9 +11,8 @@ go_library(
         "//third_party/go:emperror.dev__emperror",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__Masterminds__semver__v3",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__cloudformation",
-        "//third_party/go:github.com__stretchr__testify__mock",
+        "//third_party/go:github.com__aws__aws-sdk-go",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )
 
@@ -27,10 +26,7 @@ go_test(
         "//third_party/go:emperror.dev__emperror",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__Masterminds__semver__v3",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__cloudformation",
-        "//third_party/go:github.com__stretchr__testify__assert",
-        "//third_party/go:github.com__stretchr__testify__mock",
-        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:github.com__aws__aws-sdk-go",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )

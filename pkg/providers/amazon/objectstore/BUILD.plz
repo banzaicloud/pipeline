@@ -8,12 +8,7 @@ go_library(
     deps = [
         "//pkg/errors",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__awserr",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__credentials",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__session",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__s3",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__s3__s3manager",
+        "//third_party/go:github.com__aws__aws-sdk-go",
     ],
 )
 
@@ -23,12 +18,7 @@ go_test(
     deps = [
         "//pkg/errors",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__awserr",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__credentials",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__session",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__s3",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__s3__s3manager",
+        "//third_party/go:github.com__aws__aws-sdk-go",
         "//third_party/go:github.com__pkg__errors",
     ],
 )
@@ -41,12 +31,7 @@ go_test(
     deps = [
         "//pkg/errors",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__awserr",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__credentials",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws__session",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__s3",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__s3__s3manager",
+        "//third_party/go:github.com__aws__aws-sdk-go",
         "//third_party/go:github.com__pkg__errors",
     ],
 )

@@ -12,6 +12,6 @@ go_library(
         "//pkg/providers/amazon/objectstore",
         "//src/secret",
         "//third_party/go:github.com__pelletier__go-toml",
-        "//third_party/go:github.com__vmware-tanzu__velero__pkg__plugin__velero",
+        "//third_party/go:github.com__vmware-tanzu__velero",
     ],
 )

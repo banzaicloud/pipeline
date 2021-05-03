@@ -20,7 +20,7 @@ go_library(
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__jinzhu__gorm",
         "//third_party/go:github.com__mitchellh__mapstructure",
-        "//third_party/go:go.uber.org__cadence__client",
+        "//third_party/go:go.uber.org__cadence",
     ],
 )
 
@@ -41,11 +41,8 @@ go_test(
         "//src/model",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__jinzhu__gorm",
-        "//third_party/go:github.com__jinzhu__gorm__dialects__sqlite",
         "//third_party/go:github.com__mitchellh__mapstructure",
-        "//third_party/go:github.com__stretchr__testify__assert",
-        "//third_party/go:github.com__stretchr__testify__require",
-        "//third_party/go:github.com__stretchr__testify__suite",
-        "//third_party/go:go.uber.org__cadence__client",
+        "//third_party/go:github.com__stretchr__testify",
+        "//third_party/go:go.uber.org__cadence",
     ],
 )

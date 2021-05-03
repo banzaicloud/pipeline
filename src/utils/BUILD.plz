@@ -14,6 +14,6 @@ go_test(
     deps = [
         "//third_party/go:github.com__pkg__errors",
         "//third_party/go:github.com__sirupsen__logrus",
-        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )

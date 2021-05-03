@@ -9,6 +9,6 @@ go_library(
         "//internal/cluster",
         "//internal/integratedservices/services/expiry",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:go.uber.org__cadence__workflow",
+        "//third_party/go:go.uber.org__cadence",
     ],
 )

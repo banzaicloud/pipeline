@@ -8,8 +8,7 @@ go_library(
     deps = [
         "//pkg/sdk/semver",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__cloudformation",
+        "//third_party/go:github.com__aws__aws-sdk-go",
         "//third_party/go:github.com__mitchellh__mapstructure",
     ],
 )
@@ -20,9 +19,8 @@ go_test(
     deps = [
         "//pkg/sdk/semver",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__cloudformation",
+        "//third_party/go:github.com__aws__aws-sdk-go",
         "//third_party/go:github.com__mitchellh__mapstructure",
-        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )

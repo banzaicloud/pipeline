@@ -15,8 +15,6 @@ go_library(
         "//third_party/go:github.com__gin-gonic__gin",
         "//third_party/go:github.com__pkg__errors",
         "//third_party/go:github.com__sirupsen__logrus",
-        "//third_party/go:k8s.io__client-go__dynamic",
-        "//third_party/go:k8s.io__client-go__kubernetes",
-        "//third_party/go:k8s.io__client-go__rest",
+        "//third_party/go:k8s.io__client-go",
     ],
 )

@@ -30,7 +30,7 @@ go_test(
         "//internal/common",
         "//internal/helm",
         "//internal/helm/testing",
-        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )
 
@@ -46,6 +46,6 @@ go_test(
         "//internal/common",
         "//internal/helm",
         "//internal/helm/testing",
-        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify",
     ],
 )

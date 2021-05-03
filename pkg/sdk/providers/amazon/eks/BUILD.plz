@@ -9,8 +9,8 @@ go_library(
         "//pkg/sdk/providers/amazon/arn",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:gopkg.in__yaml.v2",
-        "//third_party/go:k8s.io__api__core__v1",
-        "//third_party/go:k8s.io__kubectl__pkg__scheme",
+        "//third_party/go:k8s.io__api",
+        "//third_party/go:k8s.io__kubectl",
     ],
 )
 
@@ -20,10 +20,10 @@ go_test(
     deps = [
         "//pkg/sdk/providers/amazon/arn",
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:github.com__stretchr__testify",
         "//third_party/go:gopkg.in__yaml.v2",
-        "//third_party/go:k8s.io__api__core__v1",
-        "//third_party/go:k8s.io__apimachinery__pkg__apis__meta__v1",
-        "//third_party/go:k8s.io__kubectl__pkg__scheme",
+        "//third_party/go:k8s.io__api",
+        "//third_party/go:k8s.io__apimachinery",
+        "//third_party/go:k8s.io__kubectl",
     ],
 )

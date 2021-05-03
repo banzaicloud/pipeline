@@ -14,6 +14,6 @@ go_library(
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__jinzhu__gorm",
         "//third_party/go:github.com__sirupsen__logrus",
-        "//third_party/go:github.com__vmware-tanzu__velero__pkg__apis__velero__v1",
+        "//third_party/go:github.com__vmware-tanzu__velero",
     ],
 )

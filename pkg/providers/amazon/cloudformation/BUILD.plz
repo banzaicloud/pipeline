@@ -7,7 +7,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//third_party/go:emperror.dev__errors",
-        "//third_party/go:github.com__aws__aws-sdk-go__aws",
-        "//third_party/go:github.com__aws__aws-sdk-go__service__cloudformation",
+        "//third_party/go:github.com__aws__aws-sdk-go",
     ],
 )
