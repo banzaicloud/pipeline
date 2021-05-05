@@ -222,4 +222,4 @@ To be able to handle S3 repositories with Pipeline helm-s3 need to be installed 
 helm plugin install https://github.com/hypnoglow/helm-s3.git
 ```
 
-In case you don't have helm installed you can download helm-s3 plugin from [here](), extract it to a `helm-plugins` folder and set `HELM_PLUGINS=helm-plugins` when starting Pipeline. 
+In case you don't have helm installed you can download helm-s3 plugin from [here](https://github.com/hypnoglow/helm-s3/releases), extract it to a `helm-plugins` folder and set `HELM_PLUGINS=helm-plugins` when starting Pipeline. 
