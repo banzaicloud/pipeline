@@ -541,6 +541,7 @@
         "go.uber.org/cadence/.gen/go/cadence": "//third_party/go:go.uber.org__cadence__.gen__go__cadence",
         "go.uber.org/cadence/.gen/go/cadence/workflowserviceclient": "//third_party/go:go.uber.org__cadence__.gen__go__cadence__workflowserviceclient",
         "go.uber.org/cadence/.gen/go/cadence/workflowservicetest": "//third_party/go:go.uber.org__cadence__.gen__go__cadence__workflowservicetest",
+        "go.uber.org/cadence/.gen/go/shadower": "//third_party/go:go.uber.org__cadence__.gen__go__shadower",
         "go.uber.org/cadence/.gen/go/shared": "//third_party/go:go.uber.org__cadence__.gen__go__shared",
         "go.uber.org/cadence/activity": "//third_party/go:go.uber.org__cadence__activity",
         "go.uber.org/cadence/client": "//third_party/go:go.uber.org__cadence__client",

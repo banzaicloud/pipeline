@@ -1949,7 +1949,7 @@ go_mod_download(
     name = "github.com__banzaicloud__cadence-aws-sdk",
     _tag = "download",
     module = "github.com/banzaicloud/cadence-aws-sdk",
-    version = "v0.3.0",
+    version = "v0.4.0",
 )
 
 go_module(
@@ -7970,7 +7970,7 @@ go_mod_download(
     name = "go.uber.org__cadence",
     _tag = "download",
     module = "go.uber.org/cadence",
-    version = "v0.16.0",
+    version = "v0.17.0",
 )
 
 go_module(
@@ -8026,6 +8026,19 @@ go_module(
         ":go.uber.org__cadence__.gen__go__cadence__workflowserviceclient",
         ":go.uber.org__cadence__.gen__go__shared",
         ":go.uber.org__yarpc",
+    ],
+)
+
+go_module(
+    name = "go.uber.org__cadence__.gen__go__shadower",
+    download = ":_go.uber.org__cadence#download",
+    install = [".gen/go/shadower"],
+    module = "go.uber.org/cadence",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.uber.org__cadence__.gen__go__shared",
+        ":go.uber.org__thriftrw__thriftreflect",
+        ":go.uber.org__thriftrw__wire",
     ],
 )
 
@@ -8097,6 +8110,7 @@ go_module(
         ":go.uber.org__atomic",
         ":go.uber.org__cadence__.gen__go__cadence__workflowserviceclient",
         ":go.uber.org__cadence__.gen__go__cadence__workflowservicetest",
+        ":go.uber.org__cadence__.gen__go__shadower",
         ":go.uber.org__cadence__.gen__go__shared",
         ":go.uber.org__cadence__internal__common",
         ":go.uber.org__cadence__internal__common__backoff",
