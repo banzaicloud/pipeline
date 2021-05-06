@@ -14,6 +14,7 @@ go_library(
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__jinzhu__gorm",
         "//third_party/go:github.com__sirupsen__logrus",
+        "//third_party/go:go.uber.org__cadence",
         "//third_party/go:go.uber.org__cadence__activity",
         "//third_party/go:k8s.io__apimachinery__pkg__labels",
     ],
