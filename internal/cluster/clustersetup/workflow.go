@@ -31,6 +31,7 @@ const WorkflowName = "cluster-setup"
 const (
 	DeployClusterAutoscalerActivityName = "deploy-cluster-autoscaler"
 	RestoreBackupActivityName           = "restore-backup"
+	ErrReasonRestoreFailed              = "BACKUP_RESTORE_FAILED"
 )
 
 // Workflow orchestrates the post-creation cluster setup flow.
@@ -87,10 +88,11 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 		StartToCloseTimeout:    30 * time.Minute,
 		WaitForCancellation:    true,
 		RetryPolicy: &cadence.RetryPolicy{
-			InitialInterval:    2 * time.Second,
-			BackoffCoefficient: 1.5,
-			MaximumInterval:    30 * time.Second,
-			MaximumAttempts:    30,
+			InitialInterval:          2 * time.Second,
+			BackoffCoefficient:       1.5,
+			MaximumInterval:          30 * time.Second,
+			MaximumAttempts:          30,
+			NonRetriableErrorReasons: []string{"cadenceInternal:Panic", ErrReasonRestoreFailed},
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, activityOptions)

@@ -16,11 +16,13 @@ package velero
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"k8s.io/apimachinery/pkg/labels"
 
@@ -35,9 +37,10 @@ import (
 )
 
 const (
-	retrySleepSeconds    = 15
-	restoredByLabelKey   = "restored-by"
-	restoredByLabelValue = "pipeline"
+	retrySleepSeconds      = 15
+	restoredByLabelKey     = "restored-by"
+	restoredByLabelValue   = "pipeline"
+	ErrReasonRestoreFailed = "BACKUP_RESTORE_FAILED"
 )
 
 // nolint: gochecknoglobals
@@ -143,7 +146,7 @@ func (a RestoreBackupActivity) Execute(ctx context.Context, input RestoreBackupA
 			cluster, restore, logrusLogger, a.disasterRecoveryConfig.Ark.RestoreWaitTimeout)
 	}
 	if err != nil {
-		return errors.WrapIf(err, "could not restore backup")
+		return err
 	}
 
 	err = svc.GetDeploymentsService().Remove(a.helmService)
@@ -169,7 +172,10 @@ func WaitingForRestoreToFinish(restoresSvc *ark.RestoresService, restoresSyncSvc
 		}
 		if r.Status == "Completed" {
 			return nil
+		} else if r.Status == "PartiallyFailed" || r.Status == "Failed" {
+			return cadence.NewCustomError(ErrReasonRestoreFailed, fmt.Sprintf("backup restore status: %s", r.Status))
 		}
+
 		logger.WithFields(logrus.Fields{
 			"status":       r.Status,
 			"attempt":      i,
