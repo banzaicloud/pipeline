@@ -763,22 +763,22 @@ traefik:
 	v.SetDefault("cluster::disasterRecovery::charts::ark::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "velero/velero",
-			"tag":        "v1.5.1",
+			"tag":        "v1.6.0",
 			"pullPolicy": "IfNotPresent",
 		},
 		"awsPluginImage": map[string]interface{}{
 			"repository": "velero/velero-plugin-for-aws",
-			"tag":        "v1.1.0",
+			"tag":        "v1.2.0",
 			"pullPolicy": "IfNotPresent",
 		},
 		"azurePluginImage": map[string]interface{}{
 			"repository": "velero/velero-plugin-for-microsoft-azure",
-			"tag":        "v1.1.0",
+			"tag":        "v1.2.0",
 			"pullPolicy": "IfNotPresent",
 		},
 		"gcpPluginImage": map[string]interface{}{
 			"repository": "velero/velero-plugin-for-gcp",
-			"tag":        "v1.1.0",
+			"tag":        "v1.2.0",
 			"pullPolicy": "IfNotPresent",
 		},
 	})
