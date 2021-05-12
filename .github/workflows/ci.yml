@@ -53,7 +53,7 @@ jobs:
           make generate-all
           test "$(git status --porcelain)" == "" || \
             ( \
-              printf >&2 "\n`go mod tidy` results in a dirty state, generated files are not in sync with the source code files, differences:\n\n%s\n\n" "$(git diff)" ; \
+              printf >&2 "\n`make generate-all` results in a dirty state, generated files are not in sync with the source code files, differences:\n\n%s\n\n" "$(git diff)" ; \
               git reset --hard ;
               exit 1 ; \
             )
