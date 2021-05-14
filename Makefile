@@ -37,6 +37,7 @@ OPENAPI_GENERATOR_VERSION = v4.3.1
 MIGRATE_VERSION = 4.9.1
 GOTESTSUM_VERSION = 0.4.1
 MGA_VERSION = 0.4.2
+GRYPE_VERSION = 0.11.0
 
 GOLANG_VERSION = 1.16
 
@@ -337,6 +338,17 @@ generate-anchore-client: ## apis/anchore/swagger.yaml ## https://github.com/anch
 	@ sed -i~ 's/whitelist_ids,omitempty/whitelist_ids/' .gen/anchore/model_mapping_rule.go && rm .gen/anchore/model_mapping_rule.go~
 	@ sed -i~ 's/params,omitempty/params/' .gen/anchore/model_policy_rule.go && rm .gen/anchore/model_policy_rule.go~
 	$(call restore_backup_file,.gen/anchore/BUILD.plz)
+
+bin/grype: bin/grype-${GRYPE_VERSION}
+	@ln -sf grype-${GRYPE_VERSION} bin/grype
+bin/grype-${GRYPE_VERSION}:
+	@mkdir -p bin
+	curl -sfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | bash -s -- -b ./bin/ v${GRYPE_VERSION}
+	@mv bin/grype $@
+scan-docker-images: bin/grype
+	@echo "- Start vulnerablity scan for images: $$(cat docker.images.list)"
+	@for image in $$(cat docker.images.list); do echo "Scanning image: " $$image; grype $$image; done;
+	@echo "- Scan completed."
 
 .PHONY: list
 list: ## List all make targets
