@@ -1,6 +1,19 @@
-version: 1
-update_configs:
-    - package_manager: "gomod"
+version: 2
+updates:
+    - package-ecosystem: "gomod"
+        # Files stored in repository root
       directory: "/"
-      update_schedule: "live"
+      labels:
+          - "dependencies"
+      schedule:
+          interval: "daily"
       open-pull-requests-limit: 0
+
+    - package-ecosystem: "docker"
+      directory: "/"
+      labels:
+          - "dependencies"
+      schedule:
+          interval: "daily"
+      open-pull-requests-limit: 0
+
