@@ -28,38 +28,41 @@ jobs:
       - name: Check Go modules dependency file integrity
         if: ${{ always() }}
         run: |
-          go mod tidy
-          test "$(git status --porcelain)" == "" || \
-            ( \
-              printf >&2 "\n`go mod tidy` results in a dirty state, Go mod files are not in sync with the source code files, differences:\n\n%s\n\n" "$(git diff)" ; \
-              git reset --hard ;
-              exit 1 ; \
-            )
+          exit_code=0
+          for module_file in $(find . -type d -path "./plz-out**" -prune -a -not -type d -name "./plz-out" -o -type f -name go.mod); do
+            cd "$(dirname ${module_file})"
+            go mod tidy
+            if [ "$(git status --porcelain)" != "" ]; then
+              printf >&2 '\n`go mod tidy` in module `%s` results in a dirty state, Go mod files are not in sync with the source code files, differences:\n\n%s\n\n' "$(go list -m)" "$(git diff)"
+              git reset --hard
+              exit_code=1
+            fi
+          done
+          exit ${exit_code}
 
       - name: Check Please Go dependency file integrity
         if: ${{ always() }}
         run: |
           plz tidy
-          test "$(git status --porcelain)" == "" || \
-            ( \
-              printf >&2 "\n`plz tidy` results in a dirty state, Please build files are not in sync with the source code files, differences:\n\n%s\n\n" "$(git diff)" ; \
-              git reset --hard ;
-              exit 1 ; \
-            )
+          if [ "$(git status --porcelain)" != "" ]; then
+            printf >&2 '\n`plz tidy` results in a dirty state, Please build files are not in sync with the source code files, differences:\n\n%s\n\n' "$(git diff)"
+            git reset --hard
+            exit 1
+          fi
 
       - name: Check generated file integrity
         if: ${{ always() }}
         run: |
           make generate-all
-          test "$(git status --porcelain)" == "" || \
-            ( \
-              printf >&2 "\n`make generate-all` results in a dirty state, generated files are not in sync with the source code files, differences:\n\n%s\n\n" "$(git diff)" ; \
-              git reset --hard ;
-              exit 1 ; \
-            )
+          if [ "$(git status --porcelain)" != "" ]; then
+            printf >&2 '\n`make generate-all` results in a dirty state, generated files are not in sync with the source code files, differences:\n\n%s\n\n' "$(git diff)"
+            git reset --hard
+            exit 1
+          fi
 
   build:
     name: Build
+    needs: [check-integrity]
     runs-on: ubuntu-latest
 
     services:
