@@ -1,4 +1,4 @@
-ghcr.io/banzaicloud/anchore-image-validator
+ghcr.io/banzaicloud/anchore-image-validator:0.5.1
 ghcr.io/banzaicloud/instance-termination-handler:0.1.1
 ghcr.io/banzaicloud/integrated-service-operator
 ghcr.io/banzaicloud/nodepool-labels-operator:v0.1.0
