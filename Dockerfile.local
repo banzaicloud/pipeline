@@ -14,16 +14,20 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     go install ./cmd/aws-iam-authenticator
 
 
-ENV HELM_S3_PLUGIN_VERSION 0.10.0
-ENV HELM_S3_PLUGIN_URL "https://github.com/hypnoglow/helm-s3/releases/download/v${HELM_S3_PLUGIN_VERSION}"
-RUN set -xe \
-    && mkdir -p /tmp/helm-plugins/helm-s3 \
-    && wget ${HELM_S3_PLUGIN_URL}/helm-s3_${HELM_S3_PLUGIN_VERSION}_linux_amd64.tar.gz \
-    && wget ${HELM_S3_PLUGIN_URL}/helm-s3_${HELM_S3_PLUGIN_VERSION}_checksums.txt \
-    && cat helm-s3_${HELM_S3_PLUGIN_VERSION}_checksums.txt | grep "_linux_amd64.tar.gz" | sha256sum -c - \
-    && tar xzf "helm-s3_${HELM_S3_PLUGIN_VERSION}_linux_amd64.tar.gz" -C "/tmp/helm-plugins/helm-s3"
+ENV HELM_S3_PLUGIN_VERSION=0.11.0
 
-FROM alpine:3.12
+ENV HELM_S3_ARCHIVE_FILE_NAME="helm-s3_${HELM_S3_PLUGIN_VERSION}_linux_amd64.tar.gz" \
+    HELM_S3_CHECKSUMS_FILE_NAME="helm-s3_${HELM_S3_PLUGIN_VERSION}_sha512_checksums.txt" \
+    HELM_S3_PLUGIN_URL="https://github.com/banzaicloud/helm-s3/releases/download/v${HELM_S3_PLUGIN_VERSION}"
+
+RUN set -xe \
+    && mkdir -p helm-plugins/helm-s3 \
+    && wget "${HELM_S3_PLUGIN_URL}/${HELM_S3_ARCHIVE_FILE_NAME}" \
+    && wget "${HELM_S3_PLUGIN_URL}/${HELM_S3_CHECKSUMS_FILE_NAME}" \
+    && cat "${HELM_S3_CHECKSUMS_FILE_NAME}" | grep -E "^[0-9a-z]+  ${HELM_S3_ARCHIVE_FILE_NAME}$" | sha512sum -c - \
+    && tar xzf "${HELM_S3_ARCHIVE_FILE_NAME}" -C "helm-plugins/helm-s3"
+
+FROM alpine:3.13
 
 RUN apk add --update --no-cache bash curl
 

@@ -26,7 +26,8 @@ ARG BUILD_DATE
 COPY . /build
 RUN make build-release
 
-FROM alpine:3.12 AS iamauth
+
+FROM alpine:3.13 AS iamauth
 
 WORKDIR /tmp
 
@@ -39,21 +40,24 @@ RUN set -xe \
     && chmod +x aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 \
     && mv aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 aws-iam-authenticator
 
-FROM alpine:3.12 AS helms3
+FROM alpine:3.13 AS helms3
 
 WORKDIR /tmp
 
-ENV HELM_S3_PLUGIN_VERSION 0.10.0
+ENV HELM_S3_PLUGIN_VERSION=0.11.0
 
-ENV HELM_S3_PLUGIN_URL "https://github.com/hypnoglow/helm-s3/releases/download/v${HELM_S3_PLUGIN_VERSION}"
+ENV HELM_S3_ARCHIVE_FILE_NAME="helm-s3_${HELM_S3_PLUGIN_VERSION}_linux_amd64.tar.gz" \
+    HELM_S3_CHECKSUMS_FILE_NAME="helm-s3_${HELM_S3_PLUGIN_VERSION}_sha512_checksums.txt" \
+    HELM_S3_PLUGIN_URL="https://github.com/banzaicloud/helm-s3/releases/download/v${HELM_S3_PLUGIN_VERSION}"
+
 RUN set -xe \
     && mkdir -p helm-plugins/helm-s3 \
-    && wget ${HELM_S3_PLUGIN_URL}/helm-s3_${HELM_S3_PLUGIN_VERSION}_linux_amd64.tar.gz \
-    && wget ${HELM_S3_PLUGIN_URL}/helm-s3_${HELM_S3_PLUGIN_VERSION}_checksums.txt \
-    && cat helm-s3_${HELM_S3_PLUGIN_VERSION}_checksums.txt | grep "_linux_amd64.tar.gz" | sha256sum -c - \
-    && tar xzf "helm-s3_${HELM_S3_PLUGIN_VERSION}_linux_amd64.tar.gz" -C "helm-plugins/helm-s3"
+    && wget "${HELM_S3_PLUGIN_URL}/${HELM_S3_ARCHIVE_FILE_NAME}" \
+    && wget "${HELM_S3_PLUGIN_URL}/${HELM_S3_CHECKSUMS_FILE_NAME}" \
+    && cat "${HELM_S3_CHECKSUMS_FILE_NAME}" | grep -E "^[0-9a-z]+  ${HELM_S3_ARCHIVE_FILE_NAME}$" | sha512sum -c - \
+    && tar xzf "${HELM_S3_ARCHIVE_FILE_NAME}" -C "helm-plugins/helm-s3"
 
-FROM alpine:3.12 AS migrate
+FROM alpine:3.13 AS migrate
 
 ENV MIGRATE_VERSION v4.9.1
 
