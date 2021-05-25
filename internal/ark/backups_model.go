@@ -31,17 +31,20 @@ import (
 type ClusterBackupsModel struct {
 	ID uint `gorm:"primary_key"`
 
-	UID            string
-	Name           string
-	Cloud          string
-	Distribution   string
-	NodeCount      uint
+	UID          string
+	Name         string
+	Cloud        string
+	Distribution string
+	//deprecated: nodes are no longer synced from object storage
+	NodeCount uint
+	//deprecated: nodes are no longer synced from object storage
 	ContentChecked bool
 	StartedAt      *time.Time
 	CompletedAt    *time.Time
 	ExpireAt       *time.Time
 
 	State []byte `sql:"type:json"`
+	//deprecated: nodes are no longer synced from object storage
 	Nodes []byte `sql:"type:json"`
 
 	Status        string
@@ -120,18 +123,11 @@ func (backup *ClusterBackupsModel) GetStateObject() *arkAPI.Backup {
 // SetValuesFromRequest sets values from PersistBackupRequest to the model
 func (backup *ClusterBackupsModel) SetValuesFromRequest(db *gorm.DB, req *api.PersistBackupRequest) error {
 	var err error
-	var stateJSON, nodesJSON []byte
+	var stateJSON []byte
 
 	stateJSON, err = json.Marshal(req.Backup)
 	if err != nil {
 		return errors.WrapIf(err, "error converting backup to json")
-	}
-
-	if req.Nodes != nil {
-		nodesJSON, err = json.Marshal(req.Nodes)
-		if err != nil {
-			return errors.WrapIf(err, "error converting nodes to json")
-		}
 	}
 
 	backup.State = stateJSON
@@ -149,13 +145,6 @@ func (backup *ClusterBackupsModel) SetValuesFromRequest(db *gorm.DB, req *api.Pe
 		backup.Cloud = req.Cloud
 		backup.DeploymentID = req.DeploymentID
 		backup.ClusterID = req.ClusterID
-	}
-
-	// only update available node information once
-	if backup.ContentChecked != true && req.Nodes != nil {
-		backup.NodeCount = req.NodeCount
-		backup.Nodes = nodesJSON
-		backup.ContentChecked = req.ContentChecked
 	}
 
 	if !req.Backup.Status.StartTimestamp.IsZero() {
