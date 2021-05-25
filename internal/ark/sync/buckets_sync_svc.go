@@ -17,7 +17,6 @@ package sync
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
@@ -101,7 +100,7 @@ func (s *BucketsSyncService) syncBackupsFromBucket(bucket *api.Bucket) (backupID
 			Cloud:        bucket.ClusterCloud,
 		}
 
-		persitedBackup, err := s.backupsSvc.FindByPersistRequest(req)
+		_, err := s.backupsSvc.FindByPersistRequest(req)
 		if err == gorm.ErrRecordNotFound {
 			err = nil
 		}
@@ -109,20 +108,6 @@ func (s *BucketsSyncService) syncBackupsFromBucket(bucket *api.Bucket) (backupID
 			log.Warning(err.Error())
 			err = nil
 			continue
-		}
-
-		if persitedBackup != nil && persitedBackup.ContentChecked != true &&
-			(backup.Status.Phase == arkAPI.BackupPhaseCompleted || backup.Status.Phase == arkAPI.BackupPhasePartiallyFailed) {
-			nodes, err := s.bucketsSvc.GetNodesFromBackupContents(bucket, backup.Name)
-			if err != nil {
-				log.Warning(err.Error())
-				err = nil
-				continue
-			}
-			req.ContentChecked = true
-			req.Nodes = &nodes
-			req.NodeCount = uint(len(nodes.Items))
-			log.WithField("count", req.NodeCount).Debug("node count found")
 		}
 
 		syncedBackup, err := s.backupsSvc.Persist(req)
