@@ -16,8 +16,10 @@ package eks
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
+	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
 )
@@ -135,4 +137,28 @@ func isARMInstance(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "a1.") || strings.HasPrefix(instanceType, "t4g.") ||
 		strings.HasPrefix(instanceType, "m6g.") || strings.HasPrefix(instanceType, "c6g.") ||
 		strings.HasPrefix(instanceType, "r6g.")
+}
+
+func mustConstraint(v string) *semver.Constraints {
+	cs, err := semver.NewConstraint(fmt.Sprintf("~%s", v))
+	if err != nil {
+		emperror.Panic(errors.WrapIff(err, "could not create semver constraint for Kubernetes version %s.x", v))
+	}
+
+	return cs
+}
+
+// DefaultImages returns an image selector that returns fallback images if no other images are found.
+func DefaultImages() ImageSelector {
+	return defaultImages
+}
+
+// DefaultAcceleratedImages returns an image selector that returns fallback images if no other images are found.
+func DefaultAcceleratedImages() ImageSelector {
+	return defaultAcceleratedImages
+}
+
+// DefaultARMImages returns an image selector that returns fallback images if no other images are found.
+func DefaultARMImages() ImageSelector {
+	return defaultARMImages
 }
