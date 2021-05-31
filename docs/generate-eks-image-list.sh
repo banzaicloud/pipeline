@@ -10,13 +10,7 @@ K8S_VERSIONS=(
 
 AWS_REGIONS=$(aws ec2 describe-regions --output text | cut -f4 | sort -V)
 
-AWS_GOV_CLOUD_REGIONS=(
-  "us-gov-east-1"
-  "us-gov-west-1"
-)
-
 AWS_PROFILE_NAME="${1:-default}"
-AWS_GOV_PROFILE_NAME="${2:-aws-gov}"
 
 function print_images () {
 
@@ -29,10 +23,6 @@ function print_images () {
     echo "\\t\\tImageSelector: RegionMapImageSelector{"
   	for region in ${AWS_REGIONS[@]}; do
   	    AWS_PROFILE=$AWS_PROFILE_NAME aws ssm get-parameter --name /aws/service/eks/optimized-ami/${version}/$2/recommended/image_id --region ${region} --query Parameter.Value --output text | xargs -I "{}" printf "\\t\\t\\t%s : %s,\\n" \"$region\" \"{}\"
-  	done
-    echo "\\t\\t\\t// AWS GovCloud (US) partition"
-    for region in ${AWS_GOV_CLOUD_REGIONS[@]}; do
-  	    AWS_PROFILE=$AWS_GOV_PROFILE_NAME aws ssm get-parameter --name /aws/service/eks/optimized-ami/${version}/amazon-linux-2/recommended/image_id --region ${region} --query Parameter.Value --output text | xargs -I "{}" printf "\\t\\t\\t%s : %s,\\n" \"$region\" \"{}\"
   	done
     echo "\\t\\t},"
     echo "\\t},"

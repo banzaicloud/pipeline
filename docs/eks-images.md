@@ -28,18 +28,16 @@ You will need an AWS access & secure key with following IAM roles:
 }
 ```
 
-To update AWS gov images you will need a special AWS access & secure key which have access to AWS gov resources.
-
 ### Generate
 
 1. Check latest available [EKS versions](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
    and update major versions in K8S_VERSIONS list in [generate-eks-image-list.sh](generate-eks-image-list.sh)
 
-1. The script will use your aws keys from `default` profile to retrieve default images for all regions and `aws-gov` profiles to retrieve AWS gov images.
-   You can use different profile names and specify them as command arguments:
+1. The script will use your aws keys from `default` profile to retrieve default images.
+   You can pass a different profile name as a command parameter:
 
     ```bash
-    ./generate-eks-image-list.sh <YOUR_DEFAULT_AWS_PROFILE_NAME>  <YOUR_AWS_GOV_PROFILE_NAME>
+    ./generate-eks-image-list.sh <YOUR_AWS_PROFILE_NAME>
     ```
 
 1. generate source file containing list of images:
