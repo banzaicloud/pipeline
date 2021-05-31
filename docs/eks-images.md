@@ -37,13 +37,13 @@ You will need an AWS access & secure key with following IAM roles:
    You can pass a different profile name as a command parameter:
 
     ```bash
-    ./generate-eks-image-list.sh <YOUR_AWS_PROFILE_NAME>
+    ./docs/generate-eks-image-list.sh <YOUR_AWS_PROFILE_NAME>
     ```
 
 1. generate source file containing list of images:
 
     ```bash
-    ./generate-eks-image-list.sh > internal/cluster/distribution/eks/image_selector_defaults.go
+    ./docs/generate-eks-image-list.sh > internal/cluster/distribution/eks/image_selector_defaults.go
     ```
 
 1. run `make fix` to fix eventual source code formatting issues
