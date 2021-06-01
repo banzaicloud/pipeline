@@ -1,7 +1,7 @@
 ## How to update default EKS images
 
-Default EKS images are listed in [image_selector_defaults.go](https://github.com/banzaicloud/pipeline/blob/master/internal/cluster/distribution/eks/image_selector_defaults.go) for each K8s version and architecure.
-You can either [generate this file by running a script](#markdown-header-generate) or you can retrieve list of images and update it [manually](#markdown-header-manual-update).
+Default EKS images are listed in [image_selector_defaults.go](https://github.com/banzaicloud/pipeline/blob/master/internal/cluster/distribution/eks/image_selector_defaults.go) for each K8s version and architecture.
+You can either [generate this file by running a script](#-Generate) or you can retrieve list of images and update it [manually](#-Manual-update).
 
 ### Prerequisites
 
