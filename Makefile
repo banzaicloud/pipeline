@@ -38,6 +38,8 @@ MIGRATE_VERSION = 4.9.1
 GOTESTSUM_VERSION = 0.4.1
 MGA_VERSION = 0.4.2
 GRYPE_VERSION = 0.11.0
+ETCD_VERSION = 3.4.16
+KUBE_APISERVER_VERSION = 1.19.11
 
 GOLANG_VERSION = 1.16
 
@@ -254,12 +256,34 @@ test-integrated-service-down:
 
 bin/test/kube-apiserver:
 	@mkdir -p bin/test
-	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-$(shell uname)-x86_64 > bin/test/kube-apiserver
+	case "$(shell uname)" in \
+		Linux) \
+			curl -L https://dl.k8s.io/v$(KUBE_APISERVER_VERSION)/kubernetes-server-linux-amd64.tar.gz | tar -xvz -C bin/test ; \
+			;; \
+		*) \
+			printf >&2 "unsupported operating system $(shell uname)" ; \
+			exit 1 ; \
+			;; \
+	esac
+	mv bin/test/kubernetes/server/bin/kube-apiserver bin/test/kube-apiserver
 	chmod +x bin/test/kube-apiserver
 
 bin/test/etcd:
 	@mkdir -p bin/test
-	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-$(shell uname)-x86_64 > bin/test/etcd
+	case "$(shell uname)" in \
+		Linux) \
+			curl -L https://github.com/etcd-io/etcd/releases/download/v$(ETCD_VERSION)/etcd-v$(ETCD_VERSION)-linux-amd64.tar.gz | tar -xvz -C bin/test ; \
+			mv bin/test/etcd-v$(ETCD_VERSION)-linux-amd64/etcd bin/test/etcd ; \
+			;; \
+		Darwin) \
+			curl -L https://github.com/etcd-io/etcd/releases/download/v$(ETCD_VERSION)/etcd-v$(ETCD_VERSION)-darwin-amd64.zip | tar -xv -C bin/test ; \
+			mv bin/test/etcd-v$(ETCD_VERSION)-darwin-amd64/etcd bin/test/etcd ; \
+			;; \
+		*) \
+			printf >&2 "unsupported operating system $(shell uname)" ; \
+			exit 1 ; \
+			;; \
+	esac
 	chmod +x bin/test/etcd
 
 bin/migrate: bin/migrate-${MIGRATE_VERSION}
