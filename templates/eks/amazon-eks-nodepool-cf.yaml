@@ -225,6 +225,16 @@ Parameters:
       - d2.4xlarge
       - d2.8xlarge
       - d2.xlarge
+      - d3.2xlarge
+      - d3.4xlarge
+      - d3.8xlarge
+      - d3.xlarge
+      - d3en.12xlarge
+      - d3en.2xlarge
+      - d3en.4xlarge
+      - d3en.6xlarge
+      - d3en.8xlarge
+      - d3en.xlarge
       - f1.16xlarge
       - f1.2xlarge
       - f1.4xlarge
