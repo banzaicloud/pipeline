@@ -130,7 +130,7 @@ Parameters:
 
   NodeInstanceType:
     Type: String
-    Default: t2.medium
+    Default: t3.medium
     AllowedValues:
       - a1.2xlarge
       - a1.4xlarge
