@@ -455,6 +455,7 @@ Parameters:
       - r5n.4xlarge
       - r5n.8xlarge
       - r5n.large
+      - r5n.metal
       - r5n.xlarge
       - r6g.12xlarge
       - r6g.16xlarge
