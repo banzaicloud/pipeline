@@ -1,3 +1,4 @@
+# Last reference: https://github.com/awslabs/amazon-eks-ami/blob/3616f1da5dab0cc6256ee60df4a0e5f2d8a42684/amazon-eks-nodegroup.yaml.
 ---
 AWSTemplateFormatVersion: "2010-09-09"
 
