@@ -191,6 +191,7 @@ Parameters:
       - c5n.4xlarge
       - c5n.9xlarge
       - c5n.large
+      - c5n.metal
       - c5n.xlarge
       - c6g.12xlarge
       - c6g.16xlarge
