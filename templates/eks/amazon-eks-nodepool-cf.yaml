@@ -349,6 +349,7 @@ Parameters:
       - m5n.4xlarge
       - m5n.8xlarge
       - m5n.large
+      - m5n.metal
       - m5n.xlarge
       - m6g.12xlarge
       - m6g.16xlarge
