@@ -1,7 +1,9 @@
+docker.io/traefik:1.7.20
 ghcr.io/banzaicloud/anchore-image-validator:0.5.1
 ghcr.io/banzaicloud/instance-termination-handler:0.1.1
-ghcr.io/banzaicloud/integrated-service-operator
-ghcr.io/banzaicloud/nodepool-labels-operator:v0.1.0
+ghcr.io/banzaicloud/integrated-service-operator:v0.5.0
+ghcr.io/banzaicloud/nodepool-labels-operator:v0.1.1
+ghcr.io/banzaicloud/vault-secrets-webhook:1.10.1
 gcr.io/google-containers/cluster-autoscaler:v1.15.4
 k8s.gcr.io/autoscaling/cluster-autoscaler:v1.16.7
 k8s.gcr.io/autoscaling/cluster-autoscaler:v1.17.4

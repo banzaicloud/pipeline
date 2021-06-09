@@ -371,6 +371,12 @@ bin/grype-${GRYPE_VERSION}:
 	@mv bin/grype $@
 scan-docker-images: bin/grype
 	@echo "- Start vulnerablity scan for images: $$(cat docker.images.list)"
+	@if [ -z "$${GITHUB_TOKEN}" ]; then \
+		echo "missing required GITHUB_TOKEN environment variable for ghcr.io authentication" ; \
+		exit 1 ; \
+	else \
+		echo $${GITHUB_TOKEN} | docker login ghcr.io --username "dummy" --password-stdin ; \
+	fi
 	@for image in $$(cat docker.images.list); do echo "Scanning image: " $$image; grype $$image; done;
 	@echo "- Scan completed."
 
