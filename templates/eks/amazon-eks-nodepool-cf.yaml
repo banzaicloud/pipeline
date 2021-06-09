@@ -414,9 +414,11 @@ Parameters:
       - r5a.large
       - r5a.xlarge
       - r5ad.12xlarge
+      - r5ad.16xlarge
       - r5ad.24xlarge
       - r5ad.2xlarge
       - r5ad.4xlarge
+      - r5ad.8xlarge
       - r5ad.large
       - r5ad.xlarge
       - r5d.12xlarge
