@@ -9449,7 +9449,7 @@ go_mod_download(
     name = "golang.org__x__sys",
     _tag = "download",
     module = "golang.org/x/sys",
-    version = "v0.0.0-20210124154548-22da62e12c0c",
+    version = "v0.0.0-20210510120138-977fb7262007",
 )
 
 go_module(

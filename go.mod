@@ -124,9 +124,6 @@ replace (
 
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc10
 
-	// Fixes moby/docker term using an old version
-	golang.org/x/sys => golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
-
 	google.golang.org/grpc => google.golang.org/grpc v1.27.1
 
 	// Kubernetes
