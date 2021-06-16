@@ -3,8 +3,8 @@ module github.com/banzaicloud/pipeline
 go 1.16
 
 require (
-	cloud.google.com/go v0.54.0
-	cloud.google.com/go/storage v1.6.0
+	cloud.google.com/go v0.81.0
+	cloud.google.com/go/storage v1.10.0
 	emperror.dev/emperror v0.32.0
 	emperror.dev/errors v0.8.0
 	emperror.dev/handler/logur v0.4.0
@@ -43,7 +43,7 @@ require (
 	github.com/go-kit/kit v0.10.0
 	github.com/gofrs/flock v0.8.0
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/hashicorp/vault/api v1.0.4
@@ -52,7 +52,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1
 	github.com/jonboulle/clockwork v0.2.0
-	github.com/json-iterator/go v1.1.10
+	github.com/json-iterator/go v1.1.11
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/microcosm-cc/bluemonday v1.0.3
@@ -61,7 +61,7 @@ require (
 	github.com/moogar0880/problems v0.1.1
 	github.com/oklog/run v1.1.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/pelletier/go-toml v1.6.0
+	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/client_model v0.2.0
@@ -73,24 +73,24 @@ require (
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/viper v1.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/vmware-tanzu/velero v1.5.1
 	github.com/vmware/govmomi v0.22.0
-	go.opencensus.io v0.22.3
+	go.opencensus.io v0.23.0
 	go.uber.org/cadence v0.16.0
 	go.uber.org/yarpc v1.45.0
-	go.uber.org/zap v1.14.1
+	go.uber.org/zap v1.17.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	google.golang.org/api v0.20.0
-	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
-	google.golang.org/grpc v1.31.0
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
+	google.golang.org/api v0.44.0
+	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
+	google.golang.org/grpc v1.38.0
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/square/go-jose.v2 v2.5.1
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.5.3
 	k8s.io/api v0.20.5
 	k8s.io/apiextensions-apiserver v0.20.5
@@ -123,9 +123,6 @@ replace (
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc10
-
-	// Fixes moby/docker term using an old version
-	golang.org/x/sys => golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
 
 	google.golang.org/grpc => google.golang.org/grpc v1.27.1
 
