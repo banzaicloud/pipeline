@@ -121,7 +121,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve addon versions", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
 
-	selectedVersion, err := selectLatestVersion(addonVersionsOutput, currentVersion)
+	selectedVersion, err := selectLatestVersion(addonVersionsOutput, currentVersion, input.KubernetesVersion)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "error selecting new version", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
@@ -150,7 +150,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 	return &output, nil
 }
 
-func selectLatestVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string) (string, error) {
+func selectLatestVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string, kubernetesVersion string) (string, error) {
 	currentVersionSemver, err := semver.NewVersion(currentVersion)
 	if err != nil {
 		return "", err
@@ -159,6 +159,9 @@ func selectLatestVersion(addonVersions *eks.DescribeAddonVersionsOutput, current
 
 	for _, addon := range addonVersions.Addons {
 		for _, version := range addon.AddonVersions {
+			if !versionIsCompatible(version.Compatibilities, kubernetesVersion) {
+				continue
+			}
 			newVersion, err := semver.NewVersion(*version.AddonVersion)
 			if err != nil {
 				return "", err
@@ -169,4 +172,16 @@ func selectLatestVersion(addonVersions *eks.DescribeAddonVersionsOutput, current
 		}
 	}
 	return latestVersion.Original(), nil
+}
+
+func versionIsCompatible(compatibilities []*eks.Compatibility, kubernetesVersion string) bool {
+	for _, c := range compatibilities {
+		if c.ClusterVersion == nil {
+			continue
+		}
+		if kubernetesVersion == *c.ClusterVersion {
+			return true
+		}
+	}
+	return false
 }

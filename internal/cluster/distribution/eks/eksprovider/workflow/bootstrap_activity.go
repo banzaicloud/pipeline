@@ -184,6 +184,7 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		return nil, errors.Wrap(err, "failed to update CNI driver daemonset")
 	}
 
+	// TODO: check feature flag and K8s version
 	logger.Info("create add-on for cluster : " + (input.ClusterName))
 
 	coreDnsAddOnInput := &eks.CreateAddonInput{
