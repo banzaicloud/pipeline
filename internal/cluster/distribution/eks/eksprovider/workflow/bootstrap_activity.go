@@ -18,12 +18,12 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/ghodss/yaml"
@@ -187,8 +187,8 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 	logger.Info("create add-on for cluster : " + (input.ClusterName))
 
 	coreDnsAddOnInput := &eks.CreateAddonInput{
-		AddonName:   aws.String("coredns"),
-		ClusterName: aws.String(input.ClusterName),
+		AddonName:        aws.String("coredns"),
+		ClusterName:      aws.String(input.ClusterName),
 		ResolveConflicts: aws.String(eks.ResolveConflictsOverwrite),
 	}
 	addOnOutput, err := eksSvc.CreateAddon(coreDnsAddOnInput)

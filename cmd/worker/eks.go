@@ -193,5 +193,8 @@ func registerEKSWorkflows(
 	eksworkflow2.NewUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register(worker)
 	eksworkflow2.NewWaitUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register(worker)
 
+	eksworkflow2.NewUpdateAddonActivity(awsSessionFactory, eksFactory).Register(worker)
+	eksworkflow2.NewWaitUpdateAddonActivity(awsSessionFactory, eksFactory).Register(worker)
+
 	return nil
 }
