@@ -47,6 +47,7 @@ const BootstrapActivityName = "eks-bootstrap"
 // CreateEksControlPlaneActivity creates aws-auth map & default StorageClass on cluster
 type BootstrapActivity struct {
 	awsSessionFactory *awsworkflow.AWSSessionFactory
+	enableAddons      bool
 }
 
 // BootstrapActivityInput holds input data
@@ -64,9 +65,10 @@ type BootstrapActivityOutput struct {
 }
 
 // BootstrapActivity instantiates a new BootstrapActivity
-func NewBootstrapActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *BootstrapActivity {
+func NewBootstrapActivity(awsSessionFactory *awsworkflow.AWSSessionFactory, enableAddons bool) *BootstrapActivity {
 	return &BootstrapActivity{
 		awsSessionFactory: awsSessionFactory,
+		enableAddons:      enableAddons,
 	}
 }
 
@@ -184,37 +186,43 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		return nil, errors.Wrap(err, "failed to update CNI driver daemonset")
 	}
 
-	// TODO: check feature flag and K8s version
-	logger.Info("create add-on for cluster : " + (input.ClusterName))
-
-	coreDnsAddOnInput := &eks.CreateAddonInput{
-		AddonName:        aws.String("coredns"),
-		ClusterName:      aws.String(input.ClusterName),
-		ResolveConflicts: aws.String(eks.ResolveConflictsOverwrite),
-	}
-	addOnOutput, err := eksSvc.CreateAddon(coreDnsAddOnInput)
+	// check add-on are enabled and K8s version is >= 1.18
+	constraint, err = semver.NewConstraint("~1.18")
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ResourceInUseException" {
-			logger.Info("addon created but: " + awsErr.Message())
-		} else {
-			return nil, errors.Wrap(err, "failed to create coredns add-on")
+		return nil, errors.WrapIf(err, "could not set 1.18 constraint for semver")
+	}
+	if a.enableAddons && constraint.Check(kubeVersion) {
+		logger.Info("create add-on for cluster : " + (input.ClusterName))
+
+		coreDnsAddOnInput := &eks.CreateAddonInput{
+			AddonName:        aws.String("coredns"),
+			ClusterName:      aws.String(input.ClusterName),
+			ResolveConflicts: aws.String(eks.ResolveConflictsOverwrite),
 		}
-	} else {
-		logger.Info("addon created with status: " + addOnOutput.Addon.String())
-	}
+		addOnOutput, err := eksSvc.CreateAddon(coreDnsAddOnInput)
+		if err != nil {
+			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ResourceInUseException" {
+				logger.Info("addon created but: " + awsErr.Message())
+			} else {
+				return nil, errors.Wrap(err, "failed to create coredns add-on")
+			}
+		} else {
+			logger.Info("addon created with status: " + addOnOutput.Addon.String())
+		}
 
-	logger.Info("waiting for add-on creation")
+		logger.Info("waiting for add-on creation")
 
-	describeAddonInput := &eks.DescribeAddonInput{
-		AddonName:   aws.String("coredns"),
-		ClusterName: aws.String(input.ClusterName),
-	}
-	err = waitUntilAddOnCreateCompleteWithContext(eksSvc, ctx, describeAddonInput)
-	if err != nil {
-		return nil, err
-	}
+		describeAddonInput := &eks.DescribeAddonInput{
+			AddonName:   aws.String("coredns"),
+			ClusterName: aws.String(input.ClusterName),
+		}
+		err = waitUntilAddOnCreateCompleteWithContext(eksSvc, ctx, describeAddonInput)
+		if err != nil {
+			return nil, err
+		}
 
-	logger.Info("add-on created successfully")
+		logger.Info("add-on created successfully")
+	}
 
 	outParams := BootstrapActivityOutput{}
 	return &outParams, nil

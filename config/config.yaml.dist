@@ -395,6 +395,8 @@ dex:
 #        exposeAdminKubeconfig: true
 #        ssh:
 #            generate: true
+#        # Enable create & update of EKS addons like coredns
+#        enableAddons: true
 #
 #    pke:
 #        amazon:

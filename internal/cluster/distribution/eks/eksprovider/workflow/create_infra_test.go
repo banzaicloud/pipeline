@@ -71,7 +71,7 @@ func (s *CreateInfraWorkflowTestSuite) SetupTest() {
 	createUserAccessKeyActivity := NewCreateClusterUserAccessKeyActivity(nil)
 	s.env.RegisterActivityWithOptions(createUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: CreateClusterUserAccessKeyActivityName})
 
-	bootstrapActivity := NewBootstrapActivity(nil)
+	bootstrapActivity := NewBootstrapActivity(nil, true)
 	s.env.RegisterActivityWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: BootstrapActivityName})
 
 	saveClusterActivity := NewSaveNetworkDetailsActivity(nil)

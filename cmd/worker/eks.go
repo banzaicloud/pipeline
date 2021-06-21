@@ -121,7 +121,7 @@ func registerEKSWorkflows(
 	createUserAccessKeyActivity := eksworkflow.NewCreateClusterUserAccessKeyActivity(awsSessionFactory)
 	worker.RegisterActivityWithOptions(createUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: eksworkflow.CreateClusterUserAccessKeyActivityName})
 
-	bootstrapActivity := eksworkflow.NewBootstrapActivity(awsSessionFactory)
+	bootstrapActivity := eksworkflow.NewBootstrapActivity(awsSessionFactory, config.Distribution.EKS.EnableAddons)
 	worker.RegisterActivityWithOptions(bootstrapActivity.Execute, activity.RegisterOptions{Name: eksworkflow.BootstrapActivityName})
 
 	saveK8sConfigActivity := eksworkflow.NewSaveK8sConfigActivity(awsSessionFactory, clusterManager)
