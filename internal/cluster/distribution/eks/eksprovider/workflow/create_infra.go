@@ -317,23 +317,6 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 		}
 	}
 
-	var configSecretID string
-	{
-		activityInput := SaveK8sConfigActivityInput{
-			ClusterID:        input.ClusterID,
-			ClusterUID:       input.ClusterUID,
-			ClusterName:      input.ClusterName,
-			OrganizationID:   input.OrganizationID,
-			ProviderSecretID: input.SecretID,
-			UserSecretID:     userAccessKeyActivityOutput.SecretID,
-			Region:           input.Region,
-		}
-		future := workflow.ExecuteActivity(ctx, SaveK8sConfigActivityName, activityInput)
-		if err := future.Get(ctx, &configSecretID); err != nil {
-			return nil, err
-		}
-	}
-
 	// initial setup of K8s cluster
 	var bootstrapActivityFeature workflow.Future
 	{
@@ -417,6 +400,23 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	bootstrapActivityOutput := &BootstrapActivityOutput{}
 	if err := bootstrapActivityFeature.Get(ctx, &bootstrapActivityOutput); err != nil {
 		return nil, err
+	}
+
+	var configSecretID string
+	{
+		activityInput := SaveK8sConfigActivityInput{
+			ClusterID:        input.ClusterID,
+			ClusterUID:       input.ClusterUID,
+			ClusterName:      input.ClusterName,
+			OrganizationID:   input.OrganizationID,
+			ProviderSecretID: input.SecretID,
+			UserSecretID:     userAccessKeyActivityOutput.SecretID,
+			Region:           input.Region,
+		}
+		future := workflow.ExecuteActivity(ctx, SaveK8sConfigActivityName, activityInput)
+		if err := future.Get(ctx, &configSecretID); err != nil {
+			return nil, err
+		}
 	}
 
 	output := CreateInfrastructureWorkflowOutput{
