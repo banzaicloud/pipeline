@@ -187,7 +187,7 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 	}
 
 	// check add-on are enabled and K8s version is >= 1.18
-	constraint, err = semver.NewConstraint("~1.18")
+	constraint, err = semver.NewConstraint(">=1.18")
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not set 1.18 constraint for semver")
 	}
