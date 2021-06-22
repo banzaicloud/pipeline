@@ -179,7 +179,7 @@ func versionIsCompatible(compatibilities []*eks.Compatibility, kubernetesVersion
 		if c.ClusterVersion == nil {
 			continue
 		}
-		if kubernetesVersion == *c.ClusterVersion {
+		if *c.ClusterVersion == kubernetesVersion {
 			return true
 		}
 	}
