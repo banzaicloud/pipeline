@@ -92,7 +92,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		ClusterName: aws.String(input.ClusterName),
 	}
 	addonOutput, err := eksSvc.DescribeAddon(describeAddonInput)
-	addonNotFoundErrMsg := fmt.Sprintf("No addon: %s found in cluster: %s", input.AddonName, input.ClusterName)
+	addonNotFoundErrMsg := fmt.Sprintf("No %s addon found in cluster: %s", input.AddonName, input.ClusterName)
 	if err != nil {
 		var awsErr awserr.Error
 		if errors.As(err, &awsErr) {
