@@ -5675,6 +5675,7 @@ components:
                                             type: string
                                         example: ["asia.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe8b65e", "eu.gcr.io/google_containers/node-problem-detector@sha256:f95cab985c26b2f46e9bd43283e0bfa88860c14e0fb0649266babe"]
                                     sizeBytes:
+                                        format: int64
                                         type: integer
                                         example: 286572743
 

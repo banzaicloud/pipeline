@@ -23510,6 +23510,7 @@ components:
           type: array
         sizeBytes:
           example: 286572743
+          format: int64
           type: integer
     NodeItem_status:
       example:
