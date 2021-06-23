@@ -106,6 +106,44 @@ func (w UpdateClusterWorkflow) Execute(ctx workflow.Context, input UpdateCluster
 		}
 	}
 
+	// update core-dns addon if there's a new version available for given KubernetesVersion
+	var coreDnsUpdateOutput UpdateAddonActivityOutput
+	{
+		activityInput := UpdateAddonActivityInput{
+			OrganizationID:    input.OrganizationID,
+			ProviderSecretID:  input.ProviderSecretID,
+			Region:            input.Region,
+			ClusterName:       input.ClusterName,
+			KubernetesVersion: input.Version,
+			AddonName:         "coredns",
+		}
+		err := workflow.ExecuteActivity(ctx, UpdateAddonActivityName, activityInput).Get(ctx, &coreDnsUpdateOutput)
+		if err != nil {
+			_ = eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error())
+			return err
+		}
+	}
+
+	// wait for addon update to finish
+	if coreDnsUpdateOutput.UpdateID != "" {
+		activityInput := &WaitUpdateAddonActivityInput{
+			OrganizationID:   input.OrganizationID,
+			ProviderSecretID: input.ProviderSecretID,
+			Region:           input.Region,
+			ClusterName:      input.ClusterName,
+			AddonName:        "coredns",
+			UpdateID:         coreDnsUpdateOutput.UpdateID,
+		}
+
+		ctx := workflow.WithStartToCloseTimeout(ctx, 2*time.Hour)
+
+		err := workflow.ExecuteActivity(ctx, WaitUpdateAddonActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			_ = eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error())
+			return err
+		}
+	}
+
 	// save the new cluster version to db
 	{
 		activityInput := &eksWorkflow.SaveClusterVersionActivityInput{

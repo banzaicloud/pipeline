@@ -22,6 +22,7 @@ go_library(
         "//pkg/sdk/providers/amazon/cloudformation",
         "//pkg/sdk/semver",
         "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__Masterminds__semver__v3",
         "//third_party/go:github.com__aws__aws-sdk-go__aws",
         "//third_party/go:github.com__aws__aws-sdk-go__aws__awserr",
         "//third_party/go:github.com__aws__aws-sdk-go__aws__request",
@@ -31,5 +32,17 @@ go_library(
         "//third_party/go:go.uber.org__cadence",
         "//third_party/go:go.uber.org__cadence__activity",
         "//third_party/go:go.uber.org__cadence__workflow",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = glob(["*_test.go"]),
+    deps = [
+        ":eksworkflow",
+        "//third_party/go:github.com__aws__aws-sdk-go__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go__service__eks",
+        "//third_party/go:github.com__stretchr__testify__assert",
+        "//third_party/go:github.com__stretchr__testify__require",
     ],
 )

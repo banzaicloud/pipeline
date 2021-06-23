@@ -72,6 +72,7 @@ type Config struct {
 			SSH                   struct {
 				Generate bool
 			}
+			EnableAddons bool
 		}
 
 		PKE struct {
