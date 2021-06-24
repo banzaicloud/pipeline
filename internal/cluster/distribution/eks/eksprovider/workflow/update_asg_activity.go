@@ -68,6 +68,7 @@ type UpdateAsgActivityInput struct {
 	Count                int
 	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
 	NodeVolumeSize       int
+	NodeVolumeType       string
 	NodeImage            string
 	NodeInstanceType     string
 
@@ -201,6 +202,11 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
+	nodeVolumeType := "gp2"
+	if input.NodeVolumeType != "" {
+		nodeVolumeType = input.NodeVolumeType
+	}
+
 	var stackTagsBuilder strings.Builder
 	for tagIndex, tag := range tags {
 		if tagIndex != 0 {
@@ -256,6 +262,10 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			input.NodeVolumeSize > 0,
 			fmt.Sprintf("%d", input.NodeVolumeSize),
 		),
+		{
+			ParameterKey:   aws.String("NodeVolumeType"),
+			ParameterValue: aws.String(nodeVolumeType),
+		},
 		{
 			ParameterKey:   aws.String("StackTags"),
 			ParameterValue: aws.String(stackTagsBuilder.String()),

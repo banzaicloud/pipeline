@@ -94,6 +94,7 @@ func (a SaveNodePoolsActivity) Execute(ctx context.Context, input SaveNodePoolsA
 				Status:           eks.NodePoolStatusCreating,
 				StatusMessage:    "",
 				// NodeVolumeSize:   asg.NodeVolumeSize, // Note: not stored in DB.
+				// NodeVolumeType:   asg.NodeVolumeType, // Note: not stored in DB.
 				// Labels:           asg.Labels, // Note: not stored in DB.
 				Delete: false,
 			}
