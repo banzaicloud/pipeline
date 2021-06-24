@@ -22996,6 +22996,10 @@ components:
           description: Size of the EBS volume in GBs of the nodes in the pool.
           example: 50
           type: integer
+        volumeType:
+          description: Type of the EBS volume of the nodes in the pool (default gp2).
+          example: gp3
+          type: string
         instanceType:
           description: Machine instance type.
           example: m4.xlarge
