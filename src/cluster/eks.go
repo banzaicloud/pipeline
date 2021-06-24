@@ -125,6 +125,7 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 			NodeMaxCount:     nodePool.MaxCount,
 			Count:            nodePool.Count,
 			NodeVolumeSize:   nodePool.VolumeSize,
+			NodeVolumeType:   nodePool.VolumeType,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
 			Status:           eks2.NodePoolStatusCreating,

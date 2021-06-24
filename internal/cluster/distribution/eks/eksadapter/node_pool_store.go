@@ -81,6 +81,7 @@ func (s nodePoolStore) CreateNodePool(
 		Status:           eks.NodePoolStatusCreating,
 		StatusMessage:    "",
 		// NodeVolumeSize:   nodePool.VolumeSize, // Note: not stored in DB.
+		// NodeVolumeType:   nodepool.VolumeType, // Note: not stored in DB.
 		// Labels:           nodePool.Labels, // Note: not stored in DB.
 	}
 

@@ -138,7 +138,8 @@ type AmazonNodePoolsModel struct {
 	NodeMinCount     int
 	NodeMaxCount     int
 	Count            int
-	NodeVolumeSize   int `gorm:"-"` // Note: not stored in DB.
+	NodeVolumeSize   int    `gorm:"-"` // Note: not stored in DB.
+	NodeVolumeType   string `gorm:"-"` // Note: not stored in DB.
 	NodeImage        string
 	NodeInstanceType string
 	Status           eks.NodePoolStatus // Note: stored status info is only used when CF stack is not existing.
@@ -166,6 +167,7 @@ func (m AmazonNodePoolsModel) String() string {
 		m.Status,
 		m.StatusMessage,
 		// m.NodeVolumeSize, // Note: not stored in DB.
+		// m.NodeVolumeType, // Note: not stored in DB.
 		// m.Labels, // Note: Not stored in DB.
 	)
 }

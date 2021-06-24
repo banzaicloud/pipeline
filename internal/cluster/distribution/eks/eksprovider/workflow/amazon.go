@@ -228,6 +228,7 @@ type AutoscaleGroup struct {
 	Count                int
 	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
 	NodeVolumeSize       int
+	NodeVolumeType       string
 	NodeImage            string
 	NodeInstanceType     string
 
