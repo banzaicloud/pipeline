@@ -139,7 +139,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
-	nodeVolumeType := "gp2"
+	nodeVolumeType := "gp3"
 	if input.NodeVolumeType != "" {
 		nodeVolumeType = input.NodeVolumeType
 	}

@@ -158,7 +158,7 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
-	nodeVolumeType := "gp2"
+	nodeVolumeType := "gp3"
 	if input.NodeVolumeType != "" {
 		nodeVolumeType = input.NodeVolumeType
 	}
