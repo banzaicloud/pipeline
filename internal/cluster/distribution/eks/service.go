@@ -67,6 +67,7 @@ type ClusterUpdate struct {
 type NodePoolUpdate struct {
 	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
 	VolumeSize       int                       `mapstructure:"volumeSize"`
+	VolumeType       string                    `mapstructure:"volumeType"`
 
 	Image            string   `mapstructure:"image"`
 	SecurityGroups   []string `mapstructure:"securityGroups"`

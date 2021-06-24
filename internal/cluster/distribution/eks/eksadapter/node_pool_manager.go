@@ -244,6 +244,7 @@ func (n nodePoolManager) UpdateNodePool(
 
 		NodeVolumeEncryption: nodePoolUpdate.VolumeEncryption,
 		NodeVolumeSize:       nodePoolUpdate.VolumeSize,
+		NodeVolumeType:       nodePoolUpdate.VolumeType,
 		NodeImage:            nodePoolUpdate.Image,
 		SecurityGroups:       nodePoolUpdate.SecurityGroups,
 		UseInstanceStore:     nodePoolUpdate.UseInstanceStore,

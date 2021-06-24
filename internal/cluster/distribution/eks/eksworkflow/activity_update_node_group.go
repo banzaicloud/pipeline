@@ -64,6 +64,7 @@ type UpdateNodeGroupActivityInput struct {
 
 	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
 	NodeVolumeSize       int
+	NodeVolumeType       string
 	NodeImage            string
 	DesiredCapacity      int64
 	SecurityGroups       []string
@@ -138,6 +139,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 	}
 
+	nodeVolumeType := "gp2"
+	if input.NodeVolumeType != "" {
+		nodeVolumeType = input.NodeVolumeType
+	}
+
 	tags := getNodePoolStackTags(input.ClusterName, input.ClusterTags)
 
 	var stackTagsBuilder strings.Builder
@@ -208,6 +214,11 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			"NodeVolumeSize",
 			input.NodeVolumeSize > 0,
 			fmt.Sprintf("%d", input.NodeVolumeSize),
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"NodeVolumeType",
+			input.NodeVolumeType != "" || input.CurrentTemplateVersion.IsLessThan("2.4.0"), // Note: older templates cannot use non-existing previous value.
+			nodeVolumeType,
 		),
 		{
 			ParameterKey:   aws.String("StackTags"),
