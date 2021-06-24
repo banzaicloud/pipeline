@@ -107,6 +107,7 @@ type NodePool struct {
 	Autoscaling      Autoscaling               `mapstructure:"autoscaling"`
 	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
 	VolumeSize       int                       `mapstructure:"volumeSize"`
+	VolumeType       string                    `mapstructure:"volumeType"`
 	InstanceType     string                    `mapstructure:"instanceType"`
 	Image            string                    `mapstructure:"image"`
 	SpotPrice        string                    `mapstructure:"spotPrice"`
@@ -128,12 +129,13 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 		NodeImageID                 string `mapstructure:"NodeImageId"`
 		NodeInstanceType            string `mapstructure:"NodeInstanceType"`
 		NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
-		NodeVolumeEncryptionEnabled string `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.1.0.
-		NodeVolumeEncryptionKeyARN  string `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: CustomNodeSecurityGroups is only available from template version 2.1.0.
+		NodeVolumeEncryptionEnabled string `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: NodeVolumeEncryptionEnabled is only available from template version 2.1.0.
+		NodeVolumeEncryptionKeyARN  string `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
 		NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
+		NodeVolumeType              string `mapstructure:"NodeVolumeType,omitempty"`           // Note: NodeVolumeType is only available from template version 2.4.0.
 		CustomNodeSecurityGroups    string `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
 		Subnets                     string `mapstructure:"Subnets"`
-		UseInstanceStore            string `mapstructure:"UseInstanceStore,omitempty"`
+		UseInstanceStore            string `mapstructure:"UseInstanceStore,omitempty"` // Note: UseInstanceStore is only available from template version 2.2.0.
 	}
 
 	err := sdkCloudFormation.ParseStackParameters(stack.Parameters, &nodePoolParameters)
@@ -161,6 +163,7 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 	}
 
 	nodePool.VolumeSize = nodePoolParameters.NodeVolumeSize
+	nodePool.VolumeType = nodePoolParameters.NodeVolumeType
 	nodePool.InstanceType = nodePoolParameters.NodeInstanceType
 	nodePool.Image = nodePoolParameters.NodeImageID
 	nodePool.SpotPrice = nodePoolParameters.NodeSpotPrice
