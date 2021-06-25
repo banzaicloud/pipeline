@@ -4580,7 +4580,7 @@ components:
                             type: integer
                             example: 50
                         volumeType:
-                            description: Type of the EBS volume of the nodes in the pool (default gp2).
+                            description: Type of the EBS volume of the nodes in the pool (default gp3).
                             type: string
                             example: gp3
                         instanceType:
@@ -4708,7 +4708,7 @@ components:
                             type: integer
                             example: 50
                         volumeType:
-                            description: Type of the EBS volume of the nodes in the pool (default gp2).
+                            description: Type of the EBS volume of the nodes in the pool (default gp3).
                             type: string
                             example: gp3
                         instanceType:
