@@ -29,6 +29,9 @@ type NodePoolSummary struct {
 	// Size of the EBS volume in GBs of the nodes in the pool.
 	VolumeSize int32 `json:"volumeSize,omitempty"`
 
+	// Type of the EBS volume of the nodes in the pool (default gp2).
+	VolumeType string `json:"volumeType,omitempty"`
+
 	// Machine instance type.
 	InstanceType string `json:"instanceType"`
 

@@ -53,6 +53,7 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						Count:            1,
 						VolumeEncryption: nil,
 						VolumeSize:       1,
+						VolumeType:       "",
 						Image:            "image-1",
 						Labels: map[string]string{
 							"label-1": "value-1",
@@ -78,6 +79,7 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 							Enabled: true,
 						},
 						VolumeSize: 2,
+						VolumeType: "gp2",
 						Image:      "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
@@ -104,6 +106,7 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 							EncryptionKeyARN: "encryption-key-arn-3",
 						},
 						VolumeSize: 3,
+						VolumeType: "gp3",
 						Image:      "image-3",
 						Labels: map[string]string{
 							"label-3": "value-3",
@@ -144,6 +147,7 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 					Count:                1,
 					NodeVolumeEncryption: nil,
 					NodeVolumeSize:       1,
+					NodeVolumeType:       "",
 					NodeImage:            "image-1",
 					NodeInstanceType:     "instance-type-1",
 					SecurityGroups: []string{
@@ -168,6 +172,7 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						Enabled: true,
 					},
 					NodeVolumeSize:   2,
+					NodeVolumeType:   "gp2",
 					NodeImage:        "image-2",
 					NodeInstanceType: "instance-type-2",
 					SecurityGroups: []string{
@@ -193,6 +198,7 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						EncryptionKeyARN: "encryption-key-arn-3",
 					},
 					NodeVolumeSize:   3,
+					NodeVolumeType:   "gp3",
 					NodeImage:        "image-3",
 					NodeInstanceType: "instance-type-3",
 					SecurityGroups: []string{
@@ -246,6 +252,7 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						MaxCount:     1,
 						Count:        1,
 						VolumeSize:   1,
+						VolumeType:   "",
 						Image:        "image-1",
 						Labels: map[string]string{
 							"label-1": "value-1",
@@ -272,6 +279,7 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 					NodeMaxCount:     1,
 					Count:            1,
 					NodeVolumeSize:   1,
+					NodeVolumeType:   "",
 					NodeImage:        "image-1",
 					NodeInstanceType: "instance-type-1",
 					SecurityGroups: []string{
@@ -481,6 +489,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 						NodeMaxCount:     3,
 						Count:            3,
 						NodeVolumeSize:   3,
+						NodeVolumeType:   "gp3",
 						NodeImage:        "image-3",
 						NodeInstanceType: "instance-type-3",
 						Status:           eks.NodePoolStatusReady,
@@ -501,6 +510,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 						Count:            2,
 						VolumeEncryption: nil,
 						VolumeSize:       2,
+						VolumeType:       "gp2",
 						Image:            "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
@@ -522,6 +532,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 							Enabled: true,
 						},
 						VolumeSize: 33333,
+						VolumeType: "gp3",
 						Image:      "image-3",
 						Labels: map[string]string{
 							"label-3": "value-3",
@@ -544,6 +555,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 							EncryptionKeyARN: "encryption-key-arn-4",
 						},
 						VolumeSize: 4,
+						VolumeType: "io1",
 						Image:      "image-4",
 						Labels: map[string]string{
 							"label-4": "value-4",
@@ -572,6 +584,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 						Count:            2,
 						VolumeEncryption: nil,
 						VolumeSize:       2,
+						VolumeType:       "gp2",
 						Image:            "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
@@ -594,6 +607,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 							EncryptionKeyARN: "encryption-key-arn-4",
 						},
 						VolumeSize: 4,
+						VolumeType: "io1",
 						Image:      "image-4",
 						Labels: map[string]string{
 							"label-4": "value-4",
@@ -617,6 +631,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 							Enabled: true,
 						},
 						VolumeSize: 33333,
+						VolumeType: "gp3",
 						Image:      "image-3",
 						Labels: map[string]string{
 							"label-3": "value-3",
@@ -644,6 +659,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 						MaxCount:     0,
 						Count:        2,
 						VolumeSize:   2,
+						VolumeType:   "gp2",
 						Image:        "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
@@ -676,6 +692,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 						MaxCount:     0,
 						Count:        2,
 						VolumeSize:   2,
+						VolumeType:   "gp2",
 						Image:        "",
 						Labels: map[string]string{
 							"label-2": "value-2",
@@ -745,6 +762,7 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 						Count:            1,
 						VolumeEncryption: nil,
 						VolumeSize:       1,
+						VolumeType:       "",
 						Image:            "image-1",
 						Labels: map[string]string{
 							"label-1": "value-1",
@@ -770,6 +788,7 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 							Enabled: true,
 						},
 						VolumeSize: 2,
+						VolumeType: "gp2",
 						Image:      "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
@@ -788,6 +807,7 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 							EncryptionKeyARN: "encryption-key-arn-3",
 						},
 						VolumeSize: 3,
+						VolumeType: "gp3",
 						Image:      "image-3",
 						Labels: map[string]string{
 							"label-3": "value-3",
@@ -818,6 +838,7 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 						},
 						VolumeEncryption: nil,
 						VolumeSize:       1,
+						VolumeType:       "",
 						InstanceType:     "instance-type-1",
 						Image:            "image-1",
 						SpotPrice:        "0.1",
@@ -842,6 +863,7 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 							Enabled: true,
 						},
 						VolumeSize:   2,
+						VolumeType:   "gp2",
 						InstanceType: "instance-type-2",
 						Image:        "image-2",
 						SpotPrice:    "0.2",
@@ -863,6 +885,7 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 							EncryptionKeyARN: "encryption-key-arn-3",
 						},
 						VolumeSize:   3,
+						VolumeType:   "gp3",
 						InstanceType: "instance-type-3",
 						Image:        "image-3",
 						SpotPrice:    "0.3",

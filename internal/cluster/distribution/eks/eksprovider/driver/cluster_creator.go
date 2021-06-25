@@ -227,6 +227,7 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 				MaxSize: requestedNodePool.MaxCount,
 			},
 			VolumeSize:       requestedNodePool.VolumeSize,
+			VolumeType:       requestedNodePool.VolumeType,
 			InstanceType:     requestedNodePool.InstanceType,
 			Image:            requestedNodePool.Image,
 			SpotPrice:        requestedNodePool.SpotPrice,

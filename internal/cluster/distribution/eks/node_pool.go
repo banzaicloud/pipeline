@@ -32,6 +32,7 @@ type NewNodePool struct {
 	} `mapstructure:"autoscaling"`
 	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
 	VolumeSize       int                       `mapstructure:"volumeSize"`
+	VolumeType       string                    `mapstructure:"volumeType"`
 	InstanceType     string                    `mapstructure:"instanceType"`
 	Image            string                    `mapstructure:"image"`
 	SpotPrice        string                    `mapstructure:"spotPrice"`

@@ -72,6 +72,7 @@ type UpdateNodePoolWorkflowInput struct {
 
 	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
 	NodeVolumeSize       int
+	NodeVolumeType       string
 	NodeImage            string
 	SecurityGroups       []string
 	UseInstanceStore     *bool
@@ -277,6 +278,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodePoolVersion:        nodePoolVersion,
 			NodeVolumeEncryption:   input.NodeVolumeEncryption,
 			NodeVolumeSize:         volumeSize,
+			NodeVolumeType:         input.NodeVolumeType,
 			NodeImage:              input.NodeImage,
 			SecurityGroups:         input.SecurityGroups,
 			UseInstanceStore:       input.UseInstanceStore,

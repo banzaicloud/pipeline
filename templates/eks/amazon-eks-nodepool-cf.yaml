@@ -29,6 +29,7 @@ Metadata:
           - NodeVolumeEncryptionEnabled
           - NodeVolumeEncryptionKeyARN
           - NodeVolumeSize
+          - NodeVolumeType
           - KeyName
           - BootstrapArguments
           - KubeletExtraArguments
@@ -567,6 +568,18 @@ Parameters:
     Default: 0 # Note: defaulted to no value when 0.
     Description: Node volume size
 
+  NodeVolumeType:
+    Type: String
+    AllowedValues:
+      - gp2
+      - gp3
+      - io1
+      - io2
+      - sc1
+      - st1
+      - standard
+    Description: Volume type of the EBS block device mapping of the node launch template used for the node pool's nodes. See more information at https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html#cfn-ec2-launchtemplate-blockdevicemapping-ebs-volumetype.
+
   StackTags:
     Type: "String"
     Default: ""
@@ -578,7 +591,7 @@ Parameters:
 
   TemplateVersion:
     Type: String
-    Default: "2.3.0"
+    Default: "2.4.0"
     Description: Current version of the template structure as metainformation for created stacks.
 
   TerminationDetachEnabled:
@@ -763,7 +776,7 @@ Resources:
               Encrypted: !If [ IsNodeVolumeEncryptionSpecified, !Ref NodeVolumeEncryptionEnabled , !Ref "AWS::NoValue" ]
               KmsKeyId: !If [ IsNodeVolumeEncryptionKeyARNSpecified, !Ref NodeVolumeEncryptionKeyARN, !Ref "AWS::NoValue" ]
               VolumeSize: !If [ NodeVolumeSizeAuto, !Ref "AWS::NoValue", !Ref NodeVolumeSize ]
-              VolumeType: gp2
+              VolumeType: !Ref NodeVolumeType
         IamInstanceProfile:
           Arn: !GetAtt NodeInstanceProfile.Arn
         ImageId: !Ref NodeImageId # Note: deliberately not allowing fallback to NodeImageIdSSMParam.

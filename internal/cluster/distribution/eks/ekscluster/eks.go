@@ -121,6 +121,7 @@ type NodePool struct {
 	Count            int                       `json:"count" yaml:"count"`
 	VolumeEncryption *NodePoolVolumeEncryption `json:"volumeEncryption,omitempty" yaml:"volumeEncryption,omitempty"`
 	VolumeSize       int                       `json:"volumeSize" yaml:"volumeSize"`
+	VolumeType       string                    `json:"volumeType" yaml:"volumeType"`
 	Image            string                    `json:"image" yaml:"image"`
 	Labels           map[string]string         `json:"labels,omitempty" yaml:"labels,omitempty"`
 
