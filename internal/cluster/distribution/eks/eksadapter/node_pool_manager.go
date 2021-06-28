@@ -98,6 +98,26 @@ func (n nodePoolManager) CreateNodePool(ctx context.Context, c cluster.Cluster, 
 	return nil
 }
 
+func (n nodePoolManager) CreateMultiNodePools(ctx context.Context, c cluster.Cluster, nodePoolList []eks.NewNodePool) (err error) {
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
+	}
+
+	input := workflow.CreateMultiNodePoolsWorkflowInput{
+		ClusterID:     c.ID,
+		NodePoolList:  nodePoolList,
+		CreatorUserID: n.getUserID(ctx),
+	}
+
+	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateMultiNodePoolsWorkflowName, input)
+	if err != nil {
+		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.CreateMultiNodePoolsWorkflowName)
+	}
+
+	return nil
+}
+
 // DeleteNodePool deletes an existing node pool in a cluster.
 func (n nodePoolManager) DeleteNodePool(
 	ctx context.Context, c cluster.Cluster, existingNodePool eks.ExistingNodePool, shouldUpdateClusterStatus bool,

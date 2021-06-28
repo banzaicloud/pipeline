@@ -55,6 +55,10 @@ func (s pkeService) CreateNodePool(ctx context.Context, clusterID uint, rawNodeP
 	panic("implement me")
 }
 
+func (s pkeService) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNodePool []cluster.NewRawNodePool) error {
+	panic("implement me")
+}
+
 func (s pkeService) UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate cluster.RawNodePoolUpdate) (string, error) {
 	var nodePoolUpdate pke.NodePoolUpdate
 

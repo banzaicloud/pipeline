@@ -57,7 +57,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	))
 
 	router.Methods(http.MethodPost).Path("/nodepools").Handler(kithttp.NewServer(
-		endpoints.CreateNodePool,
+		endpoints.CreateMultiNodePools,
 		decodeCreateNodePoolHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
@@ -186,11 +186,31 @@ func decodeCreateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interf
 		return nil, errors.NewWithDetails("invalid cluster ID", "rawClusterId", rawClusterID)
 	}
 
-	var rawNodePool pipeline.NodePool
+	var rawRequest interface{}
 
-	err = json.NewDecoder(r.Body).Decode(&rawNodePool)
+	err = json.NewDecoder(r.Body).Decode(&rawRequest)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode request")
+	}
+
+	if _, isArray := rawRequest.([]interface{}); isArray {
+		var spec []cluster.NewRawNodePool
+
+		decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+			Metadata: nil,
+			Result:   &spec,
+			TagName:  "json",
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create decoder")
+		}
+
+		err = decoder.Decode(rawRequest)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to decode request")
+		}
+
+		return CreateMultiNodePoolsRequest{ClusterID: uint(clusterID), RawNodePoolList: spec}, nil
 	}
 
 	var spec map[string]interface{}
@@ -204,12 +224,12 @@ func decodeCreateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interf
 		return nil, errors.Wrap(err, "failed to create decoder")
 	}
 
-	err = decoder.Decode(rawNodePool)
+	err = decoder.Decode(rawRequest)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode request")
 	}
 
-	return CreateNodePoolRequest{ClusterID: uint(clusterID), RawNodePool: spec}, nil
+	return CreateMultiNodePoolsRequest{ClusterID: uint(clusterID), RawNodePoolList: []cluster.NewRawNodePool{spec}}, nil
 }
 
 func decodeUpdateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {

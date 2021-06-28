@@ -18745,6 +18745,7 @@ components:
       oneOf:
       - $ref: '#/components/schemas/EksNodePool'
       - $ref: '#/components/schemas/EksNodePool'
+      - $ref: '#/components/schemas/EksNodePoolList'
     GenericNodePool:
       description: Generic node pool object for all cluster distributions.
       properties:
@@ -18869,6 +18870,10 @@ components:
       - $ref: '#/components/schemas/EksNodePool_allOf'
       description: Node pool object for an EKS cluster.
       type: object
+    EksNodePoolList:
+      items:
+        $ref: '#/components/schemas/EksNodePool'
+      type: array
     EKSNodePoolVolumeEncryption:
       description: Encryption details of the node volumes in an EKS node pool.
       example: |

@@ -26,12 +26,12 @@ type serviceError interface {
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type Endpoints struct {
-	CreateNodePool endpoint.Endpoint
-	DeleteCluster  endpoint.Endpoint
-	DeleteNodePool endpoint.Endpoint
-	ListNodePools  endpoint.Endpoint
-	UpdateCluster  endpoint.Endpoint
-	UpdateNodePool endpoint.Endpoint
+	CreateMultiNodePools endpoint.Endpoint
+	DeleteCluster        endpoint.Endpoint
+	DeleteNodePool       endpoint.Endpoint
+	ListNodePools        endpoint.Endpoint
+	UpdateCluster        endpoint.Endpoint
+	UpdateNodePool       endpoint.Endpoint
 }
 
 // MakeEndpoints returns a(n) Endpoints struct where each endpoint invokes
@@ -40,46 +40,46 @@ func MakeEndpoints(service cluster.Service, middleware ...endpoint.Middleware) E
 	mw := kitxendpoint.Combine(middleware...)
 
 	return Endpoints{
-		CreateNodePool: kitxendpoint.OperationNameMiddleware("cluster.CreateNodePool")(mw(MakeCreateNodePoolEndpoint(service))),
-		DeleteCluster:  kitxendpoint.OperationNameMiddleware("cluster.DeleteCluster")(mw(MakeDeleteClusterEndpoint(service))),
-		DeleteNodePool: kitxendpoint.OperationNameMiddleware("cluster.DeleteNodePool")(mw(MakeDeleteNodePoolEndpoint(service))),
-		ListNodePools:  kitxendpoint.OperationNameMiddleware("cluster.ListNodePools")(mw(MakeListNodePoolsEndpoint(service))),
-		UpdateCluster:  kitxendpoint.OperationNameMiddleware("cluster.UpdateCluster")(mw(MakeUpdateClusterEndpoint(service))),
-		UpdateNodePool: kitxendpoint.OperationNameMiddleware("cluster.UpdateNodePool")(mw(MakeUpdateNodePoolEndpoint(service))),
+		CreateMultiNodePools: kitxendpoint.OperationNameMiddleware("cluster.CreateMultiNodePools")(mw(MakeCreateMultiNodePoolsEndpoint(service))),
+		DeleteCluster:        kitxendpoint.OperationNameMiddleware("cluster.DeleteCluster")(mw(MakeDeleteClusterEndpoint(service))),
+		DeleteNodePool:       kitxendpoint.OperationNameMiddleware("cluster.DeleteNodePool")(mw(MakeDeleteNodePoolEndpoint(service))),
+		ListNodePools:        kitxendpoint.OperationNameMiddleware("cluster.ListNodePools")(mw(MakeListNodePoolsEndpoint(service))),
+		UpdateCluster:        kitxendpoint.OperationNameMiddleware("cluster.UpdateCluster")(mw(MakeUpdateClusterEndpoint(service))),
+		UpdateNodePool:       kitxendpoint.OperationNameMiddleware("cluster.UpdateNodePool")(mw(MakeUpdateNodePoolEndpoint(service))),
 	}
 }
 
-// CreateNodePoolRequest is a request struct for CreateNodePool endpoint.
-type CreateNodePoolRequest struct {
-	ClusterID   uint
-	RawNodePool cluster.NewRawNodePool
+// CreateMultiNodePoolsRequest is a request struct for CreateMultiNodePools endpoint.
+type CreateMultiNodePoolsRequest struct {
+	ClusterID       uint
+	RawNodePoolList []cluster.NewRawNodePool
 }
 
-// CreateNodePoolResponse is a response struct for CreateNodePool endpoint.
-type CreateNodePoolResponse struct {
+// CreateMultiNodePoolsResponse is a response struct for CreateMultiNodePools endpoint.
+type CreateMultiNodePoolsResponse struct {
 	Err error
 }
 
-func (r CreateNodePoolResponse) Failed() error {
+func (r CreateMultiNodePoolsResponse) Failed() error {
 	return r.Err
 }
 
-// MakeCreateNodePoolEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeCreateNodePoolEndpoint(service cluster.Service) endpoint.Endpoint {
+// MakeCreateMultiNodePoolsEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeCreateMultiNodePoolsEndpoint(service cluster.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(CreateNodePoolRequest)
+		req := request.(CreateMultiNodePoolsRequest)
 
-		err := service.CreateNodePool(ctx, req.ClusterID, req.RawNodePool)
+		err := service.CreateMultiNodePools(ctx, req.ClusterID, req.RawNodePoolList)
 
 		if err != nil {
 			if serviceErr := serviceError(nil); errors.As(err, &serviceErr) && serviceErr.ServiceError() {
-				return CreateNodePoolResponse{Err: err}, nil
+				return CreateMultiNodePoolsResponse{Err: err}, nil
 			}
 
-			return CreateNodePoolResponse{Err: err}, err
+			return CreateMultiNodePoolsResponse{Err: err}, err
 		}
 
-		return CreateNodePoolResponse{}, nil
+		return CreateMultiNodePoolsResponse{}, nil
 	}
 }
 

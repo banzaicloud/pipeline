@@ -382,13 +382,13 @@ type MockService struct {
 	mock.Mock
 }
 
-// CreateNodePool provides a mock function.
-func (_m *MockService) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) (_result_0 error) {
-	ret := _m.Called(ctx, clusterID, rawNodePool)
+// CreateMultiNodePools provides a mock function.
+func (_m *MockService) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNodePoolList []NewRawNodePool) (_result_0 error) {
+	ret := _m.Called(ctx, clusterID, rawNodePoolList)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, NewRawNodePool) error); ok {
-		r0 = rf(ctx, clusterID, rawNodePool)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, []NewRawNodePool) error); ok {
+		r0 = rf(ctx, clusterID, rawNodePoolList)
 	} else {
 		r0 = ret.Error(0)
 	}

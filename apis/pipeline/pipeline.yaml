@@ -4439,6 +4439,7 @@ components:
                 # https://github.com/OpenAPITools/openapi-generator/pull/2897
                 - $ref: '#/components/schemas/EksNodePool'
                 - $ref: '#/components/schemas/EksNodePool'
+                - $ref: '#/components/schemas/EksNodePoolList'
 
         GenericNodePool:
             description: Generic node pool object for all cluster distributions.
@@ -4607,6 +4608,11 @@ components:
                         useInstanceStore:
                             description: Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
                             type: boolean
+
+        EksNodePoolList:
+            type: array
+            items:
+                $ref: '#/components/schemas/EksNodePool'
 
         EKSNodePoolVolumeEncryption:
             description: Encryption details of the node volumes in an EKS node pool.

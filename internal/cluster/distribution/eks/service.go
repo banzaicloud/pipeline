@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
@@ -34,6 +35,9 @@ import (
 type Service interface {
 	// CreateNodePool creates a new node pool with the specified attributes.
 	CreateNodePool(ctx context.Context, clusterID uint, nodePool NewNodePool) (err error)
+
+	// CreateMultiNodePools creates new node pools with the specified attributes.
+	CreateMultiNodePools(ctx context.Context, clusterID uint, nodePool []NewNodePool) (err error)
 
 	// DeleteNodePool deletes an existing node pool.
 	DeleteNodePool(ctx context.Context, clusterID uint, nodePoolName string) (isDeleted bool, err error)
@@ -330,6 +334,10 @@ type NodePoolManager interface {
 	// attributes.
 	CreateNodePool(ctx context.Context, c cluster.Cluster, nodePool NewNodePool) (err error)
 
+	// CreateMultiNodePools creates new node pools in a cluster with the specified
+	// attributes.
+	CreateMultiNodePools(ctx context.Context, c cluster.Cluster, nodePool []NewNodePool) (err error)
+
 	// DeleteNodePool deletes an existing node pool in a cluster.
 	DeleteNodePool(
 		ctx context.Context, c cluster.Cluster, existingNodePool ExistingNodePool, shouldUpdateClusterStatus bool,
@@ -377,6 +385,49 @@ func (s service) CreateNodePool(ctx context.Context, clusterID uint, nodePool Ne
 	}
 
 	err = s.nodePoolManager.CreateNodePool(ctx, c, nodePool)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CreateMultiNodePools creates new node pools with the specified attributes.
+func (s service) CreateMultiNodePools(ctx context.Context, clusterID uint, nodePoolList []NewNodePool) (err error) {
+	c, err := s.genericClusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return err
+	}
+
+	npErrors := make([]error, 0, len(nodePoolList))
+	for _, nodePool := range nodePoolList {
+		if err := s.nodePoolValidator.ValidateNewNodePool(ctx, c, nodePool); err != nil {
+			npErrors = append(npErrors, err)
+		}
+	}
+	if len(npErrors) > 0 {
+		return errors.Combine(npErrors...)
+	}
+
+	processedNodePoolList := make([]NewNodePool, 0, len(nodePoolList))
+	for _, nodePool := range nodePoolList {
+		nodePool, err = s.nodePoolProcessor.ProcessNewNodePool(ctx, c, nodePool)
+		if err != nil {
+			npErrors = append(npErrors, err)
+		} else {
+			processedNodePoolList = append(processedNodePoolList, nodePool)
+		}
+	}
+	if len(npErrors) > 0 {
+		return errors.Combine(npErrors...)
+	}
+
+	err = s.genericClusters.SetStatus(ctx, clusterID, cluster.Updating, "creating node pool")
+	if err != nil {
+		return err
+	}
+
+	err = s.nodePoolManager.CreateMultiNodePools(ctx, c, processedNodePoolList)
 	if err != nil {
 		return err
 	}
