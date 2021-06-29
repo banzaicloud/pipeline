@@ -17158,7 +17158,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NodePool'
+              $ref: '#/components/schemas/CreateNodePoolRequest'
         required: true
       responses:
         "202":
@@ -18741,11 +18741,14 @@ components:
       allOf:
       - $ref: '#/components/schemas/CreateClusterRequestBase'
       - $ref: '#/components/schemas/CreateClusterRequestBase'
+    CreateNodePoolRequest:
+      items:
+        $ref: '#/components/schemas/NodePool'
+      type: array
     NodePool:
       oneOf:
       - $ref: '#/components/schemas/EksNodePool'
       - $ref: '#/components/schemas/EksNodePool'
-      - $ref: '#/components/schemas/EksNodePoolList'
     GenericNodePool:
       description: Generic node pool object for all cluster distributions.
       properties:
@@ -18870,10 +18873,6 @@ components:
       - $ref: '#/components/schemas/EksNodePool_allOf'
       description: Node pool object for an EKS cluster.
       type: object
-    EksNodePoolList:
-      items:
-        $ref: '#/components/schemas/EksNodePool'
-      type: array
     EKSNodePoolVolumeEncryption:
       description: Encryption details of the node volumes in an EKS node pool.
       example: |

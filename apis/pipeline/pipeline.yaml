@@ -4425,11 +4425,18 @@ components:
             #         'pke-on-vsphere': '#/components/schemas/CreatePKEOnVsphereClusterRequest'
 
         CreateNodePoolRequest:
-            type: object
-            ## oneOf not properly supported by generator
-#            oneOf:
-#                - $ref: '#/components/schemas/NodePool'
-#                - $ref: '#/components/schemas/NodePoolList'
+            # Note: CreateNodePoolRequest may contain a single NodePool or a list of NodePool items
+            # as in comment section below. Since oneOf is not properly supported by generator,
+            # neither it seems they want to support it - at least not in this century - in Go client you have
+            # to send a list of NodePool items.
+            # oneOf:
+            #      - $ref: '#/components/schemas/NodePool'
+            #      - type: array
+            #        items:
+            #            $ref: '#/components/schemas/NodePool'
+            type: array
+            items:
+                $ref: '#/components/schemas/NodePool'
 
         NodePool:
             oneOf:
@@ -4446,11 +4453,6 @@ components:
                 # https://github.com/OpenAPITools/openapi-generator/pull/2897
                 - $ref: '#/components/schemas/EksNodePool'
                 - $ref: '#/components/schemas/EksNodePool'
-
-        NodePoolList:
-            type: array
-            items:
-                $ref: '#/components/schemas/NodePool'
 
         GenericNodePool:
             description: Generic node pool object for all cluster distributions.
