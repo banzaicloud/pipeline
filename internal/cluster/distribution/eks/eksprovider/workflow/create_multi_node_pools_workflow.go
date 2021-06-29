@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	pkgcadence "github.com/banzaicloud/pipeline/pkg/cadence"
 	"github.com/banzaicloud/pipeline/pkg/cadence/worker"
+	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // CreateMultiNodePoolsWorkflowName is the name of the EKS workflow creating a new
@@ -70,7 +71,7 @@ func (w CreateMultiNodePoolsWorkflow) Execute(ctx workflow.Context, input Create
 			NodePoolSubnetIDs:            []string{nodePool.SubnetID},
 			ShouldCreateNodePoolLabelSet: true,
 			ShouldStoreNodePool:          true,
-			ShouldUpdateClusterStatus:    true,
+			ShouldUpdateClusterStatus:    false,
 			CreatorUserID:                input.CreatorUserID,
 		}
 
@@ -82,6 +83,12 @@ func (w CreateMultiNodePoolsWorkflow) Execute(ctx workflow.Context, input Create
 		createNodePoolErrors = append(createNodePoolErrors, pkgcadence.UnwrapError(future.Get(ctx, nil)))
 	}
 	if err := errors.Combine(createNodePoolErrors...); err != nil {
+		// TODO should we set Warning state for cluster in this case?
+		return err
+	}
+
+	err = SetClusterStatus(ctx, input.ClusterID, cluster.Running, cluster.RunningMessage)
+	if err != nil {
 		return err
 	}
 
