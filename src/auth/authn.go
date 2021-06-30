@@ -130,6 +130,18 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 		tokenManager: tokenManager,
 	}
 
+	oidcProvider = newOIDCProvider(
+		&OIDCProviderConfig{
+			PublicClientID:     config.CLI.ClientID,
+			ClientID:           config.OIDC.ClientID,
+			ClientSecret:       config.OIDC.ClientSecret,
+			IssuerURL:          config.OIDC.Issuer,
+			InsecureSkipVerify: config.OIDC.Insecure,
+		},
+		db,
+		NewRefreshTokenStore(tokenStore),
+	)
+
 	// Initialize Auth with configuration
 	Auth = New(&AuthHandlerConfig{
 		DB: db,
@@ -146,13 +158,7 @@ func Init(db *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager 
 		LogoutHandler:     banzaiLogoutHandler,
 		RegisterHandler:   banzaiRegisterHandler,
 		DeregisterHandler: NewBanzaiDeregisterHandler(db, tokenStore),
-		Provider: newOIDCProvider(&OIDCProviderConfig{
-			PublicClientID:     config.CLI.ClientID,
-			ClientID:           config.OIDC.ClientID,
-			ClientSecret:       config.OIDC.ClientSecret,
-			IssuerURL:          config.OIDC.Issuer,
-			InsecureSkipVerify: config.OIDC.Insecure,
-		}, db, NewRefreshTokenStore(tokenStore)),
+		Provider:          oidcProvider,
 	})
 
 	Handler = ginauth.JWTAuthHandler(
