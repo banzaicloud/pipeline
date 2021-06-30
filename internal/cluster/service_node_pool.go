@@ -101,6 +101,34 @@ type RawNodePoolList []interface{}
 // RawNodePoolUpdate is an unstructured, distribution specific descriptor for a node pool update.
 type RawNodePoolUpdate map[string]interface{}
 
+// ConflictingNodePoolNamesError is returned when there are conflicting node pool names in a batch create request.
+type ConflictingNodePoolNamesError struct {
+	ClusterID uint
+	NodePool  string
+}
+
+// Error implements the error interface.
+func (ConflictingNodePoolNamesError) Error() string {
+	return "conflicting node pool names"
+}
+
+// Details returns error details.
+func (e ConflictingNodePoolNamesError) Details() []interface{} {
+	return []interface{}{"clusterId", e.ClusterID, "nodePool", e.NodePool}
+}
+
+// Conflict tells a client that this error is related to a conflicting request.
+// Can be used to translate the error to status codes for example.
+func (ConflictingNodePoolNamesError) Conflict() bool {
+	return true
+}
+
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
+// Client errors are usually returned to the consumer without retrying the operation.
+func (ConflictingNodePoolNamesError) ServiceError() bool {
+	return true
+}
+
 // NodePoolAlreadyExistsError is returned when a node pool already exists.
 type NodePoolAlreadyExistsError struct {
 	ClusterID uint
@@ -191,7 +219,25 @@ func (s service) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNo
 		return err
 	}
 
+	// check node pool name conflicts
+	poolNames := make(map[string]int, len(rawNodePoolList))
+	for _, rawNodePool := range rawNodePoolList {
+		poolNames[rawNodePool.GetName()] = poolNames[rawNodePool.GetName()] + 1
+	}
 	npErrors := make([]error, 0, len(rawNodePoolList))
+	for poolName, count := range poolNames {
+		if count > 1 {
+			npErrors = append(npErrors, ConflictingNodePoolNamesError{
+				ClusterID: clusterID,
+				NodePool:  poolName,
+			})
+		}
+	}
+	if len(npErrors) > 0 {
+		return errors.Combine(npErrors...)
+	}
+
+	npErrors = make([]error, 0, len(rawNodePoolList))
 	for _, rawNodePool := range rawNodePoolList {
 		if err := s.nodePoolValidator.ValidateNew(ctx, cluster, rawNodePool); err != nil {
 			npErrors = append(npErrors, err)
