@@ -35,6 +35,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/values"
 )
 
 type Config struct {
@@ -218,6 +219,8 @@ type ClusterConfig struct {
 	SecurityScan ClusterSecurityScanConfig
 
 	Vault ClusterVaultConfig
+
+	Charts ClusterChartConfigs
 }
 
 // Validate validates the configuration.
@@ -456,6 +459,50 @@ func (c ClusterVaultConfig) Validate() error {
 	}
 
 	return errs
+}
+
+// ClusterChartConfig contains configuration for a chart to be installed.
+type ClusterChartConfig struct {
+	Enabled bool
+
+	ChartName    string
+	ChartVersion string
+	Values       values.Config
+
+	ReleaseName string
+}
+
+func (c ClusterChartConfig) Validate() error {
+	var err error
+
+	if c.Enabled {
+		if c.ChartName == "" {
+			err = errors.Append(err, errors.New("cluster chart: chart name is required"))
+		}
+
+		if c.ChartVersion == "" {
+			err = errors.Append(err, errors.New("cluster chart: chart version is required"))
+		}
+
+		if c.ReleaseName == "" {
+			err = errors.Append(err, errors.New("cluster chart: release name is required"))
+		}
+	}
+
+	return err
+}
+
+// ClusterChartConfigs contains configuration for charts to be installed.
+type ClusterChartConfigs []ClusterChartConfig
+
+func (c ClusterChartConfigs) Validate() error {
+	var err error
+
+	for _, config := range c {
+		err = errors.Append(err, config.Validate())
+	}
+
+	return err
 }
 
 // TelemetryConfig contains telemetry configuration.
@@ -783,6 +830,8 @@ traefik:
 			"pullPolicy": "IfNotPresent",
 		},
 	})
+
+	v.SetDefault("cluster::charts", nil)
 
 	// Helm configuration
 	v.SetDefault("helm::home", "./var/cache")

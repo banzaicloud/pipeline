@@ -41,6 +41,18 @@ type Workflow struct {
 
 	// Drives installation
 	IsIntegratedServicesV2 bool
+
+	// Install additional Pipeline components here
+	PipelineNamespace string
+
+	InstallHelmCharts []HelmChartInstallParams
+}
+
+type HelmChartInstallParams struct {
+	ReleaseName  string
+	ChartName    string
+	ChartVersion string
+	Values       []byte
 }
 
 // WorkflowInput is the input for a cluster setup workflow.
@@ -199,6 +211,23 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 			input := operator.NewInstallerActivityInput(input.Organization.ID, input.Cluster.ID)
 			if err := workflow.ExecuteActivity(ctx, operator.IntegratedServiceOperatorInstallerActivityName, input).Get(ctx, nil); err != nil {
 				return errors.WrapIfWithDetails(err, "failed to install the  operator", "orgID", input.OrgID, "clusterID", input.ClusterID)
+			}
+		}
+	}
+
+	{
+		for _, chart := range w.InstallHelmCharts {
+			input := HelmInstallActivityInput{
+				ClusterID:    input.Cluster.ID,
+				Namespace:    w.PipelineNamespace,
+				ReleaseName:  chart.ReleaseName,
+				ChartName:    chart.ChartName,
+				ChartVersion: chart.ChartVersion,
+				Values:       chart.Values,
+			}
+
+			if err := workflow.ExecuteActivity(ctx, HelmInstallActivityName, input).Get(ctx, nil); err != nil {
+				return errors.WrapIfWithDetails(err, "cluster setup failed", "clusterID", input.ClusterID)
 			}
 		}
 	}

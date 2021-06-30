@@ -21,6 +21,7 @@ go_library(
         "//internal/platform/database",
         "//internal/platform/log",
         "//pkg/cluster",
+        "//pkg/values",
         "//src/cluster",
         "//third_party/go:emperror.dev__emperror",
         "//third_party/go:emperror.dev__errors",

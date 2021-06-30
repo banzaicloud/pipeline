@@ -35,6 +35,7 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
+	"gopkg.in/yaml.v2"
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
@@ -322,9 +323,27 @@ func main() {
 
 		// Cluster setup
 		{
+			var charts []clustersetup.HelmChartInstallParams
+
+			for _, chart := range config.Cluster.Charts {
+				yamlValues, err := yaml.Marshal(chart.Values)
+				if err != nil {
+					emperror.Panic(errors.Wrapf(err, "failed to marshal chart values into YAML, chart: %s, values: %s", chart.ChartName, chart.Values))
+				}
+
+				charts = append(charts, clustersetup.HelmChartInstallParams{
+					ReleaseName:  chart.ReleaseName,
+					ChartName:    chart.ChartName,
+					ChartVersion: chart.ChartVersion,
+					Values:       yamlValues,
+				})
+			}
+
 			wf := clustersetup.Workflow{
 				InstallInitManifest:    config.Cluster.Manifest != "",
 				IsIntegratedServicesV2: config.IntegratedService.V2,
+				PipelineNamespace:      config.Cluster.Namespace,
+				InstallHelmCharts:      charts,
 			}
 			worker.RegisterWorkflowWithOptions(wf.Execute, workflow.RegisterOptions{Name: clustersetup.WorkflowName})
 
@@ -374,7 +393,8 @@ func main() {
 			)
 			worker.RegisterActivityWithOptions(
 				deployIngressControllerActivity.Execute,
-				activity.RegisterOptions{Name: clustersetup.DeployIngressControllerActivityName})
+				activity.RegisterOptions{Name: clustersetup.DeployIngressControllerActivityName},
+			)
 
 			deployInstanceTerminationHandlerActivity := clustersetup.NewDeployInstanceTerminationHandlerActivity(
 				config.Cluster.Labels,
@@ -382,7 +402,14 @@ func main() {
 			)
 			worker.RegisterActivityWithOptions(
 				deployInstanceTerminationHandlerActivity.Execute,
-				activity.RegisterOptions{Name: clustersetup.DeployInstanceTerminationHandlerActivityName})
+				activity.RegisterOptions{Name: clustersetup.DeployInstanceTerminationHandlerActivityName},
+			)
+
+			helmInstallActivity := clustersetup.NewHelmInstallActivity(unifiedHelmReleaser)
+			worker.RegisterActivityWithOptions(
+				helmInstallActivity.Execute,
+				activity.RegisterOptions{Name: clustersetup.HelmInstallActivityName},
+			)
 		}
 
 		worker.RegisterWorkflowWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})
