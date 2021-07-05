@@ -4425,18 +4425,9 @@ components:
             #         'pke-on-vsphere': '#/components/schemas/CreatePKEOnVsphereClusterRequest'
 
         CreateNodePoolRequest:
-            # Note: CreateNodePoolRequest may contain a single NodePool or a list of NodePool items
-            # as in comment section below. Since oneOf is not properly supported by generator,
-            # neither it seems they want to support it - at least not in this century - in Go client you have
-            # to send a list of NodePool items.
-            # oneOf:
-            #      - $ref: '#/components/schemas/NodePool'
-            #      - type: array
-            #        items:
-            #            $ref: '#/components/schemas/NodePool'
-            type: array
-            items:
-                $ref: '#/components/schemas/NodePool'
+            oneOf:
+                - $ref: '#/components/schemas/NodePool'
+                - $ref: '#/components/schemas/NodePools'
 
         NodePool:
             oneOf:
@@ -4453,6 +4444,15 @@ components:
                 # https://github.com/OpenAPITools/openapi-generator/pull/2897
                 - $ref: '#/components/schemas/EksNodePool'
                 - $ref: '#/components/schemas/EksNodePool'
+
+        NodePools:
+            description: An associative collection of node pool objects keyed by their name.
+            properties:
+                nodePools:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/NodePool'
+            type: object
 
         GenericNodePool:
             description: Generic node pool object for all cluster distributions.
@@ -4575,6 +4575,11 @@ components:
                     type: string
             type: object
 
+        # Note: slightly different type from `EKSNodePool`, example differences:
+        #
+        # - `size (integer)` >-< `count (integer)`,
+        #
+        # - `autoscaling (NodePoolAutoscaling) >-<`autoscaling (bool)`
         EksNodePool:
             description: Node pool object for an EKS cluster.
             type: object
