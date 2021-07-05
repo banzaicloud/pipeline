@@ -101,34 +101,6 @@ type RawNodePoolList []interface{}
 // RawNodePoolUpdate is an unstructured, distribution specific descriptor for a node pool update.
 type RawNodePoolUpdate map[string]interface{}
 
-// ConflictingNodePoolNamesError is returned when there are conflicting node pool names in a batch create request.
-type ConflictingNodePoolNamesError struct {
-	ClusterID uint
-	NodePool  string
-}
-
-// Error implements the error interface.
-func (ConflictingNodePoolNamesError) Error() string {
-	return "conflicting node pool names"
-}
-
-// Details returns error details.
-func (e ConflictingNodePoolNamesError) Details() []interface{} {
-	return []interface{}{"clusterId", e.ClusterID, "nodePool", e.NodePool}
-}
-
-// Conflict tells a client that this error is related to a conflicting request.
-// Can be used to translate the error to status codes for example.
-func (ConflictingNodePoolNamesError) Conflict() bool {
-	return true
-}
-
-// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
-// Client errors are usually returned to the consumer without retrying the operation.
-func (ConflictingNodePoolNamesError) ServiceError() bool {
-	return true
-}
-
 // NodePoolAlreadyExistsError is returned when a node pool already exists.
 type NodePoolAlreadyExistsError struct {
 	ClusterID uint
@@ -209,7 +181,7 @@ type NodePoolProcessor interface {
 	ProcessNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (NewRawNodePool, error)
 }
 
-func (s service) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNodePoolList []NewRawNodePool) (err error) {
+func (s service) CreateNodePools(ctx context.Context, clusterID uint, rawNodePools map[string]NewRawNodePool) (err error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return err
@@ -219,26 +191,9 @@ func (s service) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNo
 		return err
 	}
 
-	// check node pool name conflicts
-	poolNames := make(map[string]int, len(rawNodePoolList))
-	for _, rawNodePool := range rawNodePoolList {
-		poolNames[rawNodePool.GetName()] = poolNames[rawNodePool.GetName()] + 1
-	}
-	npErrors := make([]error, 0, len(rawNodePoolList))
-	for poolName, count := range poolNames {
-		if count > 1 {
-			npErrors = append(npErrors, ConflictingNodePoolNamesError{
-				ClusterID: clusterID,
-				NodePool:  poolName,
-			})
-		}
-	}
-	if len(npErrors) > 0 {
-		return errors.Combine(npErrors...)
-	}
+	npErrors := make([]error, 0, len(rawNodePools))
 
-	npErrors = make([]error, 0, len(rawNodePoolList))
-	for _, rawNodePool := range rawNodePoolList {
+	for _, rawNodePool := range rawNodePools {
 		if err := s.nodePoolValidator.ValidateNew(ctx, cluster, rawNodePool); err != nil {
 			npErrors = append(npErrors, err)
 		}
@@ -247,13 +202,11 @@ func (s service) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNo
 		return errors.Combine(npErrors...)
 	}
 
-	npErrors = make([]error, 0, len(rawNodePoolList))
-	for _, rawNodePool := range rawNodePoolList {
-		exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePool.GetName())
+	for rawNodePoolName := range rawNodePools {
+		exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePoolName)
 		if err != nil {
 			npErrors = append(npErrors, err)
-		}
-		if exists {
+		} else if exists {
 			npErrors = append(npErrors, errors.WithStack(NodePoolAlreadyExistsError{
 				ClusterID: clusterID,
 				NodePool:  nodePoolStoredName,
@@ -264,14 +217,10 @@ func (s service) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNo
 		return errors.Combine(npErrors...)
 	}
 
-	processedRawNodePoolList := make([]NewRawNodePool, 0, len(rawNodePoolList))
-	npErrors = make([]error, 0, len(rawNodePoolList))
-	for _, rawNodePool := range rawNodePoolList {
-		rawNodePool, err = s.nodePoolProcessor.ProcessNew(ctx, cluster, rawNodePool)
+	for rawNodePoolName, rawNodePool := range rawNodePools {
+		rawNodePools[rawNodePoolName], err = s.nodePoolProcessor.ProcessNew(ctx, cluster, rawNodePool)
 		if err != nil {
 			npErrors = append(npErrors, err)
-		} else {
-			processedRawNodePoolList = append(processedRawNodePoolList, rawNodePool)
 		}
 	}
 	if len(npErrors) > 0 {
@@ -283,7 +232,7 @@ func (s service) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNo
 		return err
 	}
 
-	return distributionService.CreateMultiNodePools(ctx, clusterID, processedRawNodePoolList)
+	return distributionService.CreateNodePools(ctx, clusterID, rawNodePools)
 }
 
 func (s service) UpdateNodePool(
