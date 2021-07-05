@@ -18742,13 +18742,21 @@ components:
       - $ref: '#/components/schemas/CreateClusterRequestBase'
       - $ref: '#/components/schemas/CreateClusterRequestBase'
     CreateNodePoolRequest:
-      items:
-        $ref: '#/components/schemas/NodePool'
-      type: array
+      oneOf:
+      - $ref: '#/components/schemas/NodePool'
+      - $ref: '#/components/schemas/NodePools'
     NodePool:
       oneOf:
       - $ref: '#/components/schemas/EksNodePool'
       - $ref: '#/components/schemas/EksNodePool'
+    NodePools:
+      description: An associative collection of node pool objects keyed by their name.
+      properties:
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/NodePool'
+          type: object
+      type: object
     GenericNodePool:
       description: Generic node pool object for all cluster distributions.
       properties:
