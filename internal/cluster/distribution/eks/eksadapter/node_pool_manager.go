@@ -71,48 +71,33 @@ func NewNodePoolManager(
 	}
 }
 
-// CreateNodePool initiates the node pool creation process.
+// CreateNodePools initiates the node pool creation process.
 //
 // Implements the eks.NodePoolManager interface.
-func (n nodePoolManager) CreateNodePool(ctx context.Context, c cluster.Cluster, nodePool eks.NewNodePool) (err error) {
+func (n nodePoolManager) CreateNodePools(ctx context.Context, c cluster.Cluster, nodePools map[string]eks.NewNodePool) (err error) {
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
 	}
 
-	input := workflow.CreateNodePoolWorkflowInput{
+	nodePoolSubnetIDs := make(map[string][]string, len(nodePools))
+	for nodePoolName, nodePool := range nodePools {
+		nodePoolSubnetIDs[nodePoolName] = []string{nodePool.SubnetID}
+	}
+
+	input := workflow.CreateNodePoolsWorkflowInput{
 		ClusterID:                    c.ID,
-		NodePool:                     nodePool,
-		NodePoolSubnetIDs:            []string{nodePool.SubnetID},
-		ShouldCreateNodePoolLabelSet: true,
-		ShouldStoreNodePool:          true,
-		ShouldUpdateClusterStatus:    true,
 		CreatorUserID:                n.getUserID(ctx),
+		NodePools:                    nodePools,
+		NodePoolSubnetIDs:            nodePoolSubnetIDs,
+		ShouldCreateNodePoolLabelSet: true, // Note: direct ClusterAPI.EKS.NodePoolAPI.CreateNodePool call, everything is handled in the CreateNodePoolsWorkflow.
+		ShouldStoreNodePool:          true, // Note: direct ClusterAPI.EKS.NodePoolAPI.CreateNodePool call, everything is handled in the CreateNodePoolsWorkflow.
+		ShouldUpdateClusterStatus:    true, // Note: direct ClusterAPI.EKS.NodePoolAPI.CreateNodePool call, everything is handled in the CreateNodePoolsWorkflow.
 	}
 
-	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateNodePoolWorkflowName, input)
+	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateNodePoolsWorkflowName, input)
 	if err != nil {
-		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.CreateNodePoolWorkflowName)
-	}
-
-	return nil
-}
-
-func (n nodePoolManager) CreateMultiNodePools(ctx context.Context, c cluster.Cluster, nodePoolList []eks.NewNodePool) (err error) {
-	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
-	}
-
-	input := workflow.CreateMultiNodePoolsWorkflowInput{
-		ClusterID:     c.ID,
-		NodePoolList:  nodePoolList,
-		CreatorUserID: n.getUserID(ctx),
-	}
-
-	_, err = n.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateMultiNodePoolsWorkflowName, input)
-	if err != nil {
-		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.CreateMultiNodePoolsWorkflowName)
+		return errors.WrapWithDetails(err, "failed to start workflow", "workflow", workflow.CreateNodePoolsWorkflowName)
 	}
 
 	return nil

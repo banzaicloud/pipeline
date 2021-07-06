@@ -37,12 +37,12 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 )
 
-func TestNodePoolManagerCreateNodePool(t *testing.T) {
+func TestNodePoolManagerCreateNodePools(t *testing.T) {
 	type inputType struct {
-		n        *nodePoolManager
-		ctx      context.Context
-		c        cluster.Cluster
-		nodePool eks.NewNodePool
+		n         *nodePoolManager
+		ctx       context.Context
+		c         cluster.Cluster
+		nodePools map[string]eks.NewNodePool
 	}
 
 	testCases := []struct {
@@ -73,7 +73,9 @@ func TestNodePoolManagerCreateNodePool(t *testing.T) {
 				c: cluster.Cluster{
 					ID: 2,
 				},
-				nodePool: eks.NewNodePool{},
+				nodePools: map[string]eks.NewNodePool{
+					"": {},
+				},
 			},
 		},
 	}
@@ -82,15 +84,20 @@ func TestNodePoolManagerCreateNodePool(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.caseName, func(t *testing.T) {
+			testCaseInputNodePoolSubnetIDs := make(map[string][]string, len(testCase.input.nodePools))
+			for nodePoolName, nodePool := range testCase.input.nodePools {
+				testCaseInputNodePoolSubnetIDs[nodePoolName] = []string{nodePool.SubnetID}
+			}
+
 			startWorkflowMock := testCase.input.n.workflowClient.(*mocks.Client).On(
 				"StartWorkflow",
 				testCase.input.ctx,
 				mock.Anything,
-				workflow.CreateNodePoolWorkflowName,
-				workflow.CreateNodePoolWorkflowInput{
+				workflow.CreateNodePoolsWorkflowName,
+				workflow.CreateNodePoolsWorkflowInput{
 					ClusterID:                    testCase.input.c.ID,
-					NodePool:                     testCase.input.nodePool,
-					NodePoolSubnetIDs:            []string{testCase.input.nodePool.SubnetID},
+					NodePools:                    testCase.input.nodePools,
+					NodePoolSubnetIDs:            testCaseInputNodePoolSubnetIDs,
 					ShouldCreateNodePoolLabelSet: true,
 					ShouldStoreNodePool:          true,
 					ShouldUpdateClusterStatus:    true,
@@ -104,10 +111,10 @@ func TestNodePoolManagerCreateNodePool(t *testing.T) {
 				startWorkflowMock.Return(nil, errors.New("test error"))
 			}
 
-			actualError := testCase.input.n.CreateNodePool(
+			actualError := testCase.input.n.CreateNodePools(
 				testCase.input.ctx,
 				testCase.input.c,
-				testCase.input.nodePool,
+				testCase.input.nodePools,
 			)
 
 			if testCase.expectedError == nil {

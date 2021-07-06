@@ -68,7 +68,7 @@ func registerEKSWorkflows(
 
 	// Workflows.
 	eksworkflow.NewCreateNodePoolWorkflow().Register(worker)
-	eksworkflow.NewCreateMultiNodePoolsWorkflow().Register(worker)
+	eksworkflow.NewCreateNodePoolsWorkflow().Register(worker)
 
 	worker.RegisterWorkflowWithOptions(cluster.EKSCreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.EKSCreateClusterWorkflowName})
 

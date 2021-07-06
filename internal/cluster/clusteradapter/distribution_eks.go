@@ -52,34 +52,19 @@ func (s eksService) DeleteCluster(ctx context.Context, clusterIdentifier cluster
 	panic("implement me")
 }
 
-func (s eksService) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool cluster.NewRawNodePool) error {
-	var nodePool eks.NewNodePool
-	err := mapstructure.Decode(rawNodePool, &nodePool)
+func (s eksService) CreateNodePools(ctx context.Context, clusterID uint, rawNodePools map[string]cluster.NewRawNodePool) error {
+	var nodePools map[string]eks.NewNodePool
+	err := mapstructure.Decode(rawNodePools, &nodePools)
 	if err != nil {
 		return cluster.NewValidationError(
 			"invalid node pool creation request",
 			[]string{
-				fmt.Sprintf("invalid structure: %s, expected: %+v, actual: %+v", err.Error(), nodePool, rawNodePool),
+				fmt.Sprintf("invalid structure: %s, expected: %+v, actual: %+v", err.Error(), nodePools, rawNodePools),
 			},
 		)
 	}
 
-	return s.service.CreateNodePool(ctx, clusterID, nodePool)
-}
-
-func (s eksService) CreateMultiNodePools(ctx context.Context, clusterID uint, rawNodePoolList []cluster.NewRawNodePool) error {
-	var nodePoolList []eks.NewNodePool
-	err := mapstructure.Decode(rawNodePoolList, &nodePoolList)
-	if err != nil {
-		return cluster.NewValidationError(
-			"invalid node pool creation request",
-			[]string{
-				fmt.Sprintf("invalid structure: %s, expected: %+v, actual: %+v", err.Error(), nodePoolList, rawNodePoolList),
-			},
-		)
-	}
-
-	return s.service.CreateMultiNodePools(ctx, clusterID, nodePoolList)
+	return s.service.CreateNodePools(ctx, clusterID, nodePools)
 }
 
 func (s eksService) UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate cluster.RawNodePoolUpdate) (string, error) {
