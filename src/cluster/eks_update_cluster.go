@@ -166,27 +166,31 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 		return err
 	}
 
-	createNodePoolFutures := make([]workflow.Future, 0, len(input.NewNodePools))
-	for _, newNodePool := range input.NewNodePools {
-		log.Info("node pool will be created")
+	var createNodePoolsFuture workflow.Future
+	{ // Note: creating new node pools.
+		newNodePools := make(map[string]eks.NewNodePool, len(input.NewNodePools))
+		for _, newNodePool := range input.NewNodePools {
+			newNodePools[newNodePool.Name] = newNodePool
+		}
 
-		activityInput := eksWorkflow.CreateNodePoolWorkflowInput{
+		log.Info("node pools will be created")
+
+		activityInput := eksWorkflow.CreateNodePoolsWorkflowInput{
 			ClusterID:                    input.ClusterID,
 			CreatorUserID:                input.UpdaterUserID,
-			NodePool:                     newNodePool,
-			NodePoolSubnetIDs:            input.NewNodePoolSubnetIDs[newNodePool.Name],
-			ShouldCreateNodePoolLabelSet: false, // TODO: update when UpdateNodePoolWorkflow is refactored.
-			ShouldStoreNodePool:          true,
-			ShouldUpdateClusterStatus:    false,
+			NodePools:                    newNodePools,
+			NodePoolSubnetIDs:            input.NewNodePoolSubnetIDs,
+			ShouldCreateNodePoolLabelSet: false, // Note: node pool labels are updated in this workflow. // TODO: update when UpdateNodePoolWorkflow is refactored.
+			ShouldStoreNodePool:          true,  // Note: using the CreateNodePoolWorkflow's store logic instead of the persistence logic here.
+			ShouldUpdateClusterStatus:    false, // Note: the cluster update workflow sets the cluster status in waitForActivities().
 		}
 		ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 
-		createNodePoolFuture := workflow.ExecuteChildWorkflow(
+		createNodePoolsFuture = workflow.ExecuteChildWorkflow(
 			ctx,
-			eksWorkflow.CreateNodePoolWorkflowName,
+			eksWorkflow.CreateNodePoolsWorkflowName,
 			activityInput,
 		)
-		createNodePoolFutures = append(createNodePoolFutures, createNodePoolFuture)
 	}
 
 	nodePoolsToUpdate := make(map[string]eksWorkflow.AutoscaleGroup, len(input.UpdatedNodePools))
@@ -355,7 +359,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 	}
 
 	// wait for AutoScalingGroups to be created & updated
-	err = waitForActivities(append(createNodePoolFutures, updateNodePoolFutures...), ctx, input.ClusterID)
+	err = waitForActivities(append([]workflow.Future{createNodePoolsFuture}, updateNodePoolFutures...), ctx, input.ClusterID)
 	if err != nil {
 		return err
 	}
