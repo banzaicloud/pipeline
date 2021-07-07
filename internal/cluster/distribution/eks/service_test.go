@@ -627,7 +627,7 @@ func TestServiceCreateNodePools(t *testing.T) {
 				"ValidateNewNodePool",
 				testCase.input.ctx,
 				cluster.Cluster{ID: testCase.input.clusterID},
-				testCase.input.nodePools,
+				testCase.input.nodePools["node-pool-name"],
 			)
 			if testCase.expectedError != nil &&
 				strings.HasPrefix(testCase.expectedError.Error(), "validate new node pool error") {
@@ -640,13 +640,13 @@ func TestServiceCreateNodePools(t *testing.T) {
 				"ProcessNewNodePool",
 				testCase.input.ctx,
 				cluster.Cluster{ID: testCase.input.clusterID},
-				testCase.input.nodePools,
+				testCase.input.nodePools["node-pool-name"],
 			)
 			if testCase.expectedError != nil &&
 				strings.HasPrefix(testCase.expectedError.Error(), "process new node pool error") {
-				processNewNodePoolMock.Return(testCase.input.nodePools, testCase.expectedError)
+				processNewNodePoolMock.Return(testCase.input.nodePools["node-pool-name"], testCase.expectedError)
 			} else {
-				processNewNodePoolMock.Return(testCase.input.nodePools, nil)
+				processNewNodePoolMock.Return(testCase.input.nodePools["node-pool-name"], nil)
 			}
 
 			setStatusMock := testCase.input.s.genericClusters.(*MockStore).On(
@@ -664,7 +664,7 @@ func TestServiceCreateNodePools(t *testing.T) {
 			}
 
 			createNodePoolMock := testCase.input.s.nodePoolManager.(*MockNodePoolManager).On(
-				"CreateNodePool",
+				"CreateNodePools",
 				testCase.input.ctx,
 				cluster.Cluster{ID: testCase.input.clusterID},
 				testCase.input.nodePools,
