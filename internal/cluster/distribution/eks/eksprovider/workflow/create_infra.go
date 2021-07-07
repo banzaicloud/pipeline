@@ -331,13 +331,12 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	}
 
 	{ // Note: create node pools.
-		shouldCreateNodePoolLabelSet := false // Note: node pool label set operator is created and synced later.
-		shouldStoreNodePool := false          // Note: stored at LegacyClusterAPI.CreateCluster request parsing.
-		shouldUpdateClusterStatus := false    // Note: parent workflow handles status updates.
-
-		createNodePoolFutures := make([]workflow.Future, 0, len(input.NodePools))
-		createNodePoolErrors := make([]error, 0, len(input.NodePools))
+		nodePools := make(map[string]eks.NewNodePool, len(input.NodePools))
+		nodePoolSubnetErrors := make([]error, 0, len(input.NodePools))
+		subnetIDs := make(map[string][]string, len(input.NodePools))
 		for _, nodePool := range input.NodePools {
+			nodePools[nodePool.Name] = nodePool
+
 			nodePoolSubnets := input.NodePoolSubnets[nodePool.Name]
 			nodePoolSubnetIDs := make([]string, 0, len(nodePoolSubnets))
 			for _, nodePoolSubnet := range nodePoolSubnets {
@@ -360,8 +359,8 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 			}
 
 			if len(nodePoolSubnetIDs) == 0 {
-				createNodePoolErrors = append(
-					createNodePoolErrors,
+				nodePoolSubnetErrors = append(
+					nodePoolSubnetErrors,
 					errors.NewWithDetails(
 						"node pool subnet is missing",
 						"nodePool", nodePool,
@@ -371,27 +370,24 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 				)
 			}
 
-			if len(createNodePoolErrors) == 0 {
-				createNodePoolFutures = append(createNodePoolFutures, createNodePoolAsync(
-					ctx,
-					input.ClusterID,
-					input.CreatorUserID,
-					nodePool,
-					nodePoolSubnetIDs,
-					shouldCreateNodePoolLabelSet,
-					shouldStoreNodePool,
-					shouldUpdateClusterStatus,
-				))
-			}
+			subnetIDs[nodePool.Name] = nodePoolSubnetIDs
 		}
-		if len(createNodePoolErrors) != 0 {
-			return nil, errors.Combine(createNodePoolErrors...)
+		if len(nodePoolSubnetErrors) != 0 {
+			return nil, errors.Combine(nodePoolSubnetErrors...)
 		}
 
-		for _, future := range createNodePoolFutures {
-			createNodePoolErrors = append(createNodePoolErrors, pkgCadence.UnwrapError(future.Get(ctx, nil)))
+		activityInput := CreateNodePoolsWorkflowInput{
+			ClusterID:                    input.ClusterID,
+			CreatorUserID:                input.CreatorUserID,
+			NodePools:                    nodePools,
+			NodePoolSubnetIDs:            subnetIDs,
+			ShouldCreateNodePoolLabelSet: false, // Note: node pool label set operator is created and synced later in parent EKSCreateClusterWorkflow.
+			ShouldStoreNodePool:          false, // Note: stored at LegacyClusterAPI.CreateCluster request parsing.
+			ShouldUpdateClusterStatus:    false, // Note: parent EKSCreateClusterWorkflow workflow handles status updates.
 		}
-		if err := errors.Combine(createNodePoolErrors...); err != nil {
+
+		err = workflow.ExecuteChildWorkflow(ctx, CreateNodePoolsWorkflowName, activityInput).Get(ctx, nil)
+		if err != nil {
 			return nil, err
 		}
 	}

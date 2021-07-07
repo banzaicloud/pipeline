@@ -65,8 +65,8 @@ func (s *CreateInfraWorkflowTestSuite) SetupTest() {
 	saveK8sConfigActivity := NewSaveK8sConfigActivity(nil, nil)
 	s.env.RegisterActivityWithOptions(saveK8sConfigActivity.Execute, activity.RegisterOptions{Name: SaveK8sConfigActivityName})
 
-	createNodePoolWorkflow := NewCreateNodePoolWorkflow()
-	s.env.RegisterWorkflowWithOptions(createNodePoolWorkflow.Execute, workflow.RegisterOptions{Name: CreateNodePoolWorkflowName})
+	createNodePoolsWorkflow := NewCreateNodePoolsWorkflow()
+	s.env.RegisterWorkflowWithOptions(createNodePoolsWorkflow.Execute, workflow.RegisterOptions{Name: CreateNodePoolsWorkflowName})
 
 	createUserAccessKeyActivity := NewCreateClusterUserAccessKeyActivity(nil)
 	s.env.RegisterActivityWithOptions(createUserAccessKeyActivity.Execute, activity.RegisterOptions{Name: CreateClusterUserAccessKeyActivityName})
@@ -312,62 +312,58 @@ func (s *CreateInfraWorkflowTestSuite) Test_Successful_Create() {
 		},
 	}).Return(&CreateEksControlPlaneActivityOutput{}, nil)
 
-	s.env.OnWorkflow(CreateNodePoolWorkflowName, mock.Anything, CreateNodePoolWorkflowInput{
+	s.env.OnWorkflow(CreateNodePoolsWorkflowName, mock.Anything, CreateNodePoolsWorkflowInput{
 		ClusterID:     1,
 		CreatorUserID: 3,
-		NodePool: eks.NewNodePool{
-			Name: "pool1",
-			Labels: map[string]string{
-				"test-label1":         "test-value1",
-				"test-label2.io/name": "test-value2",
+		NodePools: map[string]eks.NewNodePool{
+			"pool1": {
+				Name: "pool1",
+				Labels: map[string]string{
+					"test-label1":         "test-value1",
+					"test-label2.io/name": "test-value2",
+				},
+				Size: 2,
+				Autoscaling: eks.Autoscaling{
+					Enabled: true,
+					MinSize: 2,
+					MaxSize: 3,
+				},
+				VolumeSize:   0,
+				VolumeType:   "",
+				InstanceType: "vm-type1-test",
+				Image:        "ami-test1",
+				SpotPrice:    "0.2",
+				SubnetID:     "subnet1",
 			},
-			Size: 2,
-			Autoscaling: eks.Autoscaling{
-				Enabled: true,
-				MinSize: 2,
-				MaxSize: 3,
+			"pool2": {
+				Name:   "pool2",
+				Labels: nil,
+				Size:   3,
+				Autoscaling: eks.Autoscaling{
+					Enabled: false,
+					MinSize: 3,
+					MaxSize: 3,
+				},
+				VolumeSize:   12,
+				VolumeType:   "gp3",
+				InstanceType: "vm-type2-test",
+				Image:        "ami-test2",
+				SpotPrice:    "0.0",
+				SecurityGroups: []string{
+					"security-group-2",
+					"security-group-22",
+				},
+				SubnetID: "subnet3",
 			},
-			VolumeSize:   0,
-			VolumeType:   "",
-			InstanceType: "vm-type1-test",
-			Image:        "ami-test1",
-			SpotPrice:    "0.2",
-			SubnetID:     "subnet1",
 		},
-		NodePoolSubnetIDs: []string{
-			"subnet1",
-			"subnet2",
-		},
-		ShouldCreateNodePoolLabelSet: false,
-		ShouldStoreNodePool:          false,
-		ShouldUpdateClusterStatus:    false,
-	}).Return(nil).Once()
-
-	s.env.OnWorkflow(CreateNodePoolWorkflowName, mock.Anything, CreateNodePoolWorkflowInput{
-		ClusterID:     1,
-		CreatorUserID: 3,
-		NodePool: eks.NewNodePool{
-			Name:   "pool2",
-			Labels: nil,
-			Size:   3,
-			Autoscaling: eks.Autoscaling{
-				Enabled: false,
-				MinSize: 3,
-				MaxSize: 3,
+		NodePoolSubnetIDs: map[string][]string{
+			"pool1": {
+				"subnet1",
+				"subnet2",
 			},
-			VolumeSize:   12,
-			VolumeType:   "gp3",
-			InstanceType: "vm-type2-test",
-			Image:        "ami-test2",
-			SpotPrice:    "0.0",
-			SecurityGroups: []string{
-				"security-group-2",
-				"security-group-22",
+			"pool2": {
+				"subnet3",
 			},
-			SubnetID: "subnet3",
-		},
-		NodePoolSubnetIDs: []string{
-			"subnet3",
 		},
 		ShouldCreateNodePoolLabelSet: false,
 		ShouldStoreNodePool:          false,
