@@ -181,7 +181,7 @@ type NodePoolProcessor interface {
 	ProcessNew(ctx context.Context, cluster Cluster, rawNodePool NewRawNodePool) (NewRawNodePool, error)
 }
 
-func (s service) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) (err error) {
+func (s service) CreateNodePools(ctx context.Context, clusterID uint, rawNodePools map[string]NewRawNodePool) (err error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return err
@@ -191,25 +191,40 @@ func (s service) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool
 		return err
 	}
 
-	if err := s.nodePoolValidator.ValidateNew(ctx, cluster, rawNodePool); err != nil {
-		return err
+	npErrors := make([]error, 0, len(rawNodePools))
+
+	for _, rawNodePool := range rawNodePools {
+		if err := s.nodePoolValidator.ValidateNew(ctx, cluster, rawNodePool); err != nil {
+			npErrors = append(npErrors, err)
+		}
+	}
+	if len(npErrors) > 0 {
+		return errors.Combine(npErrors...)
 	}
 
-	exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePool.GetName())
-	if err != nil {
-		return err
+	for rawNodePoolName := range rawNodePools {
+		exists, nodePoolStoredName, err := s.nodePools.NodePoolExists(ctx, clusterID, rawNodePoolName)
+		if err != nil {
+			npErrors = append(npErrors, err)
+		} else if exists {
+			npErrors = append(npErrors, errors.WithStack(NodePoolAlreadyExistsError{
+				ClusterID: clusterID,
+				NodePool:  nodePoolStoredName,
+			}))
+		}
+	}
+	if len(npErrors) > 0 {
+		return errors.Combine(npErrors...)
 	}
 
-	if exists {
-		return errors.WithStack(NodePoolAlreadyExistsError{
-			ClusterID: clusterID,
-			NodePool:  nodePoolStoredName,
-		})
+	for rawNodePoolName, rawNodePool := range rawNodePools {
+		rawNodePools[rawNodePoolName], err = s.nodePoolProcessor.ProcessNew(ctx, cluster, rawNodePool)
+		if err != nil {
+			npErrors = append(npErrors, err)
+		}
 	}
-
-	rawNodePool, err = s.nodePoolProcessor.ProcessNew(ctx, cluster, rawNodePool)
-	if err != nil {
-		return err
+	if len(npErrors) > 0 {
+		return errors.Combine(npErrors...)
 	}
 
 	distributionService, err := s.getDistributionService(cluster)
@@ -217,7 +232,7 @@ func (s service) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool
 		return err
 	}
 
-	return distributionService.CreateNodePool(ctx, clusterID, rawNodePool)
+	return distributionService.CreateNodePools(ctx, clusterID, rawNodePools)
 }
 
 func (s service) UpdateNodePool(

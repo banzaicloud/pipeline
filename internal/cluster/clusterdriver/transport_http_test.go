@@ -160,7 +160,7 @@ func TestRegisterHTTPHandlers_DeleteCluster(t *testing.T) {
 	})
 }
 
-func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
+func TestRegisterHTTPHandlers_CreateNodePools(t *testing.T) {
 	tests := []struct {
 		name               string
 		endpointFunc       func(ctx context.Context, request interface{}) (response interface{}, err error)
@@ -169,7 +169,7 @@ func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
 		{
 			name: "invalid",
 			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return CreateNodePoolResponse{Err: cluster.NewValidationError(
+				return CreateNodePoolsResponse{Err: cluster.NewValidationError(
 					"invalid node pool request",
 					[]string{"name cannot be empty"},
 				)}, nil
@@ -179,7 +179,7 @@ func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
 		{
 			name: "already_exists",
 			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return CreateNodePoolResponse{Err: cluster.NodePoolAlreadyExistsError{
+				return CreateNodePoolsResponse{Err: cluster.NodePoolAlreadyExistsError{
 					ClusterID: 1,
 					NodePool:  "pool0",
 				}}, nil
@@ -189,7 +189,7 @@ func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
 		{
 			name: "success",
 			endpointFunc: func(ctx context.Context, request interface{}) (response interface{}, err error) {
-				return CreateNodePoolResponse{}, nil
+				return CreateNodePoolsResponse{}, nil
 			},
 			expectedStatusCode: http.StatusAccepted,
 		},
@@ -204,7 +204,7 @@ func TestRegisterHTTPHandlers_CreateNodePool(t *testing.T) {
 			handler := mux.NewRouter()
 			RegisterHTTPHandlers(
 				Endpoints{
-					CreateNodePool: test.endpointFunc,
+					CreateNodePools: test.endpointFunc,
 				},
 				handler.PathPrefix("/clusters/{clusterId}").Subrouter(),
 			)

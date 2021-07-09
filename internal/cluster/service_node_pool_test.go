@@ -130,7 +130,7 @@ func (n nodePoolStub) GetLabels() map[string]string {
 	return n.labels
 }
 
-func TestNodePoolService_CreateNodePool(t *testing.T) {
+func TestNodePoolService_CreateNodePools(t *testing.T) {
 	t.Run("ClusterNotFound", func(t *testing.T) {
 		ctx := context.Background()
 
@@ -151,7 +151,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			"name": "pool0",
 		}
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.Error(t, err)
 
 		assert.True(t, errors.Is(err, NotFoundError{ClusterID: 1}))
@@ -189,7 +189,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			"name": "pool0",
 		}
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.Error(t, err)
 
 		assert.True(t, errors.As(err, &NotSupportedDistributionError{}))
@@ -234,7 +234,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.Error(t, err)
 
 		assert.Equal(t, validationError, err)
@@ -278,7 +278,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.EqualError(t, err, "node pool exists error")
 
 		clusterStore.AssertExpectations(t)
@@ -320,7 +320,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.EqualError(t, err, NodePoolAlreadyExistsError{
 			ClusterID: cluster.ID,
 			NodePool:  nodePoolName,
@@ -367,7 +367,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.EqualError(t, err, "process new error")
 
 		clusterStore.AssertExpectations(t)
@@ -411,7 +411,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 
 		service := NewService(clusterStore, nil, clusterGroupManager, nil, nodePoolStore, validator, processor)
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.EqualError(t, err, NotSupportedDistributionError{
 			ID:           cluster.ID,
 			Cloud:        cluster.Cloud,
@@ -452,7 +452,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, "", nil)
 
 		distributionService := new(MockService)
-		distributionService.On("CreateNodePool", ctx, cluster.ID, rawNewNodePool).
+		distributionService.On("CreateNodePools", ctx, cluster.ID, map[string]NewRawNodePool{"pool0": rawNewNodePool}).
 			Return(errors.New("create node pool error"))
 
 		validator := new(MockNodePoolValidator)
@@ -475,7 +475,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			processor,
 		)
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.EqualError(t, err, "create node pool error")
 
 		clusterStore.AssertExpectations(t)
@@ -510,7 +510,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 		nodePoolStore.On("NodePoolExists", ctx, cluster.ID, nodePoolName).Return(false, "", nil)
 
 		distributionService := new(MockService)
-		distributionService.On("CreateNodePool", ctx, cluster.ID, rawNewNodePool).Return(nil)
+		distributionService.On("CreateNodePools", ctx, cluster.ID, map[string]NewRawNodePool{"pool0": rawNewNodePool}).Return(nil)
 
 		validator := new(MockNodePoolValidator)
 		validator.On("ValidateNew", ctx, cluster, rawNewNodePool).Return(nil)
@@ -532,7 +532,7 @@ func TestNodePoolService_CreateNodePool(t *testing.T) {
 			processor,
 		)
 
-		err := service.CreateNodePool(ctx, 1, rawNewNodePool)
+		err := service.CreateNodePools(ctx, 1, map[string]NewRawNodePool{"pool0": rawNewNodePool})
 		require.NoError(t, err)
 
 		clusterStore.AssertExpectations(t)

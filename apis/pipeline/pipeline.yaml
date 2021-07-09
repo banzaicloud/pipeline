@@ -3547,7 +3547,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/NodePool'
+                            $ref: '#/components/schemas/CreateNodePoolRequest'
             responses:
                 202:
                     description: Node pool creation in progress
@@ -4424,6 +4424,11 @@ components:
             #         'pke-on-azure': '#/components/schemas/CreatePKEOnAzureClusterRequest'
             #         'pke-on-vsphere': '#/components/schemas/CreatePKEOnVsphereClusterRequest'
 
+        CreateNodePoolRequest:
+            oneOf:
+                - $ref: '#/components/schemas/NodePool'
+                - $ref: '#/components/schemas/NodePools'
+
         NodePool:
             oneOf:
                 # Note: in OpenAPI generator 4.3.1 single reference
@@ -4439,6 +4444,15 @@ components:
                 # https://github.com/OpenAPITools/openapi-generator/pull/2897
                 - $ref: '#/components/schemas/EksNodePool'
                 - $ref: '#/components/schemas/EksNodePool'
+
+        NodePools:
+            description: An associative collection of node pool objects keyed by their name.
+            properties:
+                nodePools:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/NodePool'
+            type: object
 
         GenericNodePool:
             description: Generic node pool object for all cluster distributions.
@@ -4561,6 +4575,11 @@ components:
                     type: string
             type: object
 
+        # Note: slightly different type from `EKSNodePool`, example differences:
+        #
+        # - `size (integer)` >-< `count (integer)`,
+        #
+        # - `autoscaling (NodePoolAutoscaling) >-<`autoscaling (bool)`
         EksNodePool:
             description: Node pool object for an EKS cluster.
             type: object

@@ -27,12 +27,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 )
 
-func TestEksServiceCreateNodePool(t *testing.T) {
+func TestEksServiceCreateNodePools(t *testing.T) {
 	type inputType struct {
-		service     eksService
-		ctx         context.Context
-		clusterID   uint
-		rawNodePool cluster.NewRawNodePool
+		service      eksService
+		ctx          context.Context
+		clusterID    uint
+		rawNodePools map[string]cluster.NewRawNodePool
 	}
 
 	testCases := []struct {
@@ -49,8 +49,10 @@ func TestEksServiceCreateNodePool(t *testing.T) {
 				},
 				ctx:       context.Background(),
 				clusterID: 1,
-				rawNodePool: cluster.NewRawNodePool{
-					"name": false,
+				rawNodePools: map[string]cluster.NewRawNodePool{
+					"pool1": {
+						"name": false,
+					},
 				},
 			},
 		},
@@ -61,9 +63,11 @@ func TestEksServiceCreateNodePool(t *testing.T) {
 				service: eksService{
 					service: &eks.MockService{},
 				},
-				ctx:         context.Background(),
-				clusterID:   1,
-				rawNodePool: cluster.NewRawNodePool{},
+				ctx:       context.Background(),
+				clusterID: 1,
+				rawNodePools: map[string]cluster.NewRawNodePool{
+					"pool1": {},
+				},
 			},
 		},
 		{
@@ -73,24 +77,26 @@ func TestEksServiceCreateNodePool(t *testing.T) {
 				service: eksService{
 					service: &eks.MockService{},
 				},
-				ctx:         context.Background(),
-				clusterID:   1,
-				rawNodePool: cluster.NewRawNodePool{},
+				ctx:       context.Background(),
+				clusterID: 1,
+				rawNodePools: map[string]cluster.NewRawNodePool{
+					"pool1": {},
+				},
 			},
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.caseName, func(t *testing.T) {
-			var newNodePool eks.NewNodePool
+			var newNodePools map[string]eks.NewNodePool
 			if testCase.expectedError == nil ||
 				!strings.HasPrefix(testCase.expectedError.Error(), "invalid node pool creation request") {
-				err := mapstructure.Decode(testCase.input.rawNodePool, &newNodePool)
+				err := mapstructure.Decode(testCase.input.rawNodePools, &newNodePools)
 				require.NoError(t, err)
 			}
 
 			createNodePoolMock := testCase.input.service.service.(*eks.MockService).On(
-				"CreateNodePool", testCase.input.ctx, testCase.input.clusterID, newNodePool,
+				"CreateNodePools", testCase.input.ctx, testCase.input.clusterID, newNodePools,
 			)
 			if testCase.expectedError != nil &&
 				strings.HasPrefix(testCase.expectedError.Error(), "create node pool error") {
@@ -99,10 +105,10 @@ func TestEksServiceCreateNodePool(t *testing.T) {
 				createNodePoolMock.Return(nil)
 			}
 
-			actualError := testCase.input.service.CreateNodePool(
+			actualError := testCase.input.service.CreateNodePools(
 				testCase.input.ctx,
 				testCase.input.clusterID,
-				testCase.input.rawNodePool,
+				testCase.input.rawNodePools,
 			)
 
 			if testCase.expectedError == nil {

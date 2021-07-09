@@ -51,7 +51,7 @@ func (s pkeService) DeleteCluster(ctx context.Context, clusterIdentifier cluster
 	panic("implement me")
 }
 
-func (s pkeService) CreateNodePool(ctx context.Context, clusterID uint, rawNodePool cluster.NewRawNodePool) error {
+func (s pkeService) CreateNodePools(ctx context.Context, clusterID uint, rawNodePools map[string]cluster.NewRawNodePool) error {
 	panic("implement me")
 }
 

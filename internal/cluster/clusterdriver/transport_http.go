@@ -57,8 +57,8 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...ki
 	))
 
 	router.Methods(http.MethodPost).Path("/nodepools").Handler(kithttp.NewServer(
-		endpoints.CreateNodePool,
-		decodeCreateNodePoolHTTPRequest,
+		endpoints.CreateNodePools,
+		decodeCreateNodePoolsHTTPRequest,
 		kitxhttp.ErrorResponseEncoder(kitxhttp.StatusCodeResponseEncoder(http.StatusAccepted), errorEncoder),
 		options...,
 	))
@@ -173,7 +173,7 @@ func decodeListNodePoolsHTTPRequest(_ context.Context, r *http.Request) (interfa
 	return ListNodePoolsRequest{ClusterID: uint(clusterID)}, nil
 }
 
-func decodeCreateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeCreateNodePoolsHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	vars := mux.Vars(r)
 
 	rawClusterID, ok := vars["clusterId"]
@@ -186,30 +186,55 @@ func decodeCreateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interf
 		return nil, errors.NewWithDetails("invalid cluster ID", "rawClusterId", rawClusterID)
 	}
 
-	var rawNodePool pipeline.NodePool
-
-	err = json.NewDecoder(r.Body).Decode(&rawNodePool)
+	var requestBody pipeline.CreateNodePoolRequest
+	err = json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to decode request")
+		return nil, errors.Wrap(err, "failed to decode create node pool request")
 	}
 
-	var spec map[string]interface{}
+	requestNodePools := requestBody.NodePools
+	if len(requestNodePools) == 0 { // Note: possibly single node pool.
+		var requestSingleNodePool pipeline.NodePool
+		decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+			Metadata: nil,
+			Result:   &requestSingleNodePool,
+			TagName:  "json",
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create single node pool decoder")
+		}
 
+		err = decoder.Decode(requestBody)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to decode single node pool request")
+		}
+
+		requestNodePools = map[string]pipeline.NodePool{
+			requestSingleNodePool.Name: requestSingleNodePool,
+		}
+	}
+
+	for nodePoolName, nodePool := range requestNodePools { // Note: fill multiple node pool names from map.
+		nodePool.Name = nodePoolName
+		requestNodePools[nodePoolName] = nodePool
+	}
+
+	newNodePools := make(map[string]cluster.NewRawNodePool, len(requestNodePools))
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Metadata: nil,
-		Result:   &spec,
+		Result:   &newNodePools,
 		TagName:  "json",
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create decoder")
 	}
 
-	err = decoder.Decode(rawNodePool)
+	err = decoder.Decode(requestNodePools)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to decode request")
+		return nil, errors.Wrap(err, "failed to decode create node pool request")
 	}
 
-	return CreateNodePoolRequest{ClusterID: uint(clusterID), RawNodePool: spec}, nil
+	return CreateNodePoolsRequest{ClusterID: uint(clusterID), RawNodePools: newNodePools}, nil
 }
 
 func decodeUpdateNodePoolHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {

@@ -41,13 +41,13 @@ type MockNodePoolManager struct {
 	mock.Mock
 }
 
-// CreateNodePool provides a mock function.
-func (_m *MockNodePoolManager) CreateNodePool(ctx context.Context, c cluster.Cluster, nodePool NewNodePool) (err error) {
-	ret := _m.Called(ctx, c, nodePool)
+// CreateNodePools provides a mock function.
+func (_m *MockNodePoolManager) CreateNodePools(ctx context.Context, c cluster.Cluster, nodePools map[string]NewNodePool) (err error) {
+	ret := _m.Called(ctx, c, nodePools)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, cluster.Cluster, NewNodePool) error); ok {
-		r0 = rf(ctx, c, nodePool)
+	if rf, ok := ret.Get(0).(func(context.Context, cluster.Cluster, map[string]NewNodePool) error); ok {
+		r0 = rf(ctx, c, nodePools)
 	} else {
 		r0 = ret.Error(0)
 	}

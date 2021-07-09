@@ -463,12 +463,12 @@ func TestNewNodePoolWithNoValues(t *testing.T) {
 	}
 }
 
-func TestServiceCreateNodePool(t *testing.T) {
+func TestServiceCreateNodePools(t *testing.T) {
 	type inputType struct {
 		s         service
 		ctx       context.Context
 		clusterID uint
-		nodePool  NewNodePool
+		nodePools map[string]NewNodePool
 	}
 
 	testCases := []struct {
@@ -488,7 +488,9 @@ func TestServiceCreateNodePool(t *testing.T) {
 				},
 				ctx:       context.Background(),
 				clusterID: 1,
-				nodePool:  NewNodePool{},
+				nodePools: map[string]NewNodePool{
+					"pool1": {},
+				},
 			},
 		},
 		{
@@ -503,11 +505,13 @@ func TestServiceCreateNodePool(t *testing.T) {
 				},
 				ctx:       context.Background(),
 				clusterID: 1,
-				nodePool: NewNodePool{
-					Name:         "node-pool-name",
-					InstanceType: "instance-type",
-					Size:         1,
-					SubnetID:     "subnet-id",
+				nodePools: map[string]NewNodePool{
+					"node-pool-name": {
+						Name:         "node-pool-name",
+						InstanceType: "instance-type",
+						Size:         1,
+						SubnetID:     "subnet-id",
+					},
 				},
 			},
 		},
@@ -523,11 +527,13 @@ func TestServiceCreateNodePool(t *testing.T) {
 				},
 				ctx:       context.Background(),
 				clusterID: 1,
-				nodePool: NewNodePool{
-					Name:         "node-pool-name",
-					InstanceType: "instance-type",
-					Size:         1,
-					SubnetID:     "subnet-id",
+				nodePools: map[string]NewNodePool{
+					"node-pool-name": {
+						Name:         "node-pool-name",
+						InstanceType: "instance-type",
+						Size:         1,
+						SubnetID:     "subnet-id",
+					},
 				},
 			},
 		},
@@ -543,11 +549,13 @@ func TestServiceCreateNodePool(t *testing.T) {
 				},
 				ctx:       context.Background(),
 				clusterID: 1,
-				nodePool: NewNodePool{
-					Name:         "node-pool-name",
-					InstanceType: "instance-type",
-					Size:         1,
-					SubnetID:     "subnet-id",
+				nodePools: map[string]NewNodePool{
+					"node-pool-name": {
+						Name:         "node-pool-name",
+						InstanceType: "instance-type",
+						Size:         1,
+						SubnetID:     "subnet-id",
+					},
 				},
 			},
 		},
@@ -563,11 +571,13 @@ func TestServiceCreateNodePool(t *testing.T) {
 				},
 				ctx:       context.Background(),
 				clusterID: 1,
-				nodePool: NewNodePool{
-					Name:         "node-pool-name",
-					InstanceType: "instance-type",
-					Size:         1,
-					SubnetID:     "subnet-id",
+				nodePools: map[string]NewNodePool{
+					"node-pool-name": {
+						Name:         "node-pool-name",
+						InstanceType: "instance-type",
+						Size:         1,
+						SubnetID:     "subnet-id",
+					},
 				},
 			},
 		},
@@ -583,15 +593,17 @@ func TestServiceCreateNodePool(t *testing.T) {
 				},
 				ctx:       context.Background(),
 				clusterID: 1,
-				nodePool: NewNodePool{
-					Name:         "node-pool-name",
-					InstanceType: "instance-type",
-					Size:         1,
-					SecurityGroups: []string{
-						"security-group-1",
-						"security-group-2",
+				nodePools: map[string]NewNodePool{
+					"node-pool-name": {
+						Name:         "node-pool-name",
+						InstanceType: "instance-type",
+						Size:         1,
+						SecurityGroups: []string{
+							"security-group-1",
+							"security-group-2",
+						},
+						SubnetID: "subnet-id",
 					},
-					SubnetID: "subnet-id",
 				},
 			},
 		},
@@ -615,7 +627,7 @@ func TestServiceCreateNodePool(t *testing.T) {
 				"ValidateNewNodePool",
 				testCase.input.ctx,
 				cluster.Cluster{ID: testCase.input.clusterID},
-				testCase.input.nodePool,
+				testCase.input.nodePools["node-pool-name"],
 			)
 			if testCase.expectedError != nil &&
 				strings.HasPrefix(testCase.expectedError.Error(), "validate new node pool error") {
@@ -628,13 +640,13 @@ func TestServiceCreateNodePool(t *testing.T) {
 				"ProcessNewNodePool",
 				testCase.input.ctx,
 				cluster.Cluster{ID: testCase.input.clusterID},
-				testCase.input.nodePool,
+				testCase.input.nodePools["node-pool-name"],
 			)
 			if testCase.expectedError != nil &&
 				strings.HasPrefix(testCase.expectedError.Error(), "process new node pool error") {
-				processNewNodePoolMock.Return(testCase.input.nodePool, testCase.expectedError)
+				processNewNodePoolMock.Return(testCase.input.nodePools["node-pool-name"], testCase.expectedError)
 			} else {
-				processNewNodePoolMock.Return(testCase.input.nodePool, nil)
+				processNewNodePoolMock.Return(testCase.input.nodePools["node-pool-name"], nil)
 			}
 
 			setStatusMock := testCase.input.s.genericClusters.(*MockStore).On(
@@ -652,10 +664,10 @@ func TestServiceCreateNodePool(t *testing.T) {
 			}
 
 			createNodePoolMock := testCase.input.s.nodePoolManager.(*MockNodePoolManager).On(
-				"CreateNodePool",
+				"CreateNodePools",
 				testCase.input.ctx,
 				cluster.Cluster{ID: testCase.input.clusterID},
-				testCase.input.nodePool,
+				testCase.input.nodePools,
 			)
 			if testCase.expectedError != nil &&
 				strings.HasPrefix(testCase.expectedError.Error(), "create node pool error") {
@@ -664,10 +676,10 @@ func TestServiceCreateNodePool(t *testing.T) {
 				createNodePoolMock.Return(nil)
 			}
 
-			actualError := testCase.input.s.CreateNodePool(
+			actualError := testCase.input.s.CreateNodePools(
 				testCase.input.ctx,
 				testCase.input.clusterID,
-				testCase.input.nodePool,
+				testCase.input.nodePools,
 			)
 
 			if testCase.expectedError == nil {

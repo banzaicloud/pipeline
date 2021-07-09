@@ -197,8 +197,8 @@ type Service interface {
 	// DeleteCluster deletes the specified cluster. It returns true if the cluster is already deleted.
 	DeleteCluster(ctx context.Context, clusterIdentifier Identifier, options DeleteClusterOptions) (deleted bool, err error)
 
-	// CreateNodePool creates a new node pool in a cluster.
-	CreateNodePool(ctx context.Context, clusterID uint, rawNodePool NewRawNodePool) error
+	// CreateNodePools creates a new node pool in a cluster.
+	CreateNodePools(ctx context.Context, clusterID uint, rawNodePools map[string]NewRawNodePool) error
 
 	// UpdateNodePool updates an existing node pool in a cluster.
 	UpdateNodePool(ctx context.Context, clusterID uint, nodePoolName string, rawNodePoolUpdate RawNodePoolUpdate) (processID string, err error)
