@@ -18,13 +18,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/ghodss/yaml"
 	"go.uber.org/cadence/activity"
@@ -47,7 +44,6 @@ const BootstrapActivityName = "eks-bootstrap"
 // CreateEksControlPlaneActivity creates aws-auth map & default StorageClass on cluster
 type BootstrapActivity struct {
 	awsSessionFactory *awsworkflow.AWSSessionFactory
-	enableAddons      bool
 }
 
 // BootstrapActivityInput holds input data
@@ -65,10 +61,9 @@ type BootstrapActivityOutput struct {
 }
 
 // BootstrapActivity instantiates a new BootstrapActivity
-func NewBootstrapActivity(awsSessionFactory *awsworkflow.AWSSessionFactory, enableAddons bool) *BootstrapActivity {
+func NewBootstrapActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *BootstrapActivity {
 	return &BootstrapActivity{
 		awsSessionFactory: awsSessionFactory,
-		enableAddons:      enableAddons,
 	}
 }
 
@@ -107,6 +102,7 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not set eks version for semver check")
 	}
+
 	var volumeBindingMode storagev1.VolumeBindingMode
 	if constraint.Check(kubeVersion) {
 		volumeBindingMode = storagev1.VolumeBindingWaitForFirstConsumer
@@ -186,44 +182,6 @@ func (a *BootstrapActivity) Execute(ctx context.Context, input BootstrapActivity
 		return nil, errors.Wrap(err, "failed to update CNI driver daemonset")
 	}
 
-	// check add-on are enabled and K8s version is >= 1.18
-	constraint, err = semver.NewConstraint(">=1.18")
-	if err != nil {
-		return nil, errors.WrapIf(err, "could not set 1.18 constraint for semver")
-	}
-	if a.enableAddons && constraint.Check(kubeVersion) {
-		logger.Info("create add-on for cluster : " + (input.ClusterName))
-
-		coreDnsAddOnInput := &eks.CreateAddonInput{
-			AddonName:        aws.String("coredns"),
-			ClusterName:      aws.String(input.ClusterName),
-			ResolveConflicts: aws.String(eks.ResolveConflictsOverwrite),
-		}
-		addOnOutput, err := eksSvc.CreateAddon(coreDnsAddOnInput)
-		if err != nil {
-			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ResourceInUseException" {
-				logger.Info("addon created but: " + awsErr.Message())
-			} else {
-				return nil, errors.Wrap(err, "failed to create coredns add-on")
-			}
-		} else {
-			logger.Info("addon created with status: " + addOnOutput.Addon.String())
-		}
-
-		logger.Info("waiting for add-on creation")
-
-		describeAddonInput := &eks.DescribeAddonInput{
-			AddonName:   aws.String("coredns"),
-			ClusterName: aws.String(input.ClusterName),
-		}
-		err = waitUntilAddOnCreateCompleteWithContext(eksSvc, ctx, describeAddonInput)
-		if err != nil {
-			return nil, err
-		}
-
-		logger.Info("add-on created successfully")
-	}
-
 	outParams := BootstrapActivityOutput{}
 	return &outParams, nil
 }
@@ -301,59 +259,4 @@ func createDefaultStorageClass(ctx context.Context, kubernetesClient *kubernetes
 	}
 
 	return nil
-}
-
-func waitUntilAddOnCreateCompleteWithContext(eksSvc *eks.EKS, ctx aws.Context, input *eks.DescribeAddonInput, opts ...request.WaiterOption) error {
-	// wait for 15 mins
-	count := 0
-	w := request.Waiter{
-		Name:        "WaitUntilAddOnCreateCompleteWithContext",
-		MaxAttempts: 30,
-		Delay:       request.ConstantWaiterDelay(30 * time.Second),
-		Acceptors: []request.WaiterAcceptor{
-			{
-				State:   request.SuccessWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Addon.Status",
-				Expected: eks.AddonStatusActive,
-			},
-			{
-				State:   request.SuccessWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Addon.Status",
-				Expected: eks.AddonStatusDegraded,
-			},
-			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Addon.Status",
-				Expected: eks.AddonStatusDeleting,
-			},
-			{
-				State:   request.FailureWaiterState,
-				Matcher: request.PathAnyWaiterMatch, Argument: "Addon.Status",
-				Expected: eks.AddonStatusCreateFailed,
-			},
-			{
-				State:    request.FailureWaiterState,
-				Matcher:  request.ErrorWaiterMatch,
-				Expected: "ValidationError",
-			},
-		},
-		Logger: eksSvc.Config.Logger,
-		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			count++
-			activity.RecordHeartbeat(ctx, count)
-
-			var inCpy *eks.DescribeAddonInput
-			if input != nil {
-				tmp := *input
-				inCpy = &tmp
-			}
-			req, _ := eksSvc.DescribeAddonRequest(inCpy)
-			req.SetContext(ctx)
-			req.ApplyOptions(opts...)
-			return req, nil
-		},
-	}
-	w.ApplyOptions(opts...)
-
-	return w.WaitWithContext(ctx)
 }
