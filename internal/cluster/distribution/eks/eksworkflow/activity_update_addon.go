@@ -92,16 +92,13 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		ClusterName: aws.String(input.ClusterName),
 	}
 	addonOutput, err := eksSvc.DescribeAddon(describeAddonInput)
-	addonNotFoundErrMsg := fmt.Sprintf("No %s addon found in cluster: %s", input.AddonName, input.ClusterName)
 	if err != nil {
-		var awsErr awserr.Error
-		if errors.As(err, &awsErr) {
-			err = errors.New(awsErr.Message())
-		}
-		if err.Error() == addonNotFoundErrMsg {
-			logger.Infof(addonNotFoundErrMsg)
+		if isAWSAddonNotFoundError(err, input.AddonName, input.ClusterName) { // Note: no update for not existing addons.
+			logger.Infof("%s", err.Error())
+
 			return &UpdateAddonActivityOutput{UpdateID: ""}, nil
 		}
+
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve addon", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
 
@@ -172,6 +169,25 @@ func selectLatestVersion(addonVersions *eks.DescribeAddonVersionsOutput, current
 		}
 	}
 	return latestVersion.Original(), nil
+}
+
+// errorMessageAWSAddonNotFound is the error message returned by AWS when a
+// non-existing cluster addon is queried (for example in DescribeAddon()).
+func errorMessageAWSAddonNotFound(addonName, clusterName string) string {
+	return fmt.Sprintf("No addon: %s found in cluster: %s", addonName, clusterName)
+}
+
+// isAWSAddonNotFoundError returns a boolean indicator of whether the specified
+// error is an error indicating the cluster has no such addon.
+func isAWSAddonNotFoundError(err error, addonName, clusterName string) bool {
+	if err == nil {
+		return false
+	}
+
+	var awsErr awserr.Error
+
+	return errors.As(err, &awsErr) &&
+		awsErr.Message() == errorMessageAWSAddonNotFound(addonName, clusterName)
 }
 
 func versionIsCompatible(compatibilities []*eks.Compatibility, kubernetesVersion string) bool {
