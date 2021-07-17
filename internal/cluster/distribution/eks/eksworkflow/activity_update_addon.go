@@ -54,7 +54,8 @@ type UpdateAddonActivityInput struct {
 
 // UpdateAddonActivityOutput holds the output data of the UpdateAddonActivityOutput
 type UpdateAddonActivityOutput struct {
-	UpdateID string
+	UpdateID          string
+	AddonNotInstalled bool
 }
 
 // NewUpdateAddonActivity instantiates a new EKS addon version update
@@ -96,7 +97,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		if isAWSAddonNotFoundError(err, input.AddonName, input.ClusterName) { // Note: no update for not existing addons.
 			logger.Infof("%s", err.Error())
 
-			return &UpdateAddonActivityOutput{UpdateID: ""}, nil
+			return &UpdateAddonActivityOutput{AddonNotInstalled: true}, nil
 		}
 
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve addon", "cluster", input.ClusterName, "addon", input.AddonName)
