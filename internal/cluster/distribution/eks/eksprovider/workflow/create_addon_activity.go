@@ -77,7 +77,7 @@ func (a *CreateAddonActivity) Execute(ctx context.Context, input CreateAddonActi
 	)
 
 	logger = logger.With("addonName", input.AddonName)
-	logger.Info("create add-on for cluster : " + (input.ClusterName))
+	logger.Info("create add-on for cluster: " + (input.ClusterName))
 	t := time.Now().Unix()
 
 	addOnInput := &eks.CreateAddonInput{
