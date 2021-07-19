@@ -42,13 +42,10 @@ type UpdateClusterWorkflowInput struct {
 }
 
 type UpdateClusterWorkflow struct {
-	enableAddons bool
 }
 
-func NewUpdateClusterWorkflow(enableAddons bool) UpdateClusterWorkflow {
-	return UpdateClusterWorkflow{
-		enableAddons: enableAddons,
-	}
+func NewUpdateClusterWorkflow() UpdateClusterWorkflow {
+	return UpdateClusterWorkflow{}
 }
 
 // Register registers the activity in the worker.

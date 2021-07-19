@@ -195,7 +195,7 @@ func registerEKSWorkflows(
 	eksworkflow2.NewWaitCloudFormationStackUpdateActivity(awsSessionFactory).Register(worker)
 
 	// New cluster update
-	eksworkflow2.NewUpdateClusterWorkflow(config.Distribution.EKS.EnableAddons).Register(worker)
+	eksworkflow2.NewUpdateClusterWorkflow().Register(worker)
 
 	eksworkflow2.NewUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register(worker)
 	eksworkflow2.NewWaitUpdateClusterVersionActivity(awsSessionFactory, eksFactory).Register(worker)
