@@ -318,16 +318,16 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	}
 
 	// initial setup of K8s cluster
-	var bootstrapActivityFeature workflow.Future
+	var bootstrapWorkflowFeature workflow.Future
 	{
-		activityInput := &BootstrapActivityInput{
+		activityInput := &BootstrapWorkflowInput{
 			EKSActivityInput:    commonActivityInput,
 			KubernetesVersion:   input.KubernetesVersion,
 			NodeInstanceRoleArn: iamRolesActivityOutput.NodeInstanceRoleArn,
 			ClusterUserArn:      iamRolesActivityOutput.ClusterUserArn,
 			AuthConfigMap:       input.AuthConfigMap,
 		}
-		bootstrapActivityFeature = workflow.ExecuteActivity(ctx, BootstrapActivityName, activityInput)
+		bootstrapWorkflowFeature = workflow.ExecuteChildWorkflow(ctx, BootstrapWorkflowName, activityInput)
 	}
 
 	{ // Note: create node pools.
@@ -393,9 +393,8 @@ func (w CreateInfrastructureWorkflow) Execute(ctx workflow.Context, input Create
 	}
 
 	// wait for initial cluster setup to terminate
-	bootstrapActivityOutput := &BootstrapActivityOutput{}
-	if err := bootstrapActivityFeature.Get(ctx, &bootstrapActivityOutput); err != nil {
-		return nil, err
+	if err := bootstrapWorkflowFeature.Get(ctx, nil); err != nil {
+		return nil, pkgCadence.UnwrapError(err)
 	}
 
 	var configSecretID string

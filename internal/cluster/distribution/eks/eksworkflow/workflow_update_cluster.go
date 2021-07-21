@@ -17,8 +17,6 @@ package eksworkflow
 import (
 	"time"
 
-	"emperror.dev/errors"
-	"github.com/Masterminds/semver/v3"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
@@ -44,13 +42,10 @@ type UpdateClusterWorkflowInput struct {
 }
 
 type UpdateClusterWorkflow struct {
-	enableAddons bool
 }
 
-func NewUpdateClusterWorkflow(enableAddons bool) UpdateClusterWorkflow {
-	return UpdateClusterWorkflow{
-		enableAddons: enableAddons,
-	}
+func NewUpdateClusterWorkflow() UpdateClusterWorkflow {
+	return UpdateClusterWorkflow{}
 }
 
 // Register registers the activity in the worker.
@@ -108,59 +103,6 @@ func (w UpdateClusterWorkflow) Execute(ctx workflow.Context, input UpdateCluster
 		if err != nil {
 			_ = eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error())
 			return err
-		}
-	}
-
-	// check add-on are enabled and K8s version is >= 1.18
-	clusterKubernetesVersion, err := semver.NewVersion(input.Version)
-	if err != nil {
-		_ = eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error())
-
-		return errors.WrapIf(err, "parsing cluster version as semantic version failed")
-	}
-
-	kubernetesVersionIsAtLeast1_18, err := semver.NewConstraint(">=1.18")
-	if err != nil {
-		_ = eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error())
-
-		return errors.WrapIf(err, "could not set 1.18 constraint for semver")
-	}
-
-	// update core-dns addon if there's a new version available for given KubernetesVersion
-	if w.enableAddons && kubernetesVersionIsAtLeast1_18.Check(clusterKubernetesVersion) {
-		activityInput := UpdateAddonActivityInput{
-			OrganizationID:    input.OrganizationID,
-			ProviderSecretID:  input.ProviderSecretID,
-			Region:            input.Region,
-			ClusterName:       input.ClusterName,
-			KubernetesVersion: input.Version,
-			AddonName:         "coredns",
-		}
-		var coreDnsUpdateOutput UpdateAddonActivityOutput
-		err := workflow.ExecuteActivity(ctx, UpdateAddonActivityName, activityInput).Get(ctx, &coreDnsUpdateOutput)
-		if err != nil {
-			_ = eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error())
-			return err
-		}
-
-		// wait for addon update to finish
-		if coreDnsUpdateOutput.UpdateID != "" {
-			activityInput := &WaitUpdateAddonActivityInput{
-				OrganizationID:   input.OrganizationID,
-				ProviderSecretID: input.ProviderSecretID,
-				Region:           input.Region,
-				ClusterName:      input.ClusterName,
-				AddonName:        "coredns",
-				UpdateID:         coreDnsUpdateOutput.UpdateID,
-			}
-
-			ctx := workflow.WithStartToCloseTimeout(ctx, 2*time.Hour)
-
-			err := workflow.ExecuteActivity(ctx, WaitUpdateAddonActivityName, activityInput).Get(ctx, nil)
-			if err != nil {
-				_ = eksWorkflow.SetClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, pkgCadence.UnwrapError(err).Error())
-				return err
-			}
 		}
 	}
 
