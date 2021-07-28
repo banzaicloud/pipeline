@@ -19,6 +19,8 @@ migrate-version = 4.9.1
 kubectl-version = 1.20.5
 helm-version = 3.5.3
 wollemi-version = 0.7.0
+etcd-version = 3.4.16
+kube-apiserver-version = 1.19.11
 
 [alias "tidy"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.

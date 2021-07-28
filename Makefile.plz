@@ -162,14 +162,36 @@ test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
 	@${MAKE} TEST_ASSET_KUBE_APISERVER=$(abspath bin/test/kube-apiserver) TEST_ASSET_ETCD=$(abspath bin/test/etcd) GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
 
 bin/test/kube-apiserver:
+	if ! echo "amd64 arm64" | grep -q -w "$(ARCH)"; then \
+		printf >&2 "unsupported kube-apiserver architecture %s\n" "$(ARCH)" ; \
+		exit 1 ; \
+	fi
+	if ! echo "linux" | grep -q -w "$(OS)"; then \
+		printf >&2 "unsupported kube-apiserver operating system %s\n" "$(OS)" ; \
+		exit 1 ; \
+	fi
 	@mkdir -p bin/test
-	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-$(shell uname)-x86_64 > bin/test/kube-apiserver
+	curl -L -o bin/test/kube-apiserver https://dl.k8s.io/v$(KUBE_APISERVER_VERSION)/bin/$(OS)/$(ARCH)/kube-apiserver
 	chmod +x bin/test/kube-apiserver
 
 bin/test/etcd:
+	if ! echo "amd64 arm64" | grep -q -w "$(ARCH)"; then \
+		printf >&2 "unsupported etcd architecture %s\n" "$(ARCH)" ; \
+		exit 1 ; \
+	fi
+	if ! echo "darwin linux" | grep -q -w "$(OS)"; then \
+		printf >&2 "unsupported etcd operating system %s\n" "$(OS)" ; \
+		exit 1 ; \
+	fi
 	@mkdir -p bin/test
-	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-$(shell uname)-x86_64 > bin/test/etcd
+	if [ "$(OS)" == "darwin" ] ; then \
+		curl -L https://github.com/etcd-io/etcd/releases/download/v$(ETCD_VERSION)/etcd-v$(ETCD_VERSION)-$(OS)-$(ARCH).zip | tar -xv -C bin/test ; \
+	elif [ "$(OS)" == "linux" ] ; then \
+		curl -L https://github.com/etcd-io/etcd/releases/download/v$(ETCD_VERSION)/etcd-v$(ETCD_VERSION)-$(OS)-$(ARCH).tar.gz | tar -xvz -C bin/test ; \
+	fi
+	mv bin/test/etcd-v$(ETCD_VERSION)-$(OS)-$(ARCH)/etcd bin/test/etcd
 	chmod +x bin/test/etcd
+	rm -fr bin/test/etcd-v$(ETCD_VERSION)-$(OS)-$(ARCH)
 
 bin/migrate:
 	./pleasew build ///pleasings2//tools/misc:migrate

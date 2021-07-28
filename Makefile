@@ -1,6 +1,7 @@
 # A Self-Documenting Makefile: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 
 SHELL = /bin/bash
+ARCH = $(shell uname -m | sed -E 's/^(aarch64|aarch64_be|armv6l|armv7l|armv8b|armv8l)$$/arm64/g' | sed -E 's/^x86_64$$/amd64/g')
 OS = $(shell uname | tr A-Z a-z)
 export PATH := $(abspath bin/):${PATH}
 
@@ -255,36 +256,36 @@ test-integrated-service-down:
 	kind delete clusters pipeline-is-test
 
 bin/test/kube-apiserver:
+	if ! echo "amd64 arm64" | grep -q -w "$(ARCH)"; then \
+		printf >&2 "unsupported kube-apiserver architecture %s\n" "$(ARCH)" ; \
+		exit 1 ; \
+	fi
+	if ! echo "linux" | grep -q -w "$(OS)"; then \
+		printf >&2 "unsupported kube-apiserver operating system %s\n" "$(OS)" ; \
+		exit 1 ; \
+	fi
 	@mkdir -p bin/test
-	case "$(shell uname)" in \
-		Linux) \
-			curl -L https://dl.k8s.io/v$(KUBE_APISERVER_VERSION)/kubernetes-server-linux-amd64.tar.gz | tar -xvz -C bin/test ; \
-			;; \
-		*) \
-			printf >&2 "unsupported operating system $(shell uname)" ; \
-			exit 1 ; \
-			;; \
-	esac
-	mv bin/test/kubernetes/server/bin/kube-apiserver bin/test/kube-apiserver
+	curl -L -o bin/test/kube-apiserver https://dl.k8s.io/v$(KUBE_APISERVER_VERSION)/bin/$(OS)/$(ARCH)/kube-apiserver
 	chmod +x bin/test/kube-apiserver
 
 bin/test/etcd:
+	if ! echo "amd64 arm64" | grep -q -w "$(ARCH)"; then \
+		printf >&2 "unsupported etcd architecture %s\n" "$(ARCH)" ; \
+		exit 1 ; \
+	fi
+	if ! echo "darwin linux" | grep -q -w "$(OS)"; then \
+		printf >&2 "unsupported etcd operating system %s\n" "$(OS)" ; \
+		exit 1 ; \
+	fi
 	@mkdir -p bin/test
-	case "$(shell uname)" in \
-		Linux) \
-			curl -L https://github.com/etcd-io/etcd/releases/download/v$(ETCD_VERSION)/etcd-v$(ETCD_VERSION)-linux-amd64.tar.gz | tar -xvz -C bin/test ; \
-			mv bin/test/etcd-v$(ETCD_VERSION)-linux-amd64/etcd bin/test/etcd ; \
-			;; \
-		Darwin) \
-			curl -L https://github.com/etcd-io/etcd/releases/download/v$(ETCD_VERSION)/etcd-v$(ETCD_VERSION)-darwin-amd64.zip | tar -xv -C bin/test ; \
-			mv bin/test/etcd-v$(ETCD_VERSION)-darwin-amd64/etcd bin/test/etcd ; \
-			;; \
-		*) \
-			printf >&2 "unsupported operating system $(shell uname)" ; \
-			exit 1 ; \
-			;; \
-	esac
+	if [ "$(OS)" == "darwin" ] ; then \
+		curl -L https://github.com/etcd-io/etcd/releases/download/v$(ETCD_VERSION)/etcd-v$(ETCD_VERSION)-$(OS)-$(ARCH).zip | tar -xv -C bin/test ; \
+	elif [ "$(OS)" == "linux" ] ; then \
+		curl -L https://github.com/etcd-io/etcd/releases/download/v$(ETCD_VERSION)/etcd-v$(ETCD_VERSION)-$(OS)-$(ARCH).tar.gz | tar -xvz -C bin/test ; \
+	fi
+	mv bin/test/etcd-v$(ETCD_VERSION)-$(OS)-$(ARCH)/etcd bin/test/etcd
 	chmod +x bin/test/etcd
+	rm -fr bin/test/etcd-v$(ETCD_VERSION)-$(OS)-$(ARCH)
 
 bin/migrate: bin/migrate-${MIGRATE_VERSION}
 	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate

@@ -44,23 +44,51 @@ sh_cmd(
     cmd = "docker-compose stop",
 )
 
-_os = {
-    "darwin": "Darwin",
-    "linux": "Linux",
+remote_file(
+    name = "kube-apiserver",
+    out = "bin/test/kube-apiserver",
+    binary = True,
+    hashes = [
+        "9e5800c171e55973d33cbc751226b0b9bc27cfbe16fa039c98572ad50ef6c1dc",  # Note: v1.19.11, linux, amd64.
+        "c80fbbccc726b0f2ad5fcd52e1395b3354705513326b83f45213f5ddd33a338f",  # Note: v1.19.11, linux, arm64.
+    ],
+    test_only = True,
+    url = [
+        f"https://dl.k8s.io/v{CONFIG.KUBE_APISERVER_VERSION}/bin/{CONFIG.HOSTOS}/{CONFIG.HOSTARCH}/kube-apiserver",
+        f"https://dl.k8s.io/v{CONFIG.KUBE_APISERVER_VERSION}/bin/linux/{CONFIG.HOSTARCH}/kube-apiserver",  # Note: fallback until other OSes become available to not break `plz build` on macOS.
+    ],
+)
+
+_etcd_archive_extension = {
+    "darwin": "zip",
+    "linux": "tar.gz",
+    "windows": "zip",
 }
 
 remote_file(
-    name = "kube-apiserver",
-    out = "bin/kube-apiserver",
-    binary = True,
-    url = "https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-%s-x86_64" % (_os[CONFIG.HOSTOS]),
-)
-
-remote_file(
     name = "etcd",
-    out = "bin/etcd",
+    out = "bin/test/etcd",
     binary = True,
-    url = "https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-%s-x86_64" % (_os[CONFIG.HOSTOS]),
+    exported_files = [
+        f"etcd-v{CONFIG.ETCD_VERSION}-{CONFIG.HOSTOS}-{CONFIG.HOSTARCH}/etcd",
+    ],
+    extract = True,
+    hashes = [
+        "27245adea2e0951913276d8c321d79b91caaf904ae3fdaab65194ab41c01db08",  # Note: v3.4.16, darwin, amd64, zip.
+        "2e2d5b3572e077e7641193ed07b4929b0eaf0dc2f9463e9b677765528acafb89",  # Note: v3.4.16, linux, amd64, tar.gz.
+        "6712ff22aeec39ed19688b1edf6747194193b074548fc62163e4804ca0264512",  # Note: v3.4.16, linux, arm64, tar.gz.
+        "b862c38da3788b15d76a447ec845a2fee79ca702f67e9acd064cd939303bf9f6",  # Note: v3.4.16, windows, amd64, zip.
+    ],
+    test_only = True,
+    url = [
+        "https://github.com/etcd-io/etcd/releases/download/v%s/etcd-v%s-%s-%s.%s" % (
+            CONFIG.ETCD_VERSION,
+            CONFIG.ETCD_VERSION,
+            CONFIG.HOSTOS,
+            CONFIG.HOSTARCH,
+            _etcd_archive_extension[CONFIG.HOSTOS],
+        ),
+    ],
 )
 
 http_archive(
