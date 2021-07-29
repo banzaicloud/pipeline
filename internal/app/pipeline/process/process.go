@@ -90,6 +90,36 @@ type Store interface {
 	LogProcessEvent(ctx context.Context, p ProcessEvent) error
 }
 
+// AlreadyCompletedError is returned if a process the user is trying to mutate
+// has already completed.
+type AlreadyCompletedError struct {
+	ID string
+}
+
+// Error implements the error interface.
+func (AlreadyCompletedError) Error() string {
+	return "process already completed"
+}
+
+// Details returns error details.
+func (e AlreadyCompletedError) Details() []interface{} {
+	return []interface{}{"processId", e.ID}
+}
+
+// AlreadyCompleted tells a client that this error is related to a process
+// already being completed. Can be used to translate the error to eg. status
+// code.
+func (AlreadyCompletedError) AlreadyCompleted() bool {
+	return true
+}
+
+// ServiceError tells the transport layer whether this error should be
+// translated into the transport format or an internal error should be returned
+// instead.
+func (AlreadyCompletedError) ServiceError() bool {
+	return true
+}
+
 // NotFoundError is returned if a process cannot be found.
 type NotFoundError struct {
 	ID string
@@ -144,8 +174,10 @@ func (s service) CancelProcess(ctx context.Context, id string) error {
 	}
 
 	err := s.workflowClient.CancelWorkflow(ctx, id, "")
-	if _, ok := err.(*shared.EntityNotExistsError); ok {
+	if errors.As(err, new(*shared.EntityNotExistsError)) {
 		return NotFoundError{ID: id}
+	} else if errors.As(err, new(*shared.WorkflowExecutionAlreadyCompletedError)) {
+		return AlreadyCompletedError{ID: id}
 	}
 
 	return err
@@ -157,8 +189,10 @@ func (s service) SignalProcess(ctx context.Context, id string, signal string, va
 	}
 
 	err := s.workflowClient.SignalWorkflow(ctx, id, "", signal, value)
-	if _, ok := err.(*shared.EntityNotExistsError); ok {
+	if errors.As(err, new(*shared.EntityNotExistsError)) {
 		return NotFoundError{ID: id}
+	} else if errors.As(err, new(*shared.WorkflowExecutionAlreadyCompletedError)) {
+		return AlreadyCompletedError{ID: id}
 	}
 	return err
 }
