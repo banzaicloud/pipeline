@@ -142,18 +142,21 @@ func (a *API) PostReady(c *gin.Context) {
 			nil,
 		)
 		if err != nil {
-			if _, ok := err.(*shared.EntityNotExistsError); ok {
+			if _, ok := err.(*shared.WorkflowExecutionAlreadyCompletedError); ok {
 				desc, derr := a.workflowClient.DescribeWorkflowExecution(
 					c.Request.Context(),
 					workflowID,
 					"",
 				)
-				// Workflow execution already completed.
-				if derr == nil && desc.WorkflowExecutionInfo != nil && desc.WorkflowExecutionInfo.CloseStatus != nil {
-					log.Infof("Workflow execution already completed with status: %s", desc.WorkflowExecutionInfo.CloseStatus)
 
-					return
+				closeStatus := "UNKNOWN"
+				if derr == nil && desc.WorkflowExecutionInfo != nil && desc.WorkflowExecutionInfo.CloseStatus != nil {
+					closeStatus = desc.WorkflowExecutionInfo.CloseStatus.String()
 				}
+
+				log.Infof("Workflow execution already completed with status: %s", closeStatus)
+
+				return
 			}
 
 			err := errors.WrapIf(err, "could not signal workflow")
