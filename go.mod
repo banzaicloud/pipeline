@@ -55,7 +55,7 @@ require (
 	github.com/json-iterator/go v1.1.11
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
-	github.com/microcosm-cc/bluemonday v1.0.3
+	github.com/microcosm-cc/bluemonday v1.0.5
 	github.com/mitchellh/copystructure v1.0.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/moogar0880/problems v0.1.1
