@@ -77,9 +77,42 @@ func (a asyncExpiryService) Expire(ctx context.Context, clusterID uint, expiryDa
 
 func (a asyncExpiryService) CancelExpiry(ctx context.Context, clusterID uint) error {
 	if err := a.cadenceClient.TerminateWorkflow(ctx, getWorkflowID(clusterID), "", "expiration service cancelled", nil); err != nil {
-		if !IsEntityNotExistsError(err) {
+		if !IsEntityNotExistsError(err) &&
+			!errors.As(err, new(*shared.WorkflowExecutionAlreadyCompletedError)) {
 			return errors.WrapIfWithDetails(err, "failed to cancel the expiry workflow", "clusterID", clusterID)
+		} else if errors.As(err, new(*shared.WorkflowExecutionAlreadyCompletedError)) {
+			workflowDescription, err := a.cadenceClient.DescribeWorkflowExecution(
+				ctx,
+				getWorkflowID(clusterID),
+				"",
+			)
+			if err != nil ||
+				workflowDescription == nil ||
+				workflowDescription.WorkflowExecutionInfo == nil {
+				return errors.WrapWithDetails(
+					err,
+					"could not determine closed expiry workflow close status",
+					"clusterID", clusterID,
+				)
+			} else if workflowDescription.WorkflowExecutionInfo.GetCloseStatus() == shared.WorkflowExecutionCloseStatusCompleted {
+				return errors.WithDetails(
+					errors.Errorf("failed to cancel the already completed expiry workflow"),
+					"clusterID", clusterID,
+				)
+			} else if workflowDescription.WorkflowExecutionInfo.GetCloseStatus() == shared.WorkflowExecutionCloseStatusContinuedAsNew { // Note: workflow has just continued with the new workflow not yet being available.
+				return errors.WithDetails(
+					errors.Errorf("failed to cancel the continued as new expiry workflow, please try again"),
+					"clusterID", clusterID,
+				)
+			}
+			// Note: other close statuses mean failed, canceled, terminated or
+			// timed out workflows. These would mean the expiry workflow not
+			// running which equals the result of a successful cancellation thus
+			// is handled as successful cancellation.
 		}
+		// Note: never existed expiry workflow is deliberately handled as
+		// successful cancellation, nothing to cancel, result equals successful
+		// cancellation.
 	}
 
 	a.logger.Info("expiry workflow successfully cancelled", map[string]interface{}{"workflowID": getWorkflowID(clusterID)})

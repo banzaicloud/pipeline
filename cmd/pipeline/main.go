@@ -57,7 +57,6 @@ import (
 	"github.com/sagikazarmark/ocmux"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"go.uber.org/cadence/.gen/go/shared"
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
@@ -659,14 +658,6 @@ func main() {
 	userAPI := api.NewUserAPI(db, logrusLogger, errorHandler)
 
 	networkAPI := api.NewNetworkAPI(logrusLogger)
-
-	{
-		// cancel cancel shared spotguides sync workflow
-		err = workflowClient.CancelWorkflow(context.Background(), "scrape-shared-spotguides", "")
-		if _, ok := err.(*shared.EntityNotExistsError); err != nil && !ok {
-			errorHandler.Handle(errors.WrapIf(err, "failed to cancel shared spotguides sync workflow"))
-		}
-	}
 
 	clusterAPI := api.NewClusterAPI(
 		clusterManager,
