@@ -18,8 +18,8 @@ hostAliases: []
 #      - "bar.local"
 
 image:
-  repository: banzaicloud/pipeline
-  tag: 0.45.0
+  repository: ghcr.io/banzaicloud/pipeline
+  tag: 0.77.0
   pullPolicy: IfNotPresent
 
 resources:
