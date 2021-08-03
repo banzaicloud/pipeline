@@ -1,6 +1,6 @@
 # Default values for pipeline
 
-
+#
 ## Resource definitions for Kubernetes resources
 replicaCount: 1
 # Upgrade strategy
@@ -18,8 +18,8 @@ hostAliases: []
 #      - "bar.local"
 
 image:
-  repository: banzaicloud/pipeline
-  tag: 0.45.0
+  repository: ghcr.io/banzaicloud/pipeline
+  tag: 0.77.0
   pullPolicy: IfNotPresent
 
 resources:
@@ -35,15 +35,15 @@ worker:
   ## Additional entries to the hosts
   ## configuration is taken from the root level if not specified otherwise
   hostAliases: []
-#    - ip: "127.0.0.1"
-#      hostnames:
-#        - "foo.local"
-#        - "bar.local"
+  #    ip: "127.0.0.1"
+  #    hostnames:
+  #      - "foo.local"
+  #      - "bar.local"
   # Image configuration is taken from the root level if not specified otherwise
   image: {}
-    # repository: banzaicloud/pipeline
-    # tag: 0.40.0
-    # pullPolicy: IfNotPresent
+  #   repository: banzaicloud/pipeline
+  #   tag: 0.40.0
+  #   pullPolicy: IfNotPresent
 
   resources:
     requests:
@@ -78,7 +78,7 @@ service:
   name: pipeline
   type: ClusterIP
   internalPort: 9090
-  externalPort:  9090
+  externalPort: 9090
   # TLS is always enabled, when the following secrets names are
   # not specified a Helm generated CA and certificate will be used.
   tls:
@@ -93,11 +93,11 @@ serviceMonitor:
 ingress:
   enabled: false
   annotations: {}
-    #traefik.frontend.rule.type: PathPrefix
+  #    traefik.frontend.rule.type: PathPrefix
   hosts: []
-    # - "/"
-    # - "domain.com/xyz"
-    # - "domain.com"
+  #   - "/"
+  #   - "domain.com/xyz"
+  #   - "domain.com"
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -178,5 +178,3 @@ configuration:
 serviceAccount:
   create: true
   name:
-
-
