@@ -27,7 +27,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/google"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/pkg/any"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/jsonstructure"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
@@ -85,7 +87,6 @@ type azureBucketConfig struct {
 
 type HelmValueOverrides struct {
 	backup.ValueOverrides
-	Image          Image          `json:"image,omitempty"`
 	InitContainers []v1.Container `json:"initContainers,omitempty"`
 }
 
@@ -109,13 +110,13 @@ func (req ConfigRequest) getInitContainers(bsp backup.BackupStorageLocation, vsl
 	initContainers := make([]v1.Container, 0, 2)
 
 	if bsp.Provider == amazon.BackupStorageProvider || vsl.Provider == amazon.PersistentVolumeProvider {
-		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Repository,
-			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.Tag)
+		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Aws.Repository,
+			global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Aws.Tag)
 
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-aws",
 			Image:           pluginImage,
-			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AwsPluginImage.PullPolicy),
+			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Aws.PullPolicy),
 			VolumeMounts: []v1.VolumeMount{
 				{
 					Name:      "plugins",
@@ -126,13 +127,13 @@ func (req ConfigRequest) getInitContainers(bsp backup.BackupStorageLocation, vsl
 	}
 
 	if bsp.Provider == google.BackupStorageProvider || vsl.Provider == google.PersistentVolumeProvider {
-		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.Repository,
-			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.Tag)
+		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Gcp.Repository,
+			global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Gcp.Tag)
 
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-gcp",
 			Image:           pluginImage,
-			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.GcpPluginImage.PullPolicy),
+			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Gcp.PullPolicy),
 			VolumeMounts: []v1.VolumeMount{
 				{
 					Name:      "plugins",
@@ -143,13 +144,13 @@ func (req ConfigRequest) getInitContainers(bsp backup.BackupStorageLocation, vsl
 	}
 
 	if bsp.Provider == azure.BackupStorageProvider || vsl.Provider == azure.PersistentVolumeProvider {
-		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.Repository,
-			global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.Tag)
+		pluginImage := fmt.Sprintf("%s:%s", global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Azure.Repository,
+			global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Azure.Tag)
 
 		initContainers = append(initContainers, v1.Container{
 			Name:            "velero-plugin-for-azure",
 			Image:           pluginImage,
-			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.AzurePluginImage.PullPolicy),
+			ImagePullPolicy: getPullPolicy(global.Config.Cluster.DisasterRecovery.Charts.Ark.PluginImages.Azure.PullPolicy),
 			VolumeMounts: []v1.VolumeMount{
 				{
 					Name:      "plugins",
@@ -239,24 +240,34 @@ func (req *ConfigRequest) getChartConfig() (config ChartConfig, err error) {
 		ValueOverrides: arkConfig,
 	}
 
-	// in case of deploying as an integrated service, image versions below are set by IS operator
-	helmConfig.Image = Image{
-		Repository: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Repository,
-		Tag:        global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Tag,
-		PullPolicy: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.PullPolicy,
-	}
+	// in case of deploying as an integrated service, image and plugin images are set by IS operator
 	helmConfig.InitContainers = req.getInitContainers(helmConfig.Configuration.BackupStorageLocation,
 		helmConfig.Configuration.VolumeSnapshotLocation)
 
-	json, err := json.Marshal(helmConfig)
+	// merge values from config with arkConfig
+	valuesBytes, err := mergeValues(helmConfig, global.Config.Cluster.DisasterRecovery.Charts.Ark.Values)
 	if err != nil {
 		err = errors.Wrap(err, "json convert failed")
 		return
 	}
 
-	config.ValueOverrides = json
+	config.ValueOverrides = valuesBytes
 
 	return
+}
+
+func mergeValues(chartValues interface{}, configValues interface{}) ([]byte, error) {
+	out, err := jsonstructure.Encode(chartValues)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to encode chart values")
+	}
+
+	result, err := any.Merge(configValues, out, jsonstructure.DefaultMergeOptions())
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to merge values")
+	}
+
+	return json.Marshal(result)
 }
 
 func (req ConfigRequest) getVolumeSnapshotLocation() (backup.VolumeSnapshotLocation, error) {

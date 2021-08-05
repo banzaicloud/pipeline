@@ -328,29 +328,25 @@ type ClusterDisasterRecoveryConfig struct {
 
 	Charts struct {
 		Ark struct {
-			Chart   string
-			Version string
-			Values  struct {
-				Image struct {
+			Chart        string
+			Version      string
+			Values       map[string]interface{}
+			PluginImages struct {
+				Aws struct {
 					Repository string `chartConfig:"repository"`
 					Tag        string `chartConfig:"tag"`
 					PullPolicy string `chartConfig:"pullPolicy"`
-				} `chartConfig:"image"`
-				AwsPluginImage struct {
+				} `chartConfig:"aws"`
+				Azure struct {
 					Repository string `chartConfig:"repository"`
 					Tag        string `chartConfig:"tag"`
 					PullPolicy string `chartConfig:"pullPolicy"`
-				} `chartConfig:"awsPluginImage"`
-				AzurePluginImage struct {
+				} `chartConfig:"azure"`
+				Gcp struct {
 					Repository string `chartConfig:"repository"`
 					Tag        string `chartConfig:"tag"`
 					PullPolicy string `chartConfig:"pullPolicy"`
-				} `chartConfig:"azurePluginImage"`
-				GcpPluginImage struct {
-					Repository string `chartConfig:"repository"`
-					Tag        string `chartConfig:"repository"`
-					PullPolicy string `chartConfig:"repository"`
-				} `chartConfig:"gcpPluginImage"`
+				} `chartConfig:"gcp"`
 			}
 		}
 	}
@@ -814,17 +810,29 @@ traefik:
 			"tag":        "v1.6.0",
 			"pullPolicy": "IfNotPresent",
 		},
-		"awsPluginImage": map[string]interface{}{
+		"resources": map[string]interface{}{
+			"requests": map[string]interface{}{
+				"memory": "3072Mi",
+				"cpu":    "1500m",
+			},
+			"limits": map[string]interface{}{
+				"memory": "8192Mi",
+				"cpu":    4,
+			},
+		},
+	})
+	v.SetDefault("cluster::disasterRecovery::charts::ark::pluginImages", map[string]interface{}{
+		"aws": map[string]interface{}{
 			"repository": "velero/velero-plugin-for-aws",
 			"tag":        "v1.2.0",
 			"pullPolicy": "IfNotPresent",
 		},
-		"azurePluginImage": map[string]interface{}{
+		"azure": map[string]interface{}{
 			"repository": "velero/velero-plugin-for-microsoft-azure",
 			"tag":        "v1.2.0",
 			"pullPolicy": "IfNotPresent",
 		},
-		"gcpPluginImage": map[string]interface{}{
+		"gcp": map[string]interface{}{
 			"repository": "velero/velero-plugin-for-gcp",
 			"tag":        "v1.2.0",
 			"pullPolicy": "IfNotPresent",
