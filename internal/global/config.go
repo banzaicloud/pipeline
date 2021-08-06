@@ -64,29 +64,25 @@ var Config struct {
 			}
 			Charts struct {
 				Ark struct {
-					Chart   string
-					Version string
-					Values  struct {
-						Image struct {
+					Chart        string
+					Version      string
+					Values       map[string]interface{}
+					PluginImages struct {
+						Aws struct {
 							Repository string `chartConfig:"repository"`
 							Tag        string `chartConfig:"tag"`
 							PullPolicy string `chartConfig:"pullPolicy"`
-						} `chartConfig:"image"`
-						AwsPluginImage struct {
+						} `chartConfig:"aws"`
+						Azure struct {
 							Repository string `chartConfig:"repository"`
 							Tag        string `chartConfig:"tag"`
 							PullPolicy string `chartConfig:"pullPolicy"`
-						} `chartConfig:"awsPluginImage"`
-						AzurePluginImage struct {
+						} `chartConfig:"azure"`
+						Gcp struct {
 							Repository string `chartConfig:"repository"`
 							Tag        string `chartConfig:"tag"`
 							PullPolicy string `chartConfig:"pullPolicy"`
-						} `chartConfig:"azurePluginImage"`
-						GcpPluginImage struct {
-							Repository string `chartConfig:"repository"`
-							Tag        string `chartConfig:"tag"`
-							PullPolicy string `chartConfig:"pullPolicy"`
-						} `chartConfig:"gcpPluginImage"`
+						} `chartConfig:"gcp"`
 					}
 				}
 			}
