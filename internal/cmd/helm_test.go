@@ -24,68 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/helm"
 )
 
-func TestIsConfigEnabled(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		caseDescription         string
-		expectedIsConfigEnabled bool
-		inputConfig             interface{}
-	}{
-		{
-			caseDescription:         "nil config -> false",
-			expectedIsConfigEnabled: false,
-			inputConfig:             nil,
-		},
-		{
-			caseDescription:         "not associative type config -> true",
-			expectedIsConfigEnabled: true,
-			inputConfig:             []string{},
-		},
-		{
-			caseDescription:         "config cannot be disabled -> true",
-			expectedIsConfigEnabled: true,
-			inputConfig:             struct{ Value int }{},
-		},
-		{
-			caseDescription:         "config disabled -> false",
-			expectedIsConfigEnabled: false,
-			inputConfig: struct {
-				Enabled bool
-				Chart   string
-				Version string
-				Values  map[string]interface{}
-			}{
-				Enabled: false,
-			},
-		},
-		{
-			caseDescription:         "config enabled -> true",
-			expectedIsConfigEnabled: true,
-			inputConfig: struct {
-				Enabled bool
-				Chart   string
-				Version string
-				Values  map[string]interface{}
-			}{
-				Enabled: true,
-			},
-		},
-	}
-
-	for _, testCase := range testCases {
-		testCase := testCase
-
-		t.Run(testCase.caseDescription, func(t *testing.T) {
-			t.Parallel()
-
-			actualIsConfigEnabled := isConfigEnabled(testCase.inputConfig)
-
-			require.Equal(t, testCase.expectedIsConfigEnabled, actualIsConfigEnabled)
-		})
-	}
-}
-
 func TestParseClusterChartConfigsRecursively(t *testing.T) {
 	t.Parallel()
 
@@ -109,25 +47,6 @@ func TestParseClusterChartConfigsRecursively(t *testing.T) {
 			inputConfig:                 "basic-config",
 			inputDecoder:                nil,
 			inputDecoderConfig:          nil,
-		},
-		{
-			caseDescription:             "disabled config -> nil chart configs",
-			expectedClusterChartConfigs: nil,
-			inputConfig: struct {
-				Enabled bool
-				Chart   string
-				Version string
-				Values  map[string]interface{}
-			}{
-				Enabled: false,
-				Chart:   "repository/chart",
-				Version: "1.2.3",
-				Values: map[string]interface{}{
-					"Value": 5,
-				},
-			},
-			inputDecoder:       nil,
-			inputDecoderConfig: nil,
 		},
 		{
 			caseDescription: "top level chart -> single chart config",
@@ -180,6 +99,26 @@ func TestParseClusterChartConfigsRecursively(t *testing.T) {
 						"Value": 10,
 					},
 				},
+				{
+					Name:    "a-chart",
+					Version: "3.4.5",
+				},
+				{
+					Name:       "b-chart",
+					Version:    "1.2.3",
+					Repository: "repository",
+					Values: map[string]interface{}{
+						"Value": 5,
+					},
+				},
+				{
+					Name:       "c-chart",
+					Version:    "2.3.4",
+					Repository: "repository",
+					Values: map[string]interface{}{
+						"Value": 10,
+					},
+				},
 			},
 			inputConfig: map[string]interface{}{
 				"Components": []interface{}{
@@ -210,7 +149,6 @@ func TestParseClusterChartConfigsRecursively(t *testing.T) {
 						},
 					},
 					map[string]interface{}{
-						"Enabled": false,
 						"Subcharts": []interface{}{
 							map[string]interface{}{
 								"A": map[string]interface{}{
@@ -220,7 +158,7 @@ func TestParseClusterChartConfigsRecursively(t *testing.T) {
 							},
 							map[string]interface{}{
 								"B": map[string]interface{}{
-									"Chart":   "repository/y-chart",
+									"Chart":   "repository/b-chart",
 									"Version": "1.2.3",
 									"Values": map[string]interface{}{
 										"Value": 5,
@@ -228,8 +166,8 @@ func TestParseClusterChartConfigsRecursively(t *testing.T) {
 								},
 							},
 							map[string]interface{}{
-								"Z": map[string]interface{}{
-									"Chart":   "repository/z-chart",
+								"C": map[string]interface{}{
+									"Chart":   "repository/c-chart",
 									"Version": "2.3.4",
 									"Values": map[string]interface{}{
 										"Value": 10,
