@@ -91,23 +91,6 @@ func CreateReleaseDeleter(helmConfig helm.Config, db *gorm.DB, secretStore helma
 	return helmadapter.NewReleaseDeleter(ensuringEnvResolver, releaser, logger)
 }
 
-// isConfigEnabled determines whether the specified configuration is enabled.
-// Configurations which cannot be disabled return true.
-func isConfigEnabled(config interface{}) bool {
-	if config == nil {
-		return false
-	}
-
-	var enabledConfig struct {
-		Enabled *bool // Note: pointer indicates field existence, missing field yields zero value instead of error.
-	}
-	cannotBeDisabledError := mapstructure.Decode(config, &enabledConfig)
-
-	return cannotBeDisabledError != nil || // Note: not an associative type, no Enabled field, enabled by default.
-		enabledConfig.Enabled == nil || // Note: associative type, but no Enabled field, enabled by default.
-		*enabledConfig.Enabled // Note: associative type, has Enabled field, its value is used.
-}
-
 // newClusterChartsFromConfig creates the cluster chart collection from the
 // cluster configuration.
 func newClusterChartsFromConfig(clusterConfig ClusterConfig) (clusterChartConfigs []helm.ChartConfig) {
@@ -130,8 +113,7 @@ func parseClusterChartConfigsRecursively(
 	decoderConfig *mapstructure.DecoderConfig,
 	config interface{},
 ) (clusterChartConfigs []helm.ChartConfig) {
-	if config == nil ||
-		!isConfigEnabled(config) { // Note: explicitly disabled configs are not parsed.
+	if config == nil { // Note: cannot trust enabled flag (e.g. velero is always enabled, so is logging and monitoring).
 		return nil
 	}
 
