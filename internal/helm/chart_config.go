@@ -22,10 +22,11 @@ import (
 
 // ChartConfig describes a Helm chart configuration.
 type ChartConfig struct {
-	Name       string                 `json:"name" mapstructure:"name" yaml:"name"`
-	Version    string                 `json:"version" mapstructure:"version" yaml:"version"`
-	Repository string                 `json:"repository" mapstructure:"repository" yaml:"repository"`
-	Values     map[string]interface{} `json:"values,omitempty" mapstructure:"values,omitempty" yaml:"values,omitempty"`
+	Name           string                 `json:"name" mapstructure:"name" yaml:"name"`
+	Version        string                 `json:"version" mapstructure:"version" yaml:"version"`
+	Repository     string                 `json:"repository" mapstructure:"repository" yaml:"repository"`
+	Values         map[string]interface{} `json:"values,omitempty" mapstructure:"values,omitempty" yaml:"values,omitempty"`
+	NonChartValues map[string]interface{} `json:"nonChartValues,omitempty" mapstructure:"nonChartValues,omitempty" yaml:"nonChartValues,omitempty"`
 }
 
 // IsLessThan determines whether the receiver is ordered less than the specified
@@ -49,5 +50,7 @@ func (config ChartConfig) IsLessThan(otherConfig ChartConfig) bool {
 		return config.Repository < otherConfig.Repository
 	}
 
-	return fmt.Sprint(config.Values) < fmt.Sprint(otherConfig.Values)
+	return fmt.Sprint(config.Values) < fmt.Sprint(otherConfig.Values) ||
+		(fmt.Sprint(config.Values) == fmt.Sprint(otherConfig.Values) &&
+			fmt.Sprint(config.NonChartValues) < fmt.Sprint(otherConfig.NonChartValues))
 }
