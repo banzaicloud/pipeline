@@ -91,23 +91,6 @@ func CreateReleaseDeleter(helmConfig helm.Config, db *gorm.DB, secretStore helma
 	return helmadapter.NewReleaseDeleter(ensuringEnvResolver, releaser, logger)
 }
 
-// isConfigEnabled determines whether the specified configuration is enabled.
-// Configurations which cannot be disabled return true.
-func isConfigEnabled(config interface{}) bool {
-	if config == nil {
-		return false
-	}
-
-	var enabledConfig struct {
-		Enabled *bool // Note: pointer indicates field existence, missing field yields zero value instead of error.
-	}
-	cannotBeDisabledError := mapstructure.Decode(config, &enabledConfig)
-
-	return cannotBeDisabledError != nil || // Note: not an associative type, no Enabled field, enabled by default.
-		enabledConfig.Enabled == nil || // Note: associative type, but no Enabled field, enabled by default.
-		*enabledConfig.Enabled // Note: associative type, has Enabled field, its value is used.
-}
-
 // newClusterChartsFromConfig creates the cluster chart collection from the
 // cluster configuration.
 func newClusterChartsFromConfig(clusterConfig ClusterConfig) (clusterChartConfigs []helm.ChartConfig) {
@@ -130,8 +113,7 @@ func parseClusterChartConfigsRecursively(
 	decoderConfig *mapstructure.DecoderConfig,
 	config interface{},
 ) (clusterChartConfigs []helm.ChartConfig) {
-	if config == nil ||
-		!isConfigEnabled(config) { // Note: explicitly disabled configs are not parsed.
+	if config == nil { // Note: cannot trust enabled flag (e.g. velero is always enabled, so is logging and monitoring).
 		return nil
 	}
 
@@ -152,39 +134,67 @@ func parseClusterChartConfigsRecursively(
 		decoder, _ = mapstructure.NewDecoder(decoderConfig) // Note: the hard coded configuration never panics.
 	}
 
-	var chart struct { // Note: pointers indicate field existence, missing field yields zero value instead of error.
-		Chart   *string
-		Version *string
-		Values  map[string]interface{}
-	}
-	decoderConfig.Result = &chart
+	var configMap map[string]interface{}
+	decoderConfig.Result = &configMap
 	err := decoder.Decode(config)
 	if err == nil &&
-		chart.Chart != nil &&
-		chart.Version != nil {
-		name := *chart.Chart
+		len(configMap) > 0 &&
+		configMap["Chart"] != nil &&
+		configMap["Version"] != nil { // Note: map, struct or pointers to those.
+		repoAndChartName, isOk := configMap["Chart"].(string)
+		if !isOk {
+			return nil
+		}
+
+		name := repoAndChartName
 		repo := ""
-		lastSeparatorIndex := strings.LastIndex(*chart.Chart, "/")
+		lastSeparatorIndex := strings.LastIndex(repoAndChartName, "/")
 		if lastSeparatorIndex != -1 {
-			repo = (*chart.Chart)[:lastSeparatorIndex]
-			name = (*chart.Chart)[lastSeparatorIndex+1:]
+			repo = repoAndChartName[:lastSeparatorIndex]
+			name = repoAndChartName[lastSeparatorIndex+1:]
+		}
+
+		version, isOk := configMap["Version"].(string)
+		if !isOk {
+			return nil
+		}
+
+		var valuesHolder struct {
+			Values map[string]interface{}
+		}
+		if configMap["Values"] != nil {
+			err = mapstructure.Decode(config, &valuesHolder)
+			if err != nil {
+				valuesHolder.Values = nil
+			}
+		}
+
+		var nonChartValues map[string]interface{}
+		for key, value := range configMap {
+			if key == "Chart" ||
+				key == "Version" ||
+				key == "Values" {
+				continue
+			}
+
+			if nonChartValues == nil {
+				nonChartValues = make(map[string]interface{})
+			}
+
+			nonChartValues[strings.ToLower(key[:1])+key[1:]] = value
 		}
 
 		return []helm.ChartConfig{
 			{
-				Name:       name,
-				Repository: repo,
-				Version:    *chart.Version,
-				Values:     chart.Values,
+				Name:           name,
+				Version:        version,
+				Repository:     repo,
+				Values:         valuesHolder.Values,
+				NonChartValues: nonChartValues,
 			},
 		}
-	}
-
-	var configMap map[string]interface{}
-	decoderConfig.Result = &configMap
-	err = decoder.Decode(config)
-	if err == nil &&
-		len(configMap) > 0 { // Note: map, struct or pointers to those.
+	} else if err == nil &&
+		len(configMap) > 0 {
 		for _, subconfig := range configMap {
 			clusterChartConfigs = append(
 				clusterChartConfigs,
