@@ -152,7 +152,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 }
 
 // return latest available version which might be the currentVersion. In case selectNextMinor = true tries to return next available minor version.
-// Beisde the next version it returns whether thr returned version is the latest one.
+// Beside the next version it returns whether the returned version is the latest one.
 func selectNextVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string, kubernetesVersion string, selectNextMinor bool) (string, bool, error) {
 	currentVersionSemver, err := semver.NewVersion(currentVersion)
 	if err != nil {
