@@ -17,6 +17,7 @@ package eksworkflow
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
@@ -49,13 +50,15 @@ type UpdateAddonActivityInput struct {
 	ClusterName       string
 	KubernetesVersion string
 
-	AddonName string
+	AddonName                 string
+	UpgradeToNextMinorVersion bool
 }
 
 // UpdateAddonActivityOutput holds the output data of the UpdateAddonActivityOutput
 type UpdateAddonActivityOutput struct {
 	UpdateID          string
 	AddonNotInstalled bool
+	LatestVersion     bool
 }
 
 // NewUpdateAddonActivity instantiates a new EKS addon version update
@@ -119,7 +122,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve addon versions", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
 
-	selectedVersion, err := selectLatestVersion(addonVersionsOutput, currentVersion, input.KubernetesVersion)
+	selectedVersion, latestVersion, err := selectNextVersion(addonVersionsOutput, currentVersion, input.KubernetesVersion, input.UpgradeToNextMinorVersion)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "error selecting new version", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
@@ -143,33 +146,63 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		}
 		return nil, errors.WrapIfWithDetails(err, "failed to update addon", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
-	output := UpdateAddonActivityOutput{UpdateID: aws.StringValue(updateAddonOutput.Update.Id)}
+	output := UpdateAddonActivityOutput{UpdateID: aws.StringValue(updateAddonOutput.Update.Id), LatestVersion: latestVersion}
 
 	return &output, nil
 }
 
-func selectLatestVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string, kubernetesVersion string) (string, error) {
+// return latest available version which might be the currentVersion. In case selectNextMinor = true tries to return next available minor version.
+// Beisde the next version it returns whether thr returned version is the latest one.
+func selectNextVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string, kubernetesVersion string, selectNextMinor bool) (string, bool, error) {
 	currentVersionSemver, err := semver.NewVersion(currentVersion)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 	latestVersion := currentVersionSemver
 
+	versions := make([]*semver.Version, 0, 5)
 	for _, addon := range addonVersions.Addons {
 		for _, version := range addon.AddonVersions {
 			if !versionIsCompatible(version.Compatibilities, kubernetesVersion) {
 				continue
 			}
-			newVersion, err := semver.NewVersion(*version.AddonVersion)
+			version, err := semver.NewVersion(*version.AddonVersion)
 			if err != nil {
-				return "", err
+				return "", false, err
 			}
-			if newVersion.GreaterThan(latestVersion) {
-				latestVersion = newVersion
+			if version.GreaterThan(latestVersion) {
+				versions = append(versions, version)
 			}
 		}
 	}
-	return latestVersion.Original(), nil
+
+	if len(versions) == 0 {
+		return latestVersion.Original(), true, nil
+	}
+
+	sort.Slice(versions, func(i, j int) bool {
+		if versions[i].Compare(versions[j]) == -1 {
+			return true
+		}
+		return false
+	})
+
+	if selectNextMinor {
+		for i, version := range versions {
+			if !isSameMinorVersion(version, latestVersion) {
+				return version.Original(), i+1 == len(versions), nil
+			}
+		}
+	}
+
+	return versions[len(versions)-1].Original(), true, nil
+}
+
+func isSameMinorVersion(newVersion *semver.Version, currentVersion *semver.Version) bool {
+	if newVersion.Major() == currentVersion.Major() && newVersion.Minor() == currentVersion.Minor() {
+		return true
+	}
+	return false
 }
 
 // errorMessageAWSAddonNotFound is the error message returned by AWS when a

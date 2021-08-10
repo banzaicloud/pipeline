@@ -61,26 +61,82 @@ func TestSelectLatestVersion(t *testing.T) {
 							},
 						},
 					},
+					{
+						AddonVersion: aws.String("v1.8.5-eksbuild.1"),
+						Compatibilities: []*eks.Compatibility{
+							{
+								ClusterVersion: aws.String("1.20"),
+							},
+						},
+					},
+					{
+						AddonVersion: aws.String("v1.8.8-eksbuild.1"),
+						Compatibilities: []*eks.Compatibility{
+							{
+								ClusterVersion: aws.String("1.20"),
+							},
+						},
+					},
+					{
+						AddonVersion: aws.String("v1.9.0-eksbuild.1"),
+						Compatibilities: []*eks.Compatibility{
+							{
+								ClusterVersion: aws.String("1.20"),
+							},
+						},
+					},
+					{
+						AddonVersion: aws.String("v1.9.1-eksbuild.1"),
+						Compatibilities: []*eks.Compatibility{
+							{
+								ClusterVersion: aws.String("1.20"),
+							},
+						},
+					},
 				},
 			},
 		},
 	}
 
 	t.Run("latest version is selected for 1.18", func(t *testing.T) {
-		version, err := selectLatestVersion(addonVersions, "v1.7.0-eksbuild.1", "1.18")
+		version, isLatestVersion, err := selectNextVersion(addonVersions, "v1.7.0-eksbuild.1", "1.18", false)
 		require.NoError(t, err)
 		assert.Equal(t, "v1.8.3-eksbuild.1", version)
+		assert.True(t, isLatestVersion)
 	})
 
 	t.Run("latest version is selected for 1.19", func(t *testing.T) {
-		version, err := selectLatestVersion(addonVersions, "v1.7.0-eksbuild.1", "1.19")
+		version, isLatestVersion, err := selectNextVersion(addonVersions, "v1.7.0-eksbuild.1", "1.19", false)
 		require.NoError(t, err)
 		assert.Equal(t, "v1.8.5-eksbuild.1", version)
+		assert.True(t, isLatestVersion)
+	})
+
+	t.Run("next minor version is selected for 1.18", func(t *testing.T) {
+		version, isLatestVersion, err := selectNextVersion(addonVersions, "v1.7.0-eksbuild.1", "1.18", true)
+		require.NoError(t, err)
+		assert.Equal(t, "v1.8.0-eksbuild.1", version)
+		assert.False(t, isLatestVersion)
+	})
+
+	t.Run("next minor version is selected for 1.20", func(t *testing.T) {
+		version, isLatestVersion, err := selectNextVersion(addonVersions, "v1.8.5-eksbuild.1", "1.20", true)
+		require.NoError(t, err)
+		assert.Equal(t, "v1.9.0-eksbuild.1", version)
+		assert.False(t, isLatestVersion)
+	})
+
+	t.Run("latest version is selected for 1.20", func(t *testing.T) {
+		version, isLatestVersion, err := selectNextVersion(addonVersions, "v1.9.0-eksbuild.1", "1.20", true)
+		require.NoError(t, err)
+		assert.Equal(t, "v1.9.1-eksbuild.1", version)
+		assert.True(t, isLatestVersion)
 	})
 
 	t.Run("no available new version", func(t *testing.T) {
-		version, err := selectLatestVersion(addonVersions, "v1.7.0-eksbuild.1", "1.20")
+		version, isLatestVersion, err := selectNextVersion(addonVersions, "v1.7.0-eksbuild.1", "1.21", false)
 		require.NoError(t, err)
 		assert.Equal(t, "v1.7.0-eksbuild.1", version)
+		assert.True(t, isLatestVersion)
 	})
 }
