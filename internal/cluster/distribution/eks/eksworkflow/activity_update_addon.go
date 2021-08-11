@@ -17,7 +17,6 @@ package eksworkflow
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
@@ -151,56 +150,47 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 	return &output, nil
 }
 
-// return latest available version which might be the currentVersion. In case selectNextMinor = true tries to return next available minor version.
-// Beside the next version it returns whether the returned version is the latest one.
-func selectNextVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string, kubernetesVersion string, selectNextMinor bool) (string, bool, error) {
+// selectNextVersion returns the next version the addon can be upgraded to based on the specified current and Kubernetes versions and possibly limiting the upgrade to at most a minor version when the provided selectNextAtMostMinorVersion is set to true or alternatively an error.
+//
+// When no version is available, the function returns the current version with the latest compatible version indicator set to true.
+func selectNextVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string, kubernetesVersion string, selectNextAtMostOneMinorVersion bool) (string, bool, error) {
 	currentVersionSemver, err := semver.NewVersion(currentVersion)
 	if err != nil {
-		return "", false, err
+		return "", false, errors.WrapWithDetails(err, "invalid current version, not a semantic version", "currentVersion", currentVersion)
 	}
-	latestVersion := currentVersionSemver
 
-	versions := make([]*semver.Version, 0, 5)
+	latestVersion := currentVersionSemver
+	nextAtMostOneMinorVersion := currentVersionSemver
+
 	for _, addon := range addonVersions.Addons {
 		for _, version := range addon.AddonVersions {
-			if !versionIsCompatible(version.Compatibilities, kubernetesVersion) {
+			if version == nil ||
+				!versionIsCompatible(version.Compatibilities, kubernetesVersion) {
 				continue
 			}
-			version, err := semver.NewVersion(*version.AddonVersion)
+
+			addonVersion, err := semver.NewVersion(*version.AddonVersion)
 			if err != nil {
-				return "", false, err
+				return "", false, errors.WrapWithDetails(err, "invalid addon version, not a semantic version", "addonVersion", *version.AddonVersion)
 			}
-			if version.GreaterThan(latestVersion) {
-				versions = append(versions, version)
+
+			if addonVersion.Major() == currentVersionSemver.Major() && // Note: only consider same major version versions (multiple minor version updates at most).
+				addonVersion.Minor() <= currentVersionSemver.Minor()+1 && // Note: only consider +1 minor version versions.
+				addonVersion.GreaterThan(nextAtMostOneMinorVersion) { // Note: only set nextAtMostOneMinorVersion to higher version than it was before, initialized to currentVersionSemver.
+				nextAtMostOneMinorVersion = addonVersion
 			}
-		}
-	}
 
-	if len(versions) == 0 {
-		return latestVersion.Original(), true, nil
-	}
-
-	sort.Slice(versions, func(i, j int) bool {
-		if versions[i].Compare(versions[j]) == -1 {
-			return true
-		}
-		return false
-	})
-
-	if selectNextMinor {
-		for i, version := range versions {
-			if !isSameMinorVersion(version, latestVersion) {
-				return version.Original(), i+1 == len(versions), nil
+			if addonVersion.GreaterThan(latestVersion) {
+				latestVersion = addonVersion
 			}
 		}
 	}
 
-	return versions[len(versions)-1].Original(), true, nil
-}
+	if selectNextAtMostOneMinorVersion {
+		return nextAtMostOneMinorVersion.Original(), nextAtMostOneMinorVersion.Equal(latestVersion), nil
+	}
 
-func isSameMinorVersion(newVersion *semver.Version, currentVersion *semver.Version) bool {
-	return newVersion.Major() == currentVersion.Major() &&
-		newVersion.Minor() == currentVersion.Minor()
+	return latestVersion.Original(), true, nil
 }
 
 // errorMessageAWSAddonNotFound is the error message returned by AWS when a
