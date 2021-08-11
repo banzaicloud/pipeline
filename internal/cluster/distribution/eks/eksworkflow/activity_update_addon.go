@@ -50,15 +50,15 @@ type UpdateAddonActivityInput struct {
 	ClusterName       string
 	KubernetesVersion string
 
-	AddonName                 string
+	AddonName                    string
 	UpgradeAtMostOneMinorVersion bool
 }
 
 // UpdateAddonActivityOutput holds the output data of the UpdateAddonActivityOutput
 type UpdateAddonActivityOutput struct {
-	UpdateID          string
-	AddonNotInstalled bool
-	LatestVersion     bool
+	UpdateID                           string
+	AddonNotInstalled                  bool
+	IsLatestCompatibleVersionInstalled bool
 }
 
 // NewUpdateAddonActivity instantiates a new EKS addon version update
@@ -122,7 +122,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve addon versions", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
 
-	selectedVersion, latestVersion, err := selectNextVersion(addonVersionsOutput, currentVersion, input.KubernetesVersion, input.UpgradeToNextMinorVersion)
+	selectedVersion, isLatestCompatibleVersion, err := selectNextVersion(addonVersionsOutput, currentVersion, input.KubernetesVersion, input.UpgradeAtMostOneMinorVersion)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "error selecting new version", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
@@ -146,7 +146,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		}
 		return nil, errors.WrapIfWithDetails(err, "failed to update addon", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
-	output := UpdateAddonActivityOutput{UpdateID: aws.StringValue(updateAddonOutput.Update.Id), LatestVersion: latestVersion}
+	output := UpdateAddonActivityOutput{UpdateID: aws.StringValue(updateAddonOutput.Update.Id), IsLatestCompatibleVersionInstalled: isLatestCompatibleVersion}
 
 	return &output, nil
 }
@@ -199,8 +199,8 @@ func selectNextVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVe
 }
 
 func isSameMinorVersion(newVersion *semver.Version, currentVersion *semver.Version) bool {
-	return newVersion.Major() == currentVersion.Major() && 
-	    newVersion.Minor() == currentVersion.Minor()
+	return newVersion.Major() == currentVersion.Major() &&
+		newVersion.Minor() == currentVersion.Minor()
 }
 
 // errorMessageAWSAddonNotFound is the error message returned by AWS when a
