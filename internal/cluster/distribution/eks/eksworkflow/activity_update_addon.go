@@ -51,7 +51,7 @@ type UpdateAddonActivityInput struct {
 	KubernetesVersion string
 
 	AddonName                 string
-	UpgradeToNextMinorVersion bool
+	UpgradeAtMostOneMinorVersion bool
 }
 
 // UpdateAddonActivityOutput holds the output data of the UpdateAddonActivityOutput
