@@ -199,10 +199,8 @@ func selectNextVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVe
 }
 
 func isSameMinorVersion(newVersion *semver.Version, currentVersion *semver.Version) bool {
-	if newVersion.Major() == currentVersion.Major() && newVersion.Minor() == currentVersion.Minor() {
-		return true
-	}
-	return false
+	return newVersion.Major() == currentVersion.Major() && 
+	    newVersion.Minor() == currentVersion.Minor()
 }
 
 // errorMessageAWSAddonNotFound is the error message returned by AWS when a
