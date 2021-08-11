@@ -59,11 +59,6 @@ func TestSelectLatestVersion(t *testing.T) {
 							{
 								ClusterVersion: aws.String("1.19"),
 							},
-						},
-					},
-					{
-						AddonVersion: aws.String("v1.8.5-eksbuild.1"),
-						Compatibilities: []*eks.Compatibility{
 							{
 								ClusterVersion: aws.String("1.20"),
 							},
