@@ -49,13 +49,15 @@ type UpdateAddonActivityInput struct {
 	ClusterName       string
 	KubernetesVersion string
 
-	AddonName string
+	AddonName                    string
+	UpgradeAtMostOneMinorVersion bool
 }
 
 // UpdateAddonActivityOutput holds the output data of the UpdateAddonActivityOutput
 type UpdateAddonActivityOutput struct {
-	UpdateID          string
-	AddonNotInstalled bool
+	UpdateID                           string
+	AddonNotInstalled                  bool
+	IsLatestCompatibleVersionInstalled bool
 }
 
 // NewUpdateAddonActivity instantiates a new EKS addon version update
@@ -119,7 +121,7 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve addon versions", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
 
-	selectedVersion, err := selectLatestVersion(addonVersionsOutput, currentVersion, input.KubernetesVersion)
+	selectedVersion, isLatestCompatibleVersion, err := selectNextVersion(addonVersionsOutput, currentVersion, input.KubernetesVersion, input.UpgradeAtMostOneMinorVersion)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "error selecting new version", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
@@ -143,33 +145,52 @@ func (a *UpdateAddonActivity) Execute(ctx context.Context, input UpdateAddonActi
 		}
 		return nil, errors.WrapIfWithDetails(err, "failed to update addon", "cluster", input.ClusterName, "addon", input.AddonName)
 	}
-	output := UpdateAddonActivityOutput{UpdateID: aws.StringValue(updateAddonOutput.Update.Id)}
+	output := UpdateAddonActivityOutput{UpdateID: aws.StringValue(updateAddonOutput.Update.Id), IsLatestCompatibleVersionInstalled: isLatestCompatibleVersion}
 
 	return &output, nil
 }
 
-func selectLatestVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string, kubernetesVersion string) (string, error) {
+// selectNextVersion returns the next version the addon can be upgraded to based on the specified current and Kubernetes versions and possibly limiting the upgrade to at most a minor version when the provided selectNextAtMostMinorVersion is set to true or alternatively an error.
+//
+// When no version is available, the function returns the current version with the latest compatible version indicator set to true.
+func selectNextVersion(addonVersions *eks.DescribeAddonVersionsOutput, currentVersion string, kubernetesVersion string, selectNextAtMostOneMinorVersion bool) (string, bool, error) {
 	currentVersionSemver, err := semver.NewVersion(currentVersion)
 	if err != nil {
-		return "", err
+		return "", false, errors.WrapWithDetails(err, "invalid current version, not a semantic version", "currentVersion", currentVersion)
 	}
+
 	latestVersion := currentVersionSemver
+	nextAtMostOneMinorVersion := currentVersionSemver
 
 	for _, addon := range addonVersions.Addons {
 		for _, version := range addon.AddonVersions {
-			if !versionIsCompatible(version.Compatibilities, kubernetesVersion) {
+			if version == nil ||
+				!versionIsCompatible(version.Compatibilities, kubernetesVersion) {
 				continue
 			}
-			newVersion, err := semver.NewVersion(*version.AddonVersion)
+
+			addonVersion, err := semver.NewVersion(*version.AddonVersion)
 			if err != nil {
-				return "", err
+				return "", false, errors.WrapWithDetails(err, "invalid addon version, not a semantic version", "addonVersion", *version.AddonVersion)
 			}
-			if newVersion.GreaterThan(latestVersion) {
-				latestVersion = newVersion
+
+			if addonVersion.Major() == currentVersionSemver.Major() && // Note: only consider same major version versions (multiple minor version updates at most).
+				addonVersion.Minor() <= currentVersionSemver.Minor()+1 && // Note: only consider +1 minor version versions.
+				addonVersion.GreaterThan(nextAtMostOneMinorVersion) { // Note: only set nextAtMostOneMinorVersion to higher version than it was before, initialized to currentVersionSemver.
+				nextAtMostOneMinorVersion = addonVersion
+			}
+
+			if addonVersion.GreaterThan(latestVersion) {
+				latestVersion = addonVersion
 			}
 		}
 	}
-	return latestVersion.Original(), nil
+
+	if selectNextAtMostOneMinorVersion {
+		return nextAtMostOneMinorVersion.Original(), nextAtMostOneMinorVersion.Equal(latestVersion), nil
+	}
+
+	return latestVersion.Original(), true, nil
 }
 
 // errorMessageAWSAddonNotFound is the error message returned by AWS when a
