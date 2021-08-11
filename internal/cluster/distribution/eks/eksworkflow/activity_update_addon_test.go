@@ -119,6 +119,13 @@ func TestSelectLatestVersion(t *testing.T) {
 		assert.False(t, isLatestVersion)
 	})
 
+    t.Run("next compatible patch version is selected for 1.19", func(t *testing.T){
+        version, isLatestCompatibleVersion, err := selectNextVersion(addonVersions, "v1.8.3-eksbuild.1", "1.19", true)
+        require.NoError(t, err)
+        assert.Equal(t, "v1.8.5-eksbuild.1", version)
+        assert.False(t, isLatestVersion)
+    })
+
 	t.Run("next minor version is selected for 1.20", func(t *testing.T) {
 		version, isLatestVersion, err := selectNextVersion(addonVersions, "v1.8.5-eksbuild.1", "1.20", true)
 		require.NoError(t, err)
