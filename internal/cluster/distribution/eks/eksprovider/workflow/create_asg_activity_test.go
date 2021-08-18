@@ -185,7 +185,6 @@ func TestCreateASG(t *testing.T) {
 					testCase.input.vpcConfig,
 					testCase.input.nodePool,
 					testCase.input.nodePoolSubnetIDs,
-					testCase.input.selectedVolumeSize,
 					testCase.input.nodePoolVersion,
 				)
 
@@ -326,7 +325,6 @@ func TestCreateASGAsync(t *testing.T) {
 					testCase.input.vpcConfig,
 					testCase.input.nodePool,
 					testCase.input.nodePoolSubnetIDs,
-					testCase.input.selectedVolumeSize,
 					testCase.input.nodePoolVersion,
 				)
 				actualError = actualFuture.Get(ctx, nil)

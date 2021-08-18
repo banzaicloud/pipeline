@@ -441,11 +441,14 @@ func newNodePoolsFromRequestedNewNodePools(
 			continue
 		}
 
-		var volumeEncryption *eks.NodePoolVolumeEncryption
-		if nodePool.VolumeEncryption != nil {
-			volumeEncryption = &eks.NodePoolVolumeEncryption{
-				Enabled:          nodePool.VolumeEncryption.Enabled,
-				EncryptionKeyARN: nodePool.VolumeEncryption.EncryptionKeyARN,
+		var nodePoolVolumes *eks.NodePoolVolumes
+		if nodePool.Volumes != nil {
+			nodePoolVolumes = &eks.NodePoolVolumes{}
+			if nodePool.Volumes.KubeletRoot != nil {
+				nodePoolVolumes.KubeletRoot = getVolumeParams(nodePool.Volumes.KubeletRoot)
+			}
+			if nodePool.Volumes.InstanceRoot != nil {
+				nodePoolVolumes.InstanceRoot = getVolumeParams(nodePool.Volumes.InstanceRoot)
 			}
 		}
 
@@ -458,15 +461,12 @@ func newNodePoolsFromRequestedNewNodePools(
 				MinSize: nodePool.MinCount,
 				MaxSize: nodePool.MaxCount,
 			},
-			VolumeEncryption: volumeEncryption,
-			VolumeSize:       nodePool.VolumeSize,
-			VolumeType:       nodePool.VolumeType,
-			InstanceType:     nodePool.InstanceType,
-			Image:            nodePool.Image,
-			SpotPrice:        nodePool.SpotPrice,
-			SecurityGroups:   nodePool.SecurityGroups,
-			SubnetID:         newNodePoolSubnetIDs[nodePoolName][0],
-			UseInstanceStore: nodePool.UseInstanceStore,
+			InstanceType:   nodePool.InstanceType,
+			Image:          nodePool.Image,
+			SpotPrice:      nodePool.SpotPrice,
+			SecurityGroups: nodePool.SecurityGroups,
+			SubnetID:       newNodePoolSubnetIDs[nodePoolName][0],
+			Volumes:        nodePoolVolumes,
 		})
 	}
 

@@ -298,12 +298,13 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				}
 			}
 
+			// todo x
 			var nodePoolVersion string
 			{
 				activityInput := eksWorkflow.CalculateNodePoolVersionActivityInput{
-					Image:                effectiveImage,
-					VolumeEncryption:     effectiveVolumeEncryption,
-					VolumeSize:           effectiveVolumeSize,
+					Image: effectiveImage,
+					//VolumeEncryption:     effectiveVolumeEncryption,
+					//VolumeSize:           effectiveVolumeSize,
 					CustomSecurityGroups: effectiveSecurityGroups,
 				}
 

@@ -18,7 +18,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"go.uber.org/cadence/activity"
@@ -35,10 +34,8 @@ type CalculateNodePoolVersionActivity struct{}
 
 type CalculateNodePoolVersionActivityInput struct {
 	Image                string
-	VolumeEncryption     *eks.NodePoolVolumeEncryption
-	VolumeSize           int
+	Volumes              eks.NodePoolVolumes
 	CustomSecurityGroups []string
-	UseInstanceStore     *bool
 }
 
 type CalculateNodePoolVersionActivityOutput struct {
@@ -60,20 +57,39 @@ func (a CalculateNodePoolVersionActivity) Execute(
 	_ context.Context,
 	input CalculateNodePoolVersionActivityInput,
 ) (CalculateNodePoolVersionActivityOutput, error) {
-	volumeEncryption := "<nil>"
-	if input.VolumeEncryption != nil {
-		volumeEncryption = fmt.Sprintf("%v", *input.VolumeEncryption)
+	instanceRootVolumeStorage := "<nil>"
+	instanceRootVolumeEncryption := "<nil>"
+	instanceRootVolumeSize := 0
+
+	if input.Volumes.InstanceRoot != nil {
+		instanceRootVolumeStorage = input.Volumes.InstanceRoot.Storage
+		instanceRootVolumeSize = input.Volumes.InstanceRoot.Size
+		if input.Volumes.InstanceRoot.Encryption != nil {
+			instanceRootVolumeEncryption = fmt.Sprintf("%v", *input.Volumes.InstanceRoot.Encryption)
+		}
 	}
-	useInstanceStore := "<nil>"
-	if input.UseInstanceStore != nil {
-		useInstanceStore = strconv.FormatBool(*input.UseInstanceStore)
+
+	kubeletRootVolumeStorage := "<nil>"
+	kubeletRootVolumeEncryption := "<nil>"
+	kubeletRootVolumeSize := 0
+
+	if input.Volumes.KubeletRoot != nil {
+		kubeletRootVolumeStorage = input.Volumes.KubeletRoot.Storage
+		kubeletRootVolumeSize = input.Volumes.KubeletRoot.Size
+		if input.Volumes.KubeletRoot.Encryption != nil {
+			kubeletRootVolumeEncryption = fmt.Sprintf("%v", *input.Volumes.KubeletRoot.Encryption)
+		}
 	}
+
 	calculationParams := []string{
 		input.Image,
-		volumeEncryption,
-		fmt.Sprintf("%d", input.VolumeSize),
+		instanceRootVolumeStorage,
+		instanceRootVolumeEncryption,
+		fmt.Sprintf("%d", instanceRootVolumeSize),
+		kubeletRootVolumeStorage,
+		kubeletRootVolumeEncryption,
+		fmt.Sprintf("%d", kubeletRootVolumeSize),
 		strings.Join(input.CustomSecurityGroups, ","),
-		useInstanceStore,
 	}
 
 	h := sha1.New() // #nosec
@@ -91,13 +107,12 @@ func (a CalculateNodePoolVersionActivity) Execute(
 func calculateNodePoolVersion(
 	ctx workflow.Context,
 	image string,
-	volumeEncryption *eks.NodePoolVolumeEncryption,
-	volumeSize int,
+	volumes eks.NodePoolVolumes,
 	customSecurityGroups []string,
 ) (string, error) {
 	var activityOutput CalculateNodePoolVersionActivityOutput
 	err := calculateNodePoolVersionAsync(
-		ctx, image, volumeEncryption, volumeSize, customSecurityGroups).Get(ctx, &activityOutput)
+		ctx, image, volumes, customSecurityGroups).Get(ctx, &activityOutput)
 	if err != nil {
 		return "", err
 	}
@@ -111,14 +126,12 @@ func calculateNodePoolVersion(
 func calculateNodePoolVersionAsync(
 	ctx workflow.Context,
 	image string,
-	volumeEncryption *eks.NodePoolVolumeEncryption,
-	volumeSize int,
+	volumes eks.NodePoolVolumes,
 	customSecurityGroups []string,
 ) workflow.Future {
 	return workflow.ExecuteActivity(ctx, CalculateNodePoolVersionActivityName, CalculateNodePoolVersionActivityInput{
 		Image:                image,
-		VolumeEncryption:     volumeEncryption,
-		VolumeSize:           volumeSize,
+		Volumes:              volumes,
 		CustomSecurityGroups: customSecurityGroups,
 	})
 }

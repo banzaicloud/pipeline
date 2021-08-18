@@ -97,5 +97,36 @@ func (p nodePoolProcessor) ProcessNewNodePool(
 		nodePool.SubnetID = *eksCluster.Subnets[0].SubnetId
 	}
 
+	if nodePool.Volumes == nil {
+		nodePool.Volumes = &eks.NodePoolVolumes{
+			InstanceRoot: &eks.NodePoolVolume{
+				Type:    "gp3",
+				Storage: eks.EBS_STORAGE,
+			},
+		}
+
+		// copy deprecated property values
+		if nodePool.VolumeSize > 0 {
+			nodePool.Volumes.InstanceRoot.Size = nodePool.VolumeSize
+		}
+		if nodePool.VolumeType != "" {
+			nodePool.Volumes.InstanceRoot.Type = nodePool.VolumeType
+		}
+		if nodePool.VolumeEncryption != nil {
+			nodePool.Volumes.InstanceRoot.Encryption = nodePool.VolumeEncryption
+		}
+		if nodePool.UseInstanceStore != nil && *nodePool.UseInstanceStore {
+			nodePool.Volumes.KubeletRoot = &eks.NodePoolVolume{
+				Storage: eks.INSTANCE_STORE_STORAGE,
+			}
+		}
+	}
+
+	// default kubelet root EBS size to 50GB
+	if nodePool.Volumes.KubeletRoot != nil && nodePool.Volumes.KubeletRoot.Storage == eks.INSTANCE_STORE_STORAGE &&
+		nodePool.Volumes.KubeletRoot.Size == 0 {
+		nodePool.Volumes.KubeletRoot.Size = 50
+	}
+
 	return nodePool, nil
 }

@@ -217,6 +217,17 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 			subnetID = requestedNodePool.Subnet.SubnetId
 		}
 
+		var nodePoolVolumes *eks.NodePoolVolumes
+		if requestedNodePool.Volumes != nil {
+			nodePoolVolumes = &eks.NodePoolVolumes{}
+			if requestedNodePool.Volumes.KubeletRoot != nil {
+				nodePoolVolumes.KubeletRoot = getVolumeParams(requestedNodePool.Volumes.KubeletRoot)
+			}
+			if requestedNodePool.Volumes.InstanceRoot != nil {
+				nodePoolVolumes.InstanceRoot = getVolumeParams(requestedNodePool.Volumes.InstanceRoot)
+			}
+		}
+
 		nodePool := eks.NewNodePool{
 			Name:   requestedNodePoolName,
 			Labels: requestedNodePool.Labels,
@@ -226,21 +237,12 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 				MinSize: requestedNodePool.MinCount,
 				MaxSize: requestedNodePool.MaxCount,
 			},
-			VolumeSize:       requestedNodePool.VolumeSize,
-			VolumeType:       requestedNodePool.VolumeType,
-			InstanceType:     requestedNodePool.InstanceType,
-			Image:            requestedNodePool.Image,
-			SpotPrice:        requestedNodePool.SpotPrice,
-			SecurityGroups:   requestedNodePool.SecurityGroups,
-			SubnetID:         subnetID,
-			UseInstanceStore: requestedNodePool.UseInstanceStore,
-		}
-
-		if requestedNodePool.VolumeEncryption != nil {
-			nodePool.VolumeEncryption = &eks.NodePoolVolumeEncryption{
-				Enabled:          requestedNodePool.VolumeEncryption.Enabled,
-				EncryptionKeyARN: requestedNodePool.VolumeEncryption.EncryptionKeyARN,
-			}
+			InstanceType:   requestedNodePool.InstanceType,
+			Image:          requestedNodePool.Image,
+			SpotPrice:      requestedNodePool.SpotPrice,
+			SecurityGroups: requestedNodePool.SecurityGroups,
+			SubnetID:       subnetID,
+			Volumes:        nodePoolVolumes,
 		}
 
 		nodePools = append(nodePools, nodePool)
@@ -295,6 +297,26 @@ func (c *EksClusterCreator) create(ctx context.Context, logger logrus.FieldLogge
 	}()
 
 	return commonCluster, nil
+}
+
+func getVolumeParams(volume *pkgEks.NodePoolVolume) *eks.NodePoolVolume {
+	if volume.Type == eks.INSTANCE_STORE_STORAGE {
+		return &eks.NodePoolVolume{
+			Storage: eks.INSTANCE_STORE_STORAGE,
+		}
+	}
+
+	newVolume := &eks.NodePoolVolume{
+		Size: volume.Size,
+		Type: volume.Type,
+	}
+	if volume.Encryption != nil {
+		newVolume.Encryption = &eks.NodePoolVolumeEncryption{
+			Enabled:          volume.Encryption.Enabled,
+			EncryptionKeyARN: volume.Encryption.EncryptionKeyARN,
+		}
+	}
+	return newVolume
 }
 
 func CreateAWSCredentialsFromSecret(eksCluster *cluster.EKSCluster) (*credentials.Credentials, error) {

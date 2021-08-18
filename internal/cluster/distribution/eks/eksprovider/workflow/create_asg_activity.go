@@ -59,19 +59,17 @@ type CreateAsgActivityInput struct {
 
 	SSHKeyName string
 
-	Name                 string
-	NodeSpotPrice        string
-	Autoscaling          bool
-	NodeMinCount         int
-	NodeMaxCount         int
-	Count                int
-	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
-	NodeVolumeSize       int
-	NodeVolumeType       string
-	NodeImage            string
-	NodeInstanceType     string
-	Labels               map[string]string
-	NodePoolVersion      string
+	Name             string
+	NodeSpotPrice    string
+	Autoscaling      bool
+	NodeMinCount     int
+	NodeMaxCount     int
+	Count            int
+	NodeVolumes      eks.NodePoolVolumes
+	NodeImage        string
+	NodeInstanceType string
+	Labels           map[string]string
+	NodePoolVersion  string
 
 	Subnets             []Subnet
 	VpcID               string
@@ -140,28 +138,9 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.NodePoolVersion),
 	}
 
-	nodeVolumeEncryptionEnabled := "" // Note: defaulting to AWS account default encryption settings.
-	if input.NodeVolumeEncryption != nil {
-		nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumeEncryption.Enabled)
-	} else if a.defaultNodeVolumeEncryption != nil {
-		nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
-	}
-
-	nodeVolumeEncryptionKeyARN := ""
-	if nodeVolumeEncryptionEnabled == "true" &&
-		input.NodeVolumeEncryption != nil &&
-		input.NodeVolumeEncryption.EncryptionKeyARN != "" {
-		nodeVolumeEncryptionKeyARN = input.NodeVolumeEncryption.EncryptionKeyARN
-	} else if nodeVolumeEncryptionEnabled == "true" &&
-		a.defaultNodeVolumeEncryption != nil &&
-		a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
-		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
-	}
-
-	nodeVolumeType := "gp3"
-	if input.NodeVolumeType != "" {
-		nodeVolumeType = input.NodeVolumeType
-	}
+	nodeVolumeStorageStorage, nodeVolumeSize, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType :=
+		a.getDefaultedVolumeParams(input.NodeVolumes.InstanceRoot)
+	kubeletRootVolumeStorage, kubeletRootVolumeSize, kubeletRootVolumeEncryptionEnabled, kubeletRootVolumeEncryptionKeyARN, kubeletRootVolumeType := a.getDefaultedVolumeParams(input.NodeVolumes.KubeletRoot)
 
 	var stackTagsBuilder strings.Builder
 	for tagIndex, tag := range tags {
@@ -210,6 +189,10 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 			ParameterValue: aws.String(fmt.Sprintf("%d", input.Count)),
 		},
 		{
+			ParameterKey:   aws.String("NodeVolumeStorage"),
+			ParameterValue: aws.String(nodeVolumeStorageStorage),
+		},
+		{
 			ParameterKey:   aws.String("NodeVolumeEncryptionEnabled"),
 			ParameterValue: aws.String(nodeVolumeEncryptionEnabled),
 		},
@@ -219,11 +202,31 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		},
 		{
 			ParameterKey:   aws.String("NodeVolumeSize"),
-			ParameterValue: aws.String(fmt.Sprintf("%d", input.NodeVolumeSize)),
+			ParameterValue: aws.String(fmt.Sprintf("%d", nodeVolumeSize)),
 		},
 		{
 			ParameterKey:   aws.String("NodeVolumeType"),
 			ParameterValue: aws.String(nodeVolumeType),
+		},
+		{
+			ParameterKey:   aws.String("KubeletRootVolumeStorage"),
+			ParameterValue: aws.String(kubeletRootVolumeStorage),
+		},
+		{
+			ParameterKey:   aws.String("KubeletRootVolumeEncryptionEnabled"),
+			ParameterValue: aws.String(kubeletRootVolumeEncryptionEnabled),
+		},
+		{
+			ParameterKey:   aws.String("KubeletRootVolumeEncryptionKeyARN"),
+			ParameterValue: aws.String(kubeletRootVolumeEncryptionKeyARN),
+		},
+		{
+			ParameterKey:   aws.String("KubeletRootVolumeSize"),
+			ParameterValue: aws.String(fmt.Sprintf("%d", kubeletRootVolumeSize)),
+		},
+		{
+			ParameterKey:   aws.String("KubeletRootVolumeType"),
+			ParameterValue: aws.String(kubeletRootVolumeType),
 		},
 		{
 			ParameterKey:   aws.String("StackTags"),
@@ -272,10 +275,6 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 		{
 			ParameterKey:   aws.String("KubeletExtraArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
-		},
-		{
-			ParameterKey:   aws.String("UseInstanceStore"),
-			ParameterValue: aws.String(strconv.FormatBool(aws.BoolValue(input.UseInstanceStore))),
 		},
 	}
 
@@ -327,6 +326,42 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	return &outParams, nil
 }
 
+func (a *CreateAsgActivity) getDefaultedVolumeParams(volume *eks.NodePoolVolume) (string, int, string, string, string) {
+	storageType := "none"
+	size := 0
+	nodeVolumeEncryptionEnabled := "" // Note: defaulting to AWS account default encryption settings.
+	nodeVolumeEncryptionKeyARN := ""
+	nodeVolumeType := "gp3"
+
+	if volume == nil {
+		return storageType, size, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType
+	}
+
+	storageType = volume.Storage
+	size = volume.Size
+
+	if volume.Encryption != nil {
+		nodeVolumeEncryptionEnabled = strconv.FormatBool(volume.Encryption.Enabled)
+	} else if a.defaultNodeVolumeEncryption != nil {
+		nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
+	}
+
+	if nodeVolumeEncryptionEnabled == "true" &&
+		volume.Encryption != nil &&
+		volume.Encryption.EncryptionKeyARN != "" {
+		nodeVolumeEncryptionKeyARN = volume.Encryption.EncryptionKeyARN
+	} else if nodeVolumeEncryptionEnabled == "true" &&
+		a.defaultNodeVolumeEncryption != nil &&
+		a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
+		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
+	}
+
+	if volume.Type != "" {
+		nodeVolumeType = volume.Type
+	}
+	return storageType, size, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType
+}
+
 // Register registers the stored node pool deletion activity.
 func (a CreateAsgActivity) Register(worker worker.Registry) {
 	worker.RegisterActivityWithOptions(a.Execute, activity.RegisterOptions{Name: CreateAsgActivityName})
@@ -343,7 +378,6 @@ func createASG(
 	vpcConfig GetVpcConfigActivityOutput,
 	nodePool eks.NewNodePool,
 	nodePoolSubnetIDs []string,
-	selectedVolumeSize int,
 	nodePoolVersion string,
 ) error {
 	return createASGAsync(
@@ -351,7 +385,6 @@ func createASG(
 		eksCluster, vpcConfig,
 		nodePool,
 		nodePoolSubnetIDs,
-		selectedVolumeSize,
 		nodePoolVersion,
 	).Get(ctx, nil)
 }
@@ -367,7 +400,6 @@ func createASGAsync(
 	vpcConfig GetVpcConfigActivityOutput,
 	nodePool eks.NewNodePool,
 	nodePoolSubnetIDs []string,
-	selectedVolumeSize int,
 	nodePoolVersion string,
 ) workflow.Future {
 	minSize := nodePool.Size
@@ -401,19 +433,17 @@ func createASGAsync(
 
 		SSHKeyName: sshKeyName,
 
-		Name:                 nodePool.Name,
-		NodeSpotPrice:        nodePool.SpotPrice,
-		Autoscaling:          nodePool.Autoscaling.Enabled,
-		NodeMinCount:         minSize,
-		NodeMaxCount:         maxSize,
-		Count:                nodePool.Size,
-		NodeVolumeEncryption: nodePool.VolumeEncryption,
-		NodeVolumeSize:       selectedVolumeSize,
-		NodeVolumeType:       nodePool.VolumeType,
-		NodeImage:            nodePool.Image,
-		NodeInstanceType:     nodePool.InstanceType,
-		Labels:               nodePool.Labels,
-		NodePoolVersion:      nodePoolVersion,
+		Name:             nodePool.Name,
+		NodeSpotPrice:    nodePool.SpotPrice,
+		Autoscaling:      nodePool.Autoscaling.Enabled,
+		NodeMinCount:     minSize,
+		NodeMaxCount:     maxSize,
+		Count:            nodePool.Size,
+		NodeVolumes:      *nodePool.Volumes,
+		NodeImage:        nodePool.Image,
+		NodeInstanceType: nodePool.InstanceType,
+		Labels:           nodePool.Labels,
+		NodePoolVersion:  nodePoolVersion,
 
 		Subnets:             subnets,
 		VpcID:               vpcConfig.VpcID,

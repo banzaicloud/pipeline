@@ -26,10 +26,16 @@ Metadata:
           # - NodeImageIdSSMParam
           - NodeImageId
           - NodeSpotPrice
+          - NodeVolumeStorage
           - NodeVolumeEncryptionEnabled
           - NodeVolumeEncryptionKeyARN
           - NodeVolumeSize
           - NodeVolumeType
+          - KubeletRootVolumeStorage
+          - KubeletRootVolumeEncryptionEnabled
+          - KubeletRootVolumeEncryptionKeyARN
+          - KubeletRootVolumeSize
+          - KubeletRootVolumeType
           - KeyName
           - BootstrapArguments
           - KubeletExtraArguments
@@ -549,6 +555,14 @@ Parameters:
     Type: String
     Description: The spot price for this ASG
 
+  NodeVolumeStorage:
+      Type: String
+      Default: "ebs"
+      AllowedValues:
+          - "ebs"
+          - "instance-store"
+      Description: "Node / instance root volume."
+
   NodeVolumeEncryptionEnabled:
     Type: String
     Default: ""
@@ -570,6 +584,7 @@ Parameters:
 
   NodeVolumeType:
     Type: String
+    Default: "gp3"
     AllowedValues:
       - gp2
       - gp3
@@ -579,6 +594,47 @@ Parameters:
       - st1
       - standard
     Description: Volume type of the EBS block device mapping of the node launch template used for the node pool's nodes. See more information at https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html#cfn-ec2-launchtemplate-blockdevicemapping-ebs-volumetype.
+
+  KubeletRootVolumeStorage:
+      Type: String
+      Default: "none"
+      AllowedValues:
+          - "ebs"
+          - "instance-store"
+          - "none"
+      Description: "Data volume set as Kubelet root."
+
+  KubeletRootVolumeEncryptionEnabled:
+      Type: String
+      Default: ""
+      Description: Enable node pool node volume encryption (""/"false"/"true").
+      AllowedValues:
+          - "" # Note: unspecified, use default AWS behavior.
+          - "false"
+          - "true"
+
+  KubeletRootVolumeEncryptionKeyARN:
+      Type: String
+      Default: ""
+      Description: KMS encryption key ARN to use for node pool node volume encryption. In case of empty key value, the default AWS EBS encryption key is used.
+
+  KubeletRootVolumeSize:
+      Type: Number
+      Default: 0 # Note: defaulted to no value when 0.
+      Description: Node volume size
+
+  KubeletRootVolumeType:
+      Type: String
+      Default: "gp3"
+      AllowedValues:
+          - gp2
+          - gp3
+          - io1
+          - io2
+          - sc1
+          - st1
+          - standard
+      Description: Volume type of the EBS block device mapping of the node launch template used for the node pool's nodes. See more information at https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html#cfn-ec2-launchtemplate-blockdevicemapping-ebs-volumetype.
 
   StackTags:
     Type: "String"
@@ -597,14 +653,6 @@ Parameters:
   TerminationDetachEnabled:
     Type: String
     Description: Enable detachment from ASG at instance termination (true/false)
-
-  UseInstanceStore:
-      Type: String
-      Default: "false"
-      AllowedValues:
-        - "true"
-        - "false"
-      Description: "Mount and setup available instance stores for Kubelet if available."
 
   VpcId:
     Type: "AWS::EC2::VPC::Id"
@@ -637,13 +685,20 @@ Conditions:
       - !Ref DisableIMDSv1
       - "true"
 
+  IsNodeVolumeStorageEbs: !Equals [ !Ref NodeVolumeStorage, "ebs" ]
   IsNodeVolumeEncryptionSpecified: !Not [ !Equals [ !Ref NodeVolumeEncryptionEnabled, "" ] ]
   IsNodeVolumeEncryptionKeyARNSpecified: !And
     - !Equals [ !Ref NodeVolumeEncryptionEnabled, "true" ]
     - !Not [ !Equals [ !Ref NodeVolumeEncryptionKeyARN, "" ] ]
+  IsKubeletRootVolumeStorageEbs: !Equals [ !Ref KubeletRootVolumeStorage, "ebs" ]
+  IsKubeletRootVolumeEncryptionSpecified: !Not [ !Equals [ !Ref KubeletRootVolumeEncryptionEnabled, "" ] ]
+  IsKubeletRootVolumeEncryptionKeyARNSpecified: !And
+      - !Equals [ !Ref KubeletRootVolumeEncryptionEnabled, "true" ]
+      - !Not [ !Equals [ !Ref KubeletRootVolumeEncryptionKeyARN, "" ] ]
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
   NoCustomNodeSecurityGroups: !Equals [ !Ref CustomNodeSecurityGroups, "" ]
   NodeVolumeSizeAuto: !Equals [ !Ref NodeVolumeSize, 0 ]
+  KubeletRootVolumeSizeAuto: !Equals [ !Ref KubeletRootVolumeSize, 0 ]
 
 Resources:
   # Note: using preinitialized, possibly user defined node instance roles.
@@ -770,13 +825,35 @@ Resources:
     Properties:
       LaunchTemplateData:
         BlockDeviceMappings:
-          - DeviceName: /dev/xvda
-            Ebs:
-              DeleteOnTermination: true
-              Encrypted: !If [ IsNodeVolumeEncryptionSpecified, !Ref NodeVolumeEncryptionEnabled , !Ref "AWS::NoValue" ]
-              KmsKeyId: !If [ IsNodeVolumeEncryptionKeyARNSpecified, !Ref NodeVolumeEncryptionKeyARN, !Ref "AWS::NoValue" ]
-              VolumeSize: !If [ NodeVolumeSizeAuto, !Ref "AWS::NoValue", !Ref NodeVolumeSize ]
-              VolumeType: !Ref NodeVolumeType
+          !If
+            - IsNodeVolumeStorageEbs
+            -
+              !If
+                - IsKubeletRootVolumeStorageEbs
+                -
+                   - DeviceName: /dev/xvda
+                     Ebs:
+                       DeleteOnTermination: true
+                       Encrypted: !If [ IsNodeVolumeEncryptionSpecified, !Ref NodeVolumeEncryptionEnabled , !Ref "AWS::NoValue" ]
+                       KmsKeyId: !If [ IsNodeVolumeEncryptionKeyARNSpecified, !Ref NodeVolumeEncryptionKeyARN, !Ref "AWS::NoValue" ]
+                       VolumeSize: !If [ NodeVolumeSizeAuto, !Ref "AWS::NoValue", !Ref NodeVolumeSize ]
+                       VolumeType: !Ref NodeVolumeType
+                   - DeviceName: /dev/xvdb
+                     Ebs:
+                       DeleteOnTermination: true
+                       Encrypted: !If [ IsKubeletRootVolumeEncryptionSpecified, !Ref KubeletRootVolumeEncryptionEnabled , !Ref "AWS::NoValue" ]
+                       KmsKeyId: !If [ IsKubeletRootVolumeEncryptionKeyARNSpecified, !Ref KubeletRootVolumeEncryptionKeyARN, !Ref "AWS::NoValue" ]
+                       VolumeSize: !If [ KubeletRootVolumeSizeAuto, !Ref "AWS::NoValue", !Ref KubeletRootVolumeSize ]
+                       VolumeType: !Ref KubeletRootVolumeType
+                -
+                   - DeviceName: /dev/xvda
+                     Ebs:
+                       DeleteOnTermination: true
+                       Encrypted: !If [ IsNodeVolumeEncryptionSpecified, !Ref NodeVolumeEncryptionEnabled , !Ref "AWS::NoValue" ]
+                       KmsKeyId: !If [ IsNodeVolumeEncryptionKeyARNSpecified, !Ref NodeVolumeEncryptionKeyARN, !Ref "AWS::NoValue" ]
+                       VolumeSize: !If [ NodeVolumeSizeAuto, !Ref "AWS::NoValue", !Ref NodeVolumeSize ]
+                       VolumeType: !Ref NodeVolumeType
+            - !Ref "AWS::NoValue"
         IamInstanceProfile:
           Arn: !GetAtt NodeInstanceProfile.Arn
         ImageId: !Ref NodeImageId # Note: deliberately not allowing fallback to NodeImageIdSSMParam.
@@ -793,18 +870,28 @@ Resources:
         SecurityGroupIds:
           !If [NoCustomNodeSecurityGroups, [!Ref NodeSecurityGroup], !Split [ ",",  !Join [ ",", [ !Ref NodeSecurityGroup, !Ref CustomNodeSecurityGroups ] ]  ] ]
         TagSpecifications:
-          - ResourceType: volume
-            Tags:
-              - Key: Name
-                Value: !Sub ${ClusterName}-${NodeGroupName}-Volume
-              - Key: !Sub kubernetes.io/cluster/${ClusterName}
-                Value: owned
+          !If
+            - IsNodeVolumeStorageEbs
+            -
+               - ResourceType: volume
+                 Tags:
+                   - Key: Name
+                     Value: !Sub ${ClusterName}-${NodeGroupName}-Volume
+                   - Key: !Sub kubernetes.io/cluster/${ClusterName}
+                     Value: owned
+            - !Ref "AWS::NoValue"
         UserData:
             Fn::Base64:
                 Fn::Sub: |
                       #!/usr/bin/env bash
                       set -o xtrace
-                      if [ "${UseInstanceStore}" == "true" ]; then
+                      if [ "${KubeletRootVolumeStorage}" == "ebs" ]; then
+                        mkfs.ext4 -m 0 -b 4096 /dev/xvdb
+                        mkdir /media/local
+                        mount -o defaults,noatime,discard,nobarrier /dev/xvdb /media/local
+                        mkdir /media/local/kubelet
+                        /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args '--root-dir /media/local/kubelet ${KubeletExtraArguments}' ${BootstrapArguments}
+                      elif  [ "${KubeletRootVolumeStorage}" == "instance-store" ]; then
                         SSD_NVME_DEVICE_LIST=($(lsblk -l -o name,model | grep "Instance Storage" | cut -d " " -f 1 | sed -e "s/.*/\\/dev\\/&/" || true))
                         SSD_NVME_DEVICE_COUNT=${!#SSD_NVME_DEVICE_LIST[@]}
                         RAID_DEVICE=${!RAID_DEVICE:-/dev/md0}
@@ -855,7 +942,7 @@ Resources:
                       # > supports. Currently, tags aren't propagated to Amazon
                       # > EBS volumes that are created from block device
                       # > mappings.
-                      if [ "${StackTags}" != "" ]; then
+                      if [ "${StackTags}" != "" ] && [ "${NodeVolumeStorage}" == "ebs" ]; then
                         STACK_TAG_ARGUMENTS=""
                         for TAG in $(echo -n "${StackTags}" | tr "," "\n"); do
                           TAG_KEY=$(echo -n "$TAG" | cut -d "=" -f 1)
@@ -867,7 +954,7 @@ Resources:
                         AWS_AVAIL_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone)
                         AWS_REGION="$(echo "$AWS_AVAIL_ZONE" | sed 's/[a-z]$//')"
                         AWS_INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
-                        ROOT_VOLUME_IDS=$(aws ec2 describe-instances --region $AWS_REGION --instance-id $AWS_INSTANCE_ID --output text --query Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId)
+                        ROOT_VOLUME_IDS=$(aws ec2 describe-instances --region $AWS_REGION --instance-id $AWS_INSTANCE_ID --output text --query Reservations[0].Instances[0].BlockDeviceMappings[].Ebs.VolumeId)
                         # Note: the lack of quotes around the tag arguments is intentional.
                         aws ec2 create-tags --resources $ROOT_VOLUME_IDS --region $AWS_REGION --tags $STACK_TAG_ARGUMENTS
                       fi

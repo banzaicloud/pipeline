@@ -295,6 +295,21 @@ type NodePoolVolumeEncryption struct {
 	EncryptionKeyARN string `mapstructure:"encryptionKeyARN"`
 }
 
+type NodePoolVolumes struct {
+	InstanceRoot *NodePoolVolume `mapstructure:"instanceRoot,omitempty"`
+	KubeletRoot  *NodePoolVolume `mapstructure:"kubeletRoot,omitempty"`
+}
+
+type NodePoolVolume struct {
+	Encryption *NodePoolVolumeEncryption `mapstructure:"encryption,omitempty"`
+	// Size of the EBS volume in GiBs of the nodes in the pool (default 50 GiB).
+	Size int `mapstructure:"size,omitempty"`
+	// Type of the mounted volume's storage on the node instances of the node pool.
+	Storage string `mapstructure:"storage"`
+	// Type of the EBS volume to mount on the EKS node pool node instances (default gp3).
+	Type string `mapstructure:"type,omitempty"`
+}
+
 // NewService returns a new Service instance.
 func NewService(
 	genericClusters Store,

@@ -113,26 +113,33 @@ type UpdateClusterAmazonEKS struct {
 
 // NodePool describes Amazon's node fields of a CreateCluster/Update request
 type NodePool struct {
-	InstanceType     string                    `json:"instanceType" yaml:"instanceType"`
-	SpotPrice        string                    `json:"spotPrice" yaml:"spotPrice"`
-	Autoscaling      bool                      `json:"autoscaling" yaml:"autoscaling"`
-	MinCount         int                       `json:"minCount" yaml:"minCount"`
-	MaxCount         int                       `json:"maxCount" yaml:"maxCount"`
-	Count            int                       `json:"count" yaml:"count"`
-	VolumeEncryption *NodePoolVolumeEncryption `json:"volumeEncryption,omitempty" yaml:"volumeEncryption,omitempty"`
-	VolumeSize       int                       `json:"volumeSize" yaml:"volumeSize"`
-	VolumeType       string                    `json:"volumeType" yaml:"volumeType"`
-	Image            string                    `json:"image" yaml:"image"`
-	Labels           map[string]string         `json:"labels,omitempty" yaml:"labels,omitempty"`
+	InstanceType string            `json:"instanceType" yaml:"instanceType"`
+	SpotPrice    string            `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling  bool              `json:"autoscaling" yaml:"autoscaling"`
+	MinCount     int               `json:"minCount" yaml:"minCount"`
+	MaxCount     int               `json:"maxCount" yaml:"maxCount"`
+	Count        int               `json:"count" yaml:"count"`
+	Image        string            `json:"image" yaml:"image"`
+	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 
 	// SecurityGroups collects the user provided node security group IDs for the
 	// node pool.
-	SecurityGroups   []string `json:"securityGroups,omitempty" yaml:"securityGroups,omitempty"`
-	UseInstanceStore *bool    `json:"useInstanceStore,omitempty" yaml:"useInstanceStore,omitempty"`
+	SecurityGroups []string `json:"securityGroups,omitempty" yaml:"securityGroups,omitempty"`
 
 	// Subnet for worker nodes of this node pool. If not specified than worker nodes
 	// are launched in the same subnet in one of the subnets from the list of subnets of the EKS cluster
 	Subnet *Subnet `json:"subnet,omitempty" yaml:"subnet,omitempty"`
+
+	Volumes *NodePoolVolumes `json:"volumes,omitempty"`
+
+	// deprecated, property replaced with Volumes.InstanceRoot.Encryption
+	VolumeEncryption *NodePoolVolumeEncryption `json:"volumeEncryption,omitempty" yaml:"volumeEncryption,omitempty"`
+	// deprecated, property replaced with Volumes.InstanceRoot.Size
+	VolumeSize int `json:"volumeSize" yaml:"volumeSize"`
+	// deprecated, property replaced with Volumes.InstanceRoot.Type
+	VolumeType string `json:"volumeType" yaml:"volumeType"`
+	// deprecated, property replaced with Volumes.KubeletRoot.Type="instance-storage"
+	UseInstanceStore *bool `json:"useInstanceStore,omitempty" yaml:"useInstanceStore,omitempty"`
 }
 
 // NodePoolVolumeEncryption describes the EKS node pool encryption details.
@@ -174,10 +181,27 @@ type Subnet struct {
 	AvailabilityZone string `json:"availabilityZone,omitempty" yaml:"availabilityZone,omitempty"`
 }
 
+type NodePoolVolumes struct {
+	InstanceRoot *NodePoolVolume `json:"instanceRoot,omitempty"`
+	KubeletRoot  *NodePoolVolume `json:"kubeletRoot,omitempty"`
+}
+
+type NodePoolVolume struct {
+	Encryption *NodePoolVolumeEncryption `json:"encryption,omitempty"`
+	// Size of the EBS volume in GiBs of the nodes in the pool (default 50 GiB).
+	Size int `json:"size,omitempty"`
+	// Type of the mounted volume's storage on the node instances of the node pool.
+	Storage string `json:"storage"`
+	// Type of the EBS volume to mount on the EKS node pool node instances (default gp3).
+	Type string `json:"type,omitempty"`
+}
+
 const (
-	DEFAULT_VPC_CIDR     = "192.168.0.0/16"
-	DEFAULT_SUBNET0_CIDR = "192.168.64.0/20"
-	DEFAULT_SUBNET1_CIDR = "192.168.80.0/20"
+	DEFAULT_VPC_CIDR       = "192.168.0.0/16"
+	DEFAULT_SUBNET0_CIDR   = "192.168.64.0/20"
+	DEFAULT_SUBNET1_CIDR   = "192.168.80.0/20"
+	EBS_STORAGE            = "ebs"
+	INSTANCE_STORE_STORAGE = "instance-store"
 )
 
 // Validate checks Amazon's node fields
@@ -227,6 +251,11 @@ func (a *NodePool) Validate(npName string) error {
 		a.SpotPrice = eks2.DefaultSpotPrice
 	}
 
+	if a.Volumes != nil && a.Volumes.InstanceRoot != nil && a.Volumes.KubeletRoot != nil &&
+		a.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && a.Volumes.KubeletRoot.Storage == EBS_STORAGE {
+		return pkgErrors.ErrorAmazonEksNodePoolIncompatibleVolumes
+	}
+
 	// --- [Label validation]--- //
 	if err := pkgCommon.ValidateNodePoolLabels(npName, a.Labels); err != nil {
 		return err
@@ -265,6 +294,11 @@ func (a *NodePool) ValidateForUpdate(npName string) error {
 		if a.Count < a.MinCount || a.Count > a.MaxCount {
 			return pkgErrors.ErrorNodePoolCountFieldError
 		}
+	}
+
+	if a.Volumes != nil && a.Volumes.InstanceRoot != nil && a.Volumes.KubeletRoot != nil &&
+		a.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && a.Volumes.KubeletRoot.Storage == EBS_STORAGE {
+		return pkgErrors.ErrorAmazonEksNodePoolIncompatibleVolumes
 	}
 
 	// --- [Label validation]--- //
@@ -351,6 +385,37 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 
 		if np != nil && np.Subnet == nil {
 			np.Subnet = eks.Subnets[0]
+		}
+
+		if np.Volumes == nil {
+			np.Volumes = &NodePoolVolumes{
+				InstanceRoot: &NodePoolVolume{
+					Type:    "gp3",
+					Storage: EBS_STORAGE,
+				},
+			}
+
+			// copy deprecated property values
+			if np.VolumeSize > 0 {
+				np.Volumes.InstanceRoot.Size = np.VolumeSize
+			}
+			if np.VolumeType != "" {
+				np.Volumes.InstanceRoot.Type = np.VolumeType
+			}
+			if np.VolumeEncryption != nil {
+				np.Volumes.InstanceRoot.Encryption = np.VolumeEncryption
+			}
+			if np.UseInstanceStore != nil && *np.UseInstanceStore {
+				np.Volumes.KubeletRoot = &NodePoolVolume{
+					Storage: INSTANCE_STORE_STORAGE,
+				}
+			}
+		}
+
+		// default kubelet root EBS size to 50GB
+		if np.Volumes.KubeletRoot != nil && np.Volumes.KubeletRoot.Storage == INSTANCE_STORE_STORAGE &&
+			np.Volumes.KubeletRoot.Size == 0 {
+			np.Volumes.KubeletRoot.Size = 50
 		}
 	}
 
