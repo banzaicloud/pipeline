@@ -123,7 +123,7 @@ func (p nodePoolProcessor) ProcessNewNodePool(
 	}
 
 	// default kubelet root EBS size to 50GB
-	if nodePool.Volumes.KubeletRoot != nil && nodePool.Volumes.KubeletRoot.Storage == eks.INSTANCE_STORE_STORAGE &&
+	if nodePool.Volumes.KubeletRoot != nil && nodePool.Volumes.KubeletRoot.Storage == eks.EBS_STORAGE &&
 		nodePool.Volumes.KubeletRoot.Size == 0 {
 		nodePool.Volumes.KubeletRoot.Size = 50
 	}

@@ -307,8 +307,9 @@ func getVolumeParams(volume *pkgEks.NodePoolVolume) *eks.NodePoolVolume {
 	}
 
 	newVolume := &eks.NodePoolVolume{
-		Size: volume.Size,
-		Type: volume.Type,
+		Storage: eks.EBS_STORAGE,
+		Size:    volume.Size,
+		Type:    volume.Type,
 	}
 	if volume.Encryption != nil {
 		newVolume.Encryption = &eks.NodePoolVolumeEncryption{

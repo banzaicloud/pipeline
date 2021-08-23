@@ -235,6 +235,31 @@ func (n nodePoolManager) UpdateNodePool(
 		ExecutionStartToCloseTimeout: 30 * 24 * 60 * time.Minute,
 	}
 
+	if nodePoolUpdate.Volumes == nil {
+		nodePoolUpdate.Volumes = &eks.NodePoolVolumes{
+			InstanceRoot: &eks.NodePoolVolume{
+				Type:    "gp3",
+				Storage: eks.EBS_STORAGE,
+			},
+		}
+
+		// copy deprecated property values
+		if nodePoolUpdate.VolumeSize > 0 {
+			nodePoolUpdate.Volumes.InstanceRoot.Size = nodePoolUpdate.VolumeSize
+		}
+		if nodePoolUpdate.VolumeType != "" {
+			nodePoolUpdate.Volumes.InstanceRoot.Type = nodePoolUpdate.VolumeType
+		}
+		if nodePoolUpdate.VolumeEncryption != nil {
+			nodePoolUpdate.Volumes.InstanceRoot.Encryption = nodePoolUpdate.VolumeEncryption
+		}
+		if nodePoolUpdate.UseInstanceStore != nil && *nodePoolUpdate.UseInstanceStore {
+			nodePoolUpdate.Volumes.KubeletRoot = &eks.NodePoolVolume{
+				Storage: eks.INSTANCE_STORE_STORAGE,
+			}
+		}
+	}
+
 	input := eksworkflow.UpdateNodePoolWorkflowInput{
 		ProviderSecretID: c.SecretID.String(),
 		Region:           c.Location,
@@ -247,12 +272,9 @@ func (n nodePoolManager) UpdateNodePool(
 		NodePoolName:    nodePoolName,
 		OrganizationID:  c.OrganizationID,
 
-		NodeVolumeEncryption: nodePoolUpdate.VolumeEncryption,
-		NodeVolumeSize:       nodePoolUpdate.VolumeSize,
-		NodeVolumeType:       nodePoolUpdate.VolumeType,
-		NodeImage:            nodePoolUpdate.Image,
-		SecurityGroups:       nodePoolUpdate.SecurityGroups,
-		UseInstanceStore:     nodePoolUpdate.UseInstanceStore,
+		NodeVolumes:    nodePoolUpdate.Volumes,
+		NodeImage:      nodePoolUpdate.Image,
+		SecurityGroups: nodePoolUpdate.SecurityGroups,
 
 		Options: eks.NodePoolUpdateOptions{
 			MaxSurge:       nodePoolUpdate.Options.MaxSurge,

@@ -205,8 +205,18 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 
 			var currentTemplateVersion semver.Version
 			effectiveImage := updatedNodePool.NodeImage
-			effectiveVolumeEncryption := updatedNodePool.NodeVolumeEncryption
-			effectiveVolumeSize := updatedNodePool.NodeVolumeSize
+
+			effectiveVolumes := updatedNodePool.Volumes
+			if effectiveVolumes == nil {
+				effectiveVolumes = &eks.NodePoolVolumes{}
+			}
+			if effectiveVolumes.InstanceRoot == nil {
+				effectiveVolumes.InstanceRoot = &eks.NodePoolVolume{}
+			}
+			if effectiveVolumes.KubeletRoot == nil {
+				effectiveVolumes.KubeletRoot = &eks.NodePoolVolume{}
+			}
+
 			effectiveSecurityGroups := updatedNodePool.SecurityGroups
 			{ // Note: needing CF stack for template version and possibly node pool version.
 				getCFStackInput := eksWorkflow.GetCFStackActivityInput{
@@ -220,12 +230,17 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				}
 
 				var parameters struct {
-					CustomNodeSecurityGroups    string         `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
-					NodeImageID                 string         `mapstructure:"NodeImageId"`
-					NodeVolumeEncryptionEnabled string         `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: NodeVolumeEncryptionEnabled is only available from template version 2.1.0.
-					NodeVolumeEncryptionKeyARN  string         `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
-					NodeVolumeSize              int            `mapstructure:"NodeVolumeSize"`
-					TemplateVersion             semver.Version `mapstructure:"TemplateVersion,omitempty"` // Note: TemplateVersion is only available from template version 2.0.0.
+					CustomNodeSecurityGroups           string         `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
+					NodeImageID                        string         `mapstructure:"NodeImageId"`
+					NodeVolumeStorage                  string         `mapstructure:"NodeVolumeStorage,omitempty"`           // Note: NodeVolumeStorage is only available from template version 2.5.0.
+					NodeVolumeEncryptionEnabled        string         `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: NodeVolumeEncryptionEnabled is only available from template version 2.1.0.
+					NodeVolumeEncryptionKeyARN         string         `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
+					NodeVolumeSize                     int            `mapstructure:"NodeVolumeSize"`
+					KubeletRootVolumeStorage           string         `mapstructure:"KubeletRootVolumeStorage,omitempty"`           // Note: KubeletRootVolumeStorage is only available from template version 2.5.0.
+					KubeletRootVolumeEncryptionEnabled string         `mapstructure:"KubeletRootVolumeEncryptionEnabled,omitempty"` // Note: KubeletRootVolumeEncryptionEnabled is only available from template version 2.5.0.
+					KubeletRootVolumeEncryptionKeyARN  string         `mapstructure:"KubeletRootVolumeEncryptionKeyARN,omitempty"`  // Note: KubeletRootVolumeEncryptionKeyARN is only available from template version 2.5.0.
+					KubeletRootVolumeSize              int            `mapstructure:"KubeletRootVolumeSize,omitempty"`              // Note: KubeletRootVolumeSize is only available from template version 2.5.0.
+					TemplateVersion                    semver.Version `mapstructure:"TemplateVersion,omitempty"`                    // Note: TemplateVersion is only available from template version 2.0.0.
 				}
 				err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 				if err != nil {
@@ -239,32 +254,57 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 					effectiveImage = parameters.NodeImageID
 				}
 
-				if effectiveVolumeEncryption == nil &&
+				if effectiveSecurityGroups == nil &&
+					parameters.CustomNodeSecurityGroups != "" {
+					effectiveSecurityGroups = strings.Split(parameters.CustomNodeSecurityGroups, ",")
+					sort.Strings(effectiveSecurityGroups)
+				}
+
+				if effectiveVolumes.InstanceRoot.Storage == "" {
+					effectiveVolumes.InstanceRoot.Storage = parameters.NodeVolumeStorage
+				}
+
+				if effectiveVolumes.InstanceRoot.Encryption == nil &&
 					parameters.NodeVolumeEncryptionEnabled != "" {
 					isNodeVolumeEncryptionEnabled, err := strconv.ParseBool(parameters.NodeVolumeEncryptionEnabled)
 					if err != nil {
 						return errors.WrapIf(err, "invalid node volume encryption enabled value")
 					}
 
-					effectiveVolumeEncryption = &eks.NodePoolVolumeEncryption{
+					effectiveVolumes.InstanceRoot.Encryption = &eks.NodePoolVolumeEncryption{
 						Enabled:          isNodeVolumeEncryptionEnabled,
 						EncryptionKeyARN: parameters.NodeVolumeEncryptionKeyARN,
 					}
 				}
 
-				if effectiveVolumeSize == 0 {
-					effectiveVolumeSize = parameters.NodeVolumeSize
+				if effectiveVolumes.InstanceRoot.Size == 0 {
+					effectiveVolumes.InstanceRoot.Size = parameters.NodeVolumeSize
 				}
 
-				if effectiveSecurityGroups == nil &&
-					parameters.CustomNodeSecurityGroups != "" {
-					effectiveSecurityGroups = strings.Split(parameters.CustomNodeSecurityGroups, ",")
-					sort.Strings(effectiveSecurityGroups)
+				if effectiveVolumes.KubeletRoot.Storage == "" {
+					effectiveVolumes.KubeletRoot.Storage = parameters.KubeletRootVolumeStorage
+				}
+
+				if effectiveVolumes.KubeletRoot.Encryption == nil &&
+					parameters.KubeletRootVolumeEncryptionEnabled != "" {
+					isVolumeEncryptionEnabled, err := strconv.ParseBool(parameters.KubeletRootVolumeEncryptionEnabled)
+					if err != nil {
+						return errors.WrapIf(err, "invalid kubelet root volume encryption enabled value")
+					}
+
+					effectiveVolumes.KubeletRoot.Encryption = &eks.NodePoolVolumeEncryption{
+						Enabled:          isVolumeEncryptionEnabled,
+						EncryptionKeyARN: parameters.KubeletRootVolumeEncryptionKeyARN,
+					}
+				}
+
+				if effectiveVolumes.KubeletRoot.Size == 0 {
+					effectiveVolumes.KubeletRoot.Size = parameters.KubeletRootVolumeSize
 				}
 			}
 
 			var volumeSize int
-			if updatedNodePool.NodeVolumeSize > 0 {
+			if updatedNodePool.Volumes != nil && updatedNodePool.Volumes.InstanceRoot != nil && updatedNodePool.Volumes.InstanceRoot.Size > 0 {
 				var amiSize int
 				{
 					activityInput := eksWorkflow.GetAMISizeActivityInput{
@@ -284,7 +324,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				{
 					activityInput := eksWorkflow.SelectVolumeSizeActivityInput{
 						AMISize:            amiSize,
-						OptionalVolumeSize: updatedNodePool.NodeVolumeSize,
+						OptionalVolumeSize: updatedNodePool.Volumes.InstanceRoot.Size,
 					}
 					var activityOutput eksWorkflow.SelectVolumeSizeActivityOutput
 					err = workflow.ExecuteActivity(ctx, eksWorkflow.SelectVolumeSizeActivityName, activityInput).Get(ctx, &activityOutput)
@@ -294,17 +334,15 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 					}
 
 					volumeSize = activityOutput.VolumeSize
-					effectiveVolumeSize = volumeSize
+					effectiveVolumes.InstanceRoot.Size = volumeSize
 				}
 			}
 
-			// todo x
 			var nodePoolVersion string
 			{
 				activityInput := eksWorkflow.CalculateNodePoolVersionActivityInput{
-					Image: effectiveImage,
-					//VolumeEncryption:     effectiveVolumeEncryption,
-					//VolumeSize:           effectiveVolumeSize,
+					Image:                effectiveImage,
+					Volumes:              *effectiveVolumes,
 					CustomSecurityGroups: effectiveSecurityGroups,
 				}
 
@@ -342,16 +380,13 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				NodeMinCount:           updatedNodePool.NodeMinCount,
 				NodeMaxCount:           updatedNodePool.NodeMaxCount,
 				Count:                  updatedNodePool.Count,
-				NodeVolumeEncryption:   updatedNodePool.NodeVolumeEncryption,
-				NodeVolumeSize:         volumeSize,
-				NodeVolumeType:         updatedNodePool.NodeVolumeType,
+				NodeVolumes:            effectiveVolumes,
 				NodeImage:              updatedNodePool.NodeImage,
 				NodeInstanceType:       updatedNodePool.NodeInstanceType,
 				SecurityGroups:         updatedNodePool.SecurityGroups,
 				Labels:                 updatedNodePool.Labels,
 				Tags:                   input.Tags,
 				CurrentTemplateVersion: currentTemplateVersion,
-				UseInstanceStore:       updatedNodePool.UseInstanceStore,
 			}
 			ctx = workflow.WithActivityOptions(ctx, aoWithHeartBeat)
 			f := workflow.ExecuteActivity(ctx, eksWorkflow.UpdateAsgActivityName, activityInput)

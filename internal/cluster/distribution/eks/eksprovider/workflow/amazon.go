@@ -220,22 +220,30 @@ func NewSubnetsFromEKSSubnets(
 // TODO: remove when UpdateNodePoolWorkflow is refactored and this is not needed
 // anymore.
 type AutoscaleGroup struct {
-	Name                 string
-	NodeSpotPrice        string
-	Autoscaling          bool
-	NodeMinCount         int
-	NodeMaxCount         int
-	Count                int
+	Name          string
+	NodeSpotPrice string
+	Autoscaling   bool
+	NodeMinCount  int
+	NodeMaxCount  int
+	Count         int
+
+	Volumes *eks.NodePoolVolumes `json:"volumes,omitempty"`
+
+	// deprecated, property replaced with Volumes.InstanceRoot.Encryption
 	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
-	NodeVolumeSize       int
-	NodeVolumeType       string
-	NodeImage            string
-	NodeInstanceType     string
+	// deprecated, property replaced with Volumes.InstanceRoot.Size
+	NodeVolumeSize int
+	// deprecated, property replaced with Volumes.InstanceRoot.Type
+	NodeVolumeType string
+	// deprecated, property replaced with Volumes.KubeletRoot.Type="instance-storage"
+	UseInstanceStore *bool `json:"useInstanceStore,omitempty" yaml:"useInstanceStore,omitempty"`
+
+	NodeImage        string
+	NodeInstanceType string
 
 	// SecurityGroups collects the user specified custom node security group
 	// IDs.
-	SecurityGroups   []string
-	UseInstanceStore *bool
+	SecurityGroups []string
 
 	Labels    map[string]string
 	Delete    bool

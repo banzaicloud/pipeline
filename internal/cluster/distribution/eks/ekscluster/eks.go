@@ -413,7 +413,7 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 		}
 
 		// default kubelet root EBS size to 50GB
-		if np.Volumes.KubeletRoot != nil && np.Volumes.KubeletRoot.Storage == INSTANCE_STORE_STORAGE &&
+		if np.Volumes.KubeletRoot != nil && np.Volumes.KubeletRoot.Storage == EBS_STORAGE &&
 			np.Volumes.KubeletRoot.Size == 0 {
 			np.Volumes.KubeletRoot.Size = 50
 		}

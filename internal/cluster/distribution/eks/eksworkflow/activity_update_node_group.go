@@ -62,13 +62,10 @@ type UpdateNodeGroupActivityInput struct {
 	NodePoolName    string
 	NodePoolVersion string
 
-	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
-	NodeVolumeSize       int
-	NodeVolumeType       string
-	NodeImage            string
-	DesiredCapacity      int64
-	SecurityGroups       []string
-	UseInstanceStore     *bool
+	NodeVolumes     *eks.NodePoolVolumes
+	NodeImage       string
+	DesiredCapacity int64
+	SecurityGroups  []string
 
 	MaxBatchSize          int
 	MinInstancesInService int
@@ -118,30 +115,70 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 	}
 
 	nodeVolumeEncryptionEnabled := ""
-	if input.NodeVolumeEncryption != nil {
-		nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumeEncryption.Enabled)
-	} else if input.CurrentTemplateVersion.IsLessThan("2.1.0") &&
-		a.defaultNodeVolumeEncryption != nil { // Note: old stack, Pipeline default should take precedence over AWS default.
-		nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
-	}
-
 	nodeVolumeEncryptionKeyARN := ""
-	if nodeVolumeEncryptionEnabled == "true" &&
-		input.NodeVolumeEncryption != nil &&
-		input.NodeVolumeEncryption.EncryptionKeyARN != "" {
-		nodeVolumeEncryptionKeyARN = input.NodeVolumeEncryption.EncryptionKeyARN
-	} else if nodeVolumeEncryptionEnabled == "true" &&
-		a.defaultNodeVolumeEncryption != nil &&
-		a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
-		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
-	} else if input.CurrentTemplateVersion.IsLessThan("2.1.0") &&
-		a.defaultNodeVolumeEncryption != nil { // Note: old stack, Pipeline default should take precedence over AWS default.
-		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
+	nodeVolumeType := ""
+	nodeVolumeSize := 0
+
+	if eks.EBS_STORAGE == input.NodeVolumes.InstanceRoot.Storage {
+		if input.NodeVolumes.InstanceRoot.Encryption != nil {
+			nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumes.InstanceRoot.Encryption.Enabled)
+		} else if input.CurrentTemplateVersion.IsLessThan("2.1.0") &&
+			a.defaultNodeVolumeEncryption != nil { // Note: old stack, Pipeline default should take precedence over AWS default.
+			nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
+		}
+
+		if nodeVolumeEncryptionEnabled == "true" &&
+			input.NodeVolumes.InstanceRoot.Encryption != nil &&
+			input.NodeVolumes.InstanceRoot.Encryption.EncryptionKeyARN != "" {
+			nodeVolumeEncryptionKeyARN = input.NodeVolumes.InstanceRoot.Encryption.EncryptionKeyARN
+		} else if nodeVolumeEncryptionEnabled == "true" &&
+			a.defaultNodeVolumeEncryption != nil &&
+			a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
+			nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
+		} else if input.CurrentTemplateVersion.IsLessThan("2.1.0") &&
+			a.defaultNodeVolumeEncryption != nil { // Note: old stack, Pipeline default should take precedence over AWS default.
+			nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
+		}
+
+		nodeVolumeType = "gp3"
+		if input.NodeVolumes.InstanceRoot.Type != "" {
+			nodeVolumeType = input.NodeVolumes.InstanceRoot.Type
+		}
+
+		nodeVolumeSize = input.NodeVolumes.InstanceRoot.Size
 	}
 
-	nodeVolumeType := "gp3"
-	if input.NodeVolumeType != "" {
-		nodeVolumeType = input.NodeVolumeType
+	kubeletRootVolumeEncryptionEnabled := ""
+	kubeletRootVolumeEncryptionKeyARN := ""
+	kubeletRootVolumeType := ""
+	kubeletRootVolumeSize := 0
+	if eks.EBS_STORAGE == input.NodeVolumes.KubeletRoot.Storage {
+		if input.NodeVolumes.KubeletRoot.Encryption != nil {
+			kubeletRootVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumes.KubeletRoot.Encryption.Enabled)
+		} else if input.CurrentTemplateVersion.IsLessThan("2.5.0") &&
+			a.defaultNodeVolumeEncryption != nil { // Note: old stack, Pipeline default should take precedence over AWS default.
+			kubeletRootVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
+		}
+
+		if kubeletRootVolumeEncryptionEnabled == "true" &&
+			input.NodeVolumes.KubeletRoot.Encryption != nil &&
+			input.NodeVolumes.KubeletRoot.Encryption.EncryptionKeyARN != "" {
+			kubeletRootVolumeEncryptionKeyARN = input.NodeVolumes.KubeletRoot.Encryption.EncryptionKeyARN
+		} else if kubeletRootVolumeEncryptionEnabled == "true" &&
+			a.defaultNodeVolumeEncryption != nil &&
+			a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
+			kubeletRootVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
+		} else if input.CurrentTemplateVersion.IsLessThan("2.5.0") &&
+			a.defaultNodeVolumeEncryption != nil { // Note: old stack, Pipeline default should take precedence over AWS default.
+			kubeletRootVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
+		}
+
+		kubeletRootVolumeType = "gp3"
+		if input.NodeVolumes.KubeletRoot.Type != "" {
+			kubeletRootVolumeType = input.NodeVolumes.KubeletRoot.Type
+		}
+
+		kubeletRootVolumeSize = input.NodeVolumes.KubeletRoot.Size
 	}
 
 	tags := getNodePoolStackTags(input.ClusterName, input.ClusterTags)
@@ -200,6 +237,12 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			input.DesiredCapacity > 0,
 			fmt.Sprintf("%d", input.DesiredCapacity),
 		),
+		// InstanceRoot / Node volume params
+		sdkCloudFormation.NewOptionalStackParameter(
+			"NodeVolumeStorage",
+			input.NodeVolumes.InstanceRoot.Storage != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
+			input.NodeVolumes.InstanceRoot.Storage,
+		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"NodeVolumeEncryptionEnabled",
 			nodeVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.1.0"), // Note: older templates cannot use non-existing previous value.
@@ -212,14 +255,41 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"NodeVolumeSize",
-			input.NodeVolumeSize > 0,
-			fmt.Sprintf("%d", input.NodeVolumeSize),
+			nodeVolumeSize > 0,
+			fmt.Sprintf("%d", nodeVolumeSize),
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"NodeVolumeType",
-			input.NodeVolumeType != "" || input.CurrentTemplateVersion.IsLessThan("2.4.0"), // Note: older templates cannot use non-existing previous value.
+			input.NodeVolumes.InstanceRoot.Type != "" || input.CurrentTemplateVersion.IsLessThan("2.4.0"), // Note: older templates cannot use non-existing previous value.
 			nodeVolumeType,
 		),
+		// KubeletRoot volume params
+		sdkCloudFormation.NewOptionalStackParameter(
+			"KubeletRootVolumeStorage",
+			input.NodeVolumes.KubeletRoot.Storage != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
+			input.NodeVolumes.KubeletRoot.Storage,
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"KubeletRootVolumeEncryptionEnabled",
+			kubeletRootVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: older templates cannot use non-existing previous value.
+			kubeletRootVolumeEncryptionEnabled,
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"KubeletRootVolumeEncryptionKeyARN",
+			kubeletRootVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: when enablement is set, key ARN should be updated. // Note: older templates cannot use non-existing previous value.
+			kubeletRootVolumeEncryptionKeyARN,
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"KubeletRootVolumeSize",
+			kubeletRootVolumeSize > 0 || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
+			fmt.Sprintf("%d", kubeletRootVolumeSize),
+		),
+		sdkCloudFormation.NewOptionalStackParameter(
+			"KubeletRootVolumeType",
+			input.NodeVolumes.KubeletRoot.Type != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: older templates cannot use non-existing previous value.
+			kubeletRootVolumeType,
+		),
+
 		{
 			ParameterKey:   aws.String("StackTags"),
 			ParameterValue: aws.String(stackTagsBuilder.String()),
@@ -264,11 +334,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			ParameterKey:   aws.String("KubeletExtraArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
-		sdkCloudFormation.NewOptionalStackParameter(
-			"UseInstanceStore",
-			input.UseInstanceStore != nil || input.CurrentTemplateVersion.IsLessThan("2.2.0"),
-			strconv.FormatBool(aws.BoolValue(input.UseInstanceStore)), // Note: false default value for old stacks.
-		),
 	}
 
 	// we don't reuse the creation time template, since it may have changed

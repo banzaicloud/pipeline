@@ -139,8 +139,9 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	}
 
 	nodeVolumeStorageStorage, nodeVolumeSize, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType :=
-		a.getDefaultedVolumeParams(input.NodeVolumes.InstanceRoot)
-	kubeletRootVolumeStorage, kubeletRootVolumeSize, kubeletRootVolumeEncryptionEnabled, kubeletRootVolumeEncryptionKeyARN, kubeletRootVolumeType := a.getDefaultedVolumeParams(input.NodeVolumes.KubeletRoot)
+		getDefaultedTemplateVolumeParams(input.NodeVolumes.InstanceRoot, a.defaultNodeVolumeEncryption)
+	kubeletRootVolumeStorage, kubeletRootVolumeSize, kubeletRootVolumeEncryptionEnabled, kubeletRootVolumeEncryptionKeyARN, kubeletRootVolumeType :=
+		getDefaultedTemplateVolumeParams(input.NodeVolumes.KubeletRoot, a.defaultNodeVolumeEncryption)
 
 	var stackTagsBuilder strings.Builder
 	for tagIndex, tag := range tags {
@@ -326,38 +327,43 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 	return &outParams, nil
 }
 
-func (a *CreateAsgActivity) getDefaultedVolumeParams(volume *eks.NodePoolVolume) (string, int, string, string, string) {
-	storageType := "none"
+func getDefaultedTemplateVolumeParams(volume *eks.NodePoolVolume, defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption) (string, int, string, string, string) {
+	storageType := ""
 	size := 0
 	nodeVolumeEncryptionEnabled := "" // Note: defaulting to AWS account default encryption settings.
 	nodeVolumeEncryptionKeyARN := ""
-	nodeVolumeType := "gp3"
+	nodeVolumeType := ""
 
 	if volume == nil {
 		return storageType, size, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType
 	}
 
 	storageType = volume.Storage
-	size = volume.Size
 
-	if volume.Encryption != nil {
-		nodeVolumeEncryptionEnabled = strconv.FormatBool(volume.Encryption.Enabled)
-	} else if a.defaultNodeVolumeEncryption != nil {
-		nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
-	}
+	if eks.EBS_STORAGE == storageType {
+		size = volume.Size
 
-	if nodeVolumeEncryptionEnabled == "true" &&
-		volume.Encryption != nil &&
-		volume.Encryption.EncryptionKeyARN != "" {
-		nodeVolumeEncryptionKeyARN = volume.Encryption.EncryptionKeyARN
-	} else if nodeVolumeEncryptionEnabled == "true" &&
-		a.defaultNodeVolumeEncryption != nil &&
-		a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
-		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
-	}
+		if volume.Encryption != nil {
+			nodeVolumeEncryptionEnabled = strconv.FormatBool(volume.Encryption.Enabled)
+		} else if defaultNodeVolumeEncryption != nil {
+			nodeVolumeEncryptionEnabled = strconv.FormatBool(defaultNodeVolumeEncryption.Enabled)
+		}
 
-	if volume.Type != "" {
-		nodeVolumeType = volume.Type
+		if nodeVolumeEncryptionEnabled == "true" &&
+			volume.Encryption != nil &&
+			volume.Encryption.EncryptionKeyARN != "" {
+			nodeVolumeEncryptionKeyARN = volume.Encryption.EncryptionKeyARN
+		} else if nodeVolumeEncryptionEnabled == "true" &&
+			defaultNodeVolumeEncryption != nil &&
+			defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
+			nodeVolumeEncryptionKeyARN = defaultNodeVolumeEncryption.EncryptionKeyARN
+		}
+
+		if volume.Type != "" {
+			nodeVolumeType = volume.Type
+		} else {
+			nodeVolumeType = "gp3"
+		}
 	}
 	return storageType, size, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType
 }
