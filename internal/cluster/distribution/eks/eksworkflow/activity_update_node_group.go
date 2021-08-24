@@ -62,7 +62,7 @@ type UpdateNodeGroupActivityInput struct {
 	NodePoolName    string
 	NodePoolVersion string
 
-	NodeVolumes     *eks.NodePoolVolumes
+	NodeVolumes     eks.NodePoolVolumes
 	NodeImage       string
 	DesiredCapacity int64
 	SecurityGroups  []string
@@ -114,12 +114,14 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.NodePoolVersion))
 	}
 
+	nodeVolumeStorage := ""
 	nodeVolumeEncryptionEnabled := ""
 	nodeVolumeEncryptionKeyARN := ""
 	nodeVolumeType := ""
 	nodeVolumeSize := 0
 
-	if eks.EBS_STORAGE == input.NodeVolumes.InstanceRoot.Storage {
+	if input.NodeVolumes.InstanceRoot != nil && eks.EBS_STORAGE == input.NodeVolumes.InstanceRoot.Storage {
+		nodeVolumeStorage = input.NodeVolumes.InstanceRoot.Storage
 		if input.NodeVolumes.InstanceRoot.Encryption != nil {
 			nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumes.InstanceRoot.Encryption.Enabled)
 		} else if input.CurrentTemplateVersion.IsLessThan("2.1.0") &&
@@ -148,11 +150,13 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		nodeVolumeSize = input.NodeVolumes.InstanceRoot.Size
 	}
 
+	kubeletRootVolumeStorage := ""
 	kubeletRootVolumeEncryptionEnabled := ""
 	kubeletRootVolumeEncryptionKeyARN := ""
 	kubeletRootVolumeType := ""
 	kubeletRootVolumeSize := 0
-	if eks.EBS_STORAGE == input.NodeVolumes.KubeletRoot.Storage {
+	if input.NodeVolumes.KubeletRoot != nil && eks.EBS_STORAGE == input.NodeVolumes.KubeletRoot.Storage {
+		kubeletRootVolumeStorage = input.NodeVolumes.KubeletRoot.Storage
 		if input.NodeVolumes.KubeletRoot.Encryption != nil {
 			kubeletRootVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumes.KubeletRoot.Encryption.Enabled)
 		} else if input.CurrentTemplateVersion.IsLessThan("2.5.0") &&
@@ -240,8 +244,8 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		// InstanceRoot / Node volume params
 		sdkCloudFormation.NewOptionalStackParameter(
 			"NodeVolumeStorage",
-			input.NodeVolumes.InstanceRoot.Storage != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
-			input.NodeVolumes.InstanceRoot.Storage,
+			nodeVolumeStorage != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
+			nodeVolumeStorage,
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"NodeVolumeEncryptionEnabled",
@@ -260,14 +264,14 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"NodeVolumeType",
-			input.NodeVolumes.InstanceRoot.Type != "" || input.CurrentTemplateVersion.IsLessThan("2.4.0"), // Note: older templates cannot use non-existing previous value.
+			(input.NodeVolumes.InstanceRoot != nil && input.NodeVolumes.InstanceRoot.Type != "") || input.CurrentTemplateVersion.IsLessThan("2.4.0"), // Note: older templates cannot use non-existing previous value.
 			nodeVolumeType,
 		),
 		// KubeletRoot volume params
 		sdkCloudFormation.NewOptionalStackParameter(
 			"KubeletRootVolumeStorage",
-			input.NodeVolumes.KubeletRoot.Storage != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
-			input.NodeVolumes.KubeletRoot.Storage,
+			kubeletRootVolumeStorage != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
+			kubeletRootVolumeStorage,
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"KubeletRootVolumeEncryptionEnabled",
@@ -286,7 +290,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		),
 		sdkCloudFormation.NewOptionalStackParameter(
 			"KubeletRootVolumeType",
-			input.NodeVolumes.KubeletRoot.Type != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: older templates cannot use non-existing previous value.
+			(input.NodeVolumes.KubeletRoot != nil && input.NodeVolumes.KubeletRoot.Type != "") || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: older templates cannot use non-existing previous value.
 			kubeletRootVolumeType,
 		),
 

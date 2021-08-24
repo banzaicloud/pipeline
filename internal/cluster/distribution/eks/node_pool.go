@@ -49,6 +49,7 @@ type NewNodePool struct {
 const (
 	EBS_STORAGE            = "ebs"
 	INSTANCE_STORE_STORAGE = "instance-store"
+	NONE_STORAGE           = "none"
 )
 
 // Validate semantically validates the new node pool.

@@ -282,7 +282,12 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				}
 
 				if effectiveVolumes.KubeletRoot.Storage == "" {
-					effectiveVolumes.KubeletRoot.Storage = parameters.KubeletRootVolumeStorage
+					// set default none value for KubeletRoot.Storage for old templates
+					if currentTemplateVersion.IsLessThan("2.5.0") {
+						effectiveVolumes.KubeletRoot.Storage = eks.NONE_STORAGE
+					} else {
+						effectiveVolumes.KubeletRoot.Storage = parameters.KubeletRootVolumeStorage
+					}
 				}
 
 				if effectiveVolumes.KubeletRoot.Encryption == nil &&
@@ -380,7 +385,7 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 				NodeMinCount:           updatedNodePool.NodeMinCount,
 				NodeMaxCount:           updatedNodePool.NodeMaxCount,
 				Count:                  updatedNodePool.Count,
-				NodeVolumes:            effectiveVolumes,
+				NodeVolumes:            *effectiveVolumes,
 				NodeImage:              updatedNodePool.NodeImage,
 				NodeInstanceType:       updatedNodePool.NodeInstanceType,
 				SecurityGroups:         updatedNodePool.SecurityGroups,

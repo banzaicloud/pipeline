@@ -206,7 +206,12 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		}
 
 		if effectiveVolumes.KubeletRoot.Storage == "" {
-			effectiveVolumes.KubeletRoot.Storage = parameters.KubeletRootVolumeStorage
+			// set default none value for KubeletRoot.Storage for old templates
+			if currentTemplateVersion.IsLessThan("2.5.0") {
+				effectiveVolumes.KubeletRoot.Storage = eks.NONE_STORAGE
+			} else {
+				effectiveVolumes.KubeletRoot.Storage = parameters.KubeletRootVolumeStorage
+			}
 		}
 
 		if effectiveVolumes.KubeletRoot.Encryption == nil &&
@@ -299,7 +304,7 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			StackName:              input.StackName,
 			NodePoolName:           input.NodePoolName,
 			NodePoolVersion:        nodePoolVersion,
-			NodeVolumes:            effectiveVolumes,
+			NodeVolumes:            *effectiveVolumes,
 			NodeImage:              input.NodeImage,
 			SecurityGroups:         input.SecurityGroups,
 			MaxBatchSize:           input.Options.MaxBatchSize,

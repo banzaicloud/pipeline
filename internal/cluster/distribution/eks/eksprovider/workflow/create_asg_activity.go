@@ -431,6 +431,10 @@ func createASGAsync(
 		return sdkcadence.NewReadyFuture(ctx, nil, errors.Wrap(err, "node pool subnets could not be determined"))
 	}
 
+	if nodePool.Volumes == nil {
+		nodePool.Volumes = &eks.NodePoolVolumes{}
+	}
+
 	activityInput := CreateAsgActivityInput{
 		EKSActivityInput: eksActivityInput,
 		ClusterID:        eksCluster.Cluster.ID,

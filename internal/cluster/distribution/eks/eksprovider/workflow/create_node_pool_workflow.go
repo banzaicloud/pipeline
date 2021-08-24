@@ -207,6 +207,21 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		}
 	}()
 
+	if input.NodePool.Volumes == nil {
+		input.NodePool.Volumes = &eks.NodePoolVolumes{
+			InstanceRoot: &eks.NodePoolVolume{
+				Storage: "ebs",
+			},
+		}
+	}
+	// set KubeletRoot.Storage to none if it's not specified
+	if input.NodePool.Volumes.KubeletRoot == nil {
+		input.NodePool.Volumes.KubeletRoot = &eks.NodePoolVolume{}
+	}
+	if "" == input.NodePool.Volumes.KubeletRoot.Storage {
+		input.NodePool.Volumes.KubeletRoot.Storage = eks.NONE_STORAGE
+	}
+
 	// select default AMI size for InstanceRoot volume in case it's EBS
 	if input.NodePool.Volumes != nil && input.NodePool.Volumes.InstanceRoot.Storage == eks.EBS_STORAGE {
 		amiSize, err := getAMISize(ctx, eksActivityInput, input.NodePool.Image)

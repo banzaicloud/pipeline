@@ -625,15 +625,7 @@ Parameters:
 
   KubeletRootVolumeType:
       Type: String
-      Default: "gp3"
-      AllowedValues:
-          - gp2
-          - gp3
-          - io1
-          - io2
-          - sc1
-          - st1
-          - standard
+      Default: ""
       Description: Volume type of the EBS block device mapping of the node launch template used for the node pool's nodes. See more information at https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html#cfn-ec2-launchtemplate-blockdevicemapping-ebs-volumetype.
 
   StackTags:

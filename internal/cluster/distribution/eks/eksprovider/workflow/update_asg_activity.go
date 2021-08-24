@@ -65,7 +65,7 @@ type UpdateAsgActivityInput struct {
 	NodeMinCount     int
 	NodeMaxCount     int
 	Count            int
-	NodeVolumes      *eks.NodePoolVolumes
+	NodeVolumes      eks.NodePoolVolumes
 	NodeImage        string
 	NodeInstanceType string
 
@@ -250,7 +250,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		),
 		sdkCloudformation.NewOptionalStackParameter(
 			"NodeVolumeType",
-			input.NodeVolumes.InstanceRoot.Type != "" || input.CurrentTemplateVersion.IsLessThan("2.4.0"), // Note: older templates cannot use non-existing previous value.
+			(input.NodeVolumes.InstanceRoot != nil && input.NodeVolumes.InstanceRoot.Type != "") || input.CurrentTemplateVersion.IsLessThan("2.4.0"), // Note: older templates cannot use non-existing previous value.
 			nodeVolumeType,
 		),
 
@@ -276,7 +276,7 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		),
 		sdkCloudformation.NewOptionalStackParameter(
 			"KubeletRootVolumeType",
-			input.NodeVolumes.KubeletRoot.Type != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: older templates cannot use non-existing previous value.
+			(input.NodeVolumes.KubeletRoot != nil && input.NodeVolumes.KubeletRoot.Type != "") || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: older templates cannot use non-existing previous value.
 			kubeletRootVolumeType,
 		),
 

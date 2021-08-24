@@ -45,16 +45,19 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 			input: inputType{
 				requestedUpdatedNodePools: map[string]*ekscluster.NodePool{
 					"pool1": {
-						InstanceType:     "instance-type-1",
-						SpotPrice:        "0.1",
-						Autoscaling:      true,
-						MinCount:         1,
-						MaxCount:         1,
-						Count:            1,
-						VolumeEncryption: nil,
-						VolumeSize:       1,
-						VolumeType:       "",
-						Image:            "image-1",
+						InstanceType: "instance-type-1",
+						SpotPrice:    "0.1",
+						Autoscaling:  true,
+						MinCount:     1,
+						MaxCount:     1,
+						Count:        1,
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Storage: "ebs",
+								Size:    1,
+							},
+						},
+						Image: "image-1",
 						Labels: map[string]string{
 							"label-1": "value-1",
 						},
@@ -75,12 +78,17 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						MinCount:     0,
 						MaxCount:     0,
 						Count:        2,
-						VolumeEncryption: &ekscluster.NodePoolVolumeEncryption{
-							Enabled: true,
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Storage: "ebs",
+								Encryption: &ekscluster.NodePoolVolumeEncryption{
+									Enabled: true,
+								},
+								Size: 2,
+								Type: "gp2",
+							},
 						},
-						VolumeSize: 2,
-						VolumeType: "gp2",
-						Image:      "image-2",
+						Image: "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
 						},
@@ -101,13 +109,18 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						MinCount:     3,
 						MaxCount:     3,
 						Count:        3,
-						VolumeEncryption: &ekscluster.NodePoolVolumeEncryption{
-							Enabled:          true,
-							EncryptionKeyARN: "encryption-key-arn-3",
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Storage: "ebs",
+								Encryption: &ekscluster.NodePoolVolumeEncryption{
+									Enabled:          true,
+									EncryptionKeyARN: "encryption-key-arn-3",
+								},
+								Size: 3,
+								Type: "gp3",
+							},
 						},
-						VolumeSize: 3,
-						VolumeType: "gp3",
-						Image:      "image-3",
+						Image: "image-3",
 						Labels: map[string]string{
 							"label-3": "value-3",
 						},
@@ -139,17 +152,20 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 			},
 			expectedUpdatedNodePools: []workflow.AutoscaleGroup{
 				{
-					Name:                 "pool1",
-					NodeSpotPrice:        "0.1",
-					Autoscaling:          true,
-					NodeMinCount:         1,
-					NodeMaxCount:         1,
-					Count:                1,
-					NodeVolumeEncryption: nil,
-					NodeVolumeSize:       1,
-					NodeVolumeType:       "",
-					NodeImage:            "image-1",
-					NodeInstanceType:     "instance-type-1",
+					Name:          "pool1",
+					NodeSpotPrice: "0.1",
+					Autoscaling:   true,
+					NodeMinCount:  1,
+					NodeMaxCount:  1,
+					Count:         1,
+					Volumes: &eks.NodePoolVolumes{
+						InstanceRoot: &eks.NodePoolVolume{
+							Storage: eks.EBS_STORAGE,
+							Size:    1,
+						},
+					},
+					NodeImage:        "image-1",
+					NodeInstanceType: "instance-type-1",
 					SecurityGroups: []string{
 						"security-group-1",
 						"security-group-11",
@@ -168,11 +184,16 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 					NodeMinCount:  0,
 					NodeMaxCount:  0,
 					Count:         2,
-					NodeVolumeEncryption: &eks.NodePoolVolumeEncryption{
-						Enabled: true,
+					Volumes: &eks.NodePoolVolumes{
+						InstanceRoot: &eks.NodePoolVolume{
+							Encryption: &eks.NodePoolVolumeEncryption{
+								Enabled: true,
+							},
+							Storage: eks.EBS_STORAGE,
+							Type:    "gp2",
+							Size:    2,
+						},
 					},
-					NodeVolumeSize:   2,
-					NodeVolumeType:   "gp2",
 					NodeImage:        "image-2",
 					NodeInstanceType: "instance-type-2",
 					SecurityGroups: []string{
@@ -193,12 +214,17 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 					NodeMinCount:  3,
 					NodeMaxCount:  3,
 					Count:         3,
-					NodeVolumeEncryption: &eks.NodePoolVolumeEncryption{
-						Enabled:          true,
-						EncryptionKeyARN: "encryption-key-arn-3",
+					Volumes: &eks.NodePoolVolumes{
+						InstanceRoot: &eks.NodePoolVolume{
+							Storage: "ebs",
+							Encryption: &eks.NodePoolVolumeEncryption{
+								Enabled:          true,
+								EncryptionKeyARN: "encryption-key-arn-3",
+							},
+							Size: 3,
+							Type: "gp3",
+						},
 					},
-					NodeVolumeSize:   3,
-					NodeVolumeType:   "gp3",
 					NodeImage:        "image-3",
 					NodeInstanceType: "instance-type-3",
 					SecurityGroups: []string{
@@ -251,9 +277,13 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 						MinCount:     1,
 						MaxCount:     1,
 						Count:        1,
-						VolumeSize:   1,
-						VolumeType:   "",
-						Image:        "image-1",
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Storage: "ebs",
+								Size:    1,
+							},
+						},
+						Image: "image-1",
 						Labels: map[string]string{
 							"label-1": "value-1",
 						},
@@ -272,14 +302,18 @@ func TestNewASGsFromRequestedUpdatedNodePools(t *testing.T) {
 			},
 			expectedUpdatedNodePools: []workflow.AutoscaleGroup{
 				{
-					Name:             "pool1",
-					NodeSpotPrice:    "0.1",
-					Autoscaling:      true,
-					NodeMinCount:     1,
-					NodeMaxCount:     1,
-					Count:            1,
-					NodeVolumeSize:   1,
-					NodeVolumeType:   "",
+					Name:          "pool1",
+					NodeSpotPrice: "0.1",
+					Autoscaling:   true,
+					NodeMinCount:  1,
+					NodeMaxCount:  1,
+					Count:         1,
+					Volumes: &eks.NodePoolVolumes{
+						InstanceRoot: &eks.NodePoolVolume{
+							Storage: "ebs",
+							Size:    1,
+						},
+					},
 					NodeImage:        "image-1",
 					NodeInstanceType: "instance-type-1",
 					SecurityGroups: []string{
@@ -464,6 +498,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 		expectedErr                       error
 	}
 
+	useInstanceStore := true
 	testCases := []struct {
 		caseDescription string
 		input           inputType
@@ -511,6 +546,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 						VolumeEncryption: nil,
 						VolumeSize:       2,
 						VolumeType:       "gp2",
+						UseInstanceStore: &useInstanceStore,
 						Image:            "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
@@ -576,15 +612,25 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 				},
 				expectedRequestedNewNodePools: map[string]*ekscluster.NodePool{
 					"new-pool-2": {
-						InstanceType:     "instance-type-2",
-						SpotPrice:        "0.2",
-						Autoscaling:      false,
-						MinCount:         0,
-						MaxCount:         0,
-						Count:            2,
-						VolumeEncryption: nil,
+						InstanceType: "instance-type-2",
+						SpotPrice:    "0.2",
+						Autoscaling:  false,
+						MinCount:     0,
+						MaxCount:     0,
+						Count:        2,
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Storage: "ebs",
+								Size:    2,
+								Type:    "gp2",
+							},
+							KubeletRoot: &ekscluster.NodePoolVolume{
+								Storage: "instance-store",
+							},
+						},
 						VolumeSize:       2,
 						VolumeType:       "gp2",
+						UseInstanceStore: &useInstanceStore,
 						Image:            "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
@@ -602,6 +648,17 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 						MinCount:     0,
 						MaxCount:     0,
 						Count:        4,
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Encryption: &ekscluster.NodePoolVolumeEncryption{
+									Enabled:          true,
+									EncryptionKeyARN: "encryption-key-arn-4",
+								},
+								Storage: "ebs",
+								Size:    4,
+								Type:    "io1",
+							},
+						},
 						VolumeEncryption: &ekscluster.NodePoolVolumeEncryption{
 							Enabled:          true,
 							EncryptionKeyARN: "encryption-key-arn-4",
@@ -627,6 +684,16 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 						MinCount:     3,
 						MaxCount:     3,
 						Count:        3,
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Storage: "ebs",
+								Encryption: &ekscluster.NodePoolVolumeEncryption{
+									Enabled: true,
+								},
+								Size: 33333,
+								Type: "gp3",
+							},
+						},
 						VolumeEncryption: &ekscluster.NodePoolVolumeEncryption{
 							Enabled: true,
 						},
@@ -754,16 +821,19 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 			input: inputType{
 				requestedNewNodePools: map[string]*ekscluster.NodePool{
 					"pool-1": {
-						InstanceType:     "instance-type-1",
-						SpotPrice:        "0.1",
-						Autoscaling:      true,
-						MinCount:         1,
-						MaxCount:         1,
-						Count:            1,
-						VolumeEncryption: nil,
-						VolumeSize:       1,
-						VolumeType:       "",
-						Image:            "image-1",
+						InstanceType: "instance-type-1",
+						SpotPrice:    "0.1",
+						Autoscaling:  true,
+						MinCount:     1,
+						MaxCount:     1,
+						Count:        1,
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Storage: "ebs",
+								Size:    1,
+							},
+						},
+						Image: "image-1",
 						Labels: map[string]string{
 							"label-1": "value-1",
 						},
@@ -784,12 +854,17 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 						MinCount:     0,
 						MaxCount:     0,
 						Count:        2,
-						VolumeEncryption: &ekscluster.NodePoolVolumeEncryption{
-							Enabled: true,
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Encryption: &ekscluster.NodePoolVolumeEncryption{
+									Enabled: true,
+								},
+								Storage: "ebs",
+								Size:    2,
+								Type:    "gp2",
+							},
 						},
-						VolumeSize: 2,
-						VolumeType: "gp2",
-						Image:      "image-2",
+						Image: "image-2",
 						Labels: map[string]string{
 							"label-2": "value-2",
 						},
@@ -802,13 +877,18 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 						MinCount:     0,
 						MaxCount:     0,
 						Count:        3,
-						VolumeEncryption: &ekscluster.NodePoolVolumeEncryption{
-							Enabled:          true,
-							EncryptionKeyARN: "encryption-key-arn-3",
+						Volumes: &ekscluster.NodePoolVolumes{
+							InstanceRoot: &ekscluster.NodePoolVolume{
+								Encryption: &ekscluster.NodePoolVolumeEncryption{
+									Enabled:          true,
+									EncryptionKeyARN: "encryption-key-arn-3",
+								},
+								Storage: "ebs",
+								Size:    3,
+								Type:    "gp3",
+							},
 						},
-						VolumeSize: 3,
-						VolumeType: "gp3",
-						Image:      "image-3",
+						Image: "image-3",
 						Labels: map[string]string{
 							"label-3": "value-3",
 						},
@@ -836,12 +916,15 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 							MinSize: 1,
 							MaxSize: 1,
 						},
-						VolumeEncryption: nil,
-						VolumeSize:       1,
-						VolumeType:       "",
-						InstanceType:     "instance-type-1",
-						Image:            "image-1",
-						SpotPrice:        "0.1",
+						Volumes: &eks.NodePoolVolumes{
+							InstanceRoot: &eks.NodePoolVolume{
+								Storage: "ebs",
+								Size:    1,
+							},
+						},
+						InstanceType: "instance-type-1",
+						Image:        "image-1",
+						SpotPrice:    "0.1",
 						SecurityGroups: []string{
 							"security-group-1",
 							"security-group-11",
@@ -859,11 +942,16 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 							MinSize: 0,
 							MaxSize: 0,
 						},
-						VolumeEncryption: &eks.NodePoolVolumeEncryption{
-							Enabled: true,
+						Volumes: &eks.NodePoolVolumes{
+							InstanceRoot: &eks.NodePoolVolume{
+								Storage: "ebs",
+								Encryption: &eks.NodePoolVolumeEncryption{
+									Enabled: true,
+								},
+								Size: 2,
+								Type: "gp2",
+							},
 						},
-						VolumeSize:   2,
-						VolumeType:   "gp2",
 						InstanceType: "instance-type-2",
 						Image:        "image-2",
 						SpotPrice:    "0.2",
@@ -880,12 +968,17 @@ func TestNewNodePoolsFromRequestedNewNodePools(t *testing.T) {
 							MinSize: 0,
 							MaxSize: 0,
 						},
-						VolumeEncryption: &eks.NodePoolVolumeEncryption{
-							Enabled:          true,
-							EncryptionKeyARN: "encryption-key-arn-3",
+						Volumes: &eks.NodePoolVolumes{
+							InstanceRoot: &eks.NodePoolVolume{
+								Storage: "ebs",
+								Encryption: &eks.NodePoolVolumeEncryption{
+									Enabled:          true,
+									EncryptionKeyARN: "encryption-key-arn-3",
+								},
+								Size: 3,
+								Type: "gp3",
+							},
 						},
-						VolumeSize:   3,
-						VolumeType:   "gp3",
 						InstanceType: "instance-type-3",
 						Image:        "image-3",
 						SpotPrice:    "0.3",

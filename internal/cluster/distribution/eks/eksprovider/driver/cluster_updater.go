@@ -396,24 +396,12 @@ func newNodePoolsFromUpdateRequest(
 	requestedUpdatedNodePools = make(map[string]*pkgEks.NodePool, len(requestedNodePools))
 	for nodePoolName, nodePool := range requestedNodePools {
 		if existingNodePools[nodePoolName] {
-			requestedUpdatedNodePools[nodePoolName] = nodePool
-		} else {
-			if len(nodePool.InstanceType) == 0 {
-				return nil, nil, nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
-			}
-
-			if len(nodePool.Image) == 0 {
-				return nil, nil, nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
-			}
-
-			if len(nodePool.SpotPrice) == 0 {
-				nodePool.SpotPrice = eks.DefaultSpotPrice
-			}
-
 			// convert deprecated params in case no Volumes struct is specified
 			if nodePool.Volumes == nil {
 				volumes := pkgEks.NodePoolVolumes{}
-				instanceRootVolume := pkgEks.NodePoolVolume{}
+				instanceRootVolume := pkgEks.NodePoolVolume{
+					Storage: pkgEks.EBS_STORAGE,
+				}
 				isInstanceRoot := false
 
 				if nodePool.VolumeSize > 0 {
@@ -443,6 +431,44 @@ func newNodePoolsFromUpdateRequest(
 
 				if isInstanceRoot || isKubeletRoot {
 					nodePool.Volumes = &volumes
+				}
+			}
+
+			requestedUpdatedNodePools[nodePoolName] = nodePool
+		} else {
+			if len(nodePool.InstanceType) == 0 {
+				return nil, nil, nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
+			}
+
+			if len(nodePool.Image) == 0 {
+				return nil, nil, nil, pkgErrors.ErrorAmazonImageFieldIsEmpty
+			}
+
+			if len(nodePool.SpotPrice) == 0 {
+				nodePool.SpotPrice = eks.DefaultSpotPrice
+			}
+
+			// convert deprecated params in case no Volumes struct is specified
+			if nodePool.Volumes == nil {
+				nodePool.Volumes = &pkgEks.NodePoolVolumes{
+					InstanceRoot: &pkgEks.NodePoolVolume{
+						Type:    "gp3",
+						Storage: pkgEks.EBS_STORAGE,
+					},
+				}
+				if nodePool.VolumeSize > 0 {
+					nodePool.Volumes.InstanceRoot.Size = nodePool.VolumeSize
+				}
+				if nodePool.VolumeType != "" {
+					nodePool.Volumes.InstanceRoot.Type = nodePool.VolumeType
+				}
+				if nodePool.VolumeEncryption != nil {
+					nodePool.Volumes.InstanceRoot.Encryption = nodePool.VolumeEncryption
+				}
+				if nodePool.UseInstanceStore != nil && *nodePool.UseInstanceStore {
+					nodePool.Volumes.KubeletRoot = &pkgEks.NodePoolVolume{
+						Storage: pkgEks.INSTANCE_STORE_STORAGE,
+					}
 				}
 			}
 

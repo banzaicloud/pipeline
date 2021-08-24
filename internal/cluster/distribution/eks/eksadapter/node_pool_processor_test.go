@@ -216,6 +216,12 @@ func TestNodePoolProcessorProcessNewNodePool(t *testing.T) {
 					Image:        "image-id",
 					InstanceType: "instance-type",
 					SubnetID:     "subnet-id",
+					Volumes: &eks.NodePoolVolumes{
+						InstanceRoot: &eks.NodePoolVolume{
+							Type:    "gp3",
+							Storage: eks.EBS_STORAGE,
+						},
+					},
 				},
 			},
 		},
