@@ -23192,6 +23192,8 @@ components:
             here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
           nullable: true
           type: boolean
+        volumes:
+          $ref: '#/components/schemas/EKSNodePoolVolumes'
         options:
           $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
     PkeAwsUpdateNodePoolRequest_allOf:

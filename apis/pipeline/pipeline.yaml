@@ -4671,7 +4671,7 @@ components:
                         (default ebs gp3 50GiB with control plane
                         configuration default or AWS account default
                         encryption).
-                    
+
                         The storage of the instance root device
                         volume is constrained by the AMI used to launch
                         the EKS node pool node instance.
@@ -4698,7 +4698,7 @@ components:
         EKSNodePoolVolumeEBS:
             description: Configuration of EBS volumes mounted onto an EKS node
                 pool node instance.
-                
+
                 EBS volumes are the default to be used, if no configuration is
                 specified.
             example: |
@@ -4714,7 +4714,7 @@ components:
             properties:
                 encryption:
                     $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
-                size: 
+                size:
                     description: Size of the EBS volume in GiBs of the nodes in
                         the pool (default 50 GiB).
                     type: integer
@@ -4737,14 +4737,14 @@ components:
         EKSNodePoolVolumeInstanceStore:
             description: Configuration of instance store volumes mounted onto
                 an EKS node pool node instance.
-                
+
                 Instance store volumes are encrypted at rest by default using an
                 XTS-AES-256 block cipher implemented in a hardware module on the
                 instance.
-                
+
                 The size and type of an instance store volume is fixed based on
                 the instance type the volume is attached to.
-                
+
                 For more details see
                 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
             example: |
@@ -4765,7 +4765,7 @@ components:
         EKSNodePoolVolumeEncryption:
             description: Encryption details of the instance volumes in an EKS
                 node pool (default null -> control plane configuration -> AWS
-                account default). 
+                account default).
             example: |
                 {
                     "enabled": true,
@@ -4894,6 +4894,8 @@ components:
                             nullable: true
                             description: Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
                             type: boolean
+                        volumes:
+                            $ref: '#/components/schemas/EKSNodePoolVolumes'
                         options:
                             $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
 
