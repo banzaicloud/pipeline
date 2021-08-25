@@ -106,6 +106,36 @@ type NodePoolUpdateDrainOptions struct {
 	PodSelector string `mapstructure:"podSelector"`
 }
 
+// Validate semantically validates the node pool update parameters.
+func (n NodePoolUpdate) Validate() error {
+	var violations []string
+
+	if n.Volumes != nil {
+		if n.Volumes.InstanceRoot != nil &&
+			EBS_STORAGE != n.Volumes.InstanceRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.InstanceRoot.Storage {
+			violations = append(violations, "Invalid value specified in `volumes.instanceRoot.storage`. Valid values are: ebs, instance-storage.")
+		}
+
+		if n.Volumes.KubeletRoot != nil &&
+			EBS_STORAGE != n.Volumes.KubeletRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.KubeletRoot.Storage &&
+			NONE_STORAGE != n.Volumes.KubeletRoot.Storage {
+			violations = append(violations, "Invalid value specified in `volumes.kubeletRoot.storage`. Valid values are: ebs, instance-storage, none.")
+		}
+
+		if n.Volumes != nil && n.Volumes.InstanceRoot != nil && n.Volumes.KubeletRoot != nil &&
+			n.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && n.Volumes.KubeletRoot.Storage == EBS_STORAGE {
+			violations = append(violations, "`volumes.kubeletRoot.storage` can not be of type `ebs` in case "+
+				"`volumes.instanceRoot.storage = instance-store`")
+		}
+	}
+
+	if len(violations) > 0 {
+		return cluster.NewValidationError("invalid node pool creation request", violations)
+	}
+
+	return nil
+}
+
 // NodePool encapsulates information about a cluster node pool.
 type NodePool struct {
 	Name        string            `mapstructure:"name"`

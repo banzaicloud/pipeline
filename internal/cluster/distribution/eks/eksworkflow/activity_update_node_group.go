@@ -114,14 +114,13 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", cluster.NodePoolVersionLabelKey, input.NodePoolVersion))
 	}
 
-	nodeVolumeStorage := ""
+	nodeVolumeStorage := input.NodeVolumes.InstanceRoot.Storage
 	nodeVolumeEncryptionEnabled := ""
 	nodeVolumeEncryptionKeyARN := ""
 	nodeVolumeType := ""
 	nodeVolumeSize := 0
 
 	if input.NodeVolumes.InstanceRoot != nil && eks.EBS_STORAGE == input.NodeVolumes.InstanceRoot.Storage {
-		nodeVolumeStorage = input.NodeVolumes.InstanceRoot.Storage
 		if input.NodeVolumes.InstanceRoot.Encryption != nil {
 			nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumes.InstanceRoot.Encryption.Enabled)
 		} else if input.CurrentTemplateVersion.IsLessThan("2.1.0") &&
@@ -150,13 +149,12 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 		nodeVolumeSize = input.NodeVolumes.InstanceRoot.Size
 	}
 
-	kubeletRootVolumeStorage := ""
+	kubeletRootVolumeStorage := input.NodeVolumes.KubeletRoot.Storage
 	kubeletRootVolumeEncryptionEnabled := ""
 	kubeletRootVolumeEncryptionKeyARN := ""
 	kubeletRootVolumeType := ""
 	kubeletRootVolumeSize := 0
 	if input.NodeVolumes.KubeletRoot != nil && eks.EBS_STORAGE == input.NodeVolumes.KubeletRoot.Storage {
-		kubeletRootVolumeStorage = input.NodeVolumes.KubeletRoot.Storage
 		if input.NodeVolumes.KubeletRoot.Encryption != nil {
 			kubeletRootVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumes.KubeletRoot.Encryption.Enabled)
 		} else if input.CurrentTemplateVersion.IsLessThan("2.5.0") &&

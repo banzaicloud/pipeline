@@ -328,19 +328,19 @@ func (a *CreateAsgActivity) Execute(ctx context.Context, input CreateAsgActivity
 }
 
 func getDefaultedTemplateVolumeParams(volume *eks.NodePoolVolume, defaultNodeVolumeEncryption *eks.NodePoolVolumeEncryption) (string, int, string, string, string) {
-	storageType := ""
+	storage := ""
 	size := 0
 	nodeVolumeEncryptionEnabled := "" // Note: defaulting to AWS account default encryption settings.
 	nodeVolumeEncryptionKeyARN := ""
 	nodeVolumeType := ""
 
 	if volume == nil {
-		return storageType, size, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType
+		return storage, size, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType
 	}
 
-	storageType = volume.Storage
+	storage = volume.Storage
 
-	if eks.EBS_STORAGE == storageType {
+	if eks.EBS_STORAGE == storage {
 		size = volume.Size
 
 		if volume.Encryption != nil {
@@ -365,7 +365,7 @@ func getDefaultedTemplateVolumeParams(volume *eks.NodePoolVolume, defaultNodeVol
 			nodeVolumeType = "gp3"
 		}
 	}
-	return storageType, size, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType
+	return storage, size, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType
 }
 
 // Register registers the stored node pool deletion activity.

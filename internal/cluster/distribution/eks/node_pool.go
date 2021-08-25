@@ -82,10 +82,23 @@ func (n NewNodePool) Validate() error {
 		violations = append(violations, "instance type cannot be empty")
 	}
 
-	if n.Volumes != nil && n.Volumes.InstanceRoot != nil && n.Volumes.KubeletRoot != nil &&
-		n.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && n.Volumes.KubeletRoot.Storage == EBS_STORAGE {
-		violations = append(violations, "`volumes.kubeletRoot.storage` can not be of type `ebs` in case "+
-			"`volumes.instanceRoot.storage = instance-store`")
+	if n.Volumes != nil {
+		if n.Volumes.InstanceRoot != nil &&
+			EBS_STORAGE != n.Volumes.InstanceRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.InstanceRoot.Storage {
+			violations = append(violations, "Invalid value specified in `volumes.instanceRoot.storage`. Valid values are: ebs, instance-storage.")
+		}
+
+		if n.Volumes.KubeletRoot != nil &&
+			EBS_STORAGE != n.Volumes.KubeletRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.KubeletRoot.Storage ||
+			NONE_STORAGE != n.Volumes.KubeletRoot.Storage {
+			violations = append(violations, "Invalid value specified in `volumes.kubeletRoot.storage`. Valid values are: ebs, instance-storage, none.")
+		}
+
+		if n.Volumes != nil && n.Volumes.InstanceRoot != nil && n.Volumes.KubeletRoot != nil &&
+			n.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && n.Volumes.KubeletRoot.Storage == EBS_STORAGE {
+			violations = append(violations, "`volumes.kubeletRoot.storage` can not be of type `ebs` in case "+
+				"`volumes.instanceRoot.storage = instance-store`")
+		}
 	}
 
 	if len(violations) > 0 {

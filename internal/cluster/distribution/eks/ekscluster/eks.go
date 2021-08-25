@@ -202,6 +202,7 @@ const (
 	DEFAULT_SUBNET1_CIDR   = "192.168.80.0/20"
 	EBS_STORAGE            = "ebs"
 	INSTANCE_STORE_STORAGE = "instance-store"
+	NONE_STORAGE           = "none"
 )
 
 // Validate checks Amazon's node fields
@@ -251,9 +252,22 @@ func (a *NodePool) Validate(npName string) error {
 		a.SpotPrice = eks2.DefaultSpotPrice
 	}
 
-	if a.Volumes != nil && a.Volumes.InstanceRoot != nil && a.Volumes.KubeletRoot != nil &&
-		a.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && a.Volumes.KubeletRoot.Storage == EBS_STORAGE {
-		return pkgErrors.ErrorAmazonEksNodePoolIncompatibleVolumes
+	if a.Volumes != nil {
+		if a.Volumes.InstanceRoot != nil &&
+			EBS_STORAGE != a.Volumes.InstanceRoot.Storage && INSTANCE_STORE_STORAGE != a.Volumes.InstanceRoot.Storage {
+			return pkgErrors.ErrorAmazonEksNodePoolInvalidInstanceRootVolumeType
+		}
+
+		if a.Volumes.KubeletRoot != nil &&
+			EBS_STORAGE != a.Volumes.KubeletRoot.Storage && INSTANCE_STORE_STORAGE != a.Volumes.KubeletRoot.Storage &&
+			NONE_STORAGE != a.Volumes.KubeletRoot.Storage {
+			return pkgErrors.ErrorAmazonEksNodePoolInvalidKubeletRootVolumeType
+		}
+
+		if a.Volumes.InstanceRoot != nil && a.Volumes.KubeletRoot != nil &&
+			a.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && a.Volumes.KubeletRoot.Storage == EBS_STORAGE {
+			return pkgErrors.ErrorAmazonEksNodePoolIncompatibleVolumes
+		}
 	}
 
 	// --- [Label validation]--- //
@@ -296,11 +310,23 @@ func (a *NodePool) ValidateForUpdate(npName string) error {
 		}
 	}
 
-	if a.Volumes != nil && a.Volumes.InstanceRoot != nil && a.Volumes.KubeletRoot != nil &&
-		a.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && a.Volumes.KubeletRoot.Storage == EBS_STORAGE {
-		return pkgErrors.ErrorAmazonEksNodePoolIncompatibleVolumes
-	}
+	if a.Volumes != nil {
+		if a.Volumes.InstanceRoot != nil &&
+			EBS_STORAGE != a.Volumes.InstanceRoot.Storage && INSTANCE_STORE_STORAGE != a.Volumes.InstanceRoot.Storage {
+			return pkgErrors.ErrorAmazonEksNodePoolInvalidInstanceRootVolumeType
+		}
 
+		if a.Volumes.KubeletRoot != nil &&
+			EBS_STORAGE != a.Volumes.KubeletRoot.Storage && INSTANCE_STORE_STORAGE != a.Volumes.KubeletRoot.Storage &&
+			NONE_STORAGE != a.Volumes.KubeletRoot.Storage {
+			return pkgErrors.ErrorAmazonEksNodePoolInvalidKubeletRootVolumeType
+		}
+
+		if a.Volumes.InstanceRoot != nil && a.Volumes.KubeletRoot != nil &&
+			a.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && a.Volumes.KubeletRoot.Storage == EBS_STORAGE {
+			return pkgErrors.ErrorAmazonEksNodePoolIncompatibleVolumes
+		}
+	}
 	// --- [Label validation]--- //
 	if err := pkgCommon.ValidateNodePoolLabels(npName, a.Labels); err != nil {
 		return err

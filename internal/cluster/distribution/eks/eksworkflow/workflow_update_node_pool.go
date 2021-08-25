@@ -187,22 +187,32 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 		if effectiveVolumes.InstanceRoot.Storage == "" {
 			effectiveVolumes.InstanceRoot.Storage = parameters.NodeVolumeStorage
 		}
+		// load EBS volume related params only in case storage == ebs
+		if eks.EBS_STORAGE == effectiveVolumes.InstanceRoot.Storage {
+			if effectiveVolumes.InstanceRoot.Encryption == nil &&
+				parameters.NodeVolumeEncryptionEnabled != "" {
+				isNodeVolumeEncryptionEnabled, err := strconv.ParseBool(parameters.NodeVolumeEncryptionEnabled)
+				if err != nil {
+					return errors.WrapIf(err, "invalid node volume encryption enabled value")
+				}
 
-		if effectiveVolumes.InstanceRoot.Encryption == nil &&
-			parameters.NodeVolumeEncryptionEnabled != "" {
-			isNodeVolumeEncryptionEnabled, err := strconv.ParseBool(parameters.NodeVolumeEncryptionEnabled)
-			if err != nil {
-				return errors.WrapIf(err, "invalid node volume encryption enabled value")
+				effectiveVolumes.InstanceRoot.Encryption = &eks.NodePoolVolumeEncryption{
+					Enabled:          isNodeVolumeEncryptionEnabled,
+					EncryptionKeyARN: parameters.NodeVolumeEncryptionKeyARN,
+				}
 			}
 
-			effectiveVolumes.InstanceRoot.Encryption = &eks.NodePoolVolumeEncryption{
-				Enabled:          isNodeVolumeEncryptionEnabled,
-				EncryptionKeyARN: parameters.NodeVolumeEncryptionKeyARN,
+			if effectiveVolumes.InstanceRoot.Size == 0 {
+				effectiveVolumes.InstanceRoot.Size = parameters.NodeVolumeSize
 			}
-		}
-
-		if effectiveVolumes.InstanceRoot.Size == 0 {
-			effectiveVolumes.InstanceRoot.Size = parameters.NodeVolumeSize
+			if effectiveVolumes.InstanceRoot.Type == "" {
+				effectiveVolumes.InstanceRoot.Type = "gp3"
+			}
+		} else if eks.INSTANCE_STORE_STORAGE == effectiveVolumes.InstanceRoot.Storage {
+			effectiveVolumes.InstanceRoot.Encryption = nil
+			// can not be set to empty string
+			effectiveVolumes.InstanceRoot.Type = "gp3"
+			effectiveVolumes.InstanceRoot.Size = 0
 		}
 
 		if effectiveVolumes.KubeletRoot.Storage == "" {
@@ -214,21 +224,36 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			}
 		}
 
-		if effectiveVolumes.KubeletRoot.Encryption == nil &&
-			parameters.KubeletRootVolumeEncryptionEnabled != "" {
-			isVolumeEncryptionEnabled, err := strconv.ParseBool(parameters.KubeletRootVolumeEncryptionEnabled)
-			if err != nil {
-				return errors.WrapIf(err, "invalid kubelet root volume encryption enabled value")
+		// load EBS volume related params only in case storage == ebs
+		if eks.EBS_STORAGE == effectiveVolumes.KubeletRoot.Storage {
+			if effectiveVolumes.KubeletRoot.Encryption == nil &&
+				parameters.KubeletRootVolumeEncryptionEnabled != "" {
+				isVolumeEncryptionEnabled, err := strconv.ParseBool(parameters.KubeletRootVolumeEncryptionEnabled)
+				if err != nil {
+					return errors.WrapIf(err, "invalid kubelet root volume encryption enabled value")
+				}
+
+				effectiveVolumes.KubeletRoot.Encryption = &eks.NodePoolVolumeEncryption{
+					Enabled:          isVolumeEncryptionEnabled,
+					EncryptionKeyARN: parameters.KubeletRootVolumeEncryptionKeyARN,
+				}
 			}
 
-			effectiveVolumes.KubeletRoot.Encryption = &eks.NodePoolVolumeEncryption{
-				Enabled:          isVolumeEncryptionEnabled,
-				EncryptionKeyARN: parameters.KubeletRootVolumeEncryptionKeyARN,
+			if effectiveVolumes.KubeletRoot.Size == 0 {
+				effectiveVolumes.KubeletRoot.Size = parameters.KubeletRootVolumeSize
 			}
-		}
-
-		if effectiveVolumes.KubeletRoot.Size == 0 {
-			effectiveVolumes.KubeletRoot.Size = parameters.KubeletRootVolumeSize
+			// set default size in case it's still 0
+			if effectiveVolumes.KubeletRoot.Size == 0 {
+				effectiveVolumes.KubeletRoot.Size = 50
+			}
+			if effectiveVolumes.KubeletRoot.Type == "" {
+				effectiveVolumes.KubeletRoot.Type = "gp3"
+			}
+		} else if eks.INSTANCE_STORE_STORAGE == effectiveVolumes.KubeletRoot.Storage ||
+			eks.NONE_STORAGE == effectiveVolumes.KubeletRoot.Storage {
+			effectiveVolumes.KubeletRoot.Encryption = nil
+			effectiveVolumes.KubeletRoot.Type = ""
+			effectiveVolumes.KubeletRoot.Size = 0
 		}
 
 		if effectiveSecurityGroups == nil &&
