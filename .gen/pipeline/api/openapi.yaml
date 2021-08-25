@@ -18886,11 +18886,13 @@ components:
         mapping:
           ebs: '#/components/schemas/EKSNodePoolVolumeEBS'
           instance-store: '#/components/schemas/EKSNodePoolVolumeInstanceStore'
+          none: EKSNodePoolVolumeInstanceNone
         propertyName: storage
       nullable: true
       oneOf:
       - $ref: '#/components/schemas/EKSNodePoolVolumeEBS'
       - $ref: '#/components/schemas/EKSNodePoolVolumeInstanceStore'
+      - $ref: '#/components/schemas/EKSNodePoolVolumeInstanceNone'
     EKSNodePoolVolumes:
       description: An associative collection of EKS node pool node instance volume
         configuration objects keyed by their semantical volume names (example instanceRoot,
@@ -18962,6 +18964,23 @@ components:
       example: |
         {
             "storage": "instance-store"
+        }
+      properties:
+        storage:
+          description: Type of the mounted volume's storage on the node instances
+            of the node pool.
+          enum:
+          - instance-store
+          type: string
+      required:
+      - storage
+      type: object
+    EKSNodePoolVolumeNone:
+      description: We need this struct to be able to remove a volume in case of an
+        update for example.
+      example: |
+        {
+            "storage": "none"
         }
       properties:
         storage:
