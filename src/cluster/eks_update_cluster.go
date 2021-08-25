@@ -262,6 +262,10 @@ func (w EKSUpdateClusterWorkflow) Execute(ctx workflow.Context, input EKSUpdateC
 
 				if effectiveVolumes.InstanceRoot.Storage == "" {
 					effectiveVolumes.InstanceRoot.Storage = parameters.NodeVolumeStorage
+					// set default ebs value for InstanceRoot.Storage for old templates
+					if currentTemplateVersion.IsLessThan("2.5.0") {
+						effectiveVolumes.InstanceRoot.Storage = eks.EBS_STORAGE
+					}
 				}
 				// load EBS volume related params only in case storage == ebs
 				if eks.EBS_STORAGE == effectiveVolumes.InstanceRoot.Storage {

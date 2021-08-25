@@ -117,7 +117,7 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 	nodeVolumeStorage := input.NodeVolumes.InstanceRoot.Storage
 	nodeVolumeEncryptionEnabled := ""
 	nodeVolumeEncryptionKeyARN := ""
-	nodeVolumeType := ""
+	nodeVolumeType := "gp3"
 	nodeVolumeSize := 0
 
 	if input.NodeVolumes.InstanceRoot != nil && eks.EBS_STORAGE == input.NodeVolumes.InstanceRoot.Storage {
@@ -141,7 +141,6 @@ func (a UpdateNodeGroupActivity) Execute(ctx context.Context, input UpdateNodeGr
 			nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
 		}
 
-		nodeVolumeType = "gp3"
 		if input.NodeVolumes.InstanceRoot.Type != "" {
 			nodeVolumeType = input.NodeVolumes.InstanceRoot.Type
 		}

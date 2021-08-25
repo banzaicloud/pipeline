@@ -89,7 +89,7 @@ func (n NewNodePool) Validate() error {
 		}
 
 		if n.Volumes.KubeletRoot != nil &&
-			EBS_STORAGE != n.Volumes.KubeletRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.KubeletRoot.Storage ||
+			EBS_STORAGE != n.Volumes.KubeletRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.KubeletRoot.Storage &&
 			NONE_STORAGE != n.Volumes.KubeletRoot.Storage {
 			violations = append(violations, "Invalid value specified in `volumes.kubeletRoot.storage`. Valid values are: ebs, instance-storage, none.")
 		}
