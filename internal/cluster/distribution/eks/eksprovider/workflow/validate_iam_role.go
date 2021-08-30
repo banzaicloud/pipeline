@@ -39,8 +39,7 @@ type ValidateIAMRoleActivityInput struct {
 }
 
 //  ValidateIAMRoleActivityOutput holds the output data of ValidateIAMRoleActivity
-type ValidateIAMRoleActivityOutput struct {
-}
+type ValidateIAMRoleActivityOutput struct{}
 
 //  NewValidateIAMRoleActivity instantiates a new  ValidateIAMRoleActivity
 func NewValidateIAMRoleActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *ValidateIAMRoleActivity {

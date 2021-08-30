@@ -84,8 +84,7 @@ type UpdateAsgActivityInput struct {
 }
 
 // UpdateAsgActivityOutput holds the output data of the UpdateAsgActivityOutput
-type UpdateAsgActivityOutput struct {
-}
+type UpdateAsgActivityOutput struct{}
 
 // UpdateAsgActivity instantiates a new UpdateAsgActivity
 func NewUpdateAsgActivity(

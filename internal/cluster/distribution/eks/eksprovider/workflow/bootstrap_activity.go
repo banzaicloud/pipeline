@@ -57,8 +57,7 @@ type BootstrapActivityInput struct {
 }
 
 // BootstrapActivityOutput holds the output data
-type BootstrapActivityOutput struct {
-}
+type BootstrapActivityOutput struct{}
 
 // BootstrapActivity instantiates a new BootstrapActivity
 func NewBootstrapActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *BootstrapActivity {

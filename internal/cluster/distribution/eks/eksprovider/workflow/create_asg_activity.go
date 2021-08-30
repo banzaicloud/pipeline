@@ -88,8 +88,7 @@ type CreateAsgActivityInput struct {
 }
 
 // CreateAsgActivityOutput holds the output data of the CreateAsgActivityOutput
-type CreateAsgActivityOutput struct {
-}
+type CreateAsgActivityOutput struct{}
 
 // CreateAsgActivity instantiates a new CreateAsgActivity
 func NewCreateAsgActivity(

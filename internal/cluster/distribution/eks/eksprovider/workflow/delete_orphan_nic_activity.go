@@ -38,8 +38,7 @@ type DeleteOrphanNICActivityInput struct {
 	NicID string
 }
 
-type DeleteOrphanNICActivityOutput struct {
-}
+type DeleteOrphanNICActivityOutput struct{}
 
 //   DeleteOrphanNICActivity instantiates a new DeleteOrphanNICActivity
 func NewDeleteOrphanNICActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *DeleteOrphanNICActivity {

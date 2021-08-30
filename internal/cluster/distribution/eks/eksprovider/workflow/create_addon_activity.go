@@ -44,8 +44,7 @@ type CreateAddonActivityInput struct {
 }
 
 // CreateAddonActivityOutput holds the output data
-type CreateAddonActivityOutput struct {
-}
+type CreateAddonActivityOutput struct{}
 
 // NewCreateAddonActivity instantiates a new CreateAddonActivity
 func NewCreateAddonActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *CreateAddonActivity {

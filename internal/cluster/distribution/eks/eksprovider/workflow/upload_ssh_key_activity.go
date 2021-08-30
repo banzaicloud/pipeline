@@ -42,8 +42,7 @@ type UploadSSHKeyActivityInput struct {
 }
 
 //  UploadSSHKeyActivityOutput holds the output data of UploadSSHKeyActivity
-type UploadSSHKeyActivityOutput struct {
-}
+type UploadSSHKeyActivityOutput struct{}
 
 //  UploadSSHKeyActivity instantiates a new  UploadSSHKeyActivity
 func NewUploadSSHKeyActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *UploadSSHKeyActivity {
