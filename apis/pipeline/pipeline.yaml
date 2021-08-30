@@ -4639,12 +4639,12 @@ components:
                 mapping:
                     ebs: '#/components/schemas/EKSNodePoolVolumeEBS'
                     instance-store: '#/components/schemas/EKSNodePoolVolumeInstanceStore'
-                    none: 'EKSNodePoolVolumeInstanceNone'
+                    none: 'EKSNodePoolVolumeNone'
             nullable: true
             oneOf:
                 - $ref: '#/components/schemas/EKSNodePoolVolumeEBS'
                 - $ref: '#/components/schemas/EKSNodePoolVolumeInstanceStore'
-                - $ref: '#/components/schemas/EKSNodePoolVolumeInstanceNone'
+                - $ref: '#/components/schemas/EKSNodePoolVolumeNone'
 
         EKSNodePoolVolumes:
             description: An associative collection of EKS node pool node
