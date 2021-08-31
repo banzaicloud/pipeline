@@ -55,8 +55,7 @@ type CreateEksControlPlaneActivityInput struct {
 }
 
 // CreateEksControlPlaneActivityOutput holds the output data of the CreateEksControlPlaneActivityOutput
-type CreateEksControlPlaneActivityOutput struct {
-}
+type CreateEksControlPlaneActivityOutput struct{}
 
 // CreateEksControlPlaneActivity instantiates a new CreateEksControlPlaneActivity
 func NewCreateEksClusterActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *CreateEksControlPlaneActivity {

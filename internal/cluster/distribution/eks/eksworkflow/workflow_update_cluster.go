@@ -41,8 +41,7 @@ type UpdateClusterWorkflowInput struct {
 	Version string
 }
 
-type UpdateClusterWorkflow struct {
-}
+type UpdateClusterWorkflow struct{}
 
 func NewUpdateClusterWorkflow() UpdateClusterWorkflow {
 	return UpdateClusterWorkflow{}

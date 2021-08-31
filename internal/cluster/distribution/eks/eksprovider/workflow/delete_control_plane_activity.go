@@ -40,8 +40,7 @@ type DeleteControlPlaneActivityInput struct {
 }
 
 //   DeleteControlPlaneActivityOutput holds the output data of the DeleteControlPlaneActivity
-type DeleteControlPlaneActivityOutput struct {
-}
+type DeleteControlPlaneActivityOutput struct{}
 
 //   DeleteControlPlaneActivity instantiates a new DeleteControlPlaneActivity
 func NewDeleteControlPlaneActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *DeleteControlPlaneActivity {
