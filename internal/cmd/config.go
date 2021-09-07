@@ -578,7 +578,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 		"storagetier",
 	})
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::chart", "banzaicloud-stable/nodepool-labels-operator")
-	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.1.1")
+	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.2.4")
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::vault::enabled", true)
@@ -750,7 +750,7 @@ rbac:
 	v.SetDefault("cluster::securityScan::anchore::password", "")
 	v.SetDefault("cluster::securityScan::anchore::insecure", false)
 	v.SetDefault("cluster::securityScan::webhook::chart", "banzaicloud-stable/anchore-policy-validator")
-	v.SetDefault("cluster::securityScan::webhook::version", "0.7.4")
+	v.SetDefault("cluster::securityScan::webhook::version", "0.8.1")
 	v.SetDefault("cluster::securityScan::webhook::release", "anchore")
 	v.SetDefault("cluster::securityScan::webhook::namespace", "pipeline-system")
 	// v.SetDefault("cluster::securityScan::webhook::values", map[string]interface{}{
