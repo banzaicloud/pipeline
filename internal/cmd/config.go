@@ -802,8 +802,8 @@ traefik:
 	v.SetDefault("cluster::disasterRecovery::ark::restoreSyncInterval", "20s")
 	v.SetDefault("cluster::disasterRecovery::ark::backupSyncInterval", "20s")
 	v.SetDefault("cluster::disasterRecovery::ark::restoreWaitTimeout", "5m")
-	v.SetDefault("cluster::disasterRecovery::charts::ark::chart", "banzaicloud-stable/velero")
-	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "2.23.6-bc.2")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::chart", "vmware-tanzu/velero")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "2.23.6")
 	v.SetDefault("cluster::disasterRecovery::charts::ark::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "velero/velero",
@@ -848,6 +848,7 @@ traefik:
 	v.SetDefault("helm::repositories::bitnami", "https://charts.bitnami.com/bitnami")
 	v.SetDefault("helm::repositories::loki", "https://grafana.github.io/loki/charts")
 	v.SetDefault("helm::repositories::prometheus-community", "https://prometheus-community.github.io/helm-charts")
+	v.SetDefault("helm::repositories::vmware-tanzu", "https://vmware-tanzu.github.io/helm-charts")
 
 	// Cloud configuration
 	v.SetDefault("cloud::amazon::defaultRegion", "us-west-1")
