@@ -56,7 +56,6 @@ require (
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/microcosm-cc/bluemonday v1.0.3
-	github.com/mitchellh/copystructure v1.0.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/moogar0880/problems v0.1.1
 	github.com/oklog/run v1.1.0
@@ -93,7 +92,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.5.3
 	k8s.io/api v0.20.9
-	k8s.io/apiextensions-apiserver v0.20.9
+	k8s.io/apiextensions-apiserver v0.20.9 // indirect
 	k8s.io/apimachinery v0.20.9
 	k8s.io/cli-runtime v0.20.9
 	k8s.io/client-go v0.20.9
