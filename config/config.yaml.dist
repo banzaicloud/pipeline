@@ -184,51 +184,6 @@ dex:
 #                # See https://github.com/banzaicloud/bank-vaults/tree/master/charts/vault-secrets-webhook for details
 #                values: {}
 #
-#    monitoring:
-#        enabled: true
-#
-#        # Inherited from cluster.namespace when empty
-#        namespace: ""
-#
-#        grafana:
-#            adminUser: admin
-#
-#        charts:
-#            operator:
-#                chart: "prometheus-community/kube-prometheus-stack"
-#                version: "12.11.3"
-#
-#                # See https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack for details
-#                values: {}
-#
-#            pushgateway:
-#                chart: "prometheus-community/prometheus-pushgateway"
-#                version: "1.5.1"
-#
-#                # See https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-pushgateway for details
-#                values: {}
-#
-#    logging:
-#        enabled: true
-#
-#        # Inherited from cluster.namespace when empty
-#        namespace: ""
-#
-#        charts:
-#            operator:
-#                chart: "banzaicloud-stable/logging-operator"
-#                version: "2.7.2"
-#
-#                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
-#                values: {}
-#
-#            loki:
-#                chart: "banzaicloud-stable/loki"
-#                version: "0.17.4"
-#
-#                # See https://github.com/banzaicloud/banzai-charts/tree/master/loki for details
-#                values: {}
-#
 #    dns:
 #        enabled: true
 #

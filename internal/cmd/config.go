@@ -27,8 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
@@ -206,10 +204,6 @@ type ClusterConfig struct {
 	// Initial manifest
 	Manifest string
 
-	Monitoring ClusterMonitoringConfig
-
-	Logging ClusterLoggingConfig
-
 	// Namespace to install Pipeline components to
 	Namespace string
 
@@ -233,8 +227,6 @@ func (c ClusterConfig) Validate() error {
 
 	errs = errors.Append(errs, c.Labels.Validate())
 
-	errs = errors.Append(errs, c.Logging.Validate())
-
 	if c.Manifest != "" {
 		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0666)
 		_ = file.Close()
@@ -242,8 +234,6 @@ func (c ClusterConfig) Validate() error {
 			errs = errors.Append(errs, errors.Wrap(err, "cluster manifest file is not readable"))
 		}
 	}
-
-	errs = errors.Append(errs, c.Monitoring.Validate())
 
 	if c.Namespace == "" {
 		errs = errors.Append(errs, errors.New("cluster namespace is required"))
@@ -276,14 +266,6 @@ func (c *ClusterConfig) Process() error {
 
 	if c.Labels.Namespace == "" {
 		c.Labels.Namespace = c.Namespace
-	}
-
-	if c.Logging.Namespace == "" {
-		c.Logging.Namespace = c.Namespace
-	}
-
-	if c.Monitoring.Namespace == "" {
-		c.Monitoring.Namespace = c.Namespace
 	}
 
 	if c.SecurityScan.PipelineNamespace == "" {
@@ -380,40 +362,6 @@ type ClusterIngressConfig struct {
 }
 
 func (c ClusterIngressConfig) Validate() error {
-	var errs error
-
-	if c.Enabled {
-		errs = errors.Append(errs, c.Config.Validate())
-	}
-
-	return errs
-}
-
-// ClusterLoggingConfig contains cluster logging configuration.
-type ClusterLoggingConfig struct {
-	Enabled bool
-
-	logging.Config `mapstructure:",squash"`
-}
-
-func (c ClusterLoggingConfig) Validate() error {
-	var errs error
-
-	if c.Enabled {
-		errs = errors.Append(errs, c.Config.Validate())
-	}
-
-	return errs
-}
-
-// ClusterMonitoringConfig contains cluster monitoring configuration.
-type ClusterMonitoringConfig struct {
-	Enabled bool
-
-	monitoring.Config `mapstructure:",squash"`
-}
-
-func (c ClusterMonitoringConfig) Validate() error {
 	var errs error
 
 	if c.Enabled {

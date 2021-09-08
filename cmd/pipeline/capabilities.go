@@ -26,12 +26,6 @@ func mapCapabilities(config configuration) cap.Capabilities {
 				"enabled": config.Cluster.Vault.Enabled,
 				"managed": config.Cluster.Vault.Managed.Enabled,
 			},
-			"monitoring": cap.Cap{
-				"enabled": config.Cluster.Monitoring.Enabled,
-			},
-			"logging": cap.Cap{
-				"enabled": config.Cluster.Logging.Enabled,
-			},
 			"dns": cap.Cap{
 				"enabled":    config.Cluster.DNS.Enabled,
 				"baseDomain": config.Cluster.DNS.BaseDomain,

@@ -88,7 +88,6 @@ import (
 	eksDriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	pkeDistribution "github.com/banzaicloud/pipeline/internal/cluster/distribution/pke"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
-	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/cluster/infrastructure/aws/awsworkflow"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -113,8 +112,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns/dnsadapter"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
-	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
-	featureMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan/securityscanadapter"
 	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
@@ -881,7 +878,6 @@ func main() {
 				// common setup (for both legacy and V2 IS)
 				clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
 				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
-				endpointManager := endpoints.NewEndpointManager(commonLogger)
 				integratedServiceManagers := make([]integratedservices.IntegratedServiceManager, 0)
 
 				// integrated service service V2 setup
@@ -922,27 +918,6 @@ func main() {
 
 					if config.Cluster.Vault.Enabled {
 						integratedServiceManagers = append(integratedServiceManagers, integratedServiceVault.MakeIntegratedServiceManager(clusterGetter, commonSecretStore, config.Cluster.Vault.Config, commonLogger))
-					}
-
-					if config.Cluster.Monitoring.Enabled {
-						integratedServiceManagers = append(integratedServiceManagers, featureMonitoring.MakeIntegratedServiceManager(
-							clusterGetter,
-							commonSecretStore,
-							endpointManager,
-							unifiedHelmReleaser,
-							config.Cluster.Monitoring.Config,
-							commonLogger,
-						))
-					}
-
-					if config.Cluster.Logging.Enabled {
-						integratedServiceManagers = append(integratedServiceManagers, integratedServiceLogging.MakeIntegratedServiceManager(
-							clusterGetter,
-							commonSecretStore,
-							endpointManager,
-							config.Cluster.Logging.Config,
-							commonLogger,
-						))
 					}
 
 					if config.Cluster.SecurityScan.Enabled {
