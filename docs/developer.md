@@ -24,13 +24,13 @@ At least one of the followings has to be configured:
 To spin up the development environment with every dependencies just run the following command:
 
 ```bash
-$ make up
+$ plz up
 ```
 
 The inverse of that command is of course:
 
 ```bash
-$ make down
+$ plz down
 ```
 
 which removes everything.
@@ -61,16 +61,15 @@ The development environment uses Docker Compose to create an isolated area for P
 You can easily start it by executing:
 
 ```bash
-$ make start
+$ plz start
 ```
 
 This will create a `mysql` and `vault` container:
  - Vault GUI: http://localhost:8200 login with token found in `cat ~/.vault-token`
 
-**Note:** If you want to customize mount points and port mappings, create a `docker-compose.override.yml` file via
-`make docker-compose.override.yml` and edit the file manually. Please note that you might need to edit the application
-configuration file as well.
+**Note:** If you want to customize mount points and port mappings, create a `docker-compose.override.yml` file via `make docker-compose.override.yml` and edit the file manually. Please note that you might need to edit the application configuration file as well.
 
+**Note:** For the Cloudinfo and Recommender services to work, you need to specify a live URL in the `docker-compose.override.yml`, under the `environment` section of `uiproxy`.
 
 #### Set Required Environment Variables
 
@@ -86,13 +85,13 @@ Once you have the docker containers running for the development environment, you
 
 You can install and then run it with:
 ```bash
-$ make build
-$ build/pipeline
+$ plz build
+$ plz run //cmd/pipeline
 ```
 
 You will also need to run a Worker for background jobs:
 ```bash
-$ build/worker
+$ plz run //cmd/worker
 ```
 
 (Optionally, you could also build and run with VSCode or Goland.)
@@ -124,7 +123,7 @@ Tokens can be generated only with a browser (for now), to do that please use the
     https://{control_plane_public_ip}/auth/dex/login
     ```
 
-Please authenticate yourself with Dex. If everything is done correctly you will be redirected.
+Please authenticate yourself with Dex. If everything is done correctly you will be redirected. This might not work if you have blockers in your browser - if you are not being redirected, turn them off or try another browser.
 The browser session already contains the generated token in a cookie. An API token can be generated via:
 
 - For local usage:
