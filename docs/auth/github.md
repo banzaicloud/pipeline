@@ -2,7 +2,7 @@
 
 ### Create a personal access token on GitHub
 
-Create a [personal access token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) on GitHub.
+Create a [personal access token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) on GitHub. You need to check the `read:user` and `read:enterprise` boxes.
 
 Take note of the generated GitHub access token as it will be needed.
 
@@ -11,6 +11,12 @@ Take note of the generated GitHub access token as it will be needed.
 Register an [OAuth](https://developer.github.com/apps/building-integrations/setting-up-and-registering-oauth-apps/registering-oauth-apps/) application on GitHub for the Pipeline API and CI/CD workflow.
 
 ![github oauth app reg](images/GithubOAuthAppReg.png)
+
+Fill in `Homepage URL` with 
+
+```bash
+http://127.0.0.1:9090/
+```
 
 Fill in `Authorization callback URL`. This field has to be updated once the Control Plane is up and running using the IP address or the DNS name:
 
