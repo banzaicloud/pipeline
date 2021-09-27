@@ -34,7 +34,7 @@ sh_cmd(
     name = "start",
     cmd = [
         "if [ ! -f docker-compose.override.yml ]; then plz make :docker-compose.override.yml; fi",
-        "mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}",
+        "mkdir -p .docker/volumes/{mysql,postgres,vault/file,vault/keys}",
         "docker-compose up -d",
     ],
 )
