@@ -10,7 +10,7 @@ executors:
     vm:
         machine:
             resource_class: large
-            image: ubuntu-1604:201903-01
+            image: ubuntu-2004:202107-02
         environment:
             GOPATH: /home/circleci/go
             GO_VERSION: '1.16.3'
