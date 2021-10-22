@@ -24,9 +24,11 @@ import (
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/oidc"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
@@ -58,13 +60,31 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 
 	secret, err := commonCluster.GetSecretWithValidation()
 	if err != nil {
-		errorHandler.Handle(err)
-
-		ginutils.ReplyWithErrorResponse(c, &common.ErrorResponse{
+		errorResponse := &common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error getting secret",
 			Error:   err.Error(),
-		})
+		}
+
+		if clusterStatus.Distribution == pkgCluster.PKE &&
+			clusterStatus.Cloud == pkgCluster.Amazon &&
+			clusterStatus.Status == pkgCluster.Creating {
+			err = cluster.NotReadyError{
+				OrganizationID: commonCluster.GetOrganizationId(),
+				ID:             commonCluster.GetID(),
+				Name:           commonCluster.GetName(),
+			}
+
+			errorResponse = &common.ErrorResponse{
+				Code:    http.StatusConflict,
+				Message: "Secret has not been created yet",
+				Error:   err.Error(),
+			}
+		}
+
+		errorHandler.Handle(err)
+
+		ginutils.ReplyWithErrorResponse(c, errorResponse)
 		return
 	}
 

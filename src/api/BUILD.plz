@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//.gen/pipeline/pipeline",
         "//internal/anchore",
+        "//internal/cluster",
         "//internal/cluster/auth",
         "//internal/cluster/clusteradapter",
         "//internal/cluster/distribution/eks/eksprovider/driver",
