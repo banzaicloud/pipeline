@@ -58,7 +58,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws/pkeawsadapter"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
-	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -82,8 +81,6 @@ import (
 	expiryWorkflow "github.com/banzaicloud/pipeline/internal/integratedservices/services/expiry/adapter/workflow"
 	intsvcingress "github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
 	intsvcingressadapter "github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress/ingressadapter"
-	integratedServiceLogging "github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
-	integratedServiceMonitoring "github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan/securityscanadapter"
 	integratedServiceVault "github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
@@ -668,7 +665,6 @@ func main() {
 
 			clusterGetter := integratedserviceadapter.MakeClusterGetter(clusterManager)
 			clusterService := integratedserviceadapter.NewClusterService(clusterManager)
-			endpointManager := endpoints.NewEndpointManager(logger)
 			orgDomainService := dnsadapter.NewOrgDomainService(
 				config.Cluster.DNS.BaseDomain,
 				dnsSvc,
@@ -735,26 +731,6 @@ func main() {
 					commonSecretStore,
 					config.Cluster.Vault.Config,
 					logger,
-				),
-				integratedServiceMonitoring.MakeIntegratedServiceOperator(
-					clusterGetter,
-					clusterService,
-					unifiedHelmReleaser,
-					kubernetesService,
-					config.Cluster.Monitoring.Config,
-					logger,
-					commonSecretStore,
-					integratedServiceMonitoring.Migrate,
-				),
-				integratedServiceLogging.MakeIntegratedServicesOperator(
-					clusterGetter,
-					clusterService,
-					unifiedHelmReleaser,
-					kubernetesService,
-					endpointManager,
-					config.Cluster.Logging.Config,
-					logger,
-					commonSecretStore,
 				),
 				expiry.NewExpiryServiceOperator(expirerService, services.BindIntegratedServiceSpec, logger),
 				intsvcingress.NewOperator(

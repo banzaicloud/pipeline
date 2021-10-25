@@ -27,8 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices/operator"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/dns"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/ingress"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/logging"
-	"github.com/banzaicloud/pipeline/internal/integratedservices/services/monitoring"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/securityscan"
 	"github.com/banzaicloud/pipeline/internal/integratedservices/services/vault"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
@@ -206,10 +204,6 @@ type ClusterConfig struct {
 	// Initial manifest
 	Manifest string
 
-	Monitoring ClusterMonitoringConfig
-
-	Logging ClusterLoggingConfig
-
 	// Namespace to install Pipeline components to
 	Namespace string
 
@@ -233,8 +227,6 @@ func (c ClusterConfig) Validate() error {
 
 	errs = errors.Append(errs, c.Labels.Validate())
 
-	errs = errors.Append(errs, c.Logging.Validate())
-
 	if c.Manifest != "" {
 		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0666)
 		_ = file.Close()
@@ -242,8 +234,6 @@ func (c ClusterConfig) Validate() error {
 			errs = errors.Append(errs, errors.Wrap(err, "cluster manifest file is not readable"))
 		}
 	}
-
-	errs = errors.Append(errs, c.Monitoring.Validate())
 
 	if c.Namespace == "" {
 		errs = errors.Append(errs, errors.New("cluster namespace is required"))
@@ -276,14 +266,6 @@ func (c *ClusterConfig) Process() error {
 
 	if c.Labels.Namespace == "" {
 		c.Labels.Namespace = c.Namespace
-	}
-
-	if c.Logging.Namespace == "" {
-		c.Logging.Namespace = c.Namespace
-	}
-
-	if c.Monitoring.Namespace == "" {
-		c.Monitoring.Namespace = c.Namespace
 	}
 
 	if c.SecurityScan.PipelineNamespace == "" {
@@ -380,40 +362,6 @@ type ClusterIngressConfig struct {
 }
 
 func (c ClusterIngressConfig) Validate() error {
-	var errs error
-
-	if c.Enabled {
-		errs = errors.Append(errs, c.Config.Validate())
-	}
-
-	return errs
-}
-
-// ClusterLoggingConfig contains cluster logging configuration.
-type ClusterLoggingConfig struct {
-	Enabled bool
-
-	logging.Config `mapstructure:",squash"`
-}
-
-func (c ClusterLoggingConfig) Validate() error {
-	var errs error
-
-	if c.Enabled {
-		errs = errors.Append(errs, c.Config.Validate())
-	}
-
-	return errs
-}
-
-// ClusterMonitoringConfig contains cluster monitoring configuration.
-type ClusterMonitoringConfig struct {
-	Enabled bool
-
-	monitoring.Config `mapstructure:",squash"`
-}
-
-func (c ClusterMonitoringConfig) Validate() error {
 	var errs error
 
 	if c.Enabled {
@@ -588,80 +536,6 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::vault::charts::webhook::chart", "banzaicloud-stable/vault-secrets-webhook")
 	v.SetDefault("cluster::vault::charts::webhook::version", "1.10.1")
 	v.SetDefault("cluster::vault::charts::webhook::values", map[string]interface{}{})
-
-	v.SetDefault("cluster::monitoring::enabled", true)
-	v.SetDefault("cluster::monitoring::namespace", "")
-	v.SetDefault("cluster::monitoring::grafana::adminUser", "admin")
-	v.SetDefault("cluster::monitoring::charts::operator::chart", "prometheus-community/kube-prometheus-stack")
-	v.SetDefault("cluster::monitoring::charts::operator::version", "12.11.3")
-	v.SetDefault("cluster::monitoring::charts::operator::values", map[string]interface{}{
-		"prometheus": map[string]interface{}{
-			"ingress": map[string]interface{}{
-				"annotations": map[string]interface{}{
-					"traefik.frontend.rule.type":                 "PathPrefix",
-					"traefik.ingress.kubernetes.io/ssl-redirect": "true",
-				},
-			},
-		},
-		"alertmanager": map[string]interface{}{
-			"ingress": map[string]interface{}{
-				"annotations": map[string]interface{}{
-					"traefik.frontend.rule.type":                 "PathPrefix",
-					"traefik.ingress.kubernetes.io/ssl-redirect": "true",
-				},
-			},
-		},
-		"grafana": map[string]interface{}{
-			"ingress": map[string]interface{}{
-				"annotations": map[string]interface{}{
-					"traefik.frontend.rule.type":                         "PathPrefixStrip",
-					"traefik.ingress.kubernetes.io/redirect-permanent":   "true",
-					"traefik.ingress.kubernetes.io/redirect-regex":       "^http://(.*)",
-					"traefik.ingress.kubernetes.io/redirect-replacement": `https://$1\`,
-				},
-			},
-			"sidecar": map[string]interface{}{
-				"datasources": map[string]interface{}{
-					"enabled": "true",
-				},
-			},
-		},
-	})
-	v.SetDefault("cluster::monitoring::images::operator::repository", "quay.io/prometheus-operator/prometheus-operator")
-	v.SetDefault("cluster::monitoring::images::operator::tag", "v0.44.1")
-	v.SetDefault("cluster::monitoring::images::prometheus::repository", "quay.io/prometheus/prometheus")
-	v.SetDefault("cluster::monitoring::images::prometheus::tag", "v2.22.1")
-	v.SetDefault("cluster::monitoring::images::alertmanager::repository", "quay.io/prometheus/alertmanager")
-	v.SetDefault("cluster::monitoring::images::alertmanager::tag", "v0.21.0")
-	v.SetDefault("cluster::monitoring::images::grafana::repository", "grafana/grafana")
-	v.SetDefault("cluster::monitoring::images::grafana::tag", "7.3.5")
-	v.SetDefault("cluster::monitoring::images::kubestatemetrics::repository", "quay.io/coreos/kube-state-metrics")
-	v.SetDefault("cluster::monitoring::images::kubestatemetrics::tag", "v1.9.7")
-	v.SetDefault("cluster::monitoring::images::nodeexporter::repository", "quay.io/prometheus/node-exporter")
-	v.SetDefault("cluster::monitoring::images::nodeexporter::tag", "v1.0.1")
-
-	v.SetDefault("cluster::monitoring::charts::pushgateway::chart", "prometheus-community/prometheus-pushgateway")
-	v.SetDefault("cluster::monitoring::charts::pushgateway::version", "1.5.1")
-	v.SetDefault("cluster::monitoring::charts::pushgateway::values", map[string]interface{}{})
-	v.SetDefault("cluster::monitoring::images::pushgateway::repository", "prom/pushgateway")
-	v.SetDefault("cluster::monitoring::images::pushgateway::tag", "v1.0.1")
-
-	v.SetDefault("cluster::logging::enabled", true)
-	v.SetDefault("cluster::logging::namespace", "")
-	v.SetDefault("cluster::logging::charts::operator::chart", "banzaicloud-stable/logging-operator")
-	v.SetDefault("cluster::logging::charts::operator::version", "3.2.2")
-	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{})
-	v.SetDefault("cluster::logging::images::operator::repository", "banzaicloud/logging-operator")
-	v.SetDefault("cluster::logging::images::operator::tag", "3.2.0")
-	v.SetDefault("cluster::logging::charts::loki::chart", "banzaicloud-stable/loki")
-	v.SetDefault("cluster::logging::charts::loki::version", "0.17.4")
-	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{})
-	v.SetDefault("cluster::logging::images::loki::repository", "grafana/loki")
-	v.SetDefault("cluster::logging::images::loki::tag", "v1.3.0")
-	v.SetDefault("cluster::logging::images::fluentbit::repository", "fluent/fluent-bit")
-	v.SetDefault("cluster::logging::images::fluentbit::tag", "1.4.4")
-	v.SetDefault("cluster::logging::images::fluentd::repository", "banzaicloud/fluentd")
-	v.SetDefault("cluster::logging::images::fluentd::tag", "v1.10.3-alpine-2")
 
 	v.SetDefault("cluster::dns::enabled", true)
 	v.SetDefault("cluster::dns::namespace", "")

@@ -78,9 +78,9 @@
   },
   "features": {
     "monitoring": {
-      "enabled": true,
+      "enabled": false,
       "createClusterFlow": {
-        "enabled": true
+        "enabled": false
       }
     },
     "securityScan": {
@@ -93,9 +93,9 @@
       "enabled": true
     },
     "logging": {
-      "enabled": true,
+      "enabled": false,
       "createClusterFlow": {
-        "enabled": true
+        "enabled": false
       }
     },
     "backup": {
