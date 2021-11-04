@@ -57,3 +57,15 @@ func isPreconditionFailed(err error) bool {
 
 	return false
 }
+
+type notFoundError interface {
+	NotFound() bool
+}
+
+// isNotFoundError returns true if the error implements the NotFound behavior and it returns true.
+func isNotFoundError(err error) bool {
+	var nfe notFoundError
+
+	return errors.As(err, &nfe) &&
+		nfe.NotFound()
+}

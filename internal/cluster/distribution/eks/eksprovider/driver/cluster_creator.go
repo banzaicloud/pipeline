@@ -533,19 +533,6 @@ func (c *EksClusterCreator) validate(r *pkgCluster.CreateClusterRequest, logger 
 	return errors.Combine(tagValidationErrs...)
 }
 
-func (c *EksClusterCreator) assertNotExists(orgID uint, name string) error {
-	exists, err := c.clusters.Exists(orgID, name)
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		return cluster.ErrAlreadyExists
-	}
-
-	return nil
-}
-
 func (c *EksClusterCreator) generateSSHkey(commonCluster cluster.CommonCluster) error {
 	sshKey, err := ssh.NewKeyPairGenerator().Generate()
 	if err != nil {
@@ -572,10 +559,6 @@ func (c *EksClusterCreator) CreateCluster(ctx context.Context, commonCluster clu
 		"clusterID":      commonCluster.GetID(),
 		"organizationID": commonCluster.GetOrganizationId(),
 	})
-
-	if err := c.assertNotExists(organizationID, commonCluster.GetName()); err != nil {
-		return nil, err
-	}
 
 	if err := c.validate(createRequest, logger, commonCluster); err != nil {
 		return nil, errors.Wrap(&invalidError{err}, "validation failed")
