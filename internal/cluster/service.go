@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
+	"github.com/banzaicloud/pipeline/src/utils"
 )
 
 // Cluster status constants
@@ -288,6 +289,14 @@ func (s service) DeleteCluster(ctx context.Context, clusterIdentifier Identifier
 		return false, err
 	}
 
+	if !clusterIsReady(c.Status) && !options.Force {
+		return false, NotReadyError{
+			OrganizationID: c.OrganizationID,
+			ID:             c.ID,
+			Name:           c.Name,
+		}
+	}
+
 	err = s.clusterGroupManager.ValidateClusterRemoval(ctx, clusterIdentifier.ClusterID)
 	if err != nil {
 		return false, ClusterDeleteNotPermittedError{
@@ -368,4 +377,8 @@ func (s service) getDistributionService(cluster Cluster) (Service, error) {
 	}
 
 	return service, nil
+}
+
+func clusterIsReady(status string) bool {
+	return utils.Contains([]string{Running, Warning, Error}, status)
 }

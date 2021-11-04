@@ -35,6 +35,14 @@ func (s service) UpdateCluster(ctx context.Context, clusterIdentifier Identifier
 		return err
 	}
 
+	if !clusterIsReady(c.Status) {
+		return NotReadyError{
+			OrganizationID: c.OrganizationID,
+			ID:             c.ID,
+			Name:           c.Name,
+		}
+	}
+
 	if err := s.clusters.SetStatus(ctx, c.ID, Updating, UpdatingMessage); err != nil {
 		return err
 	}
