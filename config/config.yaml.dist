@@ -310,7 +310,7 @@ dex:
 #        runAsIntegratedServiceV2: false
 #
 #        # Inherited from cluster.namespace when empty
-#        namespace: ""
+#        namespace: "pipeline-system"
 #
 #        ark:
 #            syncEnabled: true
