@@ -865,6 +865,7 @@ traefik:
 	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
 	v.SetDefault("distribution::pke::amazon::defaultImages", map[string]string{})
 	v.SetDefault("distribution::pke::amazon::defaultNetworkProvider", "cilium")
+	v.SetDefault("distribution::pke::amazon::defaultNodeVolumeSize", 0)
 
 	v.SetDefault("cloudinfo::endpoint", "")
 
