@@ -855,8 +855,12 @@ traefik:
 	v.SetDefault("cloud::amazon::defaultRegion", "us-west-1")
 
 	v.SetDefault("distribution::eks::templateLocation", "./templates/eks")
+	v.SetDefault("distribution::eks::defaultNodeVolumeEncryption::enabled", false)
+	v.SetDefault("distribution::eks::defaultNodeVolumeEncryption::encryptionKeyARN", "")
+	v.SetDefault("distribution::eks::defaultNodeVolumeSize", 0)
 	v.SetDefault("distribution::eks::exposeAdminKubeconfig", true)
 	v.SetDefault("distribution::eks::ssh::generate", true)
+	v.SetDefault("distribution::eks::enableAddons", false)
 
 	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
 	v.SetDefault("distribution::pke::amazon::defaultImages", map[string]string{})
