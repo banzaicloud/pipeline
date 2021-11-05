@@ -797,6 +797,7 @@ traefik:
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
 
 	// v.SetDefault("cluster::disasterRecovery::enabled", true)
+	v.SetDefault("cluster::disasterRecovery::runAsIntegratedServiceV2", false)
 	v.SetDefault("cluster::disasterRecovery::namespace", "pipeline-system")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)
 	v.SetDefault("cluster::disasterRecovery::ark::bucketSyncInterval", "10m")
