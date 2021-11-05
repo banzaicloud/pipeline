@@ -169,6 +169,34 @@ configuration:
     #           enabled: true
     #           default: true
 
+  # Distribution settings
+  # distribution:
+
+  #   eks:
+  #     # EKS Cloud Formation template location
+  #     templateLocation: ./templates/eks
+
+  #     defaultNodeVolumeEncryption:
+  #       enabled: false
+  #       encryptionKeyARN: ""
+
+  #     defaultNodeVolumeSize: 0 # GB, 0/fallback: max(50, AMISize)
+
+  #     # Expose admin kubeconfig over the API by default.
+  #     # Set this to false to remove credentials from the config and make the user responsible for how they authenticate.
+  #     exposeAdminKubeconfig: true
+  #     ssh:
+  #       generate: true
+  #     # Enable create & update of EKS addons like coredns
+  #     enableAddons: false
+
+  #   pke:
+  #     amazon:
+  #       globalRegion: us-east-1
+  #       defaultImages: {}
+  #       defaultNetworkProvider: "cilium"
+  #       defaultNodeVolumeSize: 0 # GiB, 0/fallback: max(50, AMISize)
+
   # Database configuration
   database:
     # mysql, postgres
