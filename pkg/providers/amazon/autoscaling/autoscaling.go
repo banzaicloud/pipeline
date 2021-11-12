@@ -99,10 +99,12 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 	}
 
 	lc, err := group.getLaunchConfiguration()
-	if err == nil && lc == nil {
-		err = errors.NewWithDetails("could not find launch configuration for ASG", "asg", group.getName())
-	}
 	if err != nil {
+		if _, ok := err.(errLaunchConfigurationNotFound); ok {
+			if group.LaunchTemplate != nil {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -128,7 +130,7 @@ func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, 
 	asgName := group.getName()
 
 	if group.LaunchConfigurationName == nil {
-		return nil, errors.NewWithDetails("could not find launch configuration for ASG", "asg", asgName)
+		return nil, newLaunchConfigurationNotFoundError(asgName)
 	}
 
 	input := &autoscaling.DescribeLaunchConfigurationsInput{
@@ -144,6 +146,10 @@ func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, 
 
 	if len(result.LaunchConfigurations) != 1 {
 		return nil, errors.WrapIfWithDetails(errors.WithDetails(errors.New("invalid response count"), "count", len(result.LaunchConfigurations)), "could not get launch configuration for ASG", "asg", asgName)
+	}
+
+	if len(result.LaunchConfigurations) == 0 {
+		return nil, newLaunchConfigurationNotFoundError(asgName)
 	}
 
 	return result.LaunchConfigurations[0], nil

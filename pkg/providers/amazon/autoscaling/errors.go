@@ -50,3 +50,22 @@ func (e errAutoscalingGroupNotHealthy) IsFinal() bool { return false }
 func (e errAutoscalingGroupNotHealthy) Context() []interface{} {
 	return []interface{}{"desired", e.Desired, "actual", e.Actual}
 }
+
+type errLaunchConfigurationNotFound struct {
+	asgName string
+}
+
+// newLaunchConfigurationNotFoundError creates a new errLaunchConfigurationNotFound
+func newLaunchConfigurationNotFoundError(asgName string) error {
+	return errLaunchConfigurationNotFound{
+		asgName: asgName,
+	}
+}
+
+func (e errLaunchConfigurationNotFound) Error() string {
+	return "could not find launch configuration for ASG"
+}
+func (e errLaunchConfigurationNotFound) IsFinal() bool { return false }
+func (e errLaunchConfigurationNotFound) Context() []interface{} {
+	return []interface{}{"asgName", e.asgName}
+}
