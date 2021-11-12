@@ -15,6 +15,7 @@
 package autoscaling
 
 import (
+	"context"
 	"fmt"
 
 	"emperror.dev/errors"
@@ -128,4 +129,29 @@ func (m *Manager) GetAutoscalingGroupByStackName(stackName string) (*Group, erro
 	}
 
 	return NewGroup(m, describeAutoScalingGroupsOutput.AutoScalingGroups[0]), nil
+}
+
+// GetLastAutoscalingActivity returns the last ASG activity recorded.
+func (m *Manager) LastAutoscalingActivity(ctx context.Context, asgName *string) (*autoscaling.Activity, error) {
+	var output *autoscaling.DescribeScalingActivitiesOutput
+
+	err := m.asSvc.DescribeScalingActivitiesPagesWithContext(
+		ctx,
+		&autoscaling.DescribeScalingActivitiesInput{
+			AutoScalingGroupName: asgName,
+			MaxRecords:           aws.Int64(1),
+		},
+		func(response *autoscaling.DescribeScalingActivitiesOutput, areThereMorePages bool) bool {
+			output = response
+
+			return false
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "describing last autoscaling activity failed")
+	} else if len(output.Activities) == 0 {
+		return nil, errors.New("describing last autoscaling activity failed: no activity found")
+	}
+
+	return output.Activities[0], nil
 }
