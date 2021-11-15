@@ -161,7 +161,7 @@ dex:
 #        charts:
 #            nodepoolLabelOperator:
 #                chart: "banzaicloud-stable/nodepool-labels-operator"
-#                version: "0.1.1"
+#                version: "0.2.5"
 #
 #                # See https://github.com/banzaicloud/nodepool-labels-operator/tree/master/charts/nodepool-labels-operator for details
 #                values: {}
@@ -217,7 +217,7 @@ dex:
 #        charts:
 #            operator:
 #                chart: "banzaicloud-stable/logging-operator"
-#                version: "2.7.2"
+#                version: "3.2.2"
 #
 #                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
 #                values: {}
@@ -310,7 +310,7 @@ dex:
 #        runAsIntegratedServiceV2: false
 #
 #        # Inherited from cluster.namespace when empty
-#        namespace: ""
+#        namespace: "pipeline-system"
 #
 #        ark:
 #            syncEnabled: true
@@ -322,7 +322,7 @@ dex:
 #        charts:
 #            ark:
 #                chart: "banzaicloud-stable/velero"
-#                version: "2.13.3-bc.1"
+#                version: "2.23.6-bc.2"
 #
 #                # See https://github.com/banzaicloud/velero-helm-chart for details
 #                values: {}
@@ -331,7 +331,7 @@ dex:
 #        ingress:
 #            enabled: true
 #            chart: "banzaicloud-stable/pipeline-cluster-ingress"
-#            version: "0.0.8"
+#            version: "0.0.10"
 #
 #            # See https://github.com/helm/charts/tree/master/stable/traefik for details
 #            values: |
@@ -343,7 +343,7 @@ dex:
 #        dashboard:
 #            enabled: false
 #            chart: "banzaicloud-stable/kubernetes-dashboard"
-#            version: "0.9.1"
+#            version: "0.9.2"
 #
 #        spotconfig:
 #            enabled: false
@@ -358,7 +358,7 @@ dex:
 #        ith:
 #            enabled: true
 #            chart: "banzaicloud-stable/instance-termination-handler"
-#            version: "0.0.9"
+#            version: "0.1.1"
 #
 #        autoscaler:
 #            enabled: true

@@ -568,6 +568,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::labels::domain", "banzaicloud.io")
 	v.SetDefault("cluster::labels::forbiddenDomains", []string{
 		"k8s.io",
+		"kubernetes.io",
 		"google.com",
 		"coreos.com",
 		"oraclecloud.com",
@@ -796,6 +797,7 @@ traefik:
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
 
 	// v.SetDefault("cluster::disasterRecovery::enabled", true)
+	v.SetDefault("cluster::disasterRecovery::runAsIntegratedServiceV2", false)
 	v.SetDefault("cluster::disasterRecovery::namespace", "pipeline-system")
 	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)
 	v.SetDefault("cluster::disasterRecovery::ark::bucketSyncInterval", "10m")
@@ -853,12 +855,17 @@ traefik:
 	v.SetDefault("cloud::amazon::defaultRegion", "us-west-1")
 
 	v.SetDefault("distribution::eks::templateLocation", "./templates/eks")
+	v.SetDefault("distribution::eks::defaultNodeVolumeEncryption::enabled", false)
+	v.SetDefault("distribution::eks::defaultNodeVolumeEncryption::encryptionKeyARN", "")
+	v.SetDefault("distribution::eks::defaultNodeVolumeSize", 0)
 	v.SetDefault("distribution::eks::exposeAdminKubeconfig", true)
 	v.SetDefault("distribution::eks::ssh::generate", true)
+	v.SetDefault("distribution::eks::enableAddons", false)
 
 	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
 	v.SetDefault("distribution::pke::amazon::defaultImages", map[string]string{})
 	v.SetDefault("distribution::pke::amazon::defaultNetworkProvider", "cilium")
+	v.SetDefault("distribution::pke::amazon::defaultNodeVolumeSize", 0)
 
 	v.SetDefault("cloudinfo::endpoint", "")
 
