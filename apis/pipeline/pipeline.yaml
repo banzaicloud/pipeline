@@ -4595,7 +4595,7 @@ components:
                         volumeEncryption:
                             $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
                         volumeSize:
-                            description: Size of the EBS volume in GBs of the nodes in the pool.
+                            description: Size of the EBS volume in GiBs of the nodes in the pool.
                             type: integer
                             example: 50
                         volumeType:
@@ -4723,7 +4723,7 @@ components:
                         volumeEncryption:
                             $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
                         volumeSize:
-                            description: Size of the EBS volume in GBs of the nodes in the pool.
+                            description: Size of the EBS volume in GiBs of the nodes in the pool.
                             type: integer
                             example: 50
                         volumeType:
@@ -4771,7 +4771,7 @@ components:
                         autoscaling:
                             $ref: '#/components/schemas/NodePoolAutoScaling'
                         volumeSize:
-                            description: Size of the EBS volume in GBs of the nodes in the pool.
+                            description: Size of the EBS volume in GiBs of the nodes in the pool.
                             type: integer
                             example: 50
                         instanceType:
@@ -4860,7 +4860,7 @@ components:
                 volumeEncryption:
                     $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
                 volumeSize:
-                    description: Size of the EBS volume in GBs of the nodes in the pool.
+                    description: Size of the EBS volume in GiBs of the nodes in the pool.
                     example: 50
                     type: integer
                 image:
@@ -5215,7 +5215,7 @@ components:
                     example: "ami-dd3c0f36"
                 volumeSize:
                     type: integer
-                    description: Size of root EBS volume to attach to the nodes in GBs. Zero means that the size is determined automatically.
+                    description: Size of root EBS volume to attach to the nodes in GiBs. Zero means that the size is determined automatically.
                 zones:
                     type: array
                     items:

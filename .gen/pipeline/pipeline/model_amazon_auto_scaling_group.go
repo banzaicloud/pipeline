@@ -16,7 +16,7 @@ type AmazonAutoScalingGroup struct {
 
 	Image string `json:"image"`
 
-	// Size of root EBS volume to attach to the nodes in GBs. Zero means that the size is determined automatically.
+	// Size of root EBS volume to attach to the nodes in GiBs. Zero means that the size is determined automatically.
 	VolumeSize int32 `json:"volumeSize,omitempty"`
 
 	Zones []string `json:"zones"`
