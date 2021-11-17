@@ -46,5 +46,7 @@ type UpdateNodePoolRequest struct {
 	// Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
 	UseInstanceStore *bool `json:"useInstanceStore,omitempty"`
 
+	Volumes *EksNodePoolVolumes `json:"volumes,omitempty"`
+
 	Options BaseUpdateNodePoolOptions `json:"options,omitempty"`
 }

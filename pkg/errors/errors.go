@@ -23,8 +23,12 @@ var (
 	ErrorAmazonImageFieldIsEmpty      = errors.New("Required field 'image' is empty ")
 	ErrorInstancetypeFieldIsEmpty     = errors.New("Required field 'instanceType' is empty ")
 
-	ErrorAmazonEksFieldIsEmpty         = errors.New("Required field 'eks' is empty.")
-	ErrorAmazonEksNodePoolFieldIsEmpty = errors.New("At least one 'nodePool' is required.")
+	ErrorAmazonEksFieldIsEmpty                          = errors.New("Required field 'eks' is empty.")
+	ErrorAmazonEksNodePoolFieldIsEmpty                  = errors.New("At least one 'nodePool' is required.")
+	ErrorAmazonEksNodePoolInvalidInstanceRootVolumeType = errors.New("Invalid value specified in `volumes.instanceRoot.storage`. Valid values are: ebs, instance-storage.")
+	ErrorAmazonEksNodePoolInvalidKubeletRootVolumeType  = errors.New("Invalid value specified in `volumes.kubeletRoot.storage`. Valid values are: ebs, instance-storage, none.")
+	ErrorAmazonEksNodePoolIncompatibleVolumes           = errors.New("`volumes.kubeletRoot.storage` can not be of type `ebs` in case " +
+		"`volumes.instanceRoot.storage = instance-store`")
 
 	ErrorNodePoolMinMaxFieldError      = errors.New("'maxCount' must be greater than 'minCount'")
 	ErrorNodePoolCountFieldError       = errors.New("'count' must be greater than or equal to 'minCount' and lower than or equal to 'maxCount'")

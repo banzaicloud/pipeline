@@ -30,16 +30,27 @@ type NewNodePool struct {
 		MinSize int  `mapstructure:"minSize"`
 		MaxSize int  `mapstructure:"maxSize"`
 	} `mapstructure:"autoscaling"`
+	Volumes        *NodePoolVolumes `mapstructure:"volumes"`
+	InstanceType   string           `mapstructure:"instanceType"`
+	Image          string           `mapstructure:"image"`
+	SpotPrice      string           `mapstructure:"spotPrice"`
+	SecurityGroups []string         `mapstructure:"securityGroups"`
+	SubnetID       string           `mapstructure:"subnetId"`
+	// deprecated, property replaced with Volumes.InstanceRoot.Encryption
 	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
-	VolumeSize       int                       `mapstructure:"volumeSize"`
-	VolumeType       string                    `mapstructure:"volumeType"`
-	InstanceType     string                    `mapstructure:"instanceType"`
-	Image            string                    `mapstructure:"image"`
-	SpotPrice        string                    `mapstructure:"spotPrice"`
-	SecurityGroups   []string                  `mapstructure:"securityGroups"`
-	SubnetID         string                    `mapstructure:"subnetId"`
-	UseInstanceStore *bool                     `mapstructure:"useInstanceStore,omitempty"`
+	// deprecated, property replaced with Volumes.InstanceRoot.Size
+	VolumeSize int `mapstructure:"volumeSize"`
+	// deprecated, property replaced with Volumes.InstanceRoot.Type
+	VolumeType string `mapstructure:"volumeType"`
+	// deprecated, property replaced with Volumes.KubeletRoot.Type="instance-storage"
+	UseInstanceStore *bool `mapstructure:"useInstanceStore,omitempty"`
 }
+
+const (
+	EBS_STORAGE            = "ebs"
+	INSTANCE_STORE_STORAGE = "instance-store"
+	NONE_STORAGE           = "none"
+)
 
 // Validate semantically validates the new node pool.
 //
@@ -69,6 +80,25 @@ func (n NewNodePool) Validate() error {
 
 	if n.InstanceType == "" {
 		violations = append(violations, "instance type cannot be empty")
+	}
+
+	if n.Volumes != nil {
+		if n.Volumes.InstanceRoot != nil &&
+			EBS_STORAGE != n.Volumes.InstanceRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.InstanceRoot.Storage {
+			violations = append(violations, "Invalid value specified in `volumes.instanceRoot.storage`. Valid values are: ebs, instance-storage.")
+		}
+
+		if n.Volumes.KubeletRoot != nil &&
+			EBS_STORAGE != n.Volumes.KubeletRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.KubeletRoot.Storage &&
+			NONE_STORAGE != n.Volumes.KubeletRoot.Storage {
+			violations = append(violations, "Invalid value specified in `volumes.kubeletRoot.storage`. Valid values are: ebs, instance-storage, none.")
+		}
+
+		if n.Volumes != nil && n.Volumes.InstanceRoot != nil && n.Volumes.KubeletRoot != nil &&
+			n.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && n.Volumes.KubeletRoot.Storage == EBS_STORAGE {
+			violations = append(violations, "`volumes.kubeletRoot.storage` can not be of type `ebs` in case "+
+				"`volumes.instanceRoot.storage = instance-store`")
+		}
 	}
 
 	if len(violations) > 0 {

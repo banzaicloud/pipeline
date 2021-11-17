@@ -222,32 +222,32 @@ func newASGsFromRequestedUpdatedNodePools(
 	}
 
 	for nodePoolName, nodePool := range requestedUpdatedNodePools {
-		var volumeEncryption *eks.NodePoolVolumeEncryption
-		if nodePool.VolumeEncryption != nil {
-			volumeEncryption = &eks.NodePoolVolumeEncryption{
-				Enabled:          nodePool.VolumeEncryption.Enabled,
-				EncryptionKeyARN: nodePool.VolumeEncryption.EncryptionKeyARN,
+		var nodePoolVolumes *eks.NodePoolVolumes
+		if nodePool.Volumes != nil {
+			nodePoolVolumes = &eks.NodePoolVolumes{}
+			if nodePool.Volumes.KubeletRoot != nil {
+				nodePoolVolumes.KubeletRoot = getVolumeParams(nodePool.Volumes.KubeletRoot)
+			}
+			if nodePool.Volumes.InstanceRoot != nil {
+				nodePoolVolumes.InstanceRoot = getVolumeParams(nodePool.Volumes.InstanceRoot)
 			}
 		}
 
 		updatedNodePools = append(updatedNodePools, workflow.AutoscaleGroup{
-			Name:                 nodePoolName,
-			NodeSpotPrice:        nodePool.SpotPrice,
-			Autoscaling:          nodePool.Autoscaling,
-			NodeMinCount:         nodePool.MinCount,
-			NodeMaxCount:         nodePool.MaxCount,
-			Count:                nodePool.Count,
-			NodeVolumeEncryption: volumeEncryption,
-			NodeVolumeSize:       nodePool.VolumeSize,
-			NodeVolumeType:       nodePool.VolumeType,
-			NodeImage:            nodePool.Image,
-			NodeInstanceType:     nodePool.InstanceType,
-			SecurityGroups:       nodePool.SecurityGroups,
-			UseInstanceStore:     nodePool.UseInstanceStore,
-			Labels:               nodePool.Labels,
-			Delete:               false,
-			Create:               false,
-			CreatedBy:            creators[nodePoolName],
+			Name:             nodePoolName,
+			NodeSpotPrice:    nodePool.SpotPrice,
+			Autoscaling:      nodePool.Autoscaling,
+			NodeMinCount:     nodePool.MinCount,
+			NodeMaxCount:     nodePool.MaxCount,
+			Count:            nodePool.Count,
+			NodeImage:        nodePool.Image,
+			NodeInstanceType: nodePool.InstanceType,
+			Volumes:          nodePoolVolumes,
+			SecurityGroups:   nodePool.SecurityGroups,
+			Labels:           nodePool.Labels,
+			Delete:           false,
+			Create:           false,
+			CreatedBy:        creators[nodePoolName],
 		})
 	}
 
@@ -396,6 +396,44 @@ func newNodePoolsFromUpdateRequest(
 	requestedUpdatedNodePools = make(map[string]*pkgEks.NodePool, len(requestedNodePools))
 	for nodePoolName, nodePool := range requestedNodePools {
 		if existingNodePools[nodePoolName] {
+			// convert deprecated params in case no Volumes struct is specified
+			if nodePool.Volumes == nil {
+				volumes := pkgEks.NodePoolVolumes{}
+				instanceRootVolume := pkgEks.NodePoolVolume{
+					Storage: pkgEks.EBS_STORAGE,
+				}
+				isInstanceRoot := false
+
+				if nodePool.VolumeSize > 0 {
+					isInstanceRoot = true
+					instanceRootVolume.Size = nodePool.VolumeSize
+				}
+				if nodePool.VolumeType != "" {
+					isInstanceRoot = true
+					instanceRootVolume.Type = nodePool.VolumeType
+				}
+				if nodePool.VolumeEncryption != nil {
+					isInstanceRoot = true
+					instanceRootVolume.Encryption = nodePool.VolumeEncryption
+				}
+
+				if isInstanceRoot {
+					volumes.InstanceRoot = &instanceRootVolume
+				}
+
+				isKubeletRoot := false
+				if nodePool.UseInstanceStore != nil && *nodePool.UseInstanceStore {
+					isKubeletRoot = true
+					volumes.KubeletRoot = &pkgEks.NodePoolVolume{
+						Storage: pkgEks.INSTANCE_STORE_STORAGE,
+					}
+				}
+
+				if isInstanceRoot || isKubeletRoot {
+					nodePool.Volumes = &volumes
+				}
+			}
+
 			requestedUpdatedNodePools[nodePoolName] = nodePool
 		} else {
 			if len(nodePool.InstanceType) == 0 {
@@ -408,6 +446,30 @@ func newNodePoolsFromUpdateRequest(
 
 			if len(nodePool.SpotPrice) == 0 {
 				nodePool.SpotPrice = eks.DefaultSpotPrice
+			}
+
+			// convert deprecated params in case no Volumes struct is specified
+			if nodePool.Volumes == nil {
+				nodePool.Volumes = &pkgEks.NodePoolVolumes{
+					InstanceRoot: &pkgEks.NodePoolVolume{
+						Type:    "gp3",
+						Storage: pkgEks.EBS_STORAGE,
+					},
+				}
+				if nodePool.VolumeSize > 0 {
+					nodePool.Volumes.InstanceRoot.Size = nodePool.VolumeSize
+				}
+				if nodePool.VolumeType != "" {
+					nodePool.Volumes.InstanceRoot.Type = nodePool.VolumeType
+				}
+				if nodePool.VolumeEncryption != nil {
+					nodePool.Volumes.InstanceRoot.Encryption = nodePool.VolumeEncryption
+				}
+				if nodePool.UseInstanceStore != nil && *nodePool.UseInstanceStore {
+					nodePool.Volumes.KubeletRoot = &pkgEks.NodePoolVolume{
+						Storage: pkgEks.INSTANCE_STORE_STORAGE,
+					}
+				}
 			}
 
 			requestedNewNodePools[nodePoolName] = nodePool
@@ -441,11 +503,14 @@ func newNodePoolsFromRequestedNewNodePools(
 			continue
 		}
 
-		var volumeEncryption *eks.NodePoolVolumeEncryption
-		if nodePool.VolumeEncryption != nil {
-			volumeEncryption = &eks.NodePoolVolumeEncryption{
-				Enabled:          nodePool.VolumeEncryption.Enabled,
-				EncryptionKeyARN: nodePool.VolumeEncryption.EncryptionKeyARN,
+		var nodePoolVolumes *eks.NodePoolVolumes
+		if nodePool.Volumes != nil {
+			nodePoolVolumes = &eks.NodePoolVolumes{}
+			if nodePool.Volumes.KubeletRoot != nil {
+				nodePoolVolumes.KubeletRoot = getVolumeParams(nodePool.Volumes.KubeletRoot)
+			}
+			if nodePool.Volumes.InstanceRoot != nil {
+				nodePoolVolumes.InstanceRoot = getVolumeParams(nodePool.Volumes.InstanceRoot)
 			}
 		}
 
@@ -458,15 +523,12 @@ func newNodePoolsFromRequestedNewNodePools(
 				MinSize: nodePool.MinCount,
 				MaxSize: nodePool.MaxCount,
 			},
-			VolumeEncryption: volumeEncryption,
-			VolumeSize:       nodePool.VolumeSize,
-			VolumeType:       nodePool.VolumeType,
-			InstanceType:     nodePool.InstanceType,
-			Image:            nodePool.Image,
-			SpotPrice:        nodePool.SpotPrice,
-			SecurityGroups:   nodePool.SecurityGroups,
-			SubnetID:         newNodePoolSubnetIDs[nodePoolName][0],
-			UseInstanceStore: nodePool.UseInstanceStore,
+			InstanceType:   nodePool.InstanceType,
+			Image:          nodePool.Image,
+			SpotPrice:      nodePool.SpotPrice,
+			SecurityGroups: nodePool.SecurityGroups,
+			SubnetID:       newNodePoolSubnetIDs[nodePoolName][0],
+			Volumes:        nodePoolVolumes,
 		})
 	}
 

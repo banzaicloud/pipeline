@@ -207,14 +207,47 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 		}
 	}()
 
-	amiSize, err := getAMISize(ctx, eksActivityInput, input.NodePool.Image)
-	if err != nil {
-		return err
+	if input.NodePool.Volumes == nil {
+		input.NodePool.Volumes = &eks.NodePoolVolumes{
+			InstanceRoot: &eks.NodePoolVolume{
+				Storage: "ebs",
+			},
+		}
+	}
+	// set KubeletRoot.Storage to none if it's not specified
+	if input.NodePool.Volumes.KubeletRoot == nil {
+		input.NodePool.Volumes.KubeletRoot = &eks.NodePoolVolume{}
+	}
+	if "" == input.NodePool.Volumes.KubeletRoot.Storage {
+		input.NodePool.Volumes.KubeletRoot.Storage = eks.NONE_STORAGE
 	}
 
-	volumeSize, err := selectVolumeSize(ctx, amiSize, input.NodePool.VolumeSize)
-	if err != nil {
-		return err
+	volumes := input.NodePool.Volumes
+	if eks.INSTANCE_STORE_STORAGE == volumes.InstanceRoot.Storage {
+		volumes.InstanceRoot.Encryption = nil
+		// could not be set to empty value
+		volumes.InstanceRoot.Type = "gp3"
+		volumes.InstanceRoot.Size = 0
+	}
+
+	if eks.INSTANCE_STORE_STORAGE == volumes.KubeletRoot.Storage ||
+		eks.NONE_STORAGE == volumes.KubeletRoot.Storage {
+		volumes.KubeletRoot.Encryption = nil
+		volumes.KubeletRoot.Type = ""
+		volumes.KubeletRoot.Size = 0
+	}
+
+	// select default AMI size for InstanceRoot volume in case it's EBS
+	if input.NodePool.Volumes != nil && input.NodePool.Volumes.InstanceRoot.Storage == eks.EBS_STORAGE {
+		amiSize, err := getAMISize(ctx, eksActivityInput, input.NodePool.Image)
+		if err != nil {
+			return err
+		}
+
+		input.NodePool.Volumes.InstanceRoot.Size, err = selectVolumeSize(ctx, amiSize, input.NodePool.Volumes.InstanceRoot.Size)
+		if err != nil {
+			return err
+		}
 	}
 
 	if input.ShouldCreateNodePoolLabelSet {
@@ -230,13 +263,13 @@ func (w CreateNodePoolWorkflow) Execute(ctx workflow.Context, input CreateNodePo
 	}
 
 	nodePoolVersion, err := calculateNodePoolVersion(
-		ctx, input.NodePool.Image, input.NodePool.VolumeEncryption, input.NodePool.VolumeSize, input.NodePool.SecurityGroups)
+		ctx, input.NodePool.Image, *input.NodePool.Volumes, input.NodePool.SecurityGroups)
 	if err != nil {
 		return err
 	}
 
 	err = createASG(
-		ctx, eksActivityInput, eksCluster, vpcConfig, input.NodePool, input.NodePoolSubnetIDs, volumeSize, nodePoolVersion)
+		ctx, eksActivityInput, eksCluster, vpcConfig, input.NodePool, input.NodePoolSubnetIDs, nodePoolVersion)
 	if err != nil {
 		return pkgcadence.WrapClientError(err)
 	}

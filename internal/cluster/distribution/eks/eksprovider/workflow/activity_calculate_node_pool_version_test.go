@@ -43,11 +43,15 @@ func TestCalculateNodePoolVersion(t *testing.T) {
 			input: inputType{
 				input: CalculateNodePoolVersionActivityInput{
 					Image: "ami-xxxxxxxxxxxxx",
-					VolumeEncryption: &eks.NodePoolVolumeEncryption{
-						Enabled:          true,
-						EncryptionKeyARN: "arn:aws:kms:region:account:key/id",
+					Volumes: eks.NodePoolVolumes{
+						InstanceRoot: &eks.NodePoolVolume{
+							Encryption: &eks.NodePoolVolumeEncryption{
+								Enabled:          true,
+								EncryptionKeyARN: "arn:aws:kms:region:account:key/id",
+							},
+							Size: 50,
+						},
 					},
-					VolumeSize: 50,
 					CustomSecurityGroups: []string{
 						"sg-1",
 						"sg-2",
@@ -89,8 +93,7 @@ func TestCalculateNodePoolVersion(t *testing.T) {
 				_, actualError = calculateNodePoolVersion(
 					ctx,
 					testCase.input.input.Image,
-					testCase.input.input.VolumeEncryption,
-					testCase.input.input.VolumeSize,
+					testCase.input.input.Volumes,
 					testCase.input.input.CustomSecurityGroups,
 				)
 

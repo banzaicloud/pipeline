@@ -4593,12 +4593,15 @@ components:
                         autoscaling:
                             $ref: '#/components/schemas/NodePoolAutoScaling'
                         volumeEncryption:
+                            deprecated: true
                             $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
                         volumeSize:
+                            deprecated: true
                             description: Size of the EBS volume in GBs of the nodes in the pool.
                             type: integer
                             example: 50
                         volumeType:
+                            deprecated: true
                             description: Type of the EBS volume of the nodes in the pool (default gp3).
                             type: string
                             example: gp3
@@ -4624,15 +4627,169 @@ components:
                                 type: string
                             example: ["sg-00000xxxx0000xxx1", "sg-00000xxxx0000xxx2"]
                         useInstanceStore:
+                            deprecated: true
                             description: Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
                             type: boolean
+                        volumes:
+                            $ref: '#/components/schemas/EKSNodePoolVolumes'
+
+        EKSNodePoolVolume:
+            discriminator:
+                propertyName: storage
+                mapping:
+                    ebs: '#/components/schemas/EKSNodePoolVolumeEBS'
+                    instance-store: '#/components/schemas/EKSNodePoolVolumeInstanceStore'
+                    none: 'EKSNodePoolVolumeNone'
+            nullable: true
+            oneOf:
+                - $ref: '#/components/schemas/EKSNodePoolVolumeEBS'
+                - $ref: '#/components/schemas/EKSNodePoolVolumeInstanceStore'
+                - $ref: '#/components/schemas/EKSNodePoolVolumeNone'
+
+        EKSNodePoolVolumes:
+            description: An associative collection of EKS node pool node
+                instance volume configuration objects keyed by their semantical
+                volume names (example instanceRoot, kubeletRoot).
+            example: |
+                {
+                    "instanceRoot": {
+                        "encryption": {
+                            "enabled": true,
+                            "encryptionKeyARN": "arn:aws:kms:aws-region:012345678901:key/01234567-0123-0123-0123-012345678901"
+                        }
+                        "size": 50
+                        "storage": "ebs"
+                        "type": "gp3"
+                    },
+                    "kubeletRoot": {
+                        "storage": "instance-store"
+                    }
+                }
+            nullable: true
+            properties:
+                instanceRoot:
+                    description: (Optional) The volume configuration of
+                        the EKS node instance's instance root device
+                        (default ebs gp3 50GiB with control plane
+                        configuration default or AWS account default
+                        encryption).
+
+                        The storage of the instance root device
+                        volume is constrained by the AMI used to launch
+                        the EKS node pool node instance.
+
+                        For more details see
+                        https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/RootDeviceStorage.html.
+                    $ref: '#/components/schemas/EKSNodePoolVolume'
+                kubeletRoot:
+                    description: (Optional) The volume configuration of
+                        the Kubernetes kubelet root device (default uses
+                        the instance root device for kubelet root as
+                        well).
+
+                        The configuration and availability of the
+                        instance store storage type for kubelet root
+                        device volume depends on the EKS node pool node
+                        instance type.
+
+                        For more details see
+                        https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+                    $ref: '#/components/schemas/EKSNodePoolVolume'
+            type: object
+
+        EKSNodePoolVolumeEBS:
+            description: Configuration of EBS volumes mounted onto an EKS node
+                pool node instance.
+
+                EBS volumes are the default to be used, if no configuration is
+                specified.
+            example: |
+                {
+                    "encryption": {
+                        "enabled": true,
+                        "encryptionKeyARN": "arn:aws:kms:aws-region:012345678901:key/01234567-0123-0123-0123-012345678901"
+                    }
+                    "size": 50
+                    "storage": "ebs"
+                    "type": "gp3"
+                }
+            properties:
+                encryption:
+                    $ref: '#/components/schemas/EKSNodePoolVolumeEncryption'
+                size:
+                    description: Size of the EBS volume in GiBs of the nodes in
+                        the pool (default 50 GiB).
+                    type: integer
+                    example: 50
+                storage:
+                    description: Type of the mounted volume's storage on the
+                        node instances of the node pool.
+                    type: string
+                    enum:
+                        - ebs
+                type:
+                    description: Type of the EBS volume to mount on the EKS node
+                        pool node instances (default gp3).
+                    type: string
+                    example: gp3
+            required:
+                - storage
+            type: object
+
+        EKSNodePoolVolumeInstanceStore:
+            description: Configuration of instance store volumes mounted onto
+                an EKS node pool node instance.
+
+                Instance store volumes are encrypted at rest by default using an
+                XTS-AES-256 block cipher implemented in a hardware module on the
+                instance.
+
+                The size and type of an instance store volume is fixed based on
+                the instance type the volume is attached to.
+
+                For more details see
+                https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
+            example: |
+                {
+                    "storage": "instance-store"
+                }
+            properties:
+                storage:
+                    description: Type of the mounted volume's storage on the
+                        node instances of the node pool.
+                    type: string
+                    enum:
+                        - instance-store
+            required:
+                - storage
+            type: object
+
+        EKSNodePoolVolumeNone:
+            description: We need this struct to be able to remove a volume in case of an update for example.
+
+            example: |
+                {
+                    "storage": "none"
+                }
+            properties:
+                storage:
+                    description: Type of the mounted volume's storage on the
+                        node instances of the node pool.
+                    type: string
+                    enum:
+                        - instance-store
+            required:
+                - storage
+            type: object
 
         EKSNodePoolVolumeEncryption:
-            description: Encryption details of the node volumes in an EKS node pool.
+            description: Encryption details of the instance volumes in an EKS
+                node pool (default null -> control plane configuration -> AWS
+                account default).
             example: |
                 {
                     "enabled": true,
-                    "encryptionKeyARN": "arn:aws:kms:<REGION>:000000000000:key/00000000-0000-0000-0000-000000000000"
+                    "encryptionKeyARN": "arn:aws:kms:aws-region:012345678901:key/01234567-0123-0123-0123-01234567890a"
                 }
             nullable: true
             properties:
@@ -4642,7 +4799,7 @@ components:
                     type: boolean
                 encryptionKeyARN:
                     description: KMS key ARN to use for node volume encryption.
-                    example: arn:aws:kms:<REGION>:000000000000:key/00000000-0000-0000-0000-000000000000
+                    example: arn:aws:kms:aws-region:012345678901:key/01234567-0123-0123-0123-01234567890a
                     type: string
             required:
                 - enabled # Note: to avoid `omitempty` in generation.
@@ -4757,6 +4914,8 @@ components:
                             nullable: true
                             description: Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
                             type: boolean
+                        volumes:
+                            $ref: '#/components/schemas/EKSNodePoolVolumes'
                         options:
                             $ref: '#/components/schemas/BaseUpdateNodePoolOptions'
 

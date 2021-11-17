@@ -75,6 +75,10 @@ func (s eksService) UpdateNodePool(ctx context.Context, clusterID uint, nodePool
 		// TODO: return a service error
 		return "", errors.Wrap(err, "failed to decode node pool update")
 	}
+	err = nodePoolUpdate.Validate()
+	if err != nil {
+		return "", err
+	}
 
 	return s.service.UpdateNodePool(ctx, clusterID, nodePoolName, nodePoolUpdate)
 }

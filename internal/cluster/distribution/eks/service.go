@@ -66,13 +66,19 @@ type ClusterUpdate struct {
 // A node pool update contains a partial representation of the node pool resource,
 // updating only the changed values.
 type NodePoolUpdate struct {
-	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
-	VolumeSize       int                       `mapstructure:"volumeSize"`
-	VolumeType       string                    `mapstructure:"volumeType"`
+	Volumes *NodePoolVolumes `mapstructure:"volumes,omitempty"`
 
-	Image            string   `mapstructure:"image"`
-	SecurityGroups   []string `mapstructure:"securityGroups"`
-	UseInstanceStore *bool    `mapstructure:"useInstanceStore,omitempty"`
+	// deprecated, property replaced with Volumes.InstanceRoot.Encryption
+	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
+	// deprecated, property replaced with Volumes.InstanceRoot.Size
+	VolumeSize int `mapstructure:"volumeSize"`
+	// deprecated, property replaced with Volumes.InstanceRoot.Type
+	VolumeType string `mapstructure:"volumeType"`
+	// deprecated, property replaced with Volumes.KubeletRoot.Type="instance-storage"
+	UseInstanceStore *bool `mapstructure:"useInstanceStore,omitempty"`
+
+	Image          string   `mapstructure:"image"`
+	SecurityGroups []string `mapstructure:"securityGroups"`
 
 	Options NodePoolUpdateOptions `mapstructure:"options"`
 }
@@ -100,43 +106,88 @@ type NodePoolUpdateDrainOptions struct {
 	PodSelector string `mapstructure:"podSelector"`
 }
 
+// Validate semantically validates the node pool update parameters.
+func (n NodePoolUpdate) Validate() error {
+	var violations []string
+
+	if n.Volumes != nil {
+		if n.Volumes.InstanceRoot != nil &&
+			EBS_STORAGE != n.Volumes.InstanceRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.InstanceRoot.Storage {
+			violations = append(violations, "Invalid value specified in `volumes.instanceRoot.storage`. Valid values are: ebs, instance-storage.")
+		}
+
+		if n.Volumes.KubeletRoot != nil &&
+			EBS_STORAGE != n.Volumes.KubeletRoot.Storage && INSTANCE_STORE_STORAGE != n.Volumes.KubeletRoot.Storage &&
+			NONE_STORAGE != n.Volumes.KubeletRoot.Storage {
+			violations = append(violations, "Invalid value specified in `volumes.kubeletRoot.storage`. Valid values are: ebs, instance-storage, none.")
+		}
+
+		if n.Volumes != nil && n.Volumes.InstanceRoot != nil && n.Volumes.KubeletRoot != nil &&
+			n.Volumes.InstanceRoot.Storage == INSTANCE_STORE_STORAGE && n.Volumes.KubeletRoot.Storage == EBS_STORAGE {
+			violations = append(violations, "`volumes.kubeletRoot.storage` can not be of type `ebs` in case "+
+				"`volumes.instanceRoot.storage = instance-store`")
+		}
+	}
+
+	if len(violations) > 0 {
+		return cluster.NewValidationError("invalid node pool creation request", violations)
+	}
+
+	return nil
+}
+
 // NodePool encapsulates information about a cluster node pool.
 type NodePool struct {
-	Name             string                    `mapstructure:"name"`
-	Labels           map[string]string         `mapstructure:"labels"`
-	Size             int                       `mapstructure:"size"`
-	Autoscaling      Autoscaling               `mapstructure:"autoscaling"`
+	Name        string            `mapstructure:"name"`
+	Labels      map[string]string `mapstructure:"labels"`
+	Size        int               `mapstructure:"size"`
+	Autoscaling Autoscaling       `mapstructure:"autoscaling"`
+
+	Volumes *NodePoolVolumes `mapstructure:"volumes"`
+
+	InstanceType   string   `mapstructure:"instanceType"`
+	Image          string   `mapstructure:"image"`
+	SpotPrice      string   `mapstructure:"spotPrice"`
+	SecurityGroups []string `mapstructure:"securityGroups,omitempty"`
+	SubnetID       string   `mapstructure:"subnetId"`
+
+	Status        NodePoolStatus `mapstructure:"status"`
+	StatusMessage string         `mapstructure:"statusMessage"`
+
+	// deprecated
 	VolumeEncryption *NodePoolVolumeEncryption `mapstructure:"volumeEncryption,omitempty"`
-	VolumeSize       int                       `mapstructure:"volumeSize"`
-	VolumeType       string                    `mapstructure:"volumeType"`
-	InstanceType     string                    `mapstructure:"instanceType"`
-	Image            string                    `mapstructure:"image"`
-	SpotPrice        string                    `mapstructure:"spotPrice"`
-	SecurityGroups   []string                  `mapstructure:"securityGroups,omitempty"`
-	SubnetID         string                    `mapstructure:"subnetId"`
-	UseInstanceStore bool                      `mapstructure:"UseInstanceStore"`
-	Status           NodePoolStatus            `mapstructure:"status"`
-	StatusMessage    string                    `mapstructure:"statusMessage"`
+	// deprecated
+	VolumeSize int `mapstructure:"volumeSize"`
+	// deprecated
+	VolumeType string `mapstructure:"volumeType"`
+	// deprecated
+	UseInstanceStore bool `mapstructure:"UseInstanceStore"`
 }
 
 // NewNodePoolFromCFStack initializes a node pool object from a CloudFormation
 // stack.
 func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudformation.Stack) (nodePool NodePool) {
 	var nodePoolParameters struct {
-		ClusterAutoscalerEnabled    bool   `mapstructure:"ClusterAutoscalerEnabled"`
-		NodeAutoScalingGroupMaxSize int    `mapstructure:"NodeAutoScalingGroupMaxSize"`
-		NodeAutoScalingGroupMinSize int    `mapstructure:"NodeAutoScalingGroupMinSize"`
-		NodeAutoScalingInitSize     int    `mapstructure:"NodeAutoScalingInitSize"`
-		NodeImageID                 string `mapstructure:"NodeImageId"`
-		NodeInstanceType            string `mapstructure:"NodeInstanceType"`
-		NodeSpotPrice               string `mapstructure:"NodeSpotPrice"`
-		NodeVolumeEncryptionEnabled string `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: NodeVolumeEncryptionEnabled is only available from template version 2.1.0.
-		NodeVolumeEncryptionKeyARN  string `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
-		NodeVolumeSize              int    `mapstructure:"NodeVolumeSize"`
-		NodeVolumeType              string `mapstructure:"NodeVolumeType,omitempty"`           // Note: NodeVolumeType is only available from template version 2.4.0.
-		CustomNodeSecurityGroups    string `mapstructure:"CustomNodeSecurityGroups,omitempty"` // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
-		Subnets                     string `mapstructure:"Subnets"`
-		UseInstanceStore            string `mapstructure:"UseInstanceStore,omitempty"` // Note: UseInstanceStore is only available from template version 2.2.0.
+		ClusterAutoscalerEnabled           bool   `mapstructure:"ClusterAutoscalerEnabled"`
+		NodeAutoScalingGroupMaxSize        int    `mapstructure:"NodeAutoScalingGroupMaxSize"`
+		NodeAutoScalingGroupMinSize        int    `mapstructure:"NodeAutoScalingGroupMinSize"`
+		NodeAutoScalingInitSize            int    `mapstructure:"NodeAutoScalingInitSize"`
+		NodeImageID                        string `mapstructure:"NodeImageId"`
+		NodeInstanceType                   string `mapstructure:"NodeInstanceType"`
+		NodeSpotPrice                      string `mapstructure:"NodeSpotPrice"`
+		NodeVolumeStorage                  string `mapstructure:"NodeVolumeStorage,omitempty"`           // Note: NodeVolumeStorage is only available from template version 2.5.0.
+		NodeVolumeEncryptionEnabled        string `mapstructure:"NodeVolumeEncryptionEnabled,omitempty"` // Note: NodeVolumeEncryptionEnabled is only available from template version 2.1.0.
+		NodeVolumeEncryptionKeyARN         string `mapstructure:"NodeVolumeEncryptionKeyARN,omitempty"`  // Note: NodeVolumeEncryptionKeyARN is only available from template version 2.1.0.
+		NodeVolumeSize                     int    `mapstructure:"NodeVolumeSize"`
+		NodeVolumeType                     string `mapstructure:"NodeVolumeType,omitempty"`                     // Note: NodeVolumeType is only available from template version 2.4.0.
+		KubeletRootVolumeStorage           string `mapstructure:"KubeletRootVolumeStorage,omitempty"`           // Note: KubeletRootVolumeStorage is only available from template version 2.5.0.
+		KubeletRootVolumeEncryptionEnabled string `mapstructure:"KubeletRootVolumeEncryptionEnabled,omitempty"` // Note: KubeletRootVolumeEncryptionEnabled is only available from template version 2.5.0.
+		KubeletRootVolumeEncryptionKeyARN  string `mapstructure:"KubeletRootVolumeEncryptionKeyARN,omitempty"`  // Note: KubeletRootVolumeEncryptionKeyARN is only available from template version 2.5.0.
+		KubeletRootVolumeSize              int    `mapstructure:"KubeletRootVolumeSize,omitempty"`              // Note: KubeletRootVolumeSize is only available from template version 2.5.0.
+		KubeletRootVolumeType              string `mapstructure:"KubeletRootVolumeType,omitempty"`              // Note: KubeletRootVolumeType is only available from template version 2.5.0.
+		CustomNodeSecurityGroups           string `mapstructure:"CustomNodeSecurityGroups,omitempty"`           // Note: CustomNodeSecurityGroups is only available from template version 2.0.0.
+		Subnets                            string `mapstructure:"Subnets"`
+		UseInstanceStore                   string `mapstructure:"UseInstanceStore,omitempty"` // Note: UseInstanceStore is only available from template version 2.2.0.
 	}
 
 	err := sdkCloudFormation.ParseStackParameters(stack.Parameters, &nodePoolParameters)
@@ -153,6 +204,53 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 		MaxSize: nodePoolParameters.NodeAutoScalingGroupMaxSize,
 	}
 
+	if "" != nodePoolParameters.NodeVolumeStorage {
+		nodePool.Volumes = &NodePoolVolumes{
+			InstanceRoot: &NodePoolVolume{
+				Storage: nodePoolParameters.NodeVolumeStorage,
+			},
+		}
+	}
+
+	if EBS_STORAGE == nodePoolParameters.NodeVolumeStorage {
+		nodePool.Volumes.InstanceRoot.Size = nodePoolParameters.NodeVolumeSize
+		nodePool.Volumes.InstanceRoot.Type = nodePoolParameters.NodeVolumeType
+
+		if nodePoolParameters.NodeVolumeEncryptionEnabled != "" {
+			nodePool.Volumes.InstanceRoot.Encryption = &NodePoolVolumeEncryption{}
+			nodePool.Volumes.InstanceRoot.Encryption.Enabled, err = strconv.ParseBool(nodePoolParameters.NodeVolumeEncryptionEnabled)
+			if err != nil {
+				return NewNodePoolWithNoValues(name, NodePoolStatusError, "invalid encryption information")
+			}
+
+			nodePool.Volumes.InstanceRoot.Encryption.EncryptionKeyARN = nodePoolParameters.NodeVolumeEncryptionKeyARN
+		}
+	}
+
+	switch nodePoolParameters.KubeletRootVolumeStorage {
+	case EBS_STORAGE:
+		nodePool.Volumes.KubeletRoot = &NodePoolVolume{
+			Storage: nodePoolParameters.KubeletRootVolumeStorage,
+		}
+		nodePool.Volumes.KubeletRoot.Size = nodePoolParameters.KubeletRootVolumeSize
+		nodePool.Volumes.KubeletRoot.Type = nodePoolParameters.KubeletRootVolumeType
+
+		if nodePoolParameters.KubeletRootVolumeEncryptionEnabled != "" {
+			nodePool.Volumes.KubeletRoot.Encryption = &NodePoolVolumeEncryption{}
+			nodePool.Volumes.KubeletRoot.Encryption.Enabled, err = strconv.ParseBool(nodePoolParameters.KubeletRootVolumeEncryptionEnabled)
+			if err != nil {
+				return NewNodePoolWithNoValues(name, NodePoolStatusError, "invalid encryption information")
+			}
+
+			nodePool.Volumes.KubeletRoot.Encryption.EncryptionKeyARN = nodePoolParameters.KubeletRootVolumeEncryptionKeyARN
+		}
+	case INSTANCE_STORE_STORAGE:
+		nodePool.Volumes.KubeletRoot = &NodePoolVolume{
+			Storage: nodePoolParameters.KubeletRootVolumeStorage,
+		}
+	}
+
+	// deprecated
 	if nodePoolParameters.NodeVolumeEncryptionEnabled != "" {
 		nodePool.VolumeEncryption = &NodePoolVolumeEncryption{}
 		nodePool.VolumeEncryption.Enabled, err = strconv.ParseBool(nodePoolParameters.NodeVolumeEncryptionEnabled)
@@ -162,9 +260,9 @@ func NewNodePoolFromCFStack(name string, labels map[string]string, stack *cloudf
 
 		nodePool.VolumeEncryption.EncryptionKeyARN = nodePoolParameters.NodeVolumeEncryptionKeyARN
 	}
-
 	nodePool.VolumeSize = nodePoolParameters.NodeVolumeSize
 	nodePool.VolumeType = nodePoolParameters.NodeVolumeType
+
 	nodePool.InstanceType = nodePoolParameters.NodeInstanceType
 	nodePool.Image = nodePoolParameters.NodeImageID
 	nodePool.SpotPrice = nodePoolParameters.NodeSpotPrice
@@ -293,6 +391,21 @@ type Autoscaling struct {
 type NodePoolVolumeEncryption struct {
 	Enabled          bool   `mapstructure:"enabled"`
 	EncryptionKeyARN string `mapstructure:"encryptionKeyARN"`
+}
+
+type NodePoolVolumes struct {
+	InstanceRoot *NodePoolVolume `mapstructure:"instanceRoot,omitempty"`
+	KubeletRoot  *NodePoolVolume `mapstructure:"kubeletRoot,omitempty"`
+}
+
+type NodePoolVolume struct {
+	Encryption *NodePoolVolumeEncryption `mapstructure:"encryption,omitempty"`
+	// Size of the EBS volume in GiBs of the nodes in the pool (default 50 GiB).
+	Size int `mapstructure:"size,omitempty"`
+	// Type of the mounted volume's storage on the node instances of the node pool.
+	Storage string `mapstructure:"storage"`
+	// Type of the EBS volume to mount on the EKS node pool node instances (default gp3).
+	Type string `mapstructure:"type,omitempty"`
 }
 
 // NewService returns a new Service instance.

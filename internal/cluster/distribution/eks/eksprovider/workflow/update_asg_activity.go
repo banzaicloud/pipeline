@@ -17,7 +17,6 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -58,24 +57,21 @@ type UpdateAsgActivityInput struct {
 	EKSActivityInput
 
 	// name of the cloud formation template stack
-	StackName            string
-	Name                 string
-	Version              string
-	NodeSpotPrice        string
-	Autoscaling          bool
-	NodeMinCount         int
-	NodeMaxCount         int
-	Count                int
-	NodeVolumeEncryption *eks.NodePoolVolumeEncryption
-	NodeVolumeSize       int
-	NodeVolumeType       string
-	NodeImage            string
-	NodeInstanceType     string
+	StackName        string
+	Name             string
+	Version          string
+	NodeSpotPrice    string
+	Autoscaling      bool
+	NodeMinCount     int
+	NodeMaxCount     int
+	Count            int
+	NodeVolumes      eks.NodePoolVolumes
+	NodeImage        string
+	NodeInstanceType string
 
 	// SecurityGroups collects the user specified custom node security group
 	// IDs.
-	SecurityGroups   []string
-	UseInstanceStore *bool
+	SecurityGroups []string
 
 	Labels map[string]string
 	Tags   map[string]string
@@ -183,28 +179,10 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 		fmt.Sprintf("%v=%v", cluster.NodePoolNameLabelKey, input.Name),
 	}
 
-	nodeVolumeEncryptionEnabled := ""
-	if input.NodeVolumeEncryption != nil {
-		nodeVolumeEncryptionEnabled = strconv.FormatBool(input.NodeVolumeEncryption.Enabled)
-	} else if a.defaultNodeVolumeEncryption != nil {
-		nodeVolumeEncryptionEnabled = strconv.FormatBool(a.defaultNodeVolumeEncryption.Enabled)
-	}
-
-	nodeVolumeEncryptionKeyARN := ""
-	if nodeVolumeEncryptionEnabled == "true" &&
-		input.NodeVolumeEncryption != nil &&
-		input.NodeVolumeEncryption.EncryptionKeyARN != "" {
-		nodeVolumeEncryptionKeyARN = input.NodeVolumeEncryption.EncryptionKeyARN
-	} else if nodeVolumeEncryptionEnabled == "true" &&
-		a.defaultNodeVolumeEncryption != nil &&
-		a.defaultNodeVolumeEncryption.EncryptionKeyARN != "" {
-		nodeVolumeEncryptionKeyARN = a.defaultNodeVolumeEncryption.EncryptionKeyARN
-	}
-
-	nodeVolumeType := "gp3"
-	if input.NodeVolumeType != "" {
-		nodeVolumeType = input.NodeVolumeType
-	}
+	nodeVolumeStorage, nodeVolumeSize, nodeVolumeEncryptionEnabled, nodeVolumeEncryptionKeyARN, nodeVolumeType :=
+		getDefaultedTemplateVolumeParams(input.NodeVolumes.InstanceRoot, a.defaultNodeVolumeEncryption)
+	kubeletRootVolumeStorage, kubeletRootVolumeSize, kubeletRootVolumeEncryptionEnabled, kubeletRootVolumeEncryptionKeyARN, kubeletRootVolumeType :=
+		getDefaultedTemplateVolumeParams(input.NodeVolumes.KubeletRoot, a.defaultNodeVolumeEncryption)
 
 	var stackTagsBuilder strings.Builder
 	for tagIndex, tag := range tags {
@@ -248,23 +226,59 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			ParameterKey:   aws.String("NodeAutoScalingInitSize"),
 			ParameterValue: aws.String(fmt.Sprintf("%d", input.Count)),
 		},
-		{
-			ParameterKey:   aws.String("NodeVolumeEncryptionEnabled"),
-			ParameterValue: aws.String(nodeVolumeEncryptionEnabled),
-		},
-		{
-			ParameterKey:   aws.String("NodeVolumeEncryptionKeyARN"),
-			ParameterValue: aws.String(nodeVolumeEncryptionKeyARN),
-		},
+
+		sdkCloudformation.NewOptionalStackParameter(
+			"NodeVolumeStorage",
+			nodeVolumeStorage != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
+			nodeVolumeStorage,
+		),
+		sdkCloudformation.NewOptionalStackParameter(
+			"NodeVolumeEncryptionEnabled",
+			nodeVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.1.0"), // Note: older templates cannot use non-existing previous value.
+			nodeVolumeEncryptionEnabled,
+		),
+		sdkCloudformation.NewOptionalStackParameter(
+			"NodeVolumeEncryptionKeyARN",
+			nodeVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.1.0"), // Note: when enablement is set, key ARN should be updated. // Note: older templates cannot use non-existing previous value.
+			nodeVolumeEncryptionKeyARN,
+		),
 		sdkCloudformation.NewOptionalStackParameter(
 			"NodeVolumeSize",
-			input.NodeVolumeSize > 0,
-			fmt.Sprintf("%d", input.NodeVolumeSize),
+			nodeVolumeSize > 0,
+			fmt.Sprintf("%d", nodeVolumeSize),
 		),
-		{
-			ParameterKey:   aws.String("NodeVolumeType"),
-			ParameterValue: aws.String(nodeVolumeType),
-		},
+		sdkCloudformation.NewOptionalStackParameter(
+			"NodeVolumeType",
+			(input.NodeVolumes.InstanceRoot != nil && input.NodeVolumes.InstanceRoot.Type != "") || input.CurrentTemplateVersion.IsLessThan("2.4.0"), // Note: older templates cannot use non-existing previous value.
+			nodeVolumeType,
+		),
+
+		sdkCloudformation.NewOptionalStackParameter(
+			"KubeletRootVolumeStorage",
+			kubeletRootVolumeStorage != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
+			kubeletRootVolumeStorage,
+		),
+		sdkCloudformation.NewOptionalStackParameter(
+			"KubeletRootVolumeEncryptionEnabled",
+			kubeletRootVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: older templates cannot use non-existing previous value.
+			kubeletRootVolumeEncryptionEnabled,
+		),
+		sdkCloudformation.NewOptionalStackParameter(
+			"KubeletRootVolumeEncryptionKeyARN",
+			kubeletRootVolumeEncryptionEnabled != "" || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: when enablement is set, key ARN should be updated. // Note: older templates cannot use non-existing previous value.
+			kubeletRootVolumeEncryptionKeyARN,
+		),
+		sdkCloudformation.NewOptionalStackParameter(
+			"KubeletRootVolumeSize",
+			kubeletRootVolumeSize > 0 || input.CurrentTemplateVersion.IsLessThan("2.5.0"),
+			fmt.Sprintf("%d", kubeletRootVolumeSize),
+		),
+		sdkCloudformation.NewOptionalStackParameter(
+			"KubeletRootVolumeType",
+			(input.NodeVolumes.KubeletRoot != nil && input.NodeVolumes.KubeletRoot.Type != "") || input.CurrentTemplateVersion.IsLessThan("2.5.0"), // Note: older templates cannot use non-existing previous value.
+			kubeletRootVolumeType,
+		),
+
 		{
 			ParameterKey:   aws.String("StackTags"),
 			ParameterValue: aws.String(stackTagsBuilder.String()),
@@ -313,11 +327,6 @@ func (a *UpdateAsgActivity) Execute(ctx context.Context, input UpdateAsgActivity
 			ParameterKey:   aws.String("KubeletExtraArguments"),
 			ParameterValue: aws.String(fmt.Sprintf("--node-labels %v", strings.Join(nodeLabels, ","))),
 		},
-		sdkCloudformation.NewOptionalStackParameter(
-			"UseInstanceStore",
-			input.UseInstanceStore != nil || input.CurrentTemplateVersion.IsLessThan("2.2.0"),
-			strconv.FormatBool(aws.BoolValue(input.UseInstanceStore)), // Note: false default value for old stacks.
-		),
 	}
 
 	requestToken := aws.String(sdkAmazon.NewNormalizedClientRequestToken(activity.GetInfo(ctx).WorkflowExecution.ID))

@@ -10,7 +10,7 @@
 
 package pipeline
 
-// EksNodePoolVolumeEncryption - Encryption details of the node volumes in an EKS node pool.
+// EksNodePoolVolumeEncryption - Encryption details of the instance volumes in an EKS node pool (default null -> control plane configuration -> AWS account default).
 type EksNodePoolVolumeEncryption struct {
 
 	// Indicator of encrypted node pool node volumes.
