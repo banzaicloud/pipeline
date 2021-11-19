@@ -28,7 +28,7 @@ type EksNodePool struct {
 
 	VolumeEncryption *EksNodePoolVolumeEncryption `json:"volumeEncryption,omitempty"`
 
-	// Size of the EBS volume in GBs of the nodes in the pool.
+	// Size of the EBS volume in GiBs of the nodes in the pool.
 	VolumeSize int32 `json:"volumeSize,omitempty"`
 
 	Image string `json:"image,omitempty"`

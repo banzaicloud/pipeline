@@ -58,7 +58,7 @@ Parameters:
     Description: Initial count of nodes in the pool
   VolumeSize:
     Type: Number
-    Description: Size of EBS volume to create in GB. Zero means to use the the AMI snapshot size.
+    Description: Size of EBS volume to create in GiB. Zero means to use the the AMI snapshot size.
     Default: 0
 
 Conditions:

@@ -84,7 +84,7 @@ func TestSelectVolumeSizeActivityExecute(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: errors.New(
-					"selected volume size of 1 GB (source: explicitly set) is less than the AMI size of 2 GB",
+					"selected volume size of 1 GiB (source: explicitly set) is less than the AMI size of 2 GiB",
 				),
 				expectedOutput: nil,
 			},
@@ -100,7 +100,7 @@ func TestSelectVolumeSizeActivityExecute(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: errors.New(
-					"selected volume size of 1 GB (source: default configured) is less than the AMI size of 2 GB",
+					"selected volume size of 1 GiB (source: default configured) is less than the AMI size of 2 GiB",
 				),
 				expectedOutput: nil,
 			},
@@ -254,7 +254,7 @@ func TestSelectVolumeSize(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: errors.New(
-					"selected volume size of 1 GB (source: explicitly set) is less than the AMI size of 2 GB",
+					"selected volume size of 1 GiB (source: explicitly set) is less than the AMI size of 2 GiB",
 				),
 				expectedVolumeSize: 0,
 			},
@@ -348,7 +348,7 @@ func TestSelectVolumeSizeAsync(t *testing.T) {
 			},
 			output: outputType{
 				expectedError: errors.New(
-					"selected volume size of 1 GB (source: explicitly set) is less than the AMI size of 2 GB",
+					"selected volume size of 1 GiB (source: explicitly set) is less than the AMI size of 2 GiB",
 				),
 				expectedOutput: nil,
 			},

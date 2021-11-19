@@ -70,7 +70,7 @@ func (a *SelectVolumeSizeActivity) Execute(ctx context.Context, input SelectVolu
 
 	if output.VolumeSize < input.AMISize {
 		return nil, errors.New(fmt.Sprintf(
-			"selected volume size of %d GB (source: %s) is less than the AMI size of %d GB",
+			"selected volume size of %d GiB (source: %s) is less than the AMI size of %d GiB",
 			output.VolumeSize, valueSource, input.AMISize,
 		))
 	}

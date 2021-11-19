@@ -25,7 +25,7 @@ type CreateNodePoolRequest struct {
 
 	VolumeEncryption *EksNodePoolVolumeEncryption `json:"volumeEncryption,omitempty"`
 
-	// Size of the EBS volume in GBs of the nodes in the pool.
+	// Size of the EBS volume in GiBs of the nodes in the pool.
 	VolumeSize int32 `json:"volumeSize,omitempty"`
 
 	// Type of the EBS volume of the nodes in the pool (default gp3).
