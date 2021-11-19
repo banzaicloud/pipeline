@@ -182,6 +182,11 @@ const (
 
 // Validate checks Amazon's node fields
 func (a *NodePool) Validate(npName string) error {
+	// ---- [ Node pool name validation ] ---- //
+	if err := pkgCommon.ValidateNodePoolName(npName); err != nil {
+		return err
+	}
+
 	// ---- [ Node instanceType check ] ---- //
 	if len(a.InstanceType) == 0 {
 		return pkgErrors.ErrorInstancetypeFieldIsEmpty

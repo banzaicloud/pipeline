@@ -17,6 +17,7 @@ package common
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -71,6 +72,14 @@ const (
 	SpotConfigMapKey = "spot-deploy-config"
 )
 
+// nodePoolNameRegexp is matching a valid node pool name
+// (only lower case alphanumeric characters and single dashes within the string)
+//
+// Regular expression: https://regex101.com/r/OrRrlw/1
+var (
+	nodePoolNameRegexp = regexp.MustCompile(`^[a-z0-9]([a-z0-9]*[a-z0-9])?(-[a-z0-9]([a-z0-9]*[a-z0-9])?)*$`) // nolint:gochecknoglobals
+)
+
 // ErrorResponseWithStatus aborts the http request with a JSON error response with the given status code and error
 func ErrorResponseWithStatus(c *gin.Context, status int, err error) {
 	if c.Writer.Status() != http.StatusOK {
@@ -102,4 +111,16 @@ func ValidateNodePoolLabels(nodePoolName string, labels map[string]string) error
 	}
 
 	return nil
+}
+
+// ValidateNodePoolName checks the length and validity of the node pool name
+func ValidateNodePoolName(nodePoolName string) error {
+	if len(nodePoolName) > 63 {
+		return errors.New(fmt.Sprintf("node pool name '%s' too long: over 63 characters", nodePoolName))
+	}
+
+	if nodePoolNameRegexp.MatchString(nodePoolName) {
+		return nil
+	}
+	return errors.New(fmt.Sprintf("node pool name '%s' invalid: must consist of lower case alphanumeric characters and single dashes within the string", nodePoolName))
 }
