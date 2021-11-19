@@ -483,15 +483,31 @@ func WaitForASGToBeFulfilled(
 					if autoscaling.IsErrorFinal(err) {
 						return errors.WithDetails(err, "nodePoolName", nodePoolName, "stackName", aws.StringValue(asGroup.AutoScalingGroupName))
 					}
-					// log.Debug(err)
 					continue
 				}
 				if ok {
-					// log.Debug("ASG is healthy")
+					logger.Debug("ASG is healthy")
 					return nil
 				}
 			} else {
-				return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s", asgFulfillmentWaitAttempts, asgFulfillmentWaitInterval)
+				asGroup, err := m.GetAutoscalingGroupByStackName(stackName)
+				if err != nil {
+					return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s, could not get ASG in stack: %s", asgFulfillmentWaitAttempts, asgFulfillmentWaitInterval, stackName)
+				}
+
+				lastActivity, err := m.LastAutoscalingActivity(ctx, asGroup.AutoScalingGroupName)
+				if err != nil {
+					return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s, could not get last ASG activity in stack: %s", asgFulfillmentWaitAttempts, asgFulfillmentWaitInterval, stackName)
+				}
+
+				return errors.Errorf(
+					"waiting for ASG to be fulfilled timed out after %d x %s, status: %s, cause: %s, description: %s",
+					asgFulfillmentWaitAttempts,
+					asgFulfillmentWaitInterval,
+					aws.StringValue(lastActivity.StatusCode),
+					aws.StringValue(lastActivity.Cause),
+					aws.StringValue(lastActivity.Description),
+				)
 			}
 		case <-ctx.Done(): // wait for ASG fulfillment cancelled
 			return nil

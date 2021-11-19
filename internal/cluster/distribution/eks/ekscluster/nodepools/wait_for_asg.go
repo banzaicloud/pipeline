@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/sirupsen/logrus"
@@ -80,7 +81,24 @@ func WaitForASGToBeFulfilled(
 					return nil
 				}
 			} else {
-				return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s", waitAttempts, waitInterval)
+				asGroup, err := m.GetAutoscalingGroupByStackName(asgName)
+				if err != nil {
+					return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s, could not get ASG in stack: %s", waitAttempts, waitInterval, asgName)
+				}
+
+				lastActivity, err := m.LastAutoscalingActivity(ctx, asGroup.AutoScalingGroupName)
+				if err != nil {
+					return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s, could not get last ASG activity in stack: %s", waitAttempts, waitInterval, asgName)
+				}
+
+				return errors.Errorf(
+					"waiting for ASG to be fulfilled timed out after %d x %s, status: %s, cause: %s, description: %s",
+					waitAttempts,
+					waitInterval,
+					aws.StringValue(lastActivity.StatusCode),
+					aws.StringValue(lastActivity.Cause),
+					aws.StringValue(lastActivity.Description),
+				)
 			}
 		case <-ctx.Done(): // wait for ASG fulfillment cancelled
 			return nil
