@@ -110,9 +110,53 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 			createClusterRequest.SecretId = secret.GenerateSecretIDFromName(createClusterRequest.SecretName)
 		}
 
-		commonCluster, err := a.createCluster(ctx, &createClusterRequest, orgID, userID, createClusterRequest.PostHooks)
-		if err != nil {
-			c.JSON(err.Code, err)
+		existingCluster, err := a.clusterManager.GetClusterByName(ctx, orgID, createClusterRequest.Name)
+		if err != nil && !isNotFoundError(err) {
+			c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "check if the cluster already exists failed",
+				Error:   err.Error(),
+			})
+
+			return
+		} else if err != nil && isNotFoundError(err) {
+			a.logger.Info("cluster does not exist yet, creating")
+		}
+
+		if existingCluster != nil {
+			statusResponse, err := existingCluster.GetStatus()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, err)
+				return
+			}
+
+			switch statusResponse.Status {
+			case pkgCluster.Creating:
+				c.JSON(http.StatusCreated, pkgCommon.BanzaiResponse{
+					StatusCode: http.StatusCreated,
+					Message:    cluster.ErrAlreadyExists.Error(),
+				})
+				return
+			case pkgCluster.Deleting:
+				c.JSON(http.StatusConflict, pkgCommon.ErrorResponse{
+					Code:    http.StatusConflict,
+					Message: cluster.ErrAlreadyExists.Error(),
+					Error:   cluster.ErrAlreadyExists.Error(),
+				})
+				return
+			default:
+				c.JSON(http.StatusConflict, pkgCommon.ErrorResponse{
+					Code:    http.StatusBadRequest,
+					Message: cluster.ErrAlreadyExists.Error(),
+					Error:   cluster.ErrAlreadyExists.Error(),
+				})
+				return
+			}
+		}
+
+		commonCluster, errorResponse := a.createCluster(ctx, &createClusterRequest, orgID, userID, createClusterRequest.PostHooks)
+		if errorResponse != nil {
+			c.JSON(errorResponse.Code, errorResponse)
 			return
 		}
 
@@ -236,7 +280,7 @@ func (a *ClusterAPI) createCluster(
 		commonCluster, err = a.clusterManager.CreateCluster(ctx, creationCtx, creator)
 	}
 
-	if err == cluster.ErrAlreadyExists || isInvalid(err) {
+	if isInvalid(err) {
 		logger.Debugf("invalid cluster creation: %s", err.Error())
 
 		return nil, &pkgCommon.ErrorResponse{

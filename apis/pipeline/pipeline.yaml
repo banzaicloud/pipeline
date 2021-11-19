@@ -118,6 +118,12 @@ paths:
                                         gke:
                                             $ref: '#/components/schemas/CreateGKEProperties'
             responses:
+                201:
+                    description: Cluster is already being created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateClusterResponse_201'
                 202:
                     description: Cluster created successfully
                     content:
@@ -5261,6 +5267,16 @@ components:
 
         AmazonLaunchTemplate:
             type: object
+
+        CreateClusterResponse_201:
+            type: object
+            properties:
+                status_code:
+                    type: integer
+                    example: 201
+                message:
+                    type: string
+                    example: "cluster already exists with this name"
 
         CreateClusterResponse_202:
             type: object

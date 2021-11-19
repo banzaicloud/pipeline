@@ -220,6 +220,12 @@ paths:
               type: object
         required: true
       responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateClusterResponse_201'
+          description: Cluster is already being created
         "202":
           content:
             application/json:
@@ -19287,10 +19293,19 @@ components:
       type: object
     AmazonLaunchTemplate:
       type: object
-    CreateClusterResponse_202:
+    CreateClusterResponse_201:
       example:
-        name: gkecluster-pipelineuser-123
-        id: 1
+        status_code: 201
+        message: cluster already exists with this name
+      properties:
+        status_code:
+          example: 201
+          type: integer
+        message:
+          example: cluster already exists with this name
+          type: string
+      type: object
+    CreateClusterResponse_202:
       properties:
         name:
           example: gkecluster-pipelineuser-123

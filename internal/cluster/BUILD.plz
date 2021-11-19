@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//pkg/cloud",
         "//pkg/sdk/brn",
+        "//src/utils",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__mitchellh__mapstructure",
         "//third_party/go:github.com__stretchr__testify__mock",
@@ -27,6 +28,7 @@ go_test(
     deps = [
         "//pkg/cloud",
         "//pkg/sdk/brn",
+        "//src/utils",
         "//third_party/go:emperror.dev__errors",
         "//third_party/go:github.com__mitchellh__mapstructure",
         "//third_party/go:github.com__stretchr__testify__assert",

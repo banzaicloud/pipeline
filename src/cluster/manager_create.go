@@ -77,10 +77,6 @@ func (m *Manager) CreateCluster(
 		"cluster":      creationCtx.Name,
 	})
 
-	if err := m.assertNotExists(creationCtx); err != nil {
-		return nil, err
-	}
-
 	logger.Debug("validating secret")
 	if len(creationCtx.SecretIDs) > 0 {
 		var err error
@@ -158,19 +154,6 @@ func (m *Manager) CreateCluster(
 	}()
 
 	return cluster, nil
-}
-
-func (m *Manager) assertNotExists(ctx CreationContext) error {
-	exists, err := m.clusters.Exists(ctx.OrganizationID, ctx.Name)
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		return ErrAlreadyExists
-	}
-
-	return nil
 }
 
 // createCluster creates the cluster blockingly given an initially validated context
