@@ -110,6 +110,8 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 			createClusterRequest.SecretId = secret.GenerateSecretIDFromName(createClusterRequest.SecretName)
 		}
 
+		createClusterRequest.ProductDetailsGetter = a.productDetailsGetter
+
 		existingCluster, err := a.clusterManager.GetClusterByName(ctx, orgID, createClusterRequest.Name)
 		if err != nil && !isNotFoundError(err) {
 			c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{

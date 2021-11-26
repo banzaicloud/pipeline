@@ -673,6 +673,7 @@ func main() {
 		unifiedHelmReleaser,
 		config.Auth,
 		clusterAuthService,
+		cloudinfoClient,
 	)
 
 	v1 := base.Group("api/v1")

@@ -22,6 +22,12 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
 )
 
+// ProductDetailsGetter gets cloud product details from the given cloud provider, region and product type.
+type ProductDetailsGetter interface {
+	// GetProductDetails returns details about products from the given cloud provider, region and product type.
+	GetProductDetails(ctx context.Context, cloud string, service string, region string, productType string) (cloudinfo.ProductDetails, error)
+}
+
 type productCacheKey struct {
 	cloud       string
 	service     string

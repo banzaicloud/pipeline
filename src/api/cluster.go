@@ -36,6 +36,7 @@ import (
 	azureDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	vsphereDriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -61,9 +62,10 @@ type ClusterAPI struct {
 	clusterCreators ClusterCreators
 	clusterUpdaters ClusterUpdaters
 
-	helmService        cluster.HelmService
-	authConfig         auth.Config
-	clientSecretGetter clusterAuth.ClusterClientSecretGetter
+	helmService          cluster.HelmService
+	authConfig           auth.Config
+	clientSecretGetter   clusterAuth.ClusterClientSecretGetter
+	productDetailsGetter cloudinfo.ProductDetailsGetter
 }
 
 type ClusterCreators struct {
@@ -98,6 +100,7 @@ func NewClusterAPI(
 	helmService cluster.HelmService,
 	authConfig auth.Config,
 	clientSecretGetter clusterAuth.ClusterClientSecretGetter,
+	productDetailsGetter cloudinfo.ProductDetailsGetter,
 ) *ClusterAPI {
 	return &ClusterAPI{
 		clusterManager:          clusterManager,
@@ -113,6 +116,7 @@ func NewClusterAPI(
 		helmService:             helmService,
 		authConfig:              authConfig,
 		clientSecretGetter:      clientSecretGetter,
+		productDetailsGetter:    productDetailsGetter,
 	}
 }
 

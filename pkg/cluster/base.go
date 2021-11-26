@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
@@ -74,14 +75,15 @@ const (
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
-	Name       string                   `json:"name" yaml:"name" binding:"required"`
-	Location   string                   `json:"location" yaml:"location"`
-	Cloud      string                   `json:"cloud" yaml:"cloud" binding:"required"`
-	SecretId   string                   `json:"secretId" yaml:"secretId"`
-	SecretIds  []string                 `json:"secretIds,omitempty" yaml:"secretIds,omitempty"`
-	SecretName string                   `json:"secretName" yaml:"secretName"`
-	PostHooks  PostHooks                `json:"postHooks" yaml:"postHooks"`
-	Properties *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
+	Name                 string                   `json:"name" yaml:"name" binding:"required"`
+	Location             string                   `json:"location" yaml:"location"`
+	Cloud                string                   `json:"cloud" yaml:"cloud" binding:"required"`
+	SecretId             string                   `json:"secretId" yaml:"secretId"`
+	SecretIds            []string                 `json:"secretIds,omitempty" yaml:"secretIds,omitempty"`
+	SecretName           string                   `json:"secretName" yaml:"secretName"`
+	PostHooks            PostHooks                `json:"postHooks" yaml:"postHooks"`
+	Properties           *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
+	ProductDetailsGetter cloudinfo.ProductDetailsGetter
 }
 
 // CreateClusterProperties contains the cluster flavor specific properties.
