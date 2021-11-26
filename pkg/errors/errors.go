@@ -14,7 +14,10 @@
 
 package errors
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // ### [ Errors ] ### //
 var (
@@ -71,5 +74,37 @@ type ValidationBehavior struct{}
 
 // Validation returns true.
 func (ValidationBehavior) Validation() bool {
+	return true
+}
+
+type SpotPriceError struct {
+	spotPrice        float64
+	currentSpotPrice float64
+	location         string
+	instanceType     string
+}
+
+func NewSpotPriceError(spotPrice, currentSpotPrice float64, location, instanceType string) SpotPriceError {
+	return SpotPriceError{
+		spotPrice:        spotPrice,
+		currentSpotPrice: currentSpotPrice,
+		location:         location,
+		instanceType:     instanceType,
+	}
+}
+
+func (e SpotPriceError) Error() string {
+	return fmt.Sprintf(
+		"spotPrice '%.4f' is too low, current minimum price for location '%s' and instance '%s' is '%.4f' (zone price for zone locations, maximum of zone prices for regions)",
+		e.spotPrice,
+		e.location,
+		e.instanceType,
+		e.currentSpotPrice,
+	)
+}
+
+// ServiceError tells the consumer whether this error is caused by invalid input supplied by the client.
+// Client errors are usually returned to the consumer without retrying the operation.
+func (SpotPriceError) ServiceError() bool {
 	return true
 }
