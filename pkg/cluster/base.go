@@ -16,14 +16,19 @@ package cluster
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"strconv"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
+	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
+	"github.com/banzaicloud/pipeline/pkg/cloud"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
@@ -335,6 +340,9 @@ func (r *CreateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Amazon:
 		// eks validate
+		if err := r.validateAmazonSpotPrices(); err != nil {
+			return err
+		}
 		if r.Properties.CreateClusterPKE != nil {
 			// r.Properties.CreateClusterPKE.Validate()
 			return nil
@@ -364,6 +372,84 @@ func (r *CreateClusterRequest) validateMainFields() error {
 	}
 
 	return nil
+}
+
+func (r *CreateClusterRequest) validateAmazonSpotPrices() error {
+	var errs []error
+	if r.Properties.CreateClusterPKE != nil {
+		for _, np := range r.Properties.CreateClusterPKE.NodePools {
+			providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+			if err := mapstructure.Decode(np.ProviderConfig, &providerConfig); err != nil {
+				return errors.WrapIff(err, "decoding nodepool %q config", np.Name)
+			}
+
+			// check if spotPrice is specified
+			if providerConfig.AutoScalingGroup.SpotPrice == "" {
+				continue
+			}
+
+			spotPriceFloat, err := strconv.ParseFloat(providerConfig.AutoScalingGroup.SpotPrice, 64)
+			if err != nil {
+				return errors.WrapWithDetails(err, "could not parse spotPrice string to float64", providerConfig.AutoScalingGroup.SpotPrice)
+			}
+
+			spotPriceMap, err := r.getSpotPriceMap(cloud.Amazon, PKE, providerConfig.AutoScalingGroup.InstanceType)
+			if err != nil {
+				return err
+			}
+
+			for _, zone := range providerConfig.AutoScalingGroup.Zones {
+				if spotPriceFloat < spotPriceMap[string(zone)] {
+					errs = append(errs, pkgErrors.NewSpotPriceError(spotPriceFloat, spotPriceMap[string(zone)], string(zone), providerConfig.AutoScalingGroup.InstanceType))
+				}
+			}
+
+			if errs == nil && spotPriceFloat < spotPriceMap[r.Location] {
+				errs = append(errs, pkgErrors.NewSpotPriceError(spotPriceFloat, spotPriceMap[r.Location], r.Location, providerConfig.AutoScalingGroup.InstanceType))
+			}
+		}
+	} else {
+		for _, np := range r.Properties.CreateClusterEKS.NodePools {
+			// check if spotPrice is specified
+			if np.SpotPrice == "" {
+				continue
+			}
+
+			spotPriceFloat, err := strconv.ParseFloat(np.SpotPrice, 64)
+			if err != nil {
+				return errors.WrapWithDetails(err, "could not parse spotPrice string to float64", np.SpotPrice)
+			}
+
+			spotPriceMap, err := r.getSpotPriceMap(cloud.Amazon, EKS, np.InstanceType)
+			if err != nil {
+				return err
+			}
+
+			if spotPriceFloat < spotPriceMap[r.Location] {
+				errs = append(errs, pkgErrors.NewSpotPriceError(spotPriceFloat, spotPriceMap[r.Location], r.Location, np.InstanceType))
+			}
+		}
+	}
+
+	return errors.Combine(errs...)
+}
+
+func (r *CreateClusterRequest) getSpotPriceMap(cloud, service, instanceType string) (map[string]float64, error) {
+	prices := make(map[string]float64)
+
+	productDetails, err := r.ProductDetailsGetter.GetProductDetails(context.Background(), cloud, service, r.Location, instanceType)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "could not get product details")
+	}
+
+	for _, zonePrice := range productDetails.SpotPrice {
+		prices[zonePrice.Zone] = zonePrice.Price
+		if prices[r.Location] < zonePrice.Price {
+			prices[r.Location] = zonePrice.Price
+		}
+	}
+
+	return prices, nil
 }
 
 // Validate checks the request fields
