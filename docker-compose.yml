@@ -87,7 +87,7 @@ services:
             - mysql
 
     cadence-web:
-        image: ubercadence/web:v3.27.0
+        image: ubercadence/web:v3.28.4
         environment:
             CADENCE_TCHANNEL_PEERS: cadence:7933
         depends_on:
