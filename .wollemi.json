@@ -576,6 +576,7 @@
         "go.uber.org/yarpc/api/middleware": "//third_party/go:go.uber.org__yarpc__api__middleware",
         "go.uber.org/yarpc/api/peer": "//third_party/go:go.uber.org__yarpc__api__peer",
         "go.uber.org/yarpc/api/transport": "//third_party/go:go.uber.org__yarpc__api__transport",
+        "go.uber.org/yarpc/api/x/introspection": "//third_party/go:go.uber.org__yarpc__api__x__introspection",
         "go.uber.org/yarpc/encoding/thrift": "//third_party/go:go.uber.org__yarpc__encoding__thrift",
         "go.uber.org/yarpc/encoding/thrift/internal": "//third_party/go:go.uber.org__yarpc__encoding__thrift__internal",
         "go.uber.org/yarpc/internal": "//third_party/go:go.uber.org__yarpc__internal",
