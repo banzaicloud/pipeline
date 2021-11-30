@@ -1950,7 +1950,7 @@ go_mod_download(
     name = "github.com__banzaicloud__cadence-aws-sdk",
     _tag = "download",
     module = "github.com/banzaicloud/cadence-aws-sdk",
-    version = "v0.4.0",
+    version = "v0.5.0",
 )
 
 go_module(
@@ -7973,7 +7973,7 @@ go_mod_download(
     name = "go.uber.org__cadence",
     _tag = "download",
     module = "go.uber.org/cadence",
-    version = "v0.17.0",
+    version = "v0.18.5",
 )
 
 go_module(
@@ -7997,8 +7997,10 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":go.uber.org__cadence__.gen__go__shared",
+        ":go.uber.org__multierr",
         ":go.uber.org__thriftrw__thriftreflect",
         ":go.uber.org__thriftrw__wire",
+        ":go.uber.org__zap__zapcore",
     ],
 )
 
@@ -8040,8 +8042,10 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":go.uber.org__cadence__.gen__go__shared",
+        ":go.uber.org__multierr",
         ":go.uber.org__thriftrw__thriftreflect",
         ":go.uber.org__thriftrw__wire",
+        ":go.uber.org__zap__zapcore",
     ],
 )
 
@@ -8052,9 +8056,11 @@ go_module(
     module = "go.uber.org/cadence",
     visibility = ["PUBLIC"],
     deps = [
+        ":go.uber.org__multierr",
         ":go.uber.org__thriftrw__ptr",
         ":go.uber.org__thriftrw__thriftreflect",
         ":go.uber.org__thriftrw__wire",
+        ":go.uber.org__zap__zapcore",
     ],
 )
 
@@ -8078,6 +8084,7 @@ go_module(
     module = "go.uber.org/cadence",
     visibility = ["PUBLIC"],
     deps = [
+        ":go.uber.org__cadence",
         ":go.uber.org__cadence__.gen__go__cadence__workflowserviceclient",
         ":go.uber.org__cadence__.gen__go__shared",
         ":go.uber.org__cadence__encoded",
@@ -8322,7 +8329,7 @@ go_mod_download(
     name = "go.uber.org__thriftrw",
     _tag = "download",
     module = "go.uber.org/thriftrw",
-    version = "v1.23.0",
+    version = "v1.25.0",
 )
 
 go_module(
@@ -8413,7 +8420,7 @@ go_mod_download(
     name = "go.uber.org__yarpc",
     _tag = "download",
     module = "go.uber.org/yarpc",
-    version = "v1.45.0",
+    version = "v1.55.0",
 )
 
 go_module(
@@ -8434,6 +8441,7 @@ go_module(
         ":go.uber.org__yarpc__api__encoding",
         ":go.uber.org__yarpc__api__middleware",
         ":go.uber.org__yarpc__api__transport",
+        ":go.uber.org__yarpc__api__x__introspection",
         ":go.uber.org__yarpc__internal",
         ":go.uber.org__yarpc__internal__errorsync",
         ":go.uber.org__yarpc__internal__firstoutboundmiddleware",
@@ -8447,6 +8455,7 @@ go_module(
         ":go.uber.org__yarpc__yarpcerrors",
         ":go.uber.org__zap",
         ":go.uber.org__zap__zapcore",
+        ":google.golang.org__grpc",
     ],
 )
 
@@ -8480,7 +8489,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":go.uber.org__yarpc__api__transport",
-        ":go.uber.org__yarpc__internal__introspection",
+        ":go.uber.org__yarpc__api__x__introspection",
     ],
 )
 
@@ -8510,6 +8519,15 @@ go_module(
 )
 
 go_module(
+    name = "go.uber.org__yarpc__api__x__introspection",
+    download = ":_go.uber.org__yarpc#download",
+    install = ["api/x/introspection"],
+    module = "go.uber.org/yarpc",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "go.uber.org__yarpc__encoding__thrift",
     download = ":_go.uber.org__yarpc#download",
     install = ["encoding/thrift"],
@@ -8528,6 +8546,7 @@ go_module(
         ":go.uber.org__yarpc__pkg__encoding",
         ":go.uber.org__yarpc__pkg__errors",
         ":go.uber.org__yarpc__pkg__procedure",
+        ":go.uber.org__yarpc__yarpcerrors",
     ],
 )
 
@@ -8662,7 +8681,11 @@ go_module(
     install = ["internal/introspection"],
     module = "go.uber.org/yarpc",
     visibility = ["PUBLIC"],
-    deps = [":go.uber.org__yarpc__api__transport"],
+    deps = [
+        ":go.uber.org__yarpc__api__transport",
+        ":go.uber.org__yarpc__api__x__introspection",
+        ":go.uber.org__yarpc__pkg__procedure",
+    ],
 )
 
 go_module(
@@ -8700,7 +8723,7 @@ go_module(
     deps = [
         ":go.uber.org__yarpc__api__middleware",
         ":go.uber.org__yarpc__api__transport",
-        ":go.uber.org__yarpc__internal__introspection",
+        ":go.uber.org__yarpc__api__x__introspection",
     ],
 )
 
@@ -8712,7 +8735,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":go.uber.org__yarpc__api__transport",
-        ":go.uber.org__yarpc__internal__introspection",
+        ":go.uber.org__yarpc__api__x__introspection",
     ],
 )
 
@@ -8735,7 +8758,7 @@ go_module(
         ":go.uber.org__multierr",
         ":go.uber.org__yarpc__api__peer",
         ":go.uber.org__yarpc__api__transport",
-        ":go.uber.org__yarpc__internal__introspection",
+        ":go.uber.org__yarpc__api__x__introspection",
         ":go.uber.org__yarpc__pkg__lifecycle",
     ],
 )
@@ -8822,9 +8845,9 @@ go_module(
         ":go.uber.org__yarpc__api__backoff",
         ":go.uber.org__yarpc__api__peer",
         ":go.uber.org__yarpc__api__transport",
+        ":go.uber.org__yarpc__api__x__introspection",
         ":go.uber.org__yarpc__internal__backoff",
         ":go.uber.org__yarpc__internal__bufferpool",
-        ":go.uber.org__yarpc__internal__introspection",
         ":go.uber.org__yarpc__internal__iopool",
         ":go.uber.org__yarpc__internal__yarpcerrors",
         ":go.uber.org__yarpc__peer",

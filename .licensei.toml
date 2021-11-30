@@ -23,6 +23,13 @@ ignored = [
 
   "gopkg.in/square/go-jose.v2", # Apache 2.0
 
+  "go.uber.org/cadence", # MIT
+  "go.uber.org/thriftrw", # MIT
+  "go.uber.org/yarpc", # MIT
+  "github.com/xeipuuv/gojsonpointer", # Apache 2.0, non-standard file name
+  "github.com/xeipuuv/gojsonreference", # Apache 2.0, non-standard file name
+  "github.com/xeipuuv/gojsonschema", # Apache 2.0, non-standard file name
+
   # Unsupported VCS
   "cloud.google.com/go",
   "cloud.google.com/go/storage",
