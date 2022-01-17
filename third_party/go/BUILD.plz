@@ -1869,6 +1869,18 @@ go_module(
     deps = [],
 )
 
+go_module(
+    name = "github.com__aymerick__douceur__parser",
+    download = ":_github.com__aymerick__douceur#download",
+    install = ["parser"],
+    module = "github.com/aymerick/douceur",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__aymerick__douceur__css",
+        ":github.com__gorilla__css__scanner",
+    ],
+)
+
 go_mod_download(
     name = "github.com__banzaicloud__anchore-image-validator",
     _tag = "download",
@@ -2448,25 +2460,6 @@ go_module(
     module = "github.com/cespare/xxhash/v2",
     visibility = ["PUBLIC"],
     deps = [],
-)
-
-go_mod_download(
-    name = "github.com__chris-ramon__douceur",
-    _tag = "download",
-    module = "github.com/chris-ramon/douceur",
-    version = "v0.2.0",
-)
-
-go_module(
-    name = "github.com__chris-ramon__douceur__parser",
-    download = ":_github.com__chris-ramon__douceur#download",
-    install = ["parser"],
-    module = "github.com/chris-ramon/douceur",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__aymerick__douceur__css",
-        ":github.com__gorilla__css__scanner",
-    ],
 )
 
 go_mod_download(
@@ -5513,7 +5506,7 @@ go_mod_download(
     name = "github.com__microcosm-cc__bluemonday",
     _tag = "download",
     module = "github.com/microcosm-cc/bluemonday",
-    version = "v1.0.3",
+    version = "v1.0.17",
 )
 
 go_module(
@@ -5523,9 +5516,19 @@ go_module(
     module = "github.com/microcosm-cc/bluemonday",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__chris-ramon__douceur__parser",
+        ":github.com__aymerick__douceur__parser",
+        ":github.com__microcosm-cc__bluemonday__css",
         ":golang.org__x__net__html",
     ],
+)
+
+go_module(
+    name = "github.com__microcosm-cc__bluemonday__css",
+    download = ":_github.com__microcosm-cc__bluemonday#download",
+    install = ["css"],
+    module = "github.com/microcosm-cc/bluemonday",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -9205,7 +9208,7 @@ go_mod_download(
     name = "golang.org__x__net",
     _tag = "download",
     module = "golang.org/x/net",
-    version = "v0.0.0-20210405180319-a5a99cb37ef4",
+    version = "v0.0.0-20210614182718-04defd469f4e",
 )
 
 go_module(
@@ -9536,7 +9539,7 @@ go_mod_download(
     name = "golang.org__x__text",
     _tag = "download",
     module = "golang.org/x/text",
-    version = "v0.3.5",
+    version = "v0.3.6",
 )
 
 go_module(
