@@ -56,7 +56,7 @@ require (
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/microcosm-cc/bluemonday v1.0.17
-	github.com/mitchellh/copystructure v1.0.0
+	github.com/mitchellh/copystructure v1.1.1
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/moogar0880/problems v0.1.1
 	github.com/oklog/run v1.1.0
@@ -69,9 +69,9 @@ require (
 	github.com/sagikazarmark/appkit v0.8.0
 	github.com/sagikazarmark/kitx v0.12.0
 	github.com/sagikazarmark/ocmux v0.2.0
-	github.com/sirupsen/logrus v1.7.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.3.1
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.0
 	github.com/stretchr/testify v1.7.0
@@ -82,7 +82,7 @@ require (
 	go.uber.org/cadence v0.18.5
 	go.uber.org/yarpc v1.55.0
 	go.uber.org/zap v1.17.0
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
 	google.golang.org/api v0.44.0
@@ -91,15 +91,15 @@ require (
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.4.0
-	helm.sh/helm/v3 v3.5.3
-	k8s.io/api v0.20.9
-	k8s.io/apiextensions-apiserver v0.20.9
-	k8s.io/apimachinery v0.20.9
-	k8s.io/cli-runtime v0.20.9
-	k8s.io/client-go v0.20.9
+	helm.sh/helm/v3 v3.6.1
+	k8s.io/api v0.21.0
+	k8s.io/apiextensions-apiserver v0.21.0
+	k8s.io/apimachinery v0.21.0
+	k8s.io/cli-runtime v0.21.0
+	k8s.io/client-go v0.21.0
 	k8s.io/cluster-bootstrap v0.20.9
 	k8s.io/klog v1.0.0
-	k8s.io/klog/v2 v2.4.0
+	k8s.io/klog/v2 v2.8.0
 	k8s.io/kubernetes v1.20.9
 	logur.dev/adapter/logrus v0.4.1
 	logur.dev/adapter/zap v0.4.1
