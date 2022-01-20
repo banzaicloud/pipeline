@@ -21,8 +21,8 @@ import (
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	k8srest "k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
@@ -163,12 +163,12 @@ func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID ui
 }
 
 // DeleteObject deletes an Object from a specific cluster.
-func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o client.Object) error {
 	return nil
 }
 
 // EnsureObject makes sure that a given Object is on the cluster and returns it.
-func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o client.Object) error {
 	switch v := o.(type) {
 	case *corev1.ServiceAccount:
 		v.Secrets = []corev1.ObjectReference{{Name: "some-token-1234", Namespace: "default"}}

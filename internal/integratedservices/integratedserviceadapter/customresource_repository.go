@@ -105,12 +105,8 @@ func (c customResourceRepository) GetIntegratedService(ctx context.Context, clus
 			Namespace: c.namespace,
 		},
 	}
-	key, err := client.ObjectKeyFromObject(&lookupSI)
-	if err != nil {
-		return emptyIS, errors.Wrap(err, "failed to get object key for lookup")
-	}
 
-	if err := clusterClient.Get(ctx, key, &lookupSI); err != nil {
+	if err := clusterClient.Get(ctx, client.ObjectKeyFromObject(&lookupSI), &lookupSI); err != nil {
 		if apiErrors.IsNotFound(err) {
 			return emptyIS, integratedServiceNotFoundError{
 				ClusterID:             clusterID,

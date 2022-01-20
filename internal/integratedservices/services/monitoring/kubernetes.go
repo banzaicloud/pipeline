@@ -17,13 +17,13 @@ package monitoring
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type KubernetesService interface {
 	// List lists Objects on specific cluster.
-	List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error
+	List(ctx context.Context, clusterID uint, labels map[string]string, o client.ObjectList) error
 
-	// DeleteObject deletes the passed in object from the  cluster
-	DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error
+	// DeleteObject deletes the passed in object from the cluster
+	DeleteObject(ctx context.Context, clusterID uint, o client.Object) error
 }

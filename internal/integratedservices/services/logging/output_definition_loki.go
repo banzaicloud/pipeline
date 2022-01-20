@@ -17,8 +17,8 @@ package logging
 import (
 	"fmt"
 
-	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/logging/api/v1beta1"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/logging/model/output"
 )
 
 type outputDefinitionManagerLoki struct {
@@ -26,11 +26,12 @@ type outputDefinitionManagerLoki struct {
 }
 
 func (o outputDefinitionManagerLoki) getOutputSpec(_ bucketSpec, _ bucketOptions) v1beta1.ClusterOutputSpec {
+	configureKubernetesLabels := true
 	return v1beta1.ClusterOutputSpec{
 		OutputSpec: v1beta1.OutputSpec{
 			LokiOutput: &output.LokiOutput{
 				Url:                       fmt.Sprintf("http://%s", o.serviceURL),
-				ConfigureKubernetesLabels: true,
+				ConfigureKubernetesLabels: &configureKubernetesLabels,
 			},
 		},
 	}

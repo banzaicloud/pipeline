@@ -424,7 +424,7 @@ go_mod_download(
     name = "github.com__Azure__go-autorest__autorest",
     _tag = "download",
     module = "github.com/Azure/go-autorest/autorest",
-    version = "v0.11.2",
+    version = "v0.11.12",
 )
 
 go_module(
@@ -2110,7 +2110,7 @@ go_mod_download(
     name = "github.com__banzaicloud__k8s-objectmatcher",
     _tag = "download",
     module = "github.com/banzaicloud/k8s-objectmatcher",
-    version = "v1.5.0",
+    version = "v1.5.1",
 )
 
 go_module(
@@ -2122,8 +2122,6 @@ go_module(
     deps = [
         ":emperror.dev__errors",
         ":github.com__json-iterator__go",
-        ":k8s.io__api__apps__v1",
-        ":k8s.io__api__core__v1",
         ":k8s.io__apimachinery__pkg__api__meta",
         ":k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
         ":k8s.io__apimachinery__pkg__runtime",
@@ -2137,80 +2135,109 @@ go_mod_download(
     name = "github.com__banzaicloud__logging-operator__pkg__sdk",
     _tag = "download",
     module = "github.com/banzaicloud/logging-operator/pkg/sdk",
-    version = "v0.5.0",
+    version = "v0.7.18",
 )
 
 go_module(
-    name = "github.com__banzaicloud__logging-operator__pkg__sdk__api__v1beta1",
+    name = "github.com__banzaicloud__logging-operator__pkg__sdk__logging__api__v1beta1",
     download = ":_github.com__banzaicloud__logging-operator__pkg__sdk#download",
-    install = ["api/v1beta1"],
+    install = ["logging/api/v1beta1"],
     module = "github.com/banzaicloud/logging-operator/pkg/sdk",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__banzaicloud__logging-operator__pkg__sdk__model__filter",
-        ":github.com__banzaicloud__logging-operator__pkg__sdk__model__output",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__filter",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__input",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__output",
+        ":github.com__banzaicloud__operator-tools__pkg__typeoverride",
+        ":github.com__banzaicloud__operator-tools__pkg__types",
         ":github.com__banzaicloud__operator-tools__pkg__utils",
         ":github.com__banzaicloud__operator-tools__pkg__volume",
+        ":github.com__prometheus-operator__prometheus-operator__pkg__apis__monitoring__v1",
         ":github.com__spf13__cast",
+        ":k8s.io__api__apps__v1",
         ":k8s.io__api__core__v1",
         ":k8s.io__apimachinery__pkg__api__resource",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__util__intstr",
-        ":sigs.k8s.io__controller-runtime__pkg__runtime__scheme",
+        ":sigs.k8s.io__controller-runtime",
+        ":sigs.k8s.io__controller-runtime__pkg__scheme",
     ],
 )
 
 go_module(
-    name = "github.com__banzaicloud__logging-operator__pkg__sdk__model__common",
+    name = "github.com__banzaicloud__logging-operator__pkg__sdk__logging__maps__mapstrstr",
     download = ":_github.com__banzaicloud__logging-operator__pkg__sdk#download",
-    install = ["model/common"],
+    install = ["logging/maps/mapstrstr"],
+    module = "github.com/banzaicloud/logging-operator/pkg/sdk",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__common",
+    download = ":_github.com__banzaicloud__logging-operator__pkg__sdk#download",
+    install = ["logging/model/common"],
     module = "github.com/banzaicloud/logging-operator/pkg/sdk",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__banzaicloud__logging-operator__pkg__sdk__model__types",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__types",
         ":github.com__banzaicloud__operator-tools__pkg__secret",
     ],
 )
 
 go_module(
-    name = "github.com__banzaicloud__logging-operator__pkg__sdk__model__filter",
+    name = "github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__filter",
     download = ":_github.com__banzaicloud__logging-operator__pkg__sdk#download",
-    install = ["model/filter"],
+    install = ["logging/model/filter"],
     module = "github.com/banzaicloud/logging-operator/pkg/sdk",
     visibility = ["PUBLIC"],
     deps = [
         ":emperror.dev__errors",
-        ":github.com__banzaicloud__logging-operator__pkg__sdk__model__types",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__types",
         ":github.com__banzaicloud__operator-tools__pkg__secret",
     ],
 )
 
 go_module(
-    name = "github.com__banzaicloud__logging-operator__pkg__sdk__model__output",
+    name = "github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__input",
     download = ":_github.com__banzaicloud__logging-operator__pkg__sdk#download",
-    install = ["model/output"],
+    install = ["logging/model/input"],
     module = "github.com/banzaicloud/logging-operator/pkg/sdk",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__banzaicloud__logging-operator__pkg__sdk__model__common",
-        ":github.com__banzaicloud__logging-operator__pkg__sdk__model__types",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__common",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__types",
+        ":github.com__banzaicloud__operator-tools__pkg__secret",
+    ],
+)
+
+go_module(
+    name = "github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__output",
+    download = ":_github.com__banzaicloud__logging-operator__pkg__sdk#download",
+    install = ["logging/model/output"],
+    module = "github.com/banzaicloud/logging-operator/pkg/sdk",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__maps__mapstrstr",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__common",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__types",
         ":github.com__banzaicloud__operator-tools__pkg__secret",
         ":github.com__banzaicloud__operator-tools__pkg__utils",
     ],
 )
 
 go_module(
-    name = "github.com__banzaicloud__logging-operator__pkg__sdk__model__types",
+    name = "github.com__banzaicloud__logging-operator__pkg__sdk__logging__model__types",
     download = ":_github.com__banzaicloud__logging-operator__pkg__sdk#download",
-    install = ["model/types"],
+    install = ["logging/model/types"],
     module = "github.com/banzaicloud/logging-operator/pkg/sdk",
     visibility = ["PUBLIC"],
     deps = [
         ":emperror.dev__errors",
+        ":github.com__banzaicloud__logging-operator__pkg__sdk__logging__maps__mapstrstr",
         ":github.com__banzaicloud__operator-tools__pkg__secret",
-        ":github.com__banzaicloud__operator-tools__pkg__utils",
     ],
 )
 
@@ -2234,7 +2261,7 @@ go_mod_download(
     name = "github.com__banzaicloud__operator-tools",
     _tag = "download",
     module = "github.com/banzaicloud/operator-tools",
-    version = "v0.15.0",
+    version = "v0.25.4",
 )
 
 go_module(
@@ -2306,9 +2333,15 @@ go_module(
         ":github.com__banzaicloud__operator-tools__pkg__utils",
         ":github.com__cppforlife__go-patch__patch",
         ":gopkg.in__yaml.v2",
+        ":k8s.io__api__admissionregistration__v1",
         ":k8s.io__api__admissionregistration__v1beta1",
+        ":k8s.io__api__apps__v1",
+        ":k8s.io__api__batch__v1",
+        ":k8s.io__api__core__v1",
         ":k8s.io__api__policy__v1beta1",
+        ":k8s.io__apiextensions-apiserver__pkg__apis__apiextensions__v1",
         ":k8s.io__apiextensions-apiserver__pkg__apis__apiextensions__v1beta1",
+        ":k8s.io__apimachinery__pkg__api__meta",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
         ":k8s.io__apimachinery__pkg__runtime",
@@ -2334,12 +2367,29 @@ go_module(
 )
 
 go_module(
+    name = "github.com__banzaicloud__operator-tools__pkg__typeoverride",
+    download = ":_github.com__banzaicloud__operator-tools#download",
+    install = ["pkg/typeoverride"],
+    module = "github.com/banzaicloud/operator-tools",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__apps__v1",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__extensions__v1beta1",
+        ":k8s.io__api__networking__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+    ],
+)
+
+go_module(
     name = "github.com__banzaicloud__operator-tools__pkg__types",
     download = ":_github.com__banzaicloud__operator-tools#download",
     install = ["pkg/types"],
     module = "github.com/banzaicloud/operator-tools",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__banzaicloud__operator-tools__pkg__utils",
+        ":k8s.io__api__apps__v1",
         ":k8s.io__api__core__v1",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
     ],
@@ -2386,12 +2436,12 @@ go_module(
         ":emperror.dev__errors",
         ":github.com__go-logr__logr",
         ":k8s.io__api__apps__v1",
+        ":k8s.io__apiextensions-apiserver__pkg__apis__apiextensions__v1",
         ":k8s.io__apiextensions-apiserver__pkg__apis__apiextensions__v1beta1",
         ":k8s.io__apimachinery__pkg__api__errors",
         ":k8s.io__apimachinery__pkg__api__meta",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
-        ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__util__wait",
         ":sigs.k8s.io__controller-runtime__pkg__client",
         ":sigs.k8s.io__controller-runtime__pkg__client__apiutil",
@@ -2418,7 +2468,7 @@ go_mod_download(
     name = "github.com__briandowns__spinner",
     _tag = "download",
     module = "github.com/briandowns/spinner",
-    version = "v1.11.1",
+    version = "v1.12.0",
 )
 
 go_module(
@@ -2466,7 +2516,7 @@ go_mod_download(
     name = "github.com__containerd__containerd",
     _tag = "download",
     module = "github.com/containerd/containerd",
-    version = "v1.4.3",
+    version = "v1.4.4",
 )
 
 go_module(
@@ -2760,7 +2810,7 @@ go_mod_download(
     name = "github.com__deislabs__oras",
     _tag = "download",
     module = "github.com/deislabs/oras",
-    version = "v0.10.0",
+    version = "v0.11.1",
 )
 
 go_module(
@@ -2847,6 +2897,7 @@ go_module(
         ":github.com__opencontainers__image-spec__specs-go",
         ":github.com__opencontainers__image-spec__specs-go__v1",
         ":github.com__pkg__errors",
+        ":golang.org__x__sync__errgroup",
         ":golang.org__x__sync__semaphore",
     ],
 )
@@ -2892,7 +2943,7 @@ go_mod_download(
     name = "github.com__docker__cli",
     _tag = "download",
     module = "github.com/docker/cli",
-    version = "v20.10.3+incompatible",
+    version = "v20.10.5+incompatible",
 )
 
 go_module(
@@ -3431,60 +3482,10 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__docker__spdystream",
-    _tag = "download",
-    module = "github.com/docker/spdystream",
-    version = "v0.0.0-20170912183627-bc6354cbbc29",
-)
-
-go_module(
-    name = "github.com__docker__spdystream",
-    download = ":_github.com__docker__spdystream#download",
-    install = ["."],
-    module = "github.com/docker/spdystream",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__docker__spdystream__spdy"],
-)
-
-go_module(
-    name = "github.com__docker__spdystream__spdy",
-    download = ":_github.com__docker__spdystream#download",
-    install = ["spdy"],
-    module = "github.com/docker/spdystream",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
-    name = "github.com__emicklei__go-restful",
-    _tag = "download",
-    module = "github.com/emicklei/go-restful",
-    version = "v2.9.5+incompatible",
-)
-
-go_module(
-    name = "github.com__emicklei__go-restful",
-    download = ":_github.com__emicklei__go-restful#download",
-    install = ["."],
-    module = "github.com/emicklei/go-restful",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__emicklei__go-restful__log"],
-)
-
-go_module(
-    name = "github.com__emicklei__go-restful__log",
-    download = ":_github.com__emicklei__go-restful#download",
-    install = ["log"],
-    module = "github.com/emicklei/go-restful",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__evanphx__json-patch",
     _tag = "download",
     module = "github.com/evanphx/json-patch",
-    version = "v4.9.0+incompatible",
+    version = "v4.11.0+incompatible",
 )
 
 go_module(
@@ -3532,7 +3533,7 @@ go_mod_download(
     name = "github.com__fatih__color",
     _tag = "download",
     module = "github.com/fatih/color",
-    version = "v1.7.0",
+    version = "v1.10.0",
 )
 
 go_module(
@@ -3688,6 +3689,22 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__go-errors__errors",
+    _tag = "download",
+    module = "github.com/go-errors/errors",
+    version = "v1.0.1",
+)
+
+go_module(
+    name = "github.com__go-errors__errors",
+    download = ":_github.com__go-errors__errors#download",
+    install = ["."],
+    module = "github.com/go-errors/errors",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__go-kit__kit",
     _tag = "download",
     module = "github.com/go-kit/kit",
@@ -3814,7 +3831,7 @@ go_mod_download(
     name = "github.com__go-logr__logr",
     _tag = "download",
     module = "github.com/go-logr/logr",
-    version = "v0.2.1",
+    version = "v0.4.0",
 )
 
 go_module(
@@ -3865,7 +3882,7 @@ go_mod_download(
     name = "github.com__go-openapi__spec",
     _tag = "download",
     module = "github.com/go-openapi/spec",
-    version = "v0.19.3",
+    version = "v0.19.5",
 )
 
 go_module(
@@ -4325,6 +4342,22 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__google__shlex",
+    _tag = "download",
+    module = "github.com/google/shlex",
+    version = "v0.0.0-20191202100458-e7afc7fbc510",
+)
+
+go_module(
+    name = "github.com__google__shlex",
+    download = ":_github.com__google__shlex#download",
+    install = ["."],
+    module = "github.com/google/shlex",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__google__uuid",
     _tag = "download",
     module = "github.com/google/uuid",
@@ -4364,7 +4397,7 @@ go_mod_download(
     name = "github.com__googleapis__gnostic",
     _tag = "download",
     module = "github.com/googleapis/gnostic",
-    version = "v0.4.1",
+    version = "v0.5.5",
 )
 
 go_module(
@@ -4377,7 +4410,8 @@ go_module(
         ":github.com__golang__protobuf__proto",
         ":github.com__golang__protobuf__ptypes__any",
         ":github.com__googleapis__gnostic__extensions",
-        ":gopkg.in__yaml.v2",
+        ":github.com__googleapis__gnostic__jsonschema",
+        ":gopkg.in__yaml.v3",
     ],
 )
 
@@ -4390,8 +4424,19 @@ go_module(
     deps = [
         ":github.com__golang__protobuf__proto",
         ":github.com__golang__protobuf__ptypes",
-        ":github.com__golang__protobuf__ptypes__any",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__anypb",
     ],
+)
+
+go_module(
+    name = "github.com__googleapis__gnostic__jsonschema",
+    download = ":_github.com__googleapis__gnostic#download",
+    install = ["jsonschema"],
+    module = "github.com/googleapis/gnostic",
+    visibility = ["PUBLIC"],
+    deps = [":gopkg.in__yaml.v3"],
 )
 
 go_module(
@@ -4401,10 +4446,11 @@ go_module(
     module = "github.com/googleapis/gnostic",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__golang__protobuf__proto",
-        ":github.com__golang__protobuf__ptypes__any",
         ":github.com__googleapis__gnostic__compiler",
-        ":gopkg.in__yaml.v2",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__anypb",
+        ":gopkg.in__yaml.v3",
     ],
 )
 
@@ -4978,7 +5024,7 @@ go_mod_download(
     name = "github.com__iancoleman__orderedmap",
     _tag = "download",
     module = "github.com/iancoleman/orderedmap",
-    version = "v0.0.0-20190318233801-ac98e3ecb4b0",
+    version = "v0.2.0",
 )
 
 go_module(
@@ -4994,7 +5040,7 @@ go_mod_download(
     name = "github.com__imdario__mergo",
     _tag = "download",
     module = "github.com/imdario/mergo",
-    version = "v0.3.11",
+    version = "v0.3.12",
 )
 
 go_module(
@@ -5120,7 +5166,7 @@ go_mod_download(
     name = "github.com__jmoiron__sqlx",
     _tag = "download",
     module = "github.com/jmoiron/sqlx",
-    version = "v1.2.0",
+    version = "v1.3.1",
 )
 
 go_module(
@@ -5282,7 +5328,7 @@ go_mod_download(
     name = "github.com__lib__pq",
     _tag = "download",
     module = "github.com/lib/pq",
-    version = "v1.9.0",
+    version = "v1.10.0",
 )
 
 go_module(
@@ -5410,7 +5456,7 @@ go_mod_download(
     name = "github.com__mattn__go-colorable",
     _tag = "download",
     module = "github.com/mattn/go-colorable",
-    version = "v0.1.2",
+    version = "v0.1.8",
 )
 
 go_module(
@@ -5458,7 +5504,7 @@ go_mod_download(
     name = "github.com__mattn__go-runewidth",
     _tag = "download",
     module = "github.com/mattn/go-runewidth",
-    version = "v0.0.4",
+    version = "v0.0.7",
 )
 
 go_module(
@@ -5535,7 +5581,7 @@ go_mod_download(
     name = "github.com__mitchellh__copystructure",
     _tag = "download",
     module = "github.com/mitchellh/copystructure",
-    version = "v1.0.0",
+    version = "v1.1.1",
 )
 
 go_module(
@@ -5615,7 +5661,7 @@ go_mod_download(
     name = "github.com__mitchellh__reflectwalk",
     _tag = "download",
     module = "github.com/mitchellh/reflectwalk",
-    version = "v1.0.0",
+    version = "v1.0.1",
 )
 
 go_module(
@@ -5628,10 +5674,35 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__moby__spdystream",
+    _tag = "download",
+    module = "github.com/moby/spdystream",
+    version = "v0.2.0",
+)
+
+go_module(
+    name = "github.com__moby__spdystream",
+    download = ":_github.com__moby__spdystream#download",
+    install = ["."],
+    module = "github.com/moby/spdystream",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__moby__spdystream__spdy"],
+)
+
+go_module(
+    name = "github.com__moby__spdystream__spdy",
+    download = ":_github.com__moby__spdystream#download",
+    install = ["spdy"],
+    module = "github.com/moby/spdystream",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__moby__term",
     _tag = "download",
     module = "github.com/moby/term",
-    version = "v0.0.0-20200312100748-672ec06f55cd",
+    version = "v0.0.0-20201216013528-df9cb8a40635",
 )
 
 go_module(
@@ -5673,6 +5744,22 @@ go_module(
     module = "github.com/modern-go/reflect2",
     visibility = ["PUBLIC"],
     deps = [":github.com__modern-go__concurrent"],
+)
+
+go_mod_download(
+    name = "github.com__monochromegane__go-gitignore",
+    _tag = "download",
+    module = "github.com/monochromegane/go-gitignore",
+    version = "v0.0.0-20200626010858-205db1a8cc00",
+)
+
+go_module(
+    name = "github.com__monochromegane__go-gitignore",
+    download = ":_github.com__monochromegane__go-gitignore#download",
+    install = ["."],
+    module = "github.com/monochromegane/go-gitignore",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -5759,7 +5846,7 @@ go_mod_download(
     name = "github.com__onsi__gomega",
     _tag = "download",
     module = "github.com/onsi/gomega",
-    version = "v1.10.1",
+    version = "v1.14.0",
 )
 
 go_module(
@@ -5771,6 +5858,7 @@ go_module(
     deps = [
         ":github.com__onsi__gomega__internal__assertion",
         ":github.com__onsi__gomega__internal__asyncassertion",
+        ":github.com__onsi__gomega__internal__defaults",
         ":github.com__onsi__gomega__internal__testingtsupport",
         ":github.com__onsi__gomega__matchers",
         ":github.com__onsi__gomega__types",
@@ -5830,6 +5918,15 @@ go_module(
 )
 
 go_module(
+    name = "github.com__onsi__gomega__internal__defaults",
+    download = ":_github.com__onsi__gomega#download",
+    install = ["internal/defaults"],
+    module = "github.com/onsi/gomega",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "github.com__onsi__gomega__internal__oraclematcher",
     download = ":_github.com__onsi__gomega#download",
     install = ["internal/oraclematcher"],
@@ -5859,7 +5956,6 @@ go_module(
         ":github.com__onsi__gomega__matchers__support__goraph__bipartitegraph",
         ":github.com__onsi__gomega__types",
         ":golang.org__x__net__html__charset",
-        ":golang.org__x__xerrors",
         ":gopkg.in__yaml.v2",
     ],
 )
@@ -6011,7 +6107,7 @@ go_mod_download(
     name = "github.com__pborman__uuid",
     _tag = "download",
     module = "github.com/pborman/uuid",
-    version = "v1.2.0",
+    version = "v1.2.1",
 )
 
 go_module(
@@ -6138,10 +6234,42 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__prometheus-operator__prometheus-operator__pkg__apis__monitoring",
+    _tag = "download",
+    module = "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring",
+    version = "v0.43.0",
+)
+
+go_module(
+    name = "github.com__prometheus-operator__prometheus-operator__pkg__apis__monitoring",
+    download = ":_github.com__prometheus-operator__prometheus-operator__pkg__apis__monitoring#download",
+    install = ["."],
+    module = "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__prometheus-operator__prometheus-operator__pkg__apis__monitoring__v1",
+    download = ":_github.com__prometheus-operator__prometheus-operator__pkg__apis__monitoring#download",
+    install = ["v1"],
+    module = "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__prometheus-operator__prometheus-operator__pkg__apis__monitoring",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+    ],
+)
+
+go_mod_download(
     name = "github.com__prometheus__client_golang",
     _tag = "download",
     module = "github.com/prometheus/client_golang",
-    version = "v1.7.1",
+    version = "v1.11.0",
 )
 
 go_module(
@@ -6161,6 +6289,15 @@ go_module(
         ":github.com__prometheus__common__model",
         ":github.com__prometheus__procfs",
     ],
+)
+
+go_module(
+    name = "github.com__prometheus__client_golang__prometheus__collectors",
+    download = ":_github.com__prometheus__client_golang#download",
+    install = ["prometheus/collectors"],
+    module = "github.com/prometheus/client_golang",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__prometheus__client_golang__prometheus"],
 )
 
 go_module(
@@ -6208,7 +6345,7 @@ go_mod_download(
     name = "github.com__prometheus__common",
     _tag = "download",
     module = "github.com/prometheus/common",
-    version = "v0.10.0",
+    version = "v0.26.0",
 )
 
 go_module(
@@ -6249,7 +6386,7 @@ go_mod_download(
     name = "github.com__prometheus__procfs",
     _tag = "download",
     module = "github.com/prometheus/procfs",
-    version = "v0.2.0",
+    version = "v0.6.0",
 )
 
 go_module(
@@ -6521,7 +6658,7 @@ go_mod_download(
     name = "github.com__sirupsen__logrus",
     _tag = "download",
     module = "github.com/sirupsen/logrus",
-    version = "v1.7.0",
+    version = "v1.8.1",
 )
 
 go_module(
@@ -6582,7 +6719,7 @@ go_mod_download(
     name = "github.com__spf13__cobra",
     _tag = "download",
     module = "github.com/spf13/cobra",
-    version = "v1.1.1",
+    version = "v1.1.3",
 )
 
 go_module(
@@ -7758,6 +7895,22 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__xlab__treeprint",
+    _tag = "download",
+    module = "github.com/xlab/treeprint",
+    version = "v0.0.0-20181112141820-a009c3971eca",
+)
+
+go_module(
+    name = "github.com__xlab__treeprint",
+    download = ":_github.com__xlab__treeprint#download",
+    install = ["."],
+    module = "github.com/xlab/treeprint",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "go.opencensus.io",
     _tag = "download",
     module = "go.opencensus.io",
@@ -7952,6 +8105,81 @@ go_module(
     download = ":_go.opencensus.io#download",
     install = ["trace/tracestate"],
     module = "go.opencensus.io",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "go.starlark.net",
+    _tag = "download",
+    module = "go.starlark.net",
+    version = "v0.0.0-20200306205701-8dd3e2ee1dd5",
+)
+
+go_module(
+    name = "go.starlark.net__internal__compile",
+    download = ":_go.starlark.net#download",
+    install = ["internal/compile"],
+    module = "go.starlark.net",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.starlark.net__resolve",
+        ":go.starlark.net__syntax",
+    ],
+)
+
+go_module(
+    name = "go.starlark.net__internal__spell",
+    download = ":_go.starlark.net#download",
+    install = ["internal/spell"],
+    module = "go.starlark.net",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.starlark.net__resolve",
+    download = ":_go.starlark.net#download",
+    install = ["resolve"],
+    module = "go.starlark.net",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.starlark.net__internal__spell",
+        ":go.starlark.net__syntax",
+    ],
+)
+
+go_module(
+    name = "go.starlark.net__starlark",
+    download = ":_go.starlark.net#download",
+    install = ["starlark"],
+    module = "go.starlark.net",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.starlark.net__internal__compile",
+        ":go.starlark.net__internal__spell",
+        ":go.starlark.net__resolve",
+        ":go.starlark.net__syntax",
+    ],
+)
+
+go_module(
+    name = "go.starlark.net__starlarkstruct",
+    download = ":_go.starlark.net#download",
+    install = ["starlarkstruct"],
+    module = "go.starlark.net",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.starlark.net__starlark",
+        ":go.starlark.net__syntax",
+    ],
+)
+
+go_module(
+    name = "go.starlark.net__syntax",
+    download = ":_go.starlark.net#download",
+    install = ["syntax"],
+    module = "go.starlark.net",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -8910,7 +9138,7 @@ go_mod_download(
     name = "go.uber.org__zap",
     _tag = "download",
     module = "go.uber.org/zap",
-    version = "v1.17.0",
+    version = "v1.18.1",
 )
 
 go_module(
@@ -8983,7 +9211,7 @@ go_mod_download(
     name = "golang.org__x__crypto",
     _tag = "download",
     module = "golang.org/x/crypto",
-    version = "v0.0.0-20201221181555-eec23a3978ad",
+    version = "v0.0.0-20210220033148-5ea612d1eb83",
 )
 
 go_module(
@@ -9193,15 +9421,6 @@ go_module(
     module = "golang.org/x/crypto",
     visibility = ["PUBLIC"],
     deps = [":golang.org__x__crypto__blowfish"],
-)
-
-go_module(
-    name = "golang.org__x__crypto__ssh__terminal",
-    download = ":_golang.org__x__crypto#download",
-    install = ["ssh/terminal"],
-    module = "golang.org/x/crypto",
-    visibility = ["PUBLIC"],
-    deps = [":golang.org__x__term"],
 )
 
 go_mod_download(
@@ -9489,7 +9708,7 @@ go_mod_download(
     name = "golang.org__x__sys",
     _tag = "download",
     module = "golang.org/x/sys",
-    version = "v0.0.0-20210510120138-977fb7262007",
+    version = "v0.0.0-20210630005230-0f9fa26af87c",
 )
 
 go_module(
@@ -9523,7 +9742,7 @@ go_mod_download(
     name = "golang.org__x__term",
     _tag = "download",
     module = "golang.org/x/term",
-    version = "v0.0.0-20201126162022-7de9c90e9dd1",
+    version = "v0.0.0-20210220032956-6a3ed077a48d",
 )
 
 go_module(
@@ -9790,7 +10009,7 @@ go_mod_download(
     name = "golang.org__x__time",
     _tag = "download",
     module = "golang.org/x/time",
-    version = "v0.0.0-20200630173020-3af7569d3a1e",
+    version = "v0.0.0-20210723032227-1f47c861a9ac",
 )
 
 go_module(
@@ -9803,35 +10022,10 @@ go_module(
 )
 
 go_mod_download(
-    name = "golang.org__x__xerrors",
-    _tag = "download",
-    module = "golang.org/x/xerrors",
-    version = "v0.0.0-20200804184101-5ec99f83aff1",
-)
-
-go_module(
-    name = "golang.org__x__xerrors",
-    download = ":_golang.org__x__xerrors#download",
-    install = ["."],
-    module = "golang.org/x/xerrors",
-    visibility = ["PUBLIC"],
-    deps = [":golang.org__x__xerrors__internal"],
-)
-
-go_module(
-    name = "golang.org__x__xerrors__internal",
-    download = ":_golang.org__x__xerrors#download",
-    install = ["internal"],
-    module = "golang.org/x/xerrors",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "gomodules.xyz__jsonpatch__v2",
     _tag = "download",
     module = "gomodules.xyz/jsonpatch/v2",
-    version = "v2.0.1",
+    version = "v2.2.0",
 )
 
 go_module(
@@ -11422,7 +11616,7 @@ go_mod_download(
     name = "helm.sh__helm__v3",
     _tag = "download",
     module = "helm.sh/helm/v3",
-    version = "v3.5.3",
+    version = "v3.6.1",
 )
 
 go_module(
@@ -11594,6 +11788,7 @@ go_module(
         ":k8s.io__cli-runtime__pkg__genericclioptions",
         ":k8s.io__cli-runtime__pkg__printers",
         ":k8s.io__cli-runtime__pkg__resource",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
         ":k8s.io__client-go__discovery",
         ":k8s.io__client-go__kubernetes",
         ":k8s.io__client-go__kubernetes__typed__core__v1",
@@ -11853,8 +12048,11 @@ go_module(
         ":helm.sh__helm__v3__pkg__chartutil",
         ":helm.sh__helm__v3__pkg__engine",
         ":helm.sh__helm__v3__pkg__lint__support",
+        ":k8s.io__apimachinery__pkg__api__validation",
+        ":k8s.io__apimachinery__pkg__api__validation__path",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__util__validation__field",
         ":k8s.io__apimachinery__pkg__util__yaml",
         ":k8s.io__apiserver__pkg__endpoints__deprecation",
         ":k8s.io__client-go__kubernetes__scheme",
@@ -12017,7 +12215,7 @@ go_mod_download(
     name = "k8s.io__api",
     _tag = "download",
     module = "k8s.io/api",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -12287,22 +12485,6 @@ go_module(
 )
 
 go_module(
-    name = "k8s.io__api__batch__v2alpha1",
-    download = ":_k8s.io__api#download",
-    install = ["batch/v2alpha1"],
-    module = "k8s.io/api",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__gogo__protobuf__proto",
-        ":k8s.io__api__batch__v1",
-        ":k8s.io__api__core__v1",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__runtime",
-        ":k8s.io__apimachinery__pkg__runtime__schema",
-    ],
-)
-
-go_module(
     name = "k8s.io__api__certificates__v1",
     download = ":_k8s.io__api#download",
     install = ["certificates/v1"],
@@ -12381,9 +12563,9 @@ go_module(
 )
 
 go_module(
-    name = "k8s.io__api__discovery__v1alpha1",
+    name = "k8s.io__api__discovery__v1",
     download = ":_k8s.io__api#download",
-    install = ["discovery/v1alpha1"],
+    install = ["discovery/v1"],
     module = "k8s.io/api",
     visibility = ["PUBLIC"],
     deps = [
@@ -12587,6 +12769,22 @@ go_module(
 )
 
 go_module(
+    name = "k8s.io__api__policy__v1",
+    download = ":_k8s.io__api#download",
+    install = ["policy/v1"],
+    module = "k8s.io/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__gogo__protobuf__proto",
+        ":github.com__gogo__protobuf__sortkeys",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+    ],
+)
+
+go_module(
     name = "k8s.io__api__policy__v1beta1",
     download = ":_k8s.io__api#download",
     install = ["policy/v1beta1"],
@@ -12733,6 +12931,7 @@ go_module(
         ":github.com__gogo__protobuf__proto",
         ":github.com__gogo__protobuf__sortkeys",
         ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__api__resource",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
@@ -12743,7 +12942,7 @@ go_mod_download(
     name = "k8s.io__apiextensions-apiserver",
     _tag = "download",
     module = "k8s.io/apiextensions-apiserver",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -12804,7 +13003,7 @@ go_mod_download(
     name = "k8s.io__apimachinery",
     _tag = "download",
     module = "k8s.io/apimachinery",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -12885,6 +13084,15 @@ go_module(
 )
 
 go_module(
+    name = "k8s.io__apimachinery__pkg__api__validation__path",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/api/validation/path"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "k8s.io__apimachinery__pkg__apis__meta__internalversion",
     download = ":_k8s.io__apimachinery#download",
     install = ["pkg/apis/meta/internalversion"],
@@ -12898,6 +13106,20 @@ go_module(
         ":k8s.io__apimachinery__pkg__labels",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__apis__meta__internalversion__scheme",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/apis/meta/internalversion/scheme"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__apis__meta__internalversion",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__serializer",
+        ":k8s.io__apimachinery__pkg__util__runtime",
     ],
 )
 
@@ -13021,9 +13243,11 @@ go_module(
     module = "k8s.io/apimachinery",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__google__go-cmp__cmp",
         ":k8s.io__apimachinery__pkg__selection",
         ":k8s.io__apimachinery__pkg__util__sets",
         ":k8s.io__apimachinery__pkg__util__validation",
+        ":k8s.io__apimachinery__pkg__util__validation__field",
         ":k8s.io__klog__v2",
     ],
 )
@@ -13241,7 +13465,7 @@ go_module(
     module = "k8s.io/apimachinery",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__docker__spdystream",
+        ":github.com__moby__spdystream",
         ":k8s.io__apimachinery__pkg__api__errors",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
@@ -13286,6 +13510,22 @@ go_module(
         ":github.com__evanphx__json-patch",
         ":k8s.io__apimachinery__pkg__util__json",
         ":k8s.io__apimachinery__pkg__util__mergepatch",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__managedfields",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/managedfields"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__api__meta",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":sigs.k8s.io__structured-merge-diff__v4__fieldpath",
+        ":sigs.k8s.io__structured-merge-diff__v4__typed",
     ],
 )
 
@@ -13447,7 +13687,6 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":k8s.io__apimachinery__pkg__util__json",
-        ":k8s.io__klog__v2",
         ":sigs.k8s.io__yaml",
     ],
 )
@@ -13507,7 +13746,7 @@ go_mod_download(
     name = "k8s.io__apiserver",
     _tag = "download",
     module = "k8s.io/apiserver",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -13549,7 +13788,7 @@ go_mod_download(
     name = "k8s.io__cli-runtime",
     _tag = "download",
     module = "k8s.io/cli-runtime",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -13560,6 +13799,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__evanphx__json-patch",
+        ":github.com__google__uuid",
         ":github.com__spf13__cobra",
         ":github.com__spf13__pflag",
         ":k8s.io__apimachinery__pkg__api__meta",
@@ -13574,138 +13814,6 @@ go_module(
         ":k8s.io__client-go__tools__clientcmd",
         ":k8s.io__client-go__tools__clientcmd__api",
         ":k8s.io__client-go__util__homedir",
-    ],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__cli-runtime__pkg__kustomize__k8sdeps",
-        ":sigs.k8s.io__kustomize__pkg__commands__build",
-        ":sigs.k8s.io__kustomize__pkg__fs",
-    ],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize__k8sdeps",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize/k8sdeps"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__cli-runtime__pkg__kustomize__k8sdeps__kunstruct",
-        ":k8s.io__cli-runtime__pkg__kustomize__k8sdeps__transformer",
-        ":k8s.io__cli-runtime__pkg__kustomize__k8sdeps__validator",
-        ":sigs.k8s.io__kustomize__pkg__factory",
-    ],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize__k8sdeps__configmapandsecret",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize/k8sdeps/configmapandsecret"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__pkg__errors",
-        ":k8s.io__api__core__v1",
-        ":k8s.io__apimachinery__pkg__util__validation",
-        ":k8s.io__cli-runtime__pkg__kustomize__k8sdeps__kv",
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-        ":sigs.k8s.io__kustomize__pkg__types",
-    ],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize__k8sdeps__kunstruct",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize/k8sdeps/kunstruct"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
-        ":k8s.io__apimachinery__pkg__runtime",
-        ":k8s.io__apimachinery__pkg__util__yaml",
-        ":k8s.io__cli-runtime__pkg__kustomize__k8sdeps__configmapandsecret",
-        ":sigs.k8s.io__kustomize__pkg__gvk",
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-        ":sigs.k8s.io__kustomize__pkg__types",
-    ],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize__k8sdeps__kv",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize/k8sdeps/kv"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [":k8s.io__apimachinery__pkg__util__validation"],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize__k8sdeps__transformer",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize/k8sdeps/transformer"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__cli-runtime__pkg__kustomize__k8sdeps__transformer__hash",
-        ":k8s.io__cli-runtime__pkg__kustomize__k8sdeps__transformer__patch",
-        ":sigs.k8s.io__kustomize__pkg__resource",
-        ":sigs.k8s.io__kustomize__pkg__transformers",
-    ],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize__k8sdeps__transformer__hash",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize/k8sdeps/transformer/hash"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__api__core__v1",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
-        ":sigs.k8s.io__kustomize__pkg__resmap",
-        ":sigs.k8s.io__kustomize__pkg__transformers",
-    ],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize__k8sdeps__transformer__patch",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize/k8sdeps/transformer/patch"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__evanphx__json-patch",
-        ":k8s.io__apimachinery__pkg__runtime",
-        ":k8s.io__apimachinery__pkg__runtime__schema",
-        ":k8s.io__apimachinery__pkg__util__mergepatch",
-        ":k8s.io__apimachinery__pkg__util__strategicpatch",
-        ":k8s.io__client-go__kubernetes__scheme",
-        ":sigs.k8s.io__kustomize__pkg__gvk",
-        ":sigs.k8s.io__kustomize__pkg__resmap",
-        ":sigs.k8s.io__kustomize__pkg__resource",
-        ":sigs.k8s.io__kustomize__pkg__transformers",
-    ],
-)
-
-go_module(
-    name = "k8s.io__cli-runtime__pkg__kustomize__k8sdeps__validator",
-    download = ":_k8s.io__cli-runtime#download",
-    install = ["pkg/kustomize/k8sdeps/validator"],
-    module = "k8s.io/cli-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__apimachinery__pkg__api__validation",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1__validation",
-        ":k8s.io__apimachinery__pkg__util__validation",
-        ":k8s.io__apimachinery__pkg__util__validation__field",
     ],
 )
 
@@ -13759,13 +13867,13 @@ go_module(
         ":k8s.io__apimachinery__pkg__util__sets",
         ":k8s.io__apimachinery__pkg__util__yaml",
         ":k8s.io__apimachinery__pkg__watch",
-        ":k8s.io__cli-runtime__pkg__kustomize",
         ":k8s.io__client-go__discovery",
         ":k8s.io__client-go__dynamic",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__restmapper",
-        ":sigs.k8s.io__kustomize__pkg__fs",
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__krusty",
     ],
 )
 
@@ -13773,7 +13881,710 @@ go_mod_download(
     name = "k8s.io__client-go",
     _tag = "download",
     module = "k8s.io/client-go",
-    version = "v0.20.9",
+    version = "v0.21.3",
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__admissionregistration__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/admissionregistration/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__admissionregistration__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__admissionregistration__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/admissionregistration/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__admissionregistration__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__apiserverinternal__v1alpha1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/apiserverinternal/v1alpha1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__apiserverinternal__v1alpha1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__apps__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/apps/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__apps__v1",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__apps__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/apps/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__apps__v1beta1",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__apps__v1beta2",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/apps/v1beta2"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__apps__v1beta2",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__autoscaling__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/autoscaling/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__autoscaling__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__autoscaling__v2beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/autoscaling/v2beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__autoscaling__v2beta1",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__api__resource",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__autoscaling__v2beta2",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/autoscaling/v2beta2"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__autoscaling__v2beta2",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__api__resource",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__batch__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/batch/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__batch__v1",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__batch__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/batch/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__batch__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__batch__v1",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__certificates__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/certificates/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__certificates__v1",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__certificates__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/certificates/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__certificates__v1beta1",
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__coordination__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/coordination/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__coordination__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__coordination__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/coordination/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__coordination__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__core__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/core/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__api__resource",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__discovery__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/discovery/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__discovery__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__discovery__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/discovery/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__discovery__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__events__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/events/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__events__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__events__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/events/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__events__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__extensions__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/extensions/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__extensions__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__flowcontrol__v1alpha1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/flowcontrol/v1alpha1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__flowcontrol__v1alpha1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__flowcontrol__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/flowcontrol/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__flowcontrol__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__internal",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/internal"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__structured-merge-diff__v4__typed"],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__meta__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/meta/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__networking__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/networking/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__networking__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__networking__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/networking/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__networking__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__node__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/node/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__node__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__node__v1alpha1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/node/v1alpha1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__node__v1alpha1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__node__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/node/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__node__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__policy__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/policy/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__policy__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__policy__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/policy/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__policy__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__rbac__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/rbac/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__rbac__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__rbac__v1alpha1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/rbac/v1alpha1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__rbac__v1alpha1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__rbac__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/rbac/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__rbac__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__scheduling__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/scheduling/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__scheduling__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__scheduling__v1alpha1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/scheduling/v1alpha1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__scheduling__v1alpha1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__scheduling__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/scheduling/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__scheduling__v1beta1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__storage__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/storage/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__storage__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__storage__v1alpha1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/storage/v1alpha1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__storage__v1alpha1",
+        ":k8s.io__apimachinery__pkg__api__resource",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__applyconfigurations__storage__v1beta1",
+    download = ":_k8s.io__client-go#download",
+    install = ["applyconfigurations/storage/v1beta1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__storage__v1beta1",
+        ":k8s.io__apimachinery__pkg__api__resource",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__managedfields",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
+        ":k8s.io__client-go__applyconfigurations__internal",
+        ":k8s.io__client-go__applyconfigurations__meta__v1",
+    ],
 )
 
 go_module(
@@ -13874,13 +14685,12 @@ go_module(
         ":k8s.io__api__autoscaling__v2beta2",
         ":k8s.io__api__batch__v1",
         ":k8s.io__api__batch__v1beta1",
-        ":k8s.io__api__batch__v2alpha1",
         ":k8s.io__api__certificates__v1",
         ":k8s.io__api__certificates__v1beta1",
         ":k8s.io__api__coordination__v1",
         ":k8s.io__api__coordination__v1beta1",
         ":k8s.io__api__core__v1",
-        ":k8s.io__api__discovery__v1alpha1",
+        ":k8s.io__api__discovery__v1",
         ":k8s.io__api__discovery__v1beta1",
         ":k8s.io__api__events__v1",
         ":k8s.io__api__events__v1beta1",
@@ -13892,6 +14702,7 @@ go_module(
         ":k8s.io__api__node__v1",
         ":k8s.io__api__node__v1alpha1",
         ":k8s.io__api__node__v1beta1",
+        ":k8s.io__api__policy__v1",
         ":k8s.io__api__policy__v1beta1",
         ":k8s.io__api__rbac__v1",
         ":k8s.io__api__rbac__v1alpha1",
@@ -14153,7 +14964,6 @@ go_module(
     deps = [
         ":k8s.io__client-go__informers__batch__v1",
         ":k8s.io__client-go__informers__batch__v1beta1",
-        ":k8s.io__client-go__informers__batch__v2alpha1",
         ":k8s.io__client-go__informers__internalinterfaces",
     ],
 )
@@ -14190,24 +15000,6 @@ go_module(
         ":k8s.io__client-go__informers__internalinterfaces",
         ":k8s.io__client-go__kubernetes",
         ":k8s.io__client-go__listers__batch__v1beta1",
-        ":k8s.io__client-go__tools__cache",
-    ],
-)
-
-go_module(
-    name = "k8s.io__client-go__informers__batch__v2alpha1",
-    download = ":_k8s.io__client-go#download",
-    install = ["informers/batch/v2alpha1"],
-    module = "k8s.io/client-go",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__api__batch__v2alpha1",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__runtime",
-        ":k8s.io__apimachinery__pkg__watch",
-        ":k8s.io__client-go__informers__internalinterfaces",
-        ":k8s.io__client-go__kubernetes",
-        ":k8s.io__client-go__listers__batch__v2alpha1",
         ":k8s.io__client-go__tools__cache",
     ],
 )
@@ -14347,26 +15139,26 @@ go_module(
     module = "k8s.io/client-go",
     visibility = ["PUBLIC"],
     deps = [
-        ":k8s.io__client-go__informers__discovery__v1alpha1",
+        ":k8s.io__client-go__informers__discovery__v1",
         ":k8s.io__client-go__informers__discovery__v1beta1",
         ":k8s.io__client-go__informers__internalinterfaces",
     ],
 )
 
 go_module(
-    name = "k8s.io__client-go__informers__discovery__v1alpha1",
+    name = "k8s.io__client-go__informers__discovery__v1",
     download = ":_k8s.io__client-go#download",
-    install = ["informers/discovery/v1alpha1"],
+    install = ["informers/discovery/v1"],
     module = "k8s.io/client-go",
     visibility = ["PUBLIC"],
     deps = [
-        ":k8s.io__api__discovery__v1alpha1",
+        ":k8s.io__api__discovery__v1",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__watch",
         ":k8s.io__client-go__informers__internalinterfaces",
         ":k8s.io__client-go__kubernetes",
-        ":k8s.io__client-go__listers__discovery__v1alpha1",
+        ":k8s.io__client-go__listers__discovery__v1",
         ":k8s.io__client-go__tools__cache",
     ],
 )
@@ -14656,7 +15448,26 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":k8s.io__client-go__informers__internalinterfaces",
+        ":k8s.io__client-go__informers__policy__v1",
         ":k8s.io__client-go__informers__policy__v1beta1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__informers__policy__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["informers/policy/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__policy__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__informers__internalinterfaces",
+        ":k8s.io__client-go__kubernetes",
+        ":k8s.io__client-go__listers__policy__v1",
+        ":k8s.io__client-go__tools__cache",
     ],
 )
 
@@ -14905,13 +15716,12 @@ go_module(
         ":k8s.io__client-go__kubernetes__typed__autoscaling__v2beta2",
         ":k8s.io__client-go__kubernetes__typed__batch__v1",
         ":k8s.io__client-go__kubernetes__typed__batch__v1beta1",
-        ":k8s.io__client-go__kubernetes__typed__batch__v2alpha1",
         ":k8s.io__client-go__kubernetes__typed__certificates__v1",
         ":k8s.io__client-go__kubernetes__typed__certificates__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__coordination__v1",
         ":k8s.io__client-go__kubernetes__typed__coordination__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__core__v1",
-        ":k8s.io__client-go__kubernetes__typed__discovery__v1alpha1",
+        ":k8s.io__client-go__kubernetes__typed__discovery__v1",
         ":k8s.io__client-go__kubernetes__typed__discovery__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__events__v1",
         ":k8s.io__client-go__kubernetes__typed__events__v1beta1",
@@ -14923,6 +15733,7 @@ go_module(
         ":k8s.io__client-go__kubernetes__typed__node__v1",
         ":k8s.io__client-go__kubernetes__typed__node__v1alpha1",
         ":k8s.io__client-go__kubernetes__typed__node__v1beta1",
+        ":k8s.io__client-go__kubernetes__typed__policy__v1",
         ":k8s.io__client-go__kubernetes__typed__policy__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__rbac__v1",
         ":k8s.io__client-go__kubernetes__typed__rbac__v1alpha1",
@@ -14960,13 +15771,12 @@ go_module(
         ":k8s.io__api__autoscaling__v2beta2",
         ":k8s.io__api__batch__v1",
         ":k8s.io__api__batch__v1beta1",
-        ":k8s.io__api__batch__v2alpha1",
         ":k8s.io__api__certificates__v1",
         ":k8s.io__api__certificates__v1beta1",
         ":k8s.io__api__coordination__v1",
         ":k8s.io__api__coordination__v1beta1",
         ":k8s.io__api__core__v1",
-        ":k8s.io__api__discovery__v1alpha1",
+        ":k8s.io__api__discovery__v1",
         ":k8s.io__api__discovery__v1beta1",
         ":k8s.io__api__events__v1",
         ":k8s.io__api__events__v1beta1",
@@ -14978,6 +15788,7 @@ go_module(
         ":k8s.io__api__node__v1",
         ":k8s.io__api__node__v1alpha1",
         ":k8s.io__api__node__v1beta1",
+        ":k8s.io__api__policy__v1",
         ":k8s.io__api__policy__v1beta1",
         ":k8s.io__api__rbac__v1",
         ":k8s.io__api__rbac__v1alpha1",
@@ -15027,8 +15838,6 @@ go_module(
         ":k8s.io__client-go__kubernetes__typed__batch__v1__fake",
         ":k8s.io__client-go__kubernetes__typed__batch__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__batch__v1beta1__fake",
-        ":k8s.io__client-go__kubernetes__typed__batch__v2alpha1",
-        ":k8s.io__client-go__kubernetes__typed__batch__v2alpha1__fake",
         ":k8s.io__client-go__kubernetes__typed__certificates__v1",
         ":k8s.io__client-go__kubernetes__typed__certificates__v1__fake",
         ":k8s.io__client-go__kubernetes__typed__certificates__v1beta1",
@@ -15039,8 +15848,8 @@ go_module(
         ":k8s.io__client-go__kubernetes__typed__coordination__v1beta1__fake",
         ":k8s.io__client-go__kubernetes__typed__core__v1",
         ":k8s.io__client-go__kubernetes__typed__core__v1__fake",
-        ":k8s.io__client-go__kubernetes__typed__discovery__v1alpha1",
-        ":k8s.io__client-go__kubernetes__typed__discovery__v1alpha1__fake",
+        ":k8s.io__client-go__kubernetes__typed__discovery__v1",
+        ":k8s.io__client-go__kubernetes__typed__discovery__v1__fake",
         ":k8s.io__client-go__kubernetes__typed__discovery__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__discovery__v1beta1__fake",
         ":k8s.io__client-go__kubernetes__typed__events__v1",
@@ -15063,6 +15872,8 @@ go_module(
         ":k8s.io__client-go__kubernetes__typed__node__v1alpha1__fake",
         ":k8s.io__client-go__kubernetes__typed__node__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__node__v1beta1__fake",
+        ":k8s.io__client-go__kubernetes__typed__policy__v1",
+        ":k8s.io__client-go__kubernetes__typed__policy__v1__fake",
         ":k8s.io__client-go__kubernetes__typed__policy__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__policy__v1beta1__fake",
         ":k8s.io__client-go__kubernetes__typed__rbac__v1",
@@ -15109,13 +15920,12 @@ go_module(
         ":k8s.io__api__autoscaling__v2beta2",
         ":k8s.io__api__batch__v1",
         ":k8s.io__api__batch__v1beta1",
-        ":k8s.io__api__batch__v2alpha1",
         ":k8s.io__api__certificates__v1",
         ":k8s.io__api__certificates__v1beta1",
         ":k8s.io__api__coordination__v1",
         ":k8s.io__api__coordination__v1beta1",
         ":k8s.io__api__core__v1",
-        ":k8s.io__api__discovery__v1alpha1",
+        ":k8s.io__api__discovery__v1",
         ":k8s.io__api__discovery__v1beta1",
         ":k8s.io__api__events__v1",
         ":k8s.io__api__events__v1beta1",
@@ -15127,6 +15937,7 @@ go_module(
         ":k8s.io__api__node__v1",
         ":k8s.io__api__node__v1alpha1",
         ":k8s.io__api__node__v1beta1",
+        ":k8s.io__api__policy__v1",
         ":k8s.io__api__policy__v1beta1",
         ":k8s.io__api__rbac__v1",
         ":k8s.io__api__rbac__v1alpha1",
@@ -15156,6 +15967,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__admissionregistration__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15174,6 +15986,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__admissionregistration__v1",
         ":k8s.io__client-go__kubernetes__typed__admissionregistration__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15191,6 +16004,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__admissionregistration__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15209,6 +16023,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__admissionregistration__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__admissionregistration__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15226,6 +16041,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__apiserverinternal__v1alpha1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15244,6 +16060,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__apiserverinternal__v1alpha1",
         ":k8s.io__client-go__kubernetes__typed__apiserverinternal__v1alpha1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15262,6 +16079,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__apps__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15281,6 +16099,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__apps__v1",
         ":k8s.io__client-go__kubernetes__typed__apps__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15298,6 +16117,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__apps__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15316,6 +16136,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__apps__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__apps__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15333,6 +16154,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__apps__v1beta2",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15351,6 +16173,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__apps__v1beta2",
         ":k8s.io__client-go__kubernetes__typed__apps__v1beta2",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15488,6 +16311,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__autoscaling__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15506,6 +16330,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__autoscaling__v1",
         ":k8s.io__client-go__kubernetes__typed__autoscaling__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15523,6 +16348,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__autoscaling__v2beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15541,6 +16367,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__autoscaling__v2beta1",
         ":k8s.io__client-go__kubernetes__typed__autoscaling__v2beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15558,6 +16385,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__autoscaling__v2beta2",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15576,6 +16404,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__autoscaling__v2beta2",
         ":k8s.io__client-go__kubernetes__typed__autoscaling__v2beta2",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15593,6 +16422,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__batch__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15611,6 +16441,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__batch__v1",
         ":k8s.io__client-go__kubernetes__typed__batch__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15628,6 +16459,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__batch__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15646,42 +16478,8 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__batch__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__batch__v1beta1",
-        ":k8s.io__client-go__rest",
-        ":k8s.io__client-go__testing",
-    ],
-)
-
-go_module(
-    name = "k8s.io__client-go__kubernetes__typed__batch__v2alpha1",
-    download = ":_k8s.io__client-go#download",
-    install = ["kubernetes/typed/batch/v2alpha1"],
-    module = "k8s.io/client-go",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__api__batch__v2alpha1",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__types",
-        ":k8s.io__apimachinery__pkg__watch",
-        ":k8s.io__client-go__kubernetes__scheme",
-        ":k8s.io__client-go__rest",
-    ],
-)
-
-go_module(
-    name = "k8s.io__client-go__kubernetes__typed__batch__v2alpha1__fake",
-    download = ":_k8s.io__client-go#download",
-    install = ["kubernetes/typed/batch/v2alpha1/fake"],
-    module = "k8s.io/client-go",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__api__batch__v2alpha1",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__labels",
-        ":k8s.io__apimachinery__pkg__runtime__schema",
-        ":k8s.io__apimachinery__pkg__types",
-        ":k8s.io__apimachinery__pkg__watch",
-        ":k8s.io__client-go__kubernetes__typed__batch__v2alpha1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
     ],
@@ -15698,6 +16496,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__certificates__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15716,6 +16515,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__certificates__v1",
         ":k8s.io__client-go__kubernetes__typed__certificates__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15733,6 +16533,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__certificates__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15751,6 +16552,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__certificates__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__certificates__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15768,6 +16570,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__coordination__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15786,6 +16589,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__coordination__v1",
         ":k8s.io__client-go__kubernetes__typed__coordination__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15803,6 +16607,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__coordination__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15821,6 +16626,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__coordination__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__coordination__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15844,6 +16650,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__util__net",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__tools__reference",
@@ -15868,6 +16675,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__core__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__kubernetes__typed__core__v1",
         ":k8s.io__client-go__rest",
@@ -15877,35 +16685,37 @@ go_module(
 )
 
 go_module(
-    name = "k8s.io__client-go__kubernetes__typed__discovery__v1alpha1",
+    name = "k8s.io__client-go__kubernetes__typed__discovery__v1",
     download = ":_k8s.io__client-go#download",
-    install = ["kubernetes/typed/discovery/v1alpha1"],
+    install = ["kubernetes/typed/discovery/v1"],
     module = "k8s.io/client-go",
     visibility = ["PUBLIC"],
     deps = [
-        ":k8s.io__api__discovery__v1alpha1",
+        ":k8s.io__api__discovery__v1",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__discovery__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
 )
 
 go_module(
-    name = "k8s.io__client-go__kubernetes__typed__discovery__v1alpha1__fake",
+    name = "k8s.io__client-go__kubernetes__typed__discovery__v1__fake",
     download = ":_k8s.io__client-go#download",
-    install = ["kubernetes/typed/discovery/v1alpha1/fake"],
+    install = ["kubernetes/typed/discovery/v1/fake"],
     module = "k8s.io/client-go",
     visibility = ["PUBLIC"],
     deps = [
-        ":k8s.io__api__discovery__v1alpha1",
+        ":k8s.io__api__discovery__v1",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__labels",
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
-        ":k8s.io__client-go__kubernetes__typed__discovery__v1alpha1",
+        ":k8s.io__client-go__applyconfigurations__discovery__v1",
+        ":k8s.io__client-go__kubernetes__typed__discovery__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
     ],
@@ -15922,6 +16732,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__discovery__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15940,6 +16751,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__discovery__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__discovery__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15957,6 +16769,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__events__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -15975,6 +16788,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__events__v1",
         ":k8s.io__client-go__kubernetes__typed__events__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -15992,6 +16806,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__events__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16010,6 +16825,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__events__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__events__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16027,6 +16843,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__extensions__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16045,6 +16862,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__extensions__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__extensions__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16062,6 +16880,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__flowcontrol__v1alpha1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16080,6 +16899,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__flowcontrol__v1alpha1",
         ":k8s.io__client-go__kubernetes__typed__flowcontrol__v1alpha1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16097,6 +16917,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__flowcontrol__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16115,6 +16936,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__flowcontrol__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__flowcontrol__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16132,6 +16954,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__networking__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16150,6 +16973,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__networking__v1",
         ":k8s.io__client-go__kubernetes__typed__networking__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16167,6 +16991,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__networking__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16185,6 +17010,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__networking__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__networking__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16202,6 +17028,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__node__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16220,6 +17047,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__node__v1",
         ":k8s.io__client-go__kubernetes__typed__node__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16237,6 +17065,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__node__v1alpha1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16255,6 +17084,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__node__v1alpha1",
         ":k8s.io__client-go__kubernetes__typed__node__v1alpha1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16272,6 +17102,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__node__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16290,7 +17121,45 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__node__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__node__v1beta1",
+        ":k8s.io__client-go__rest",
+        ":k8s.io__client-go__testing",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__kubernetes__typed__policy__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["kubernetes/typed/policy/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__policy__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__policy__v1",
+        ":k8s.io__client-go__kubernetes__scheme",
+        ":k8s.io__client-go__rest",
+    ],
+)
+
+go_module(
+    name = "k8s.io__client-go__kubernetes__typed__policy__v1__fake",
+    download = ":_k8s.io__client-go#download",
+    install = ["kubernetes/typed/policy/v1/fake"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__policy__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__labels",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__policy__v1",
+        ":k8s.io__client-go__kubernetes__typed__policy__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
     ],
@@ -16307,6 +17176,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__policy__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16325,6 +17195,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__policy__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__policy__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16342,6 +17213,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__rbac__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16360,6 +17232,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__rbac__v1",
         ":k8s.io__client-go__kubernetes__typed__rbac__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16377,6 +17250,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__rbac__v1alpha1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16395,6 +17269,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__rbac__v1alpha1",
         ":k8s.io__client-go__kubernetes__typed__rbac__v1alpha1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16412,6 +17287,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__rbac__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16430,6 +17306,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__rbac__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__rbac__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16447,6 +17324,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__scheduling__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16465,6 +17343,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__scheduling__v1",
         ":k8s.io__client-go__kubernetes__typed__scheduling__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16482,6 +17361,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__scheduling__v1alpha1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16500,6 +17380,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__scheduling__v1alpha1",
         ":k8s.io__client-go__kubernetes__typed__scheduling__v1alpha1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16517,6 +17398,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__scheduling__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16535,6 +17417,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__scheduling__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__scheduling__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16552,6 +17435,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__storage__v1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16570,6 +17454,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__storage__v1",
         ":k8s.io__client-go__kubernetes__typed__storage__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16587,6 +17472,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__storage__v1alpha1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16605,6 +17491,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__storage__v1alpha1",
         ":k8s.io__client-go__kubernetes__typed__storage__v1alpha1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16622,6 +17509,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__storage__v1beta1",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
     ],
@@ -16640,6 +17528,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__applyconfigurations__storage__v1beta1",
         ":k8s.io__client-go__kubernetes__typed__storage__v1beta1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__testing",
@@ -16809,20 +17698,6 @@ go_module(
 )
 
 go_module(
-    name = "k8s.io__client-go__listers__batch__v2alpha1",
-    download = ":_k8s.io__client-go#download",
-    install = ["listers/batch/v2alpha1"],
-    module = "k8s.io/client-go",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__api__batch__v2alpha1",
-        ":k8s.io__apimachinery__pkg__api__errors",
-        ":k8s.io__apimachinery__pkg__labels",
-        ":k8s.io__client-go__tools__cache",
-    ],
-)
-
-go_module(
     name = "k8s.io__client-go__listers__certificates__v1",
     download = ":_k8s.io__client-go#download",
     install = ["listers/certificates/v1"],
@@ -16893,13 +17768,13 @@ go_module(
 )
 
 go_module(
-    name = "k8s.io__client-go__listers__discovery__v1alpha1",
+    name = "k8s.io__client-go__listers__discovery__v1",
     download = ":_k8s.io__client-go#download",
-    install = ["listers/discovery/v1alpha1"],
+    install = ["listers/discovery/v1"],
     module = "k8s.io/client-go",
     visibility = ["PUBLIC"],
     deps = [
-        ":k8s.io__api__discovery__v1alpha1",
+        ":k8s.io__api__discovery__v1",
         ":k8s.io__apimachinery__pkg__api__errors",
         ":k8s.io__apimachinery__pkg__labels",
         ":k8s.io__client-go__tools__cache",
@@ -17064,6 +17939,23 @@ go_module(
 )
 
 go_module(
+    name = "k8s.io__client-go__listers__policy__v1",
+    download = ":_k8s.io__client-go#download",
+    install = ["listers/policy/v1"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__api__policy__v1",
+        ":k8s.io__apimachinery__pkg__api__errors",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__labels",
+        ":k8s.io__client-go__tools__cache",
+        ":k8s.io__klog__v2",
+    ],
+)
+
+go_module(
     name = "k8s.io__client-go__listers__policy__v1beta1",
     download = ":_k8s.io__client-go#download",
     install = ["listers/policy/v1beta1"],
@@ -17207,6 +18099,25 @@ go_module(
 )
 
 go_module(
+    name = "k8s.io__client-go__metadata",
+    download = ":_k8s.io__client-go#download",
+    install = ["metadata"],
+    module = "k8s.io/client-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__apis__meta__internalversion__scheme",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__runtime__serializer",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__rest",
+        ":k8s.io__klog__v2",
+    ],
+)
+
+go_module(
     name = "k8s.io__client-go__pkg__apis__clientauthentication",
     download = ":_k8s.io__client-go#download",
     install = ["pkg/apis/clientauthentication"],
@@ -17282,7 +18193,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__davecgh__go-spew__spew",
-        ":golang.org__x__crypto__ssh__terminal",
+        ":golang.org__x__term",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
@@ -17622,7 +18533,7 @@ go_module(
     deps = [
         ":github.com__imdario__mergo",
         ":github.com__spf13__pflag",
-        ":golang.org__x__crypto__ssh__terminal",
+        ":golang.org__x__term",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__util__errors",
@@ -17987,7 +18898,7 @@ go_mod_download(
     name = "k8s.io__cluster-bootstrap",
     _tag = "download",
     module = "k8s.io/cluster-bootstrap",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -18030,7 +18941,7 @@ go_mod_download(
     name = "k8s.io__component-base",
     _tag = "download",
     module = "k8s.io/component-base",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -18040,6 +18951,21 @@ go_module(
     module = "k8s.io/component-base",
     visibility = ["PUBLIC"],
     deps = [":k8s.io__apimachinery__pkg__apis__meta__v1"],
+)
+
+go_module(
+    name = "k8s.io__component-base__config__v1alpha1",
+    download = ":_k8s.io__component-base#download",
+    install = ["config/v1alpha1"],
+    module = "k8s.io/component-base",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__conversion",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__component-base__config",
+        ":k8s.io__utils__pointer",
+    ],
 )
 
 go_module(
@@ -18068,7 +18994,7 @@ go_mod_download(
     name = "k8s.io__component-helpers",
     _tag = "download",
     module = "k8s.io/component-helpers",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -18095,6 +19021,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__labels",
         ":k8s.io__apimachinery__pkg__selection",
         ":k8s.io__apimachinery__pkg__util__errors",
+        ":k8s.io__apimachinery__pkg__util__validation__field",
     ],
 )
 
@@ -18118,7 +19045,7 @@ go_mod_download(
     name = "k8s.io__klog__v2",
     _tag = "download",
     module = "k8s.io/klog/v2",
-    version = "v2.4.0",
+    version = "v2.8.0",
 )
 
 go_module(
@@ -18134,19 +19061,7 @@ go_mod_download(
     name = "k8s.io__kube-openapi",
     _tag = "download",
     module = "k8s.io/kube-openapi",
-    version = "v0.0.0-20201113171705-d219536bb9fd",
-)
-
-go_module(
-    name = "k8s.io__kube-openapi__pkg__common",
-    download = ":_k8s.io__kube-openapi#download",
-    install = ["pkg/common"],
-    module = "k8s.io/kube-openapi",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__emicklei__go-restful",
-        ":github.com__go-openapi__spec",
-    ],
+    version = "v0.0.0-20210305001622-591a79e4bda7",
 )
 
 go_module(
@@ -18174,7 +19089,7 @@ go_mod_download(
     name = "k8s.io__kube-scheduler",
     _tag = "download",
     module = "k8s.io/kube-scheduler",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -18193,7 +19108,7 @@ go_mod_download(
     name = "k8s.io__kubectl",
     _tag = "download",
     module = "k8s.io/kubectl",
-    version = "v0.20.9",
+    version = "v0.21.3",
 )
 
 go_module(
@@ -18214,6 +19129,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__util__errors",
         ":k8s.io__apimachinery__pkg__util__sets",
+        ":k8s.io__apimachinery__pkg__util__validation",
         ":k8s.io__apimachinery__pkg__util__yaml",
         ":k8s.io__cli-runtime__pkg__genericclioptions",
         ":k8s.io__cli-runtime__pkg__resource",
@@ -18256,13 +19172,13 @@ go_module(
         ":k8s.io__api__autoscaling__v2beta1",
         ":k8s.io__api__batch__v1",
         ":k8s.io__api__batch__v1beta1",
-        ":k8s.io__api__batch__v2alpha1",
         ":k8s.io__api__certificates__v1",
         ":k8s.io__api__certificates__v1beta1",
         ":k8s.io__api__core__v1",
         ":k8s.io__api__extensions__v1beta1",
         ":k8s.io__api__imagepolicy__v1alpha1",
         ":k8s.io__api__networking__v1",
+        ":k8s.io__api__policy__v1",
         ":k8s.io__api__policy__v1beta1",
         ":k8s.io__api__rbac__v1",
         ":k8s.io__api__rbac__v1alpha1",
@@ -18582,7 +19498,7 @@ go_mod_download(
     name = "k8s.io__utils",
     _tag = "download",
     module = "k8s.io/utils",
-    version = "v0.0.0-20201110183641-67b214c5f920",
+    version = "v0.0.0-20210722164352-7f3ee0f31471",
 )
 
 go_module(
@@ -18797,7 +19713,7 @@ go_mod_download(
     name = "sigs.k8s.io__controller-runtime",
     _tag = "download",
     module = "sigs.k8s.io/controller-runtime",
-    version = "v0.6.3",
+    version = "v0.9.5",
 )
 
 go_module(
@@ -18811,6 +19727,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":sigs.k8s.io__controller-runtime__pkg__builder",
         ":sigs.k8s.io__controller-runtime__pkg__client__config",
+        ":sigs.k8s.io__controller-runtime__pkg__config",
         ":sigs.k8s.io__controller-runtime__pkg__controller__controllerutil",
         ":sigs.k8s.io__controller-runtime__pkg__log",
         ":sigs.k8s.io__controller-runtime__pkg__manager",
@@ -18828,9 +19745,11 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__go-logr__logr",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__client-go__rest",
+        ":sigs.k8s.io__controller-runtime__pkg__client",
         ":sigs.k8s.io__controller-runtime__pkg__client__apiutil",
         ":sigs.k8s.io__controller-runtime__pkg__controller",
         ":sigs.k8s.io__controller-runtime__pkg__handler",
@@ -18863,6 +19782,7 @@ go_module(
         ":sigs.k8s.io__controller-runtime__pkg__client",
         ":sigs.k8s.io__controller-runtime__pkg__client__apiutil",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
+        ":sigs.k8s.io__controller-runtime__pkg__internal__objectutil",
     ],
 )
 
@@ -18885,10 +19805,23 @@ go_module(
         ":k8s.io__apimachinery__pkg__selection",
         ":k8s.io__apimachinery__pkg__watch",
         ":k8s.io__client-go__dynamic",
+        ":k8s.io__client-go__metadata",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__tools__cache",
         ":sigs.k8s.io__controller-runtime__pkg__client",
         ":sigs.k8s.io__controller-runtime__pkg__client__apiutil",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__controller-runtime__pkg__certwatcher",
+    download = ":_sigs.k8s.io__controller-runtime#download",
+    install = ["pkg/certwatcher"],
+    module = "sigs.k8s.io/controller-runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__fsnotify__fsnotify",
+        ":sigs.k8s.io__controller-runtime__pkg__internal__log",
     ],
 )
 
@@ -18913,9 +19846,14 @@ go_module(
         ":k8s.io__apimachinery__pkg__selection",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__util__json",
+        ":k8s.io__apimachinery__pkg__util__strategicpatch",
+        ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__client-go__dynamic",
         ":k8s.io__client-go__kubernetes__scheme",
+        ":k8s.io__client-go__metadata",
         ":k8s.io__client-go__rest",
         ":sigs.k8s.io__controller-runtime__pkg__client__apiutil",
+        ":sigs.k8s.io__controller-runtime__pkg__log",
     ],
 )
 
@@ -18928,10 +19866,12 @@ go_module(
     deps = [
         ":golang.org__x__time__rate",
         ":k8s.io__apimachinery__pkg__api__meta",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__runtime__serializer",
         ":k8s.io__client-go__discovery",
+        ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__restmapper",
     ],
@@ -18948,6 +19888,57 @@ go_module(
         ":k8s.io__client-go__tools__clientcmd",
         ":k8s.io__client-go__tools__clientcmd__api",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__controller-runtime__pkg__cluster",
+    download = ":_sigs.k8s.io__controller-runtime#download",
+    install = ["pkg/cluster"],
+    module = "sigs.k8s.io/controller-runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-logr__logr",
+        ":k8s.io__apimachinery__pkg__api__meta",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__client-go__kubernetes__scheme",
+        ":k8s.io__client-go__rest",
+        ":k8s.io__client-go__tools__record",
+        ":sigs.k8s.io__controller-runtime__pkg__cache",
+        ":sigs.k8s.io__controller-runtime__pkg__client",
+        ":sigs.k8s.io__controller-runtime__pkg__client__apiutil",
+        ":sigs.k8s.io__controller-runtime__pkg__internal__log",
+        ":sigs.k8s.io__controller-runtime__pkg__internal__recorder",
+        ":sigs.k8s.io__controller-runtime__pkg__runtime__inject",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__controller-runtime__pkg__config",
+    download = ":_sigs.k8s.io__controller-runtime#download",
+    install = ["pkg/config"],
+    module = "sigs.k8s.io/controller-runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__serializer",
+        ":k8s.io__apimachinery__pkg__util__runtime",
+        ":sigs.k8s.io__controller-runtime__pkg__config__v1alpha1",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__controller-runtime__pkg__config__v1alpha1",
+    download = ":_sigs.k8s.io__controller-runtime#download",
+    install = ["pkg/config/v1alpha1"],
+    module = "sigs.k8s.io/controller-runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__component-base__config__v1alpha1",
+        ":sigs.k8s.io__controller-runtime__pkg__scheme",
     ],
 )
 
@@ -18979,8 +19970,8 @@ go_module(
     deps = [
         ":k8s.io__apimachinery__pkg__api__equality",
         ":k8s.io__apimachinery__pkg__api__errors",
-        ":k8s.io__apimachinery__pkg__api__meta",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__utils__pointer",
@@ -19004,10 +19995,7 @@ go_module(
     install = ["pkg/event"],
     module = "sigs.k8s.io/controller-runtime",
     visibility = ["PUBLIC"],
-    deps = [
-        ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__runtime",
-    ],
+    deps = [":sigs.k8s.io__controller-runtime__pkg__client"],
 )
 
 go_module(
@@ -19023,6 +20011,7 @@ go_module(
         ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__client-go__util__workqueue",
+        ":sigs.k8s.io__controller-runtime__pkg__client",
         ":sigs.k8s.io__controller-runtime__pkg__event",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
         ":sigs.k8s.io__controller-runtime__pkg__reconcile",
@@ -19051,10 +20040,10 @@ go_module(
     deps = [
         ":github.com__go-logr__logr",
         ":k8s.io__apimachinery__pkg__util__runtime",
-        ":k8s.io__apimachinery__pkg__util__wait",
         ":k8s.io__client-go__util__workqueue",
         ":sigs.k8s.io__controller-runtime__pkg__handler",
         ":sigs.k8s.io__controller-runtime__pkg__internal__controller__metrics",
+        ":sigs.k8s.io__controller-runtime__pkg__log",
         ":sigs.k8s.io__controller-runtime__pkg__predicate",
         ":sigs.k8s.io__controller-runtime__pkg__reconcile",
         ":sigs.k8s.io__controller-runtime__pkg__runtime__inject",
@@ -19070,6 +20059,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__prometheus__client_golang__prometheus",
+        ":github.com__prometheus__client_golang__prometheus__collectors",
         ":sigs.k8s.io__controller-runtime__pkg__metrics",
     ],
 )
@@ -19087,6 +20077,21 @@ go_module(
 )
 
 go_module(
+    name = "sigs.k8s.io__controller-runtime__pkg__internal__objectutil",
+    download = ":_sigs.k8s.io__controller-runtime#download",
+    install = ["pkg/internal/objectutil"],
+    module = "sigs.k8s.io/controller-runtime",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__api__meta",
+        ":k8s.io__apimachinery__pkg__labels",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":sigs.k8s.io__controller-runtime__pkg__client__apiutil",
+    ],
+)
+
+go_module(
     name = "sigs.k8s.io__controller-runtime__pkg__internal__recorder",
     download = ":_sigs.k8s.io__controller-runtime#download",
     install = ["pkg/internal/recorder"],
@@ -19100,7 +20105,6 @@ go_module(
         ":k8s.io__client-go__kubernetes__typed__core__v1",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__tools__record",
-        ":sigs.k8s.io__controller-runtime__pkg__recorder",
     ],
 )
 
@@ -19138,21 +20142,22 @@ go_module(
         ":github.com__go-logr__logr",
         ":github.com__prometheus__client_golang__prometheus__promhttp",
         ":k8s.io__apimachinery__pkg__api__meta",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__apimachinery__pkg__util__errors",
-        ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__rest",
         ":k8s.io__client-go__tools__leaderelection",
         ":k8s.io__client-go__tools__leaderelection__resourcelock",
         ":k8s.io__client-go__tools__record",
         ":sigs.k8s.io__controller-runtime__pkg__cache",
         ":sigs.k8s.io__controller-runtime__pkg__client",
-        ":sigs.k8s.io__controller-runtime__pkg__client__apiutil",
+        ":sigs.k8s.io__controller-runtime__pkg__cluster",
+        ":sigs.k8s.io__controller-runtime__pkg__config",
+        ":sigs.k8s.io__controller-runtime__pkg__config__v1alpha1",
         ":sigs.k8s.io__controller-runtime__pkg__healthz",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
         ":sigs.k8s.io__controller-runtime__pkg__internal__recorder",
         ":sigs.k8s.io__controller-runtime__pkg__leaderelection",
-        ":sigs.k8s.io__controller-runtime__pkg__log",
         ":sigs.k8s.io__controller-runtime__pkg__metrics",
         ":sigs.k8s.io__controller-runtime__pkg__recorder",
         ":sigs.k8s.io__controller-runtime__pkg__runtime__inject",
@@ -19192,7 +20197,8 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__labels",
+        ":sigs.k8s.io__controller-runtime__pkg__client",
         ":sigs.k8s.io__controller-runtime__pkg__event",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
     ],
@@ -19242,15 +20248,6 @@ go_module(
 )
 
 go_module(
-    name = "sigs.k8s.io__controller-runtime__pkg__runtime__scheme",
-    download = ":_sigs.k8s.io__controller-runtime#download",
-    install = ["pkg/runtime/scheme"],
-    module = "sigs.k8s.io/controller-runtime",
-    visibility = ["PUBLIC"],
-    deps = [":sigs.k8s.io__controller-runtime__pkg__scheme"],
-)
-
-go_module(
     name = "sigs.k8s.io__controller-runtime__pkg__scheme",
     download = ":_sigs.k8s.io__controller-runtime#download",
     install = ["pkg/scheme"],
@@ -19271,9 +20268,9 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":k8s.io__apimachinery__pkg__api__meta",
-        ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__client-go__util__workqueue",
         ":sigs.k8s.io__controller-runtime__pkg__cache",
+        ":sigs.k8s.io__controller-runtime__pkg__client",
         ":sigs.k8s.io__controller-runtime__pkg__event",
         ":sigs.k8s.io__controller-runtime__pkg__handler",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
@@ -19290,11 +20287,9 @@ go_module(
     module = "sigs.k8s.io/controller-runtime",
     visibility = ["PUBLIC"],
     deps = [
-        ":k8s.io__apimachinery__pkg__api__meta",
-        ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__runtime",
         ":k8s.io__client-go__tools__cache",
         ":k8s.io__client-go__util__workqueue",
+        ":sigs.k8s.io__controller-runtime__pkg__client",
         ":sigs.k8s.io__controller-runtime__pkg__event",
         ":sigs.k8s.io__controller-runtime__pkg__handler",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
@@ -19309,13 +20304,14 @@ go_module(
     module = "sigs.k8s.io/controller-runtime",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__prometheus__client_golang__prometheus",
-        ":github.com__prometheus__client_golang__prometheus__promhttp",
         ":gomodules.xyz__jsonpatch__v2",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__client-go__kubernetes__scheme",
+        ":sigs.k8s.io__controller-runtime__pkg__certwatcher",
+        ":sigs.k8s.io__controller-runtime__pkg__healthz",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
         ":sigs.k8s.io__controller-runtime__pkg__runtime__inject",
         ":sigs.k8s.io__controller-runtime__pkg__webhook__admission",
-        ":sigs.k8s.io__controller-runtime__pkg__webhook__internal__certwatcher",
         ":sigs.k8s.io__controller-runtime__pkg__webhook__internal__metrics",
     ],
 )
@@ -19329,15 +20325,20 @@ go_module(
     deps = [
         ":github.com__go-logr__logr",
         ":gomodules.xyz__jsonpatch__v2",
+        ":k8s.io__api__admission__v1",
         ":k8s.io__api__admission__v1beta1",
+        ":k8s.io__apimachinery__pkg__api__errors",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__apis__meta__v1__unstructured",
         ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
         ":k8s.io__apimachinery__pkg__runtime__serializer",
         ":k8s.io__apimachinery__pkg__util__json",
         ":k8s.io__apimachinery__pkg__util__runtime",
+        ":k8s.io__client-go__kubernetes__scheme",
         ":sigs.k8s.io__controller-runtime__pkg__internal__log",
         ":sigs.k8s.io__controller-runtime__pkg__runtime__inject",
+        ":sigs.k8s.io__controller-runtime__pkg__webhook__internal__metrics",
     ],
 )
 
@@ -19360,18 +20361,6 @@ go_module(
 )
 
 go_module(
-    name = "sigs.k8s.io__controller-runtime__pkg__webhook__internal__certwatcher",
-    download = ":_sigs.k8s.io__controller-runtime#download",
-    install = ["pkg/webhook/internal/certwatcher"],
-    module = "sigs.k8s.io/controller-runtime",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__fsnotify__fsnotify",
-        ":sigs.k8s.io__controller-runtime__pkg__internal__log",
-    ],
-)
-
-go_module(
     name = "sigs.k8s.io__controller-runtime__pkg__webhook__internal__metrics",
     download = ":_sigs.k8s.io__controller-runtime#download",
     install = ["pkg/webhook/internal/metrics"],
@@ -19379,297 +20368,1005 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__prometheus__client_golang__prometheus",
+        ":github.com__prometheus__client_golang__prometheus__promhttp",
         ":sigs.k8s.io__controller-runtime__pkg__metrics",
     ],
 )
 
 go_mod_download(
-    name = "sigs.k8s.io__kustomize",
+    name = "sigs.k8s.io__kustomize__api",
     _tag = "download",
-    module = "sigs.k8s.io/kustomize",
-    version = "v2.0.3+incompatible",
+    module = "sigs.k8s.io/kustomize/api",
+    version = "v0.8.8",
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__commands__build",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/commands/build"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__pkg__errors",
-        ":github.com__spf13__cobra",
-        ":sigs.k8s.io__kustomize__pkg__constants",
-        ":sigs.k8s.io__kustomize__pkg__fs",
-        ":sigs.k8s.io__kustomize__pkg__ifc__transformer",
-        ":sigs.k8s.io__kustomize__pkg__loader",
-        ":sigs.k8s.io__kustomize__pkg__resmap",
-        ":sigs.k8s.io__kustomize__pkg__target",
-    ],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__constants",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/constants"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__expansion",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/expansion"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__factory",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/factory"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-        ":sigs.k8s.io__kustomize__pkg__ifc__transformer",
-        ":sigs.k8s.io__kustomize__pkg__resmap",
-        ":sigs.k8s.io__kustomize__pkg__resource",
-    ],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__fs",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/fs"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [":sigs.k8s.io__kustomize__pkg__constants"],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__git",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/git"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__pkg__fs",
-    ],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__gvk",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/gvk"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__ifc",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/ifc"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":sigs.k8s.io__kustomize__pkg__gvk",
-        ":sigs.k8s.io__kustomize__pkg__types",
-    ],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__ifc__transformer",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/ifc/transformer"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":sigs.k8s.io__kustomize__pkg__resource",
-        ":sigs.k8s.io__kustomize__pkg__transformers",
-    ],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__image",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/image"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__internal__error",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/internal/error"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__loader",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/loader"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":sigs.k8s.io__kustomize__pkg__fs",
-        ":sigs.k8s.io__kustomize__pkg__git",
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-    ],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__patch",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/patch"],
-    module = "sigs.k8s.io/kustomize",
-    visibility = ["PUBLIC"],
-    deps = [":sigs.k8s.io__kustomize__pkg__gvk"],
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__pkg__patch__transformer",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/patch/transformer"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__builtins",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["builtins"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__evanphx__json-patch",
-        ":github.com__ghodss__yaml",
+        ":github.com__imdario__mergo",
         ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__pkg__gvk",
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-        ":sigs.k8s.io__kustomize__pkg__patch",
-        ":sigs.k8s.io__kustomize__pkg__resid",
-        ":sigs.k8s.io__kustomize__pkg__resmap",
-        ":sigs.k8s.io__kustomize__pkg__resource",
-        ":sigs.k8s.io__kustomize__pkg__transformers",
+        ":sigs.k8s.io__kustomize__api__filters__annotations",
+        ":sigs.k8s.io__kustomize__api__filters__imagetag",
+        ":sigs.k8s.io__kustomize__api__filters__labels",
+        ":sigs.k8s.io__kustomize__api__filters__namespace",
+        ":sigs.k8s.io__kustomize__api__filters__patchjson6902",
+        ":sigs.k8s.io__kustomize__api__filters__prefixsuffix",
+        ":sigs.k8s.io__kustomize__api__filters__replicacount",
+        ":sigs.k8s.io__kustomize__api__filters__valueadd",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__kv",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__yaml",
     ],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__resid",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/resid"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__filesys",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filesys"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
-    deps = [":sigs.k8s.io__kustomize__pkg__gvk"],
+    deps = [":github.com__pkg__errors"],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__resmap",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/resmap"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__filters__annotations",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/annotations"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__ghodss__yaml",
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__filters__fsslice",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__fieldspec",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/fieldspec"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__internal__utils",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__filtersutil",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/filtersutil"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__kustomize__kyaml__yaml"],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__fsslice",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/fsslice"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filters__fieldspec",
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__imagetag",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/imagetag"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__filters__fsslice",
+        ":sigs.k8s.io__kustomize__api__image",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__labels",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/labels"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__filters__fsslice",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__nameref",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/nameref"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
         ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-        ":sigs.k8s.io__kustomize__pkg__internal__error",
-        ":sigs.k8s.io__kustomize__pkg__resid",
-        ":sigs.k8s.io__kustomize__pkg__resource",
-        ":sigs.k8s.io__kustomize__pkg__types",
+        ":sigs.k8s.io__kustomize__api__filters__fieldspec",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__resource",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/resource"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__filters__namespace",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/namespace"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-        ":sigs.k8s.io__kustomize__pkg__internal__error",
-        ":sigs.k8s.io__kustomize__pkg__patch",
-        ":sigs.k8s.io__kustomize__pkg__resid",
-        ":sigs.k8s.io__kustomize__pkg__types",
+        ":sigs.k8s.io__kustomize__api__filters__fieldspec",
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__filters__fsslice",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__target",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/target"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__filters__patchjson6902",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/patchjson6902"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__ghodss__yaml",
-        ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__pkg__constants",
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-        ":sigs.k8s.io__kustomize__pkg__ifc__transformer",
-        ":sigs.k8s.io__kustomize__pkg__internal__error",
-        ":sigs.k8s.io__kustomize__pkg__patch__transformer",
-        ":sigs.k8s.io__kustomize__pkg__resid",
-        ":sigs.k8s.io__kustomize__pkg__resmap",
-        ":sigs.k8s.io__kustomize__pkg__resource",
-        ":sigs.k8s.io__kustomize__pkg__transformers",
-        ":sigs.k8s.io__kustomize__pkg__transformers__config",
-        ":sigs.k8s.io__kustomize__pkg__types",
+        ":github.com__evanphx__json-patch",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__yaml",
     ],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__transformers",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/transformers"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__filters__patchstrategicmerge",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/patchstrategicmerge"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__pkg__expansion",
-        ":sigs.k8s.io__kustomize__pkg__gvk",
-        ":sigs.k8s.io__kustomize__pkg__image",
-        ":sigs.k8s.io__kustomize__pkg__resmap",
-        ":sigs.k8s.io__kustomize__pkg__resource",
-        ":sigs.k8s.io__kustomize__pkg__transformers__config",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__merge2",
     ],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__transformers__config",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/transformers/config"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__filters__prefixsuffix",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/prefixsuffix"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__ghodss__yaml",
-        ":github.com__go-openapi__spec",
-        ":github.com__pkg__errors",
-        ":k8s.io__kube-openapi__pkg__common",
-        ":sigs.k8s.io__kustomize__pkg__gvk",
-        ":sigs.k8s.io__kustomize__pkg__ifc",
-        ":sigs.k8s.io__kustomize__pkg__transformers__config__defaultconfig",
+        ":sigs.k8s.io__kustomize__api__filters__fieldspec",
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__transformers__config__defaultconfig",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/transformers/config/defaultconfig"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__filters__refvar",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/refvar"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filters__fieldspec",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__replicacount",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/replicacount"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filters__fieldspec",
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__valueadd",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/valueadd"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__hasher",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["hasher"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__kustomize__kyaml__yaml"],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__ifc",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["ifc"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__image",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["image"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__pkg__types",
-    download = ":_sigs.k8s.io__kustomize#download",
-    install = ["pkg/types"],
-    module = "sigs.k8s.io/kustomize",
+    name = "sigs.k8s.io__kustomize__api__internal__accumulator",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/accumulator"],
+    module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__pkg__gvk",
-        ":sigs.k8s.io__kustomize__pkg__image",
-        ":sigs.k8s.io__kustomize__pkg__patch",
+        ":github.com__go-openapi__spec",
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__filters__nameref",
+        ":sigs.k8s.io__kustomize__api__filters__refvar",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__builtinconfig",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__generators",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/generators"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-errors__errors",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__git",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/git"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__internal__utils",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__kusterr",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/kusterr"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__plugins__builtinconfig",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/plugins/builtinconfig"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__konfig__builtinpluginconsts",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__plugins__builtinhelpers",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/plugins/builtinhelpers"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__builtins",
+        ":sigs.k8s.io__kustomize__api__resmap",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__plugins__execplugin",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/plugins/execplugin"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__shlex",
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__utils",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__plugins__fnplugin",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/plugins/fnplugin"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__utils",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__runtimeutil",
+        ":sigs.k8s.io__kustomize__kyaml__runfn",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__plugins__loader",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/plugins/loader"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__builtinhelpers",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__execplugin",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__fnplugin",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__utils",
+        ":sigs.k8s.io__kustomize__api__konfig",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__plugins__utils",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/plugins/utils"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__konfig",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__target",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/target"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__builtins",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__internal__accumulator",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__builtinconfig",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__builtinhelpers",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__loader",
+        ":sigs.k8s.io__kustomize__api__konfig",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__utils",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/utils"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__pkg__errors"],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__validate",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/validate"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__kustomize__api__ifc"],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__konfig",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["konfig"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__types",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__konfig__builtinpluginconsts",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["konfig/builtinpluginconsts"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__krusty",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["krusty"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__builtins",
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__builtinhelpers",
+        ":sigs.k8s.io__kustomize__api__internal__plugins__loader",
+        ":sigs.k8s.io__kustomize__api__internal__target",
+        ":sigs.k8s.io__kustomize__api__konfig",
+        ":sigs.k8s.io__kustomize__api__loader",
+        ":sigs.k8s.io__kustomize__api__provenance",
+        ":sigs.k8s.io__kustomize__api__provider",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__kv",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["kv"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__types",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__loader",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["loader"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__internal__git",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__provenance",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["provenance"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__provider",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["provider"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__hasher",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__internal__validate",
+        ":sigs.k8s.io__kustomize__api__resource",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__resid",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["resid"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__resmap",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["resmap"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__internal__kusterr",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__resource",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["resource"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filters__patchstrategicmerge",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__internal__generators",
+        ":sigs.k8s.io__kustomize__api__internal__kusterr",
+        ":sigs.k8s.io__kustomize__api__konfig",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__types",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["types"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_mod_download(
+    name = "sigs.k8s.io__kustomize__kyaml",
+    _tag = "download",
+    module = "sigs.k8s.io/kustomize/kyaml",
+    version = "v0.10.17",
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__comments",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["comments"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__walk",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__errors",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["errors"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__go-errors__errors"],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__ext",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["ext"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__fieldmeta",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["fieldmeta"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__spec",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__fn__runtime__container",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["fn/runtime/container"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__exec",
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__runtimeutil",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__fn__runtime__exec",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["fn/runtime/exec"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__runtimeutil",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__fn__runtime__runtimeutil",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["fn/runtime/runtimeutil"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__comments",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__kio__kioutil",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__fn__runtime__starlark",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["fn/runtime/starlark"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.starlark.net__starlark",
+        ":go.starlark.net__starlarkstruct",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__runtimeutil",
+        ":sigs.k8s.io__kustomize__kyaml__internal__forked__github.com__qri-io__starlib__util",
+        ":sigs.k8s.io__kustomize__kyaml__kio__filters",
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__internal__forked__github.com__qri-io__starlib__util",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["internal/forked/github.com/qri-io/starlib/util"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":go.starlark.net__starlark",
+        ":go.starlark.net__starlarkstruct",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__kio",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["kio"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__monochromegane__go-gitignore",
+        ":github.com__stretchr__testify__assert",
+        ":github.com__xlab__treeprint",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__ext",
+        ":sigs.k8s.io__kustomize__kyaml__kio__kioutil",
+        ":sigs.k8s.io__kustomize__kyaml__sets",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__kio__filters",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["kio/filters"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__kio__kioutil",
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__merge2",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__merge3",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__kio__kioutil",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["kio/kioutil"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__openapi",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["openapi"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__spec",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi",
+        ":sigs.k8s.io__kustomize__kyaml__openapi__kustomizationapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["openapi/kubernetesapi"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi__v1204"],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi__v1204",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["openapi/kubernetesapi/v1204"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__openapi__kustomizationapi",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["openapi/kustomizationapi"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__runfn",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["runfn"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__container",
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__exec",
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__runtimeutil",
+        ":sigs.k8s.io__kustomize__kyaml__fn__runtime__starlark",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__kio__kioutil",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__sets",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["sets"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__davecgh__go-spew__spew",
+        ":github.com__go-openapi__spec",
+        ":gopkg.in__yaml.v2",
+        ":gopkg.in__yaml.v3",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__sets",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__labels",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__labels",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/internal/k8sgen/pkg/labels"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__selection",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__sets",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__validation",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__selection",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/internal/k8sgen/pkg/selection"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__errors",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/internal/k8sgen/pkg/util/errors"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__sets"],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__sets",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/internal/k8sgen/pkg/util/sets"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__validation",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/internal/k8sgen/pkg/util/validation"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__validation__field"],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__validation__field",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/internal/k8sgen/pkg/util/validation/field"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__errors",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__util__sets",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__merge2",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/merge2"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__walk",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__merge3",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/merge3"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__walk",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__schema",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/schema"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__yaml__walk",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["yaml/walk"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-errors__errors",
+        ":sigs.k8s.io__kustomize__kyaml__fieldmeta",
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__sets",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__kustomize__kyaml__yaml__schema",
     ],
 )
 
@@ -19678,6 +21375,42 @@ go_mod_download(
     _tag = "download",
     module = "sigs.k8s.io/structured-merge-diff/v4",
     version = "v4.1.2",
+)
+
+go_module(
+    name = "sigs.k8s.io__structured-merge-diff__v4__fieldpath",
+    download = ":_sigs.k8s.io__structured-merge-diff__v4#download",
+    install = ["fieldpath"],
+    module = "sigs.k8s.io/structured-merge-diff/v4",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__json-iterator__go",
+        ":sigs.k8s.io__structured-merge-diff__v4__schema",
+        ":sigs.k8s.io__structured-merge-diff__v4__value",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__structured-merge-diff__v4__schema",
+    download = ":_sigs.k8s.io__structured-merge-diff__v4#download",
+    install = ["schema"],
+    module = "sigs.k8s.io/structured-merge-diff/v4",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__structured-merge-diff__v4__typed",
+    download = ":_sigs.k8s.io__structured-merge-diff__v4#download",
+    install = ["typed"],
+    module = "sigs.k8s.io/structured-merge-diff/v4",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":gopkg.in__yaml.v2",
+        ":sigs.k8s.io__structured-merge-diff__v4__fieldpath",
+        ":sigs.k8s.io__structured-merge-diff__v4__schema",
+        ":sigs.k8s.io__structured-merge-diff__v4__value",
+    ],
 )
 
 go_module(

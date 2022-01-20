@@ -15,8 +15,8 @@
 package logging
 
 import (
-	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/logging/api/v1beta1"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/logging/model/output"
 	loggingSecret "github.com/banzaicloud/operator-tools/pkg/secret"
 	v1 "k8s.io/api/core/v1"
 )

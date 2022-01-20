@@ -18,22 +18,22 @@ import (
 	"context"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type KubernetesService interface {
 	// EnsureObject makes sure that a given Object is on the cluster and returns it.
-	EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error
+	EnsureObject(ctx context.Context, clusterID uint, o client.Object) error
 
 	// Update updates a given Object on the cluster and returns it.
-	Update(ctx context.Context, clusterID uint, o runtime.Object) error
+	Update(ctx context.Context, clusterID uint, o client.Object) error
 
 	// DeleteObject deletes an Object from a specific cluster.
-	DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error
+	DeleteObject(ctx context.Context, clusterID uint, o client.Object) error
 
 	// GetObject gets an Object from a specific cluster.
-	GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj runtime.Object) error
+	GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj client.Object) error
 
 	// List lists Objects on specific cluster.
-	List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error
+	List(ctx context.Context, clusterID uint, labels map[string]string, o client.ObjectList) error
 }

@@ -20,7 +20,7 @@ import (
 	"path"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/logging/api/v1beta1"
 	"github.com/mitchellh/copystructure"
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -449,8 +449,8 @@ func (op IntegratedServiceOperator) createLoggingResource(ctx context.Context, c
 					Tag:        op.config.Images.Fluentbit.Tag,
 					PullPolicy: "IfNotPresent",
 				},
-				TLS: v1beta1.FluentbitTLS{
-					Enabled: tlsEnabled,
+				TLS: &v1beta1.FluentbitTLS{
+					Enabled: &tlsEnabled,
 				},
 				Metrics: &v1beta1.Metrics{
 					ServiceMonitor: spec.Logging.Metrics,

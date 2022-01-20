@@ -19,7 +19,7 @@ import (
 
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
@@ -182,23 +182,23 @@ type dummyKubernetesService struct {
 }
 
 // DeleteObject deletes an Object from a specific cluster.
-func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o client.Object) error {
 	return nil
 }
 
 // EnsureObject makes sure that a given Object is on the cluster and returns it.
-func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o client.Object) error {
 	return nil
 }
 
-func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error {
+func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, o client.ObjectList) error {
 	return nil
 }
 
-func (s *dummyKubernetesService) Update(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *dummyKubernetesService) Update(ctx context.Context, clusterID uint, o client.Object) error {
 	return nil
 }
 
-func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj runtime.Object) error {
+func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj client.Object) error {
 	return nil
 }

@@ -14,7 +14,7 @@
 
 package logging
 
-import "github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
+import "github.com/banzaicloud/logging-operator/pkg/sdk/logging/model/output"
 
 type baseOutputManager struct {
 	sourceSecretName string
