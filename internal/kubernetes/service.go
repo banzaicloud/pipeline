@@ -32,7 +32,7 @@ type ConfigSecretGetter interface {
 	GetConfigSecretID(ctx context.Context, clusterID uint) (string, error)
 }
 
-// Service provides an interface for using clieng-go on a specific cluster.
+// Service provides an interface for using client-go on a specific cluster.
 type Service struct {
 	configSecretGetter ConfigSecretGetter
 	configFactory      ConfigFactory
@@ -106,12 +106,7 @@ func (s *Service) EnsureObject(ctx context.Context, clusterID uint, o runtime.Ob
 		return errors.WrapIf(err, "failed to create Object")
 	}
 
-	objectKey, err := client.ObjectKeyFromObject(o)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create ObjectKey")
-	}
-
-	return kubeClient.Get(ctx, objectKey, o)
+	return kubeClient.Get(ctx, client.ObjectKeyFromObject(o), o)
 }
 
 func (s *Service) newClientForCluster(ctx context.Context, clusterID uint) (client.Client, error) {
@@ -150,10 +145,5 @@ func (s *Service) Update(ctx context.Context, clusterID uint, o runtime.Object) 
 		return errors.WrapIf(err, "failed to update Object")
 	}
 
-	objectKey, err := client.ObjectKeyFromObject(o)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create ObjectKey")
-	}
-
-	return kubeClient.Get(ctx, objectKey, o)
+	return kubeClient.Get(ctx, client.ObjectKeyFromObject(o), o)
 }

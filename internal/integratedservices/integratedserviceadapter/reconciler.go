@@ -83,17 +83,11 @@ func (is isvcReconciler) Reconcile(ctx context.Context, kubeConfig []byte, incom
 
 	existingSI := &v1alpha1.ServiceInstance{}
 	if isNew {
-		// retrieve the resource for the status data
-		key, err := client.ObjectKeyFromObject(&incomingSI)
-		if err != nil {
-			return errors.Wrap(err, "failed to get object key for lookup")
-		}
-
 		// wait (endlessly) for the status of the newly created resource
 		// in the edge case the status never gets populated, the routine wil be ended by the cadence worker!
 		for {
 			is.logger.Debug("Waiting for the service instance status ...")
-			if err := cli.Get(ctx, key, existingSI); err != nil {
+			if err := cli.Get(ctx, client.ObjectKeyFromObject(&incomingSI), existingSI); err != nil {
 				return errors.Wrap(err, "failed to look up service instance")
 			}
 
@@ -158,10 +152,7 @@ func (is isvcReconciler) Disable(ctx context.Context, kubeConfig []byte, incomin
 		return errors.Wrap(err, "failed to create the client from rest configuration")
 	}
 
-	key, err := client.ObjectKeyFromObject(&incomingSI)
-	if err != nil {
-		return errors.Wrap(err, "failed to get object key for lookup")
-	}
+	key := client.ObjectKeyFromObject(&incomingSI)
 
 	existingSI := v1alpha1.ServiceInstance{}
 	if err := cli.Get(ctx, key, &existingSI); err != nil {
