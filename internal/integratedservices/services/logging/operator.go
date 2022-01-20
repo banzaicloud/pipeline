@@ -449,8 +449,8 @@ func (op IntegratedServiceOperator) createLoggingResource(ctx context.Context, c
 					Tag:        op.config.Images.Fluentbit.Tag,
 					PullPolicy: "IfNotPresent",
 				},
-				TLS: v1beta1.FluentbitTLS{
-					Enabled: tlsEnabled,
+				TLS: &v1beta1.FluentbitTLS{
+					Enabled: &tlsEnabled,
 				},
 				Metrics: &v1beta1.Metrics{
 					ServiceMonitor: spec.Logging.Metrics,
