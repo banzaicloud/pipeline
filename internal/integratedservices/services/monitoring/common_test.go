@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
@@ -188,10 +188,10 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 type dummyKubernetesService struct {
 }
 
-func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o client.Object) error {
 	return nil
 }
 
-func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, o runtime.Object) error {
+func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, labels map[string]string, o client.ObjectList) error {
 	return nil
 }

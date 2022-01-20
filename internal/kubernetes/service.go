@@ -21,7 +21,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	k8slabels "k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -70,7 +69,7 @@ func (s *Service) GetKubeConfig(ctx context.Context, clusterID uint) (*rest.Conf
 }
 
 // GetObject gets an Object from a specific cluster.
-func (s *Service) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj runtime.Object) error {
+func (s *Service) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj client.Object) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
@@ -80,7 +79,7 @@ func (s *Service) GetObject(ctx context.Context, clusterID uint, objRef corev1.O
 }
 
 // DeleteObject deletes an Object from a specific cluster.
-func (s *Service) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *Service) DeleteObject(ctx context.Context, clusterID uint, o client.Object) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
@@ -95,7 +94,7 @@ func (s *Service) DeleteObject(ctx context.Context, clusterID uint, o runtime.Ob
 }
 
 // EnsureObject makes sure that a given Object is on the cluster and returns it.
-func (s *Service) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *Service) EnsureObject(ctx context.Context, clusterID uint, o client.Object) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
@@ -124,7 +123,7 @@ func (s *Service) newClientForCluster(ctx context.Context, clusterID uint) (clie
 }
 
 // List lists Objects a specific cluster.
-func (s *Service) List(ctx context.Context, clusterID uint, labels map[string]string, obj runtime.Object) error {
+func (s *Service) List(ctx context.Context, clusterID uint, labels map[string]string, obj client.ObjectList) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")
@@ -135,7 +134,7 @@ func (s *Service) List(ctx context.Context, clusterID uint, labels map[string]st
 }
 
 // Update updates a given Object on the cluster and returns it.
-func (s *Service) Update(ctx context.Context, clusterID uint, o runtime.Object) error {
+func (s *Service) Update(ctx context.Context, clusterID uint, o client.Object) error {
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Kubernetes client")

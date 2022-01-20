@@ -17,8 +17,8 @@ package vault
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/runtime"
 	k8srest "k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type KubernetesService interface {
@@ -26,8 +26,8 @@ type KubernetesService interface {
 	GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error)
 
 	// EnsureObject makes sure that a given Object is on the cluster and returns it.
-	EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error
+	EnsureObject(ctx context.Context, clusterID uint, o client.Object) error
 
 	// DeleteObject deletes an Object from a specific cluster.
-	DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error
+	DeleteObject(ctx context.Context, clusterID uint, o client.Object) error
 }
