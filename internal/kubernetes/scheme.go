@@ -15,7 +15,7 @@
 package kubernetes
 
 import (
-	loggingV1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	loggingV1beta1 "github.com/banzaicloud/logging-operator/pkg/sdk/logging/api/v1beta1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 

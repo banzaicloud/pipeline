@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/logging/api/v1beta1"
 
 	"github.com/banzaicloud/pipeline/internal/integratedservices/integratedserviceadapter"
 )

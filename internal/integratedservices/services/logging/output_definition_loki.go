@@ -17,8 +17,8 @@ package logging
 import (
 	"fmt"
 
-	"github.com/banzaicloud/logging-operator/pkg/sdk/api/v1beta1"
-	"github.com/banzaicloud/logging-operator/pkg/sdk/model/output"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/logging/api/v1beta1"
+	"github.com/banzaicloud/logging-operator/pkg/sdk/logging/model/output"
 )
 
 type outputDefinitionManagerLoki struct {
