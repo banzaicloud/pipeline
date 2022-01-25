@@ -68,7 +68,7 @@ func TestMiddleware(t *testing.T) {
 				RequestBody:  body,
 				StatusCode:   http.StatusOK,
 				ResponseTime: 1000,
-				ResponseSize: 18,
+				ResponseSize: 17,
 				Errors:       nil,
 			},
 		}
@@ -77,6 +77,7 @@ func TestMiddleware(t *testing.T) {
 
 		middleware := Middleware(driver, WithClock(clock), WithUserIDExtractor(userIDExtractor))
 
+		gin.SetMode(gin.ReleaseMode)
 		engine := gin.New()
 		engine.Use(func(c *gin.Context) { c.Set(correlationid.ContextKey, "cid") }, middleware)
 		engine.POST("/", func(c *gin.Context) {
