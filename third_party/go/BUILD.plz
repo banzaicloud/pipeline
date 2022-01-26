@@ -4321,6 +4321,18 @@ go_module(
 )
 
 go_module(
+    name = "github.com__google__go-cmp__cmp__cmpopts",
+    download = ":_github.com__google__go-cmp#download",
+    install = ["cmp/cmpopts"],
+    module = "github.com/google/go-cmp",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__go-cmp__cmp",
+        ":github.com__google__go-cmp__cmp__internal__function",
+    ],
+)
+
+go_module(
     name = "github.com__google__go-cmp__cmp__internal__diff",
     download = ":_github.com__google__go-cmp#download",
     install = ["cmp/internal/diff"],
@@ -9458,7 +9470,7 @@ go_mod_download(
     name = "golang.org__x__net",
     _tag = "download",
     module = "golang.org/x/net",
-    version = "v0.0.0-20210614182718-04defd469f4e",
+    version = "v0.0.0-20211209124913-491a49abca63",
 )
 
 go_module(
@@ -12227,7 +12239,7 @@ go_mod_download(
     name = "k8s.io__api",
     _tag = "download",
     module = "k8s.io/api",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -12954,7 +12966,7 @@ go_mod_download(
     name = "k8s.io__apiextensions-apiserver",
     _tag = "download",
     module = "k8s.io/apiextensions-apiserver",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -13015,7 +13027,7 @@ go_mod_download(
     name = "k8s.io__apimachinery",
     _tag = "download",
     module = "k8s.io/apimachinery",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -13758,7 +13770,7 @@ go_mod_download(
     name = "k8s.io__apiserver",
     _tag = "download",
     module = "k8s.io/apiserver",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -13800,7 +13812,7 @@ go_mod_download(
     name = "k8s.io__cli-runtime",
     _tag = "download",
     module = "k8s.io/cli-runtime",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -13893,7 +13905,7 @@ go_mod_download(
     name = "k8s.io__client-go",
     _tag = "download",
     module = "k8s.io/client-go",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -18910,7 +18922,7 @@ go_mod_download(
     name = "k8s.io__cluster-bootstrap",
     _tag = "download",
     module = "k8s.io/cluster-bootstrap",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -18953,7 +18965,7 @@ go_mod_download(
     name = "k8s.io__component-base",
     _tag = "download",
     module = "k8s.io/component-base",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -19006,7 +19018,7 @@ go_mod_download(
     name = "k8s.io__component-helpers",
     _tag = "download",
     module = "k8s.io/component-helpers",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -19057,7 +19069,7 @@ go_mod_download(
     name = "k8s.io__klog__v2",
     _tag = "download",
     module = "k8s.io/klog/v2",
-    version = "v2.8.0",
+    version = "v2.9.0",
 )
 
 go_module(
@@ -19073,7 +19085,7 @@ go_mod_download(
     name = "k8s.io__kube-openapi",
     _tag = "download",
     module = "k8s.io/kube-openapi",
-    version = "v0.0.0-20210305001622-591a79e4bda7",
+    version = "v0.0.0-20211110012726-3cc51fd1e909",
 )
 
 go_module(
@@ -19101,7 +19113,7 @@ go_mod_download(
     name = "k8s.io__kube-scheduler",
     _tag = "download",
     module = "k8s.io/kube-scheduler",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -19120,7 +19132,7 @@ go_mod_download(
     name = "k8s.io__kubectl",
     _tag = "download",
     module = "k8s.io/kubectl",
-    version = "v0.21.3",
+    version = "v0.21.9",
 )
 
 go_module(
@@ -19296,7 +19308,7 @@ go_mod_download(
     name = "k8s.io__kubernetes",
     _tag = "download",
     module = "k8s.io/kubernetes",
-    version = "v1.20.9",
+    version = "v1.21.9",
 )
 
 go_module(
@@ -19463,11 +19475,14 @@ go_module(
     module = "k8s.io/kubernetes",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__google__go-cmp__cmp",
+        ":github.com__google__go-cmp__cmp__cmpopts",
         ":k8s.io__api__core__v1",
         ":k8s.io__apimachinery__pkg__api__resource",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
         ":k8s.io__apimachinery__pkg__labels",
         ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__errors",
         ":k8s.io__apimachinery__pkg__util__sets",
         ":k8s.io__apiserver__pkg__util__feature",
         ":k8s.io__client-go__informers",
@@ -19478,8 +19493,18 @@ go_module(
         ":k8s.io__kubernetes__pkg__apis__core__v1__helper",
         ":k8s.io__kubernetes__pkg__features",
         ":k8s.io__kubernetes__pkg__scheduler__apis__config",
+        ":k8s.io__kubernetes__pkg__scheduler__internal__parallelize",
         ":k8s.io__kubernetes__pkg__scheduler__util",
     ],
+)
+
+go_module(
+    name = "k8s.io__kubernetes__pkg__scheduler__internal__parallelize",
+    download = ":_k8s.io__kubernetes#download",
+    install = ["pkg/scheduler/internal/parallelize"],
+    module = "k8s.io/kubernetes",
+    visibility = ["PUBLIC"],
+    deps = [":k8s.io__client-go__util__workqueue"],
 )
 
 go_module(
@@ -19491,10 +19516,8 @@ go_module(
     deps = [
         ":k8s.io__api__core__v1",
         ":k8s.io__apimachinery__pkg__apis__meta__v1",
-        ":k8s.io__apimachinery__pkg__labels",
         ":k8s.io__apimachinery__pkg__types",
         ":k8s.io__apimachinery__pkg__util__errors",
-        ":k8s.io__apimachinery__pkg__util__sets",
         ":k8s.io__apimachinery__pkg__util__strategicpatch",
         ":k8s.io__apiserver__pkg__util__feature",
         ":k8s.io__client-go__kubernetes",
@@ -21386,7 +21409,7 @@ go_mod_download(
     name = "sigs.k8s.io__structured-merge-diff__v4",
     _tag = "download",
     module = "sigs.k8s.io/structured-merge-diff/v4",
-    version = "v4.1.2",
+    version = "v4.2.1",
 )
 
 go_module(
