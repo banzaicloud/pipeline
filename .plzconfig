@@ -1,5 +1,5 @@
 [please]
-version = 16.9.0
+version = 16.18.0
 
 [build]
 PassUnsafeEnv = VAULT_ADDR
