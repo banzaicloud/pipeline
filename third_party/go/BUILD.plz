@@ -1962,7 +1962,7 @@ go_mod_download(
     name = "github.com__banzaicloud__cadence-aws-sdk",
     _tag = "download",
     module = "github.com/banzaicloud/cadence-aws-sdk",
-    version = "v0.5.0",
+    version = "v0.6.0",
 )
 
 go_module(
@@ -2772,6 +2772,22 @@ go_module(
     module = "github.com/cppforlife/go-patch",
     visibility = ["PUBLIC"],
     deps = [":gopkg.in__yaml.v2"],
+)
+
+go_mod_download(
+    name = "github.com__cristalhq__jwt__v3",
+    _tag = "download",
+    module = "github.com/cristalhq/jwt/v3",
+    version = "v3.1.0",
+)
+
+go_module(
+    name = "github.com__cristalhq__jwt__v3",
+    download = ":_github.com__cristalhq__jwt__v3#download",
+    install = ["."],
+    module = "github.com/cristalhq/jwt/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -8247,7 +8263,7 @@ go_mod_download(
     name = "go.uber.org__cadence",
     _tag = "download",
     module = "go.uber.org/cadence",
-    version = "v0.18.5",
+    version = "v0.19.0",
 )
 
 go_module(
@@ -8384,6 +8400,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__apache__thrift__lib__go__thrift",
+        ":github.com__cristalhq__jwt__v3",
         ":github.com__facebookgo__clock",
         ":github.com__golang__mock__gomock",
         ":github.com__opentracing__opentracing-go",
@@ -8397,6 +8414,7 @@ go_module(
         ":go.uber.org__cadence__.gen__go__shadower",
         ":go.uber.org__cadence__.gen__go__shared",
         ":go.uber.org__cadence__internal__common",
+        ":go.uber.org__cadence__internal__common__auth",
         ":go.uber.org__cadence__internal__common__backoff",
         ":go.uber.org__cadence__internal__common__cache",
         ":go.uber.org__cadence__internal__common__metrics",
@@ -8418,6 +8436,19 @@ go_module(
     deps = [
         ":github.com__apache__thrift__lib__go__thrift",
         ":go.uber.org__cadence__.gen__go__shared",
+    ],
+)
+
+go_module(
+    name = "go.uber.org__cadence__internal__common__auth",
+    download = ":_go.uber.org__cadence#download",
+    install = ["internal/common/auth"],
+    module = "go.uber.org/cadence",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.uber.org__cadence__.gen__go__cadence__workflowserviceclient",
+        ":go.uber.org__cadence__.gen__go__shared",
+        ":go.uber.org__yarpc",
     ],
 )
 
@@ -8511,6 +8542,7 @@ go_module(
         ":go.uber.org__cadence__.gen__go__shared",
         ":go.uber.org__cadence__activity",
         ":go.uber.org__cadence__internal",
+        ":go.uber.org__cadence__internal__common__auth",
         ":go.uber.org__cadence__workflow",
         ":go.uber.org__zap",
     ],
