@@ -307,6 +307,9 @@ func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterReques
 		if err := common.ValidateNodePoolLabels(np.Name, np.Labels); err != nil {
 			return err
 		}
+		if err := common.ValidateNodePoolName(np.Name); err != nil {
+			return err
+		}
 	}
 
 	return nil
