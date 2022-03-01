@@ -161,7 +161,7 @@ dex:
 #        charts:
 #            nodepoolLabelOperator:
 #                chart: "banzaicloud-stable/nodepool-labels-operator"
-#                version: "0.2.5"
+#                version: "0.2.6"
 #
 #                # See https://github.com/banzaicloud/nodepool-labels-operator/tree/master/charts/nodepool-labels-operator for details
 #                values: {}
