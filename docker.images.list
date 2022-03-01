@@ -1,6 +1,6 @@
 docker.io/traefik:1.7.20
 ghcr.io/banzaicloud/anchore-image-validator:0.5.4
-ghcr.io/banzaicloud/instance-termination-handler:0.1.1
+ghcr.io/banzaicloud/instance-termination-handler:0.1.2
 ghcr.io/banzaicloud/integrated-service-operator:v0.5.0
 ghcr.io/banzaicloud/nodepool-labels-operator:v0.1.2
 ghcr.io/banzaicloud/vault-secrets-webhook:1.10.1

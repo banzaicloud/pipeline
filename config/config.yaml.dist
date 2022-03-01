@@ -358,7 +358,7 @@ dex:
 #        ith:
 #            enabled: true
 #            chart: "banzaicloud-stable/instance-termination-handler"
-#            version: "0.1.1"
+#            version: "0.1.2"
 #
 #        autoscaler:
 #            enabled: true

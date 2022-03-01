@@ -791,7 +791,7 @@ traefik:
 	// Instance Termination Handler
 	v.SetDefault("cluster::posthook::ith::enabled", true)
 	v.SetDefault("cluster::posthook::ith::chart", "banzaicloud-stable/instance-termination-handler")
-	v.SetDefault("cluster::posthook::ith::version", "0.1.1")
+	v.SetDefault("cluster::posthook::ith::version", "0.1.2")
 
 	// Cluster Autoscaler
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
