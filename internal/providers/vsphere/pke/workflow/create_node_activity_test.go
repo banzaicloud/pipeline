@@ -42,7 +42,7 @@ func TestCreateNodeActivity_GenerateVMConfig(t *testing.T) {
 				"KubernetesVersion":    "1.15.12",
 				"NodePoolName":         "pool1",
 				"OrgID":                "2",
-				"PKEVersion":           "0.5.1",
+				"PKEVersion":           "0.9.2",
 				"PipelineToken":        "###token###",
 				"PipelineURL":          "https://externalAddress/pipeline",
 				"PipelineURLInsecure":  "false",
