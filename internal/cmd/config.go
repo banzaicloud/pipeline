@@ -694,7 +694,7 @@ rbac:
 
 	v.SetDefault("cluster::autoscale::namespace", "")
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::chart", "stable/cluster-autoscaler")
-	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::version", "7.1.0")
+	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::version", "8.0.0")
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::values", map[string]interface{}{})
 	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::imageVersionConstraints", []interface{}{
 		map[string]interface{}{
