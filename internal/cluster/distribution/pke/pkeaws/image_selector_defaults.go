@@ -14,37 +14,35 @@
 
 package pkeaws
 
-// Default PKE image: Ubuntu 20.04
+// Default PKE image: Ubuntu 18.04
 // These are plain images, so PKE will be installed during the node bootstrapping.
 // nolint: gochecknoglobals
 var defaultImages = RegionMapImageSelector{
 	// AWS partition
-	"af-south-1":     "ami-04402921e3d389a19", // Africa (Cape Town).
-	"ap-east-1":      "ami-02ff31ab125adcde7", // Asia Pacific (Hong Kong).
-	"ap-northeast-1": "ami-04110a75416d1c646", // Asia Pacific (Tokyo).
-	"ap-northeast-2": "ami-07cc5503f90076a9a", // Asia Pacific (Seoul).
-	"ap-northeast-3": "ami-0494bd48a487f67fd", // Asia Pacific (Osaka).
-	"ap-southeast-1": "ami-0e91c34d3c7ee6fae", // Asia Pacific (Singapore).
-	"ap-southeast-2": "ami-0b72e846931519ea3", // Asia Pacific (Sydney).
-	"ap-southeast-3": "ami-044c8c46473270be6", // Asia Pacific (Jakarta).
-	"ap-south-1":     "ami-08f7245e4682ed599", // Asia Pacific (Mumbai).
-	"ca-central-1":   "ami-03441c48a85de729c", // Canada (Central).
-	"eu-central-1":   "ami-0498a49a15494604f", // EU (Frankfurt).
-	"eu-north-1":     "ami-04e4f9b92505045dd", // EU (Stockholm).
-	"eu-south-1":     "ami-032397668a37f94af", // EU (Milan).
-	"eu-west-1":      "ami-0ef38d2cfb7fd2d03", // EU (Ireland).
-	"eu-west-2":      "ami-01d912b5940be07a5", // EU (London).
-	"eu-west-3":      "ami-01cec60ec758ad370", // EU (Paris).
-	"me-south-1":     "ami-0170daa4ae2ca72ba", // Middle East (Bahrain).
-	"sa-east-1":      "ami-05c7374d9286c47e8", // South America (Sao Paulo).
-	"us-east-1":      "ami-01896de1f162f0ab7", // US East (N. Virginia).
-	"us-east-2":      "ami-045137e8d34668746", // US East (Ohio).
-	"us-west-1":      "ami-0189702ff9c0b592f", // US West (N. California).
-	"us-west-2":      "ami-0b0e59a09e7f4059f", // US West (Oregon).
+	"af-south-1":     "ami-063a57e81279c601b", // Africa (Cape Town).
+	"ap-east-1":      "ami-c790d6b6",          // Asia Pacific (Hong Kong).
+	"ap-northeast-1": "ami-0278fe6949f6b1a06", // Asia Pacific (Tokyo).
+	"ap-northeast-2": "ami-00edfb46b107f643c", // Asia Pacific (Seoul).
+	"ap-southeast-1": "ami-0f7719e8b7ba25c61", // Asia Pacific (Singapore).
+	"ap-southeast-2": "ami-04fcc97b5f6edcd89", // Asia Pacific (Sydney).
+	"ap-south-1":     "ami-0b44050b2d893d5f7", // Asia Pacific (Mumbai).
+	"ca-central-1":   "ami-0edd51cc29813e254", // Canada (Central).
+	"eu-central-1":   "ami-0e342d72b12109f91", // EU (Frankfurt).
+	"eu-north-1":     "ami-050981837962d44ac", // EU (Stockholm).
+	"eu-south-1":     "ami-027305c8710c4e8b5", // EU (Milan).
+	"eu-west-1":      "ami-0701e7be9b2a77600", // EU (Ireland).
+	"eu-west-2":      "ami-0eb89db7593b5d434", // EU (London).
+	"eu-west-3":      "ami-08c757228751c5335", // EU (Paris).
+	"me-south-1":     "ami-051274f257aba97f9", // Middle East (Bahrain).
+	"sa-east-1":      "ami-077d5d3682940b34a", // South America (Sao Paulo).
+	"us-east-1":      "ami-085925f297f89fce1", // US East (N. Virginia).
+	"us-east-2":      "ami-07c1207a9d40bc3bd", // US East (Ohio).
+	"us-west-1":      "ami-0f56279347d2fa43e", // US West (N. California).
+	"us-west-2":      "ami-003634241a8fcdec0", // US West (Oregon).
 
 	// AWS GovCloud (US) partition
-	"us-gov-east-1": "ami-002a7501b87593bdd", // GovCloud (US-East)
-	"us-gov-west-1": "ami-0b152eed9cb83f2bd", // GovCloud (US-West)
+	"us-gov-east-1": "ami-c29975b3", // GovCloud (US-East)
+	"us-gov-west-1": "ami-adecdbcc", // GovCloud (US-West)
 }
 
 // DefaultImages returns an image selector that returns fallback images if no other images are found.
