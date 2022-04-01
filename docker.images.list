@@ -8,8 +8,11 @@ gcr.io/google-containers/cluster-autoscaler:v1.15.4
 k8s.gcr.io/autoscaling/cluster-autoscaler:v1.16.7
 k8s.gcr.io/autoscaling/cluster-autoscaler:v1.17.4
 k8s.gcr.io/autoscaling/cluster-autoscaler:v1.18.3
-k8s.gcr.io/autoscaling/cluster-autoscaler:v1.19.1
-k8s.gcr.io/autoscaling/cluster-autoscaler:v1.20.0
+k8s.gcr.io/autoscaling/cluster-autoscaler:v1.19.2
+k8s.gcr.io/autoscaling/cluster-autoscaler:v1.20.2
+k8s.gcr.io/autoscaling/cluster-autoscaler:v1.21.2
+k8s.gcr.io/autoscaling/cluster-autoscaler:v1.22.2
+k8s.gcr.io/autoscaling/cluster-autoscaler:v1.23.0
 velero/velero:v1.6.0
 velero/velero-plugin-for-aws:v1.2.0
 velero/velero-plugin-for-microsoft-azure:v1.2.0

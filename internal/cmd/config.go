@@ -733,13 +733,28 @@ rbac:
 			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
 		},
 		map[string]interface{}{
-			"k8sVersion": ">=1.19",
-			"tag":        "v1.19.1",
+			"k8sVersion": "~1.19",
+			"tag":        "v1.19.2",
 			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
 		},
 		map[string]interface{}{
-			"k8sVersion": ">=1.20",
-			"tag":        "v1.20.0",
+			"k8sVersion": "~1.20",
+			"tag":        "v1.20.2",
+			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
+		},
+		map[string]interface{}{
+			"k8sVersion": "~1.21",
+			"tag":        "v1.21.2",
+			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
+		},
+		map[string]interface{}{
+			"k8sVersion": "~1.22",
+			"tag":        "v1.22.2",
+			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
+		},
+		map[string]interface{}{
+			"k8sVersion": ">=1.23",
+			"tag":        "v1.23.0",
 			"repository": "k8s.gcr.io/autoscaling/cluster-autoscaler",
 		},
 	})
