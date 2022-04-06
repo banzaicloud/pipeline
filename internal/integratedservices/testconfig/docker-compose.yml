@@ -18,7 +18,7 @@ services:
             - 127.0.0.1:3306:3306
 
     vault:
-        image: vault:1.4.2
+        image: vault:1.6.1
         command: server
         cap_add:
             - IPC_LOCK
@@ -31,7 +31,7 @@ services:
 
     vault-unsealer:
         user: "${uid}:${gid}"
-        image: banzaicloud/bank-vaults:1.7.0
+        image: banzaicloud/bank-vaults:1.10.0
         depends_on:
             - vault
         restart: on-failure
@@ -44,7 +44,7 @@ services:
 
     vault-configurer:
         user: "${uid}:${gid}"
-        image: banzaicloud/bank-vaults:1.7.0
+        image: banzaicloud/bank-vaults:1.10.0
         depends_on:
             - vault
             - vault-unsealer
@@ -69,7 +69,7 @@ services:
             - ./.docker/volumes/vault/keys:/vault/keys
 
     cadence:
-        image: ubercadence/server:0.13.0-auto-setup
+        image: ubercadence/server:0.22.1-auto-setup
         environment:
             LOG_LEVEL: debug,info
             DB: mysql
