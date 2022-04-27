@@ -289,12 +289,11 @@ func (s service) DeleteCluster(ctx context.Context, clusterIdentifier Identifier
 		return false, err
 	}
 
-	// Already being deleted, return 202 Accepted
-	if c.Status == Deleting {
+	// Already being deleted, return 202 Accepted if not forced
+	if c.Status == Deleting && !options.Force {
 		return false, nil
-	}
-
-	if !clusterIsReady(c.Status) && !options.Force {
+		// Return error when cluster is not ready if not forced
+	} else if !clusterIsReady(c.Status) && !options.Force {
 		return false, NotReadyError{
 			OrganizationID: c.OrganizationID,
 			ID:             c.ID,
