@@ -1,12 +1,10 @@
 #bash
 
 K8S_VERSIONS=(
-  "1.16"
-  "1.17"
-  "1.18"
   "1.19"
   "1.20"
   "1.21"
+  "1.22"
 )
 
 AWS_REGIONS=$(aws ec2 describe-regions --output text | cut -f4 | sort -V)
