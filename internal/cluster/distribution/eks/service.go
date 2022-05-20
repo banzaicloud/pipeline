@@ -446,11 +446,21 @@ func (s service) UpdateNodePool(
 	nodePoolName string,
 	nodePoolUpdate NodePoolUpdate,
 ) (string, error) {
-	// TODO: check if node pool exists
-
 	c, err := s.genericClusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return "", err
+	}
+
+	existingNodePools, err := s.nodePools.ListNodePools(ctx, c.OrganizationID, c.ID, c.Name)
+	if err != nil {
+		return "", err
+	}
+
+	if _, isExisting := existingNodePools[nodePoolName]; !isExisting {
+		return "", cluster.NodePoolNotFoundError{
+			c.ID,
+			nodePoolName,
+		}
 	}
 
 	err = s.genericClusters.SetStatus(ctx, clusterID, cluster.Updating, "updating node pool")

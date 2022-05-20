@@ -835,7 +835,7 @@ func main() {
 									workflowClient,
 								),
 								eksadapter.NewNodePoolProcessor(db, eks.NewDefaultImageSelector()),
-								eksadapter.NewNodePoolValidator(db),
+								eksadapter.NewNodePoolValidator(db, cloudinfoClient),
 							)),
 							"pkeamazon": clusteradapter.NewPKEService(pkeDistribution.NewService(
 								clusterStore,
