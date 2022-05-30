@@ -125,8 +125,8 @@ type MockNodePoolValidator struct {
 	mock.Mock
 }
 
-// ValidateNewNodePool provides a mock function.
-func (_m *MockNodePoolValidator) ValidateNewNodePool(ctx context.Context, c cluster.Cluster, newNodePool NewNodePool) (err error) {
+// ValidateNodePoolCreate provides a mock function.
+func (_m *MockNodePoolValidator) ValidateNodePoolCreate(ctx context.Context, c cluster.Cluster, newNodePool NewNodePool) (err error) {
 	ret := _m.Called(ctx, c, newNodePool)
 
 	var r0 error

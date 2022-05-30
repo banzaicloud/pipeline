@@ -149,6 +149,6 @@ type NodePoolStore interface {
 
 // NodePoolValidator validates a node pool descriptor.
 type NodePoolValidator interface {
-	// ValidateNewNodePool validates a new node pool descriptor.
-	ValidateNewNodePool(ctx context.Context, c cluster.Cluster, newNodePool NewNodePool) (err error)
+	// ValidateNodePoolCreate validates a new node pool descriptor.
+	ValidateNodePoolCreate(ctx context.Context, c cluster.Cluster, newNodePool NewNodePool) (err error)
 }

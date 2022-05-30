@@ -362,7 +362,7 @@ func (s service) CreateNodePools(ctx context.Context, clusterID uint, nodePools 
 
 	npErrors := make([]error, 0, len(nodePools))
 	for _, nodePool := range nodePools {
-		if err := s.nodePoolValidator.ValidateNewNodePool(ctx, c, nodePool); err != nil {
+		if err := s.nodePoolValidator.ValidateNodePoolCreate(ctx, c, nodePool); err != nil {
 			npErrors = append(npErrors, err)
 		}
 	}

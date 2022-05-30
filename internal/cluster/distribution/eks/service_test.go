@@ -623,17 +623,17 @@ func TestServiceCreateNodePools(t *testing.T) {
 				getClusterMock.Return(cluster.Cluster{ID: testCase.input.clusterID}, nil)
 			}
 
-			validateNewNodePoolMock := testCase.input.s.nodePoolValidator.(*MockNodePoolValidator).On(
-				"ValidateNewNodePool",
+			validateNodePoolCreateMock := testCase.input.s.nodePoolValidator.(*MockNodePoolValidator).On(
+				"ValidateNodePoolCreate",
 				testCase.input.ctx,
 				cluster.Cluster{ID: testCase.input.clusterID},
 				testCase.input.nodePools["node-pool-name"],
 			)
 			if testCase.expectedError != nil &&
 				strings.HasPrefix(testCase.expectedError.Error(), "validate new node pool error") {
-				validateNewNodePoolMock.Return(testCase.expectedError)
+				validateNodePoolCreateMock.Return(testCase.expectedError)
 			} else {
-				validateNewNodePoolMock.Return(nil)
+				validateNodePoolCreateMock.Return(nil)
 			}
 
 			processNewNodePoolMock := testCase.input.s.nodePoolProcessor.(*MockNodePoolProcessor).On(

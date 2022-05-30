@@ -28,7 +28,23 @@ import (
 	pkggormtest "github.com/banzaicloud/pipeline/pkg/gorm/test"
 )
 
-func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
+type mockCloudinfo struct {
+	expectedErr error
+}
+
+func (m *mockCloudinfo) ValidateSpotPrice(
+	ctx context.Context,
+	cloud string,
+	service string,
+	region string,
+	productType string,
+	location string,
+	spotPrice string,
+) error {
+	return m.expectedErr
+}
+
+func TestNodePoolValidatorValidateNodePoolCreate(t *testing.T) {
 	type inputType struct {
 		v        *nodePoolValidator
 		ctx      context.Context
@@ -52,6 +68,9 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 							&eksmodel.EKSClusterModel{},
 							&eksmodel.EKSSubnetModel{},
 						).DB,
+					spotPriceValidator: &mockCloudinfo{
+						expectedErr: nil,
+					},
 				},
 				ctx:      context.Background(),
 				c:        cluster.Cluster{},
@@ -70,6 +89,9 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 							&eksmodel.EKSSubnetModel{},
 						).
 						SetError(t, errors.New("test error")).DB,
+					spotPriceValidator: &mockCloudinfo{
+						expectedErr: nil,
+					},
 				},
 				ctx:      context.Background(),
 				c:        cluster.Cluster{},
@@ -93,6 +115,9 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 								ClusterID: 1,
 							},
 						).DB,
+					spotPriceValidator: &mockCloudinfo{
+						expectedErr: nil,
+					},
 				},
 				ctx: context.Background(),
 				c: cluster.Cluster{
@@ -100,6 +125,43 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 				},
 				nodePool: eks.NewNodePool{
 					SubnetID: "subnet-id",
+				},
+			},
+		},
+		{
+			caseDescription: "spot price validation error -> error",
+			expectedError:   errors.New("invalid node pool creation request"),
+			input: inputType{
+				v: &nodePoolValidator{
+					db: pkggormtest.NewFakeDatabase(t).
+						CreateTablesFromEntities(
+							t,
+							&eksmodel.EKSClusterModel{},
+							&eksmodel.EKSSubnetModel{},
+						).
+						SaveEntities(
+							t,
+							&eksmodel.EKSClusterModel{
+								ClusterID: 1,
+								Subnets: []*eksmodel.EKSSubnetModel{
+									{
+										SubnetId: aws.String("subnet-id"),
+									},
+								},
+							},
+						).DB,
+					spotPriceValidator: &mockCloudinfo{
+						expectedErr: errors.New("spot price validation error"),
+					},
+				},
+				ctx: context.Background(),
+				c: cluster.Cluster{
+					ID: 1,
+				},
+				nodePool: eks.NewNodePool{
+					InstanceType: "instance-type",
+					Size:         1,
+					SubnetID:     "subnet-id",
 				},
 			},
 		},
@@ -125,6 +187,9 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 								},
 							},
 						).DB,
+					spotPriceValidator: &mockCloudinfo{
+						expectedErr: nil,
+					},
 				},
 				ctx: context.Background(),
 				c: cluster.Cluster{
@@ -143,7 +208,7 @@ func TestNodePoolValudatorValidateNewNodePool(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.caseDescription, func(t *testing.T) {
-			actualError := testCase.input.v.ValidateNewNodePool(
+			actualError := testCase.input.v.ValidateNodePoolCreate(
 				testCase.input.ctx,
 				testCase.input.c,
 				testCase.input.nodePool,
