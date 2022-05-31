@@ -254,7 +254,7 @@ func (a *ClusterAPI) createCluster(
 
 	// TODO check validation
 	// This is the common part of cluster flow
-	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID, userID)
+	commonCluster, err := cluster.CreateCommonClusterFromRequest(createClusterRequest, organizationID, userID, a.spotPriceValidator)
 	if err != nil {
 		log.Errorf("error during create common cluster from request: %s", err.Error())
 		return nil, &pkgCommon.ErrorResponse{

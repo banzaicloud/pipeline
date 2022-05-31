@@ -36,6 +36,7 @@ import (
 	vsphereadapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
 	pkeVsphereAdapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -321,13 +322,13 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 }
 
 // CreateCommonClusterFromRequest creates a CommonCluster from a request
-func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (CommonCluster, error) {
+func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId uint, spotPriceValidator cloudinfo.SpotPriceValidator) (CommonCluster, error) {
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
 	}
 
 	// validate request
-	if err := createClusterRequest.Validate(); err != nil {
+	if err := createClusterRequest.Validate(spotPriceValidator); err != nil {
 		return nil, err
 	}
 

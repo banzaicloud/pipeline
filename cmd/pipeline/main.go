@@ -675,6 +675,7 @@ func main() {
 		config.Auth,
 		config.Distribution,
 		clusterAuthService,
+		cloudinfoClient,
 	)
 
 	v1 := base.Group("api/v1")

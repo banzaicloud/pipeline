@@ -25,6 +25,7 @@ import (
 
 	eks2 "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks"
 	"github.com/banzaicloud/pipeline/internal/global/globaleks"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
@@ -281,7 +282,7 @@ func (a *NodePool) ValidateForUpdate(npName string) error {
 }
 
 // Validate validates Amazon EKS cluster create request
-func (eks *CreateClusterEKS) Validate() error {
+func (eks *CreateClusterEKS) Validate(spotPriceValidator cloudinfo.SpotPriceValidator, location string) error {
 	if eks == nil {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
@@ -299,6 +300,17 @@ func (eks *CreateClusterEKS) Validate() error {
 	var errs []error
 	for npName, np := range eks.NodePools {
 		if err := np.Validate(npName); err != nil {
+			errs = append(errs, err)
+		}
+		if err := spotPriceValidator.ValidateSpotPrice(
+			context.Background(),
+			"amazon",
+			"eks",
+			location,
+			np.InstanceType,
+			location,
+			np.SpotPrice,
+		); err != nil {
 			errs = append(errs, err)
 		}
 	}

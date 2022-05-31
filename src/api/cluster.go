@@ -37,6 +37,7 @@ import (
 	azureDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	vsphereDriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -66,6 +67,7 @@ type ClusterAPI struct {
 	authConfig         auth.Config
 	distributionConfig cmd.DistributionConfig
 	clientSecretGetter clusterAuth.ClusterClientSecretGetter
+	spotPriceValidator cloudinfo.SpotPriceValidator
 }
 
 type ClusterCreators struct {
@@ -101,6 +103,7 @@ func NewClusterAPI(
 	authConfig auth.Config,
 	distributionConfig cmd.DistributionConfig,
 	clientSecretGetter clusterAuth.ClusterClientSecretGetter,
+	spotPriceValidator cloudinfo.SpotPriceValidator,
 ) *ClusterAPI {
 	return &ClusterAPI{
 		clusterManager:          clusterManager,
@@ -117,6 +120,7 @@ func NewClusterAPI(
 		authConfig:              authConfig,
 		distributionConfig:      distributionConfig,
 		clientSecretGetter:      clientSecretGetter,
+		spotPriceValidator:      spotPriceValidator,
 	}
 }
 

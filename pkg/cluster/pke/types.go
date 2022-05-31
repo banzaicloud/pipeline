@@ -15,10 +15,15 @@
 package pke
 
 import (
-	"github.com/pkg/errors"
+	"context"
+
+	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
+	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
@@ -31,14 +36,6 @@ type CreateClusterPKE struct {
 	Kubernetes Kubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty" binding:"required"`
 	KubeADM    KubeADM    `json:"kubeadm,omitempty" yaml:"kubeadm,omitempty"`
 	CRI        CRI        `json:"cri,omitempty" yaml:"cri,omitempty" binding:"required"`
-}
-
-func (pke *CreateClusterPKE) Validate() error {
-	if err := intPKE.ValidatePKEKubernetesVersion(pke.Kubernetes.Version); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // UpdateClusterPKE describes Pipeline's EC2/BanzaiCloud fields of a UpdateCluster request
@@ -54,6 +51,7 @@ func (a *UpdateClusterPKE) Validate() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -170,6 +168,42 @@ func (pke *CreateClusterPKE) AddDefaults() error {
 	}
 	if pke.Network.Provider == "" {
 		pke.Network.Provider = NetworkProvider(global.Config.Distribution.PKE.Amazon.DefaultNetworkProvider)
+	}
+
+	return nil
+}
+
+func (pke *CreateClusterPKE) Validate(spotPriceValidator cloudinfo.SpotPriceValidator, location, cloud string) error {
+	var errs []error
+
+	if err := intPKE.ValidatePKEKubernetesVersion(pke.Kubernetes.Version); err != nil {
+		errs = append(errs, err)
+	}
+
+	if cloud == "amazon" {
+		for _, np := range pke.NodePools {
+			providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+			if err := mapstructure.Decode(np.ProviderConfig, &providerConfig); err != nil {
+				return errors.WrapIff(err, "decoding nodepool %q config", np.Name)
+			}
+
+			err := spotPriceValidator.ValidateSpotPrice(
+				context.Background(),
+				"amazon",
+				"pke",
+				location,
+				providerConfig.AutoScalingGroup.InstanceType,
+				string(providerConfig.AutoScalingGroup.Zones[0]),
+				providerConfig.AutoScalingGroup.SpotPrice,
+			)
+			if err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil
