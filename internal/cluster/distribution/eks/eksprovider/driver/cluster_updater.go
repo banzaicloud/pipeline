@@ -29,14 +29,16 @@ import (
 	pkgEks "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/ekscluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksmodel"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/workflow"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/cluster"
 )
 
 type EksClusterUpdater struct {
-	logger         logrus.FieldLogger
-	workflowClient client.Client
+	logger             logrus.FieldLogger
+	workflowClient     client.Client
+	spotPriceValidator cloudinfo.SpotPriceValidator
 }
 
 type updateValidationError struct {
@@ -58,10 +60,11 @@ func (e *updateValidationError) IsPreconditionFailed() bool {
 	return e.preconditionFailed
 }
 
-func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Client) EksClusterUpdater {
+func NewEksClusterUpdater(logger logrus.FieldLogger, workflowClient client.Client, spotPriceValidator cloudinfo.SpotPriceValidator) EksClusterUpdater {
 	return EksClusterUpdater{
-		logger:         logger,
-		workflowClient: workflowClient,
+		logger:             logger,
+		workflowClient:     workflowClient,
+		spotPriceValidator: spotPriceValidator,
 	}
 }
 
@@ -94,7 +97,7 @@ func (c *EksClusterUpdater) prepare(ctx context.Context, eksCluster *cluster.EKS
 		}
 	}
 
-	if err := request.Validate(); err != nil {
+	if err := request.Validate(c.spotPriceValidator, eksCluster.GetLocation()); err != nil {
 		return &updateValidationError{
 			msg:            err.Error(),
 			invalidRequest: true,
@@ -189,7 +192,7 @@ func (c *EksClusterUpdater) UpdateCluster(ctx context.Context,
 		"clusterID":      eksCluster.GetID(),
 		"organizationID": eksCluster.GetOrganizationId(),
 	})
-	logger.Info("start deleting EKS Cluster")
+	logger.Info("start updating EKS Cluster")
 
 	logger.Debug("validate update request")
 	err := c.validate(ctx, eksCluster)

@@ -15,6 +15,7 @@
 package cluster_test
 
 import (
+	"context"
 	"crypto/sha256"
 	"flag"
 	"fmt"
@@ -36,6 +37,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/internal/secret/secretadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/types"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
@@ -72,6 +74,22 @@ var (
 	}
 )
 
+type mockCloudinfo struct {
+	expectedErr error
+}
+
+func (m *mockCloudinfo) ValidateSpotPrice(
+	ctx context.Context,
+	cloud string,
+	service string,
+	region string,
+	productType string,
+	location string,
+	spotPrice string,
+) error {
+	return m.expectedErr
+}
+
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
@@ -107,23 +125,24 @@ func testCreateCommonClusterFromRequest(t *testing.T) {
 	nplabels.SetNodePoolLabelValidator(labelValidator)
 
 	cases := []struct {
-		name          string
-		createRequest *pkgCluster.CreateClusterRequest
-		expectedModel *model.ClusterModel
-		expectedError error
+		name               string
+		createRequest      *pkgCluster.CreateClusterRequest
+		expectedModel      *model.ClusterModel
+		expectedError      error
+		spotPriceValidator cloudinfo.SpotPriceValidator
 	}{
-		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil},
-		{name: "kube create", createRequest: kubeCreateFull, expectedModel: kubeModelFull, expectedError: nil},
+		{name: "aks create", createRequest: aksCreateFull, expectedModel: aksModelFull, expectedError: nil, spotPriceValidator: &mockCloudinfo{expectedErr: nil}},
+		{name: "kube create", createRequest: kubeCreateFull, expectedModel: kubeModelFull, expectedError: nil, spotPriceValidator: &mockCloudinfo{expectedErr: nil}},
 
-		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: pkgErrors.ErrorNotSupportedCloudType},
+		{name: "not supported cloud", createRequest: notSupportedCloud, expectedModel: nil, expectedError: pkgErrors.ErrorNotSupportedCloudType, spotPriceValidator: &mockCloudinfo{expectedErr: nil}},
 
-		{name: "aks empty location", createRequest: aksEmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty},
-		{name: "kube empty location and nodeInstanceType", createRequest: kubeEmptyLocation, expectedModel: kubeEmptyLocAndNIT, expectedError: nil},
+		{name: "aks empty location", createRequest: aksEmptyLocationCreate, expectedModel: nil, expectedError: pkgErrors.ErrorLocationEmpty, spotPriceValidator: &mockCloudinfo{expectedErr: nil}},
+		{name: "kube empty location and nodeInstanceType", createRequest: kubeEmptyLocation, expectedModel: kubeEmptyLocAndNIT, expectedError: nil, spotPriceValidator: &mockCloudinfo{expectedErr: nil}},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organizationId, userId)
+			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createRequest, organizationId, userId, tc.spotPriceValidator)
 
 			if tc.expectedError != nil {
 				if err != nil {

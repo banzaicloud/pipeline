@@ -27,6 +27,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -50,6 +51,7 @@ type commonUpdater struct {
 	externalBaseURL          string
 	externalBaseURLInsecure  bool
 	helmService              HelmService
+	spotPriceValidator       cloudinfo.SpotPriceValidator
 }
 
 type commonUpdateValidationError struct {
@@ -81,6 +83,7 @@ func NewCommonClusterUpdater(
 	externalBaseURL string,
 	externalBaseURLInsecure bool,
 	helmService HelmService,
+	spotPriceValidator cloudinfo.SpotPriceValidator,
 ) *commonUpdater {
 	return &commonUpdater{
 		request:                 request,
@@ -91,6 +94,7 @@ func NewCommonClusterUpdater(
 		externalBaseURL:         externalBaseURL,
 		externalBaseURLInsecure: externalBaseURLInsecure,
 		helmService:             helmService,
+		spotPriceValidator:      spotPriceValidator,
 	}
 }
 
@@ -135,7 +139,7 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 		}
 	}
 
-	if err := c.request.Validate(); err != nil {
+	if err := c.request.Validate(c.spotPriceValidator, c.cluster.GetLocation()); err != nil {
 		return nil, &commonUpdateValidationError{
 			msg:            err.Error(),
 			invalidRequest: true,

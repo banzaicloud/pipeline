@@ -366,15 +366,15 @@ func (r *CreateClusterRequest) validateMainFields() error {
 }
 
 // Validate checks the request fields
-func (r *UpdateClusterRequest) Validate() error {
+func (r *UpdateClusterRequest) Validate(spotPriceValidator cloudinfo.SpotPriceValidator, location string) error {
 	r.preValidate()
 	if r.PKE != nil {
-		return r.PKE.Validate()
+		return r.PKE.Validate(spotPriceValidator, location, r.Cloud)
 	}
 
 	switch r.Cloud {
 	case Amazon:
-		return r.EKS.Validate()
+		return r.EKS.Validate(spotPriceValidator, location)
 	case Azure:
 		return r.AKS.Validate()
 	case Google:

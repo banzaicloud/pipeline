@@ -376,7 +376,7 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 
 // Validate validates the update request (only EKS part). If any of the fields is missing, the method fills
 // with stored data.
-func (eks *UpdateClusterAmazonEKS) Validate() error {
+func (eks *UpdateClusterAmazonEKS) Validate(spotPriceValidator cloudinfo.SpotPriceValidator, location string) error {
 	// ---- [ Amazon EKS field check ] ---- //
 	if eks == nil {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
@@ -386,6 +386,17 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 	var errs []error
 	for npName, np := range eks.NodePools {
 		if err := np.ValidateForUpdate(npName); err != nil {
+			errs = append(errs, err)
+		}
+		if err := spotPriceValidator.ValidateSpotPrice(
+			context.Background(),
+			"amazon",
+			"eks",
+			location,
+			np.InstanceType,
+			location,
+			np.SpotPrice,
+		); err != nil {
 			errs = append(errs, err)
 		}
 	}

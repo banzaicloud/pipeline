@@ -43,13 +43,36 @@ type UpdateClusterPKE struct {
 	NodePools UpdateNodePools `json:"nodepools,omitempty" yaml:"nodepools,omitempty" binding:"required"`
 }
 
-func (a *UpdateClusterPKE) Validate() error {
+func (a *UpdateClusterPKE) Validate(spotPriceValidator cloudinfo.SpotPriceValidator, location, cloud string) error {
 	// TODO implement
 
 	for npName, np := range a.NodePools {
 		if err := common.ValidateNodePoolLabels(npName, np.Labels); err != nil {
 			return err
 		}
+	}
+
+	var errs []error
+
+	if cloud == "amazon" {
+		for _, np := range a.NodePools {
+			err := spotPriceValidator.ValidateSpotPrice(
+				context.Background(),
+				"amazon",
+				"pke",
+				location,
+				np.InstanceType,
+				location,
+				np.SpotPrice,
+			)
+			if err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	return nil

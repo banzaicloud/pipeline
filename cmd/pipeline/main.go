@@ -502,6 +502,7 @@ func main() {
 		EKSAmazon: eksDriver.NewEksClusterUpdater(
 			logrusLogger,
 			workflowClient,
+			cloudinfoClient,
 		),
 		PKEOnVsphere: vspherePKEDriver.MakeClusterUpdater(
 			commonLogger,

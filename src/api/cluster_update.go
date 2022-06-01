@@ -104,6 +104,7 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 				a.externalBaseURL,
 				a.externalBaseURLInsecure,
 				a.helmService,
+				a.spotPriceValidator,
 			)
 			err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 		}
