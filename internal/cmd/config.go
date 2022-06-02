@@ -669,7 +669,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cluster::dns::baseDomain", "")
 	v.SetDefault("cluster::dns::providerSecret", "secret/data/banzaicloud/aws")
 	v.SetDefault("cluster::dns::charts::externalDns::chart", "bitnami/external-dns")
-	v.SetDefault("cluster::dns::charts::externalDns::version", "4.5.0")
+	v.SetDefault("cluster::dns::charts::externalDns::version", "6.5.1")
 	v.SetDefault("cluster::dns::charts::externalDns::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"registry":   "k8s.gcr.io",
