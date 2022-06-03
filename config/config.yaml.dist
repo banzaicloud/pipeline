@@ -244,7 +244,7 @@ dex:
 #        charts:
 #            externalDns:
 #                chart: "bitnami/external-dns"
-#                version: "4.5.0"
+#                version: "6.5.1"
 #
 #                # See https://github.com/bitnami/charts/tree/master/bitnami/external-dns for details
 #                values: {}
