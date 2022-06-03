@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//internal/cluster/distribution/eks",
         "//internal/global/globaleks",
+        "//pkg/cloudinfo",
         "//pkg/common",
         "//pkg/errors",
         "//third_party/go:emperror.dev__errors",

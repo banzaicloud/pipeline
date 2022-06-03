@@ -8,7 +8,10 @@ go_library(
     deps = [
         "//internal/global",
         "//internal/pke",
+        "//internal/providers/pke",
+        "//pkg/cloudinfo",
         "//pkg/common",
-        "//third_party/go:github.com__pkg__errors",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__mitchellh__mapstructure",
     ],
 )
