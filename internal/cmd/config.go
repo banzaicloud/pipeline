@@ -579,7 +579,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 		"storagetier",
 	})
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::chart", "banzaicloud-stable/nodepool-labels-operator")
-	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.2.6")
+	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.2.7")
 	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::values", map[string]interface{}{})
 
 	v.SetDefault("cluster::vault::enabled", true)
@@ -806,7 +806,7 @@ traefik:
 	// Instance Termination Handler
 	v.SetDefault("cluster::posthook::ith::enabled", true)
 	v.SetDefault("cluster::posthook::ith::chart", "banzaicloud-stable/instance-termination-handler")
-	v.SetDefault("cluster::posthook::ith::version", "0.1.2")
+	v.SetDefault("cluster::posthook::ith::version", "0.1.3")
 
 	// Cluster Autoscaler
 	v.SetDefault("cluster::posthook::autoscaler::enabled", true)
