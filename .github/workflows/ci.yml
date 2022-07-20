@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3.1.0
         with:
           go-version: 1.16
 
@@ -60,6 +60,39 @@ jobs:
             exit 1
           fi
 
+      - name: Set Git refname
+        id: set-git-refname
+        run: echo ::set-output name=git_refname::$(echo "${{ github.ref }}" | sed -r 's@refs/(heads|pull|tags)/@@g' )
+
+      - name: Cache licenses
+        id: cache-licenses
+        uses: actions/cache@v2
+        with:
+          path: .licensei.cache
+          key: licensei-v1-${{ steps.set-git-refname.outputs.git_refname }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            licensei-v1-${{ steps.set-git-refname.outputs.git_refname }}
+            licensei-v1-master
+            licensei-v1
+
+      - name: Download license information for dependencies
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # Note: this is required for licensei auth in steps to avoid rate-limiting.
+        run: make license-cache
+
+      - name: List license information for dependencies
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # Note: this is required for licensei auth in steps to avoid rate-limiting.
+        run: ./bin/licensei list
+
+      - name: Check dependency licenses
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # Note: this is required for licensei auth in steps to avoid rate-limiting.
+        run: make license-check
+
+      - name: Run linter
+        run: make lint
+
   build:
     name: Build
     needs: [check-integrity]
@@ -77,7 +110,7 @@ jobs:
 
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3.1.0
         with:
           go-version: 1.16
 
@@ -110,7 +143,7 @@ jobs:
 
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3.1.0
         with:
           go-version: 1.16
 
@@ -126,7 +159,7 @@ jobs:
         run: plz test --exclude integration //...
 
   integration-test:
-    name: Integration Test
+    name: Integration test
     runs-on: ubuntu-latest
 
     needs: build
@@ -177,6 +210,121 @@ jobs:
         env:
           VAULT_ADDR: http://127.0.0.1:${{ job.services.vault.ports[8200] }}
           VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+  database-test:
+    name: Database test
+
+    # testing with MySQL is easier on ubuntu-18.04 because the `mysql-utilities` package is available in
+    # the apt repository and the security level of the OS is also lower, no need to use `--ssl-mode=DISABLED`
+    runs-on: ubuntu-18.04
+
+    needs: build
+
+    services:
+      postgres:
+        image: postgres:9.6
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        env:
+          GOFLAG: -mod=readonly
+          GOCACHE: "/tmp/go/cache"
+
+      - name: Set up MySQL
+        uses: samin/mysql-action@v1.3
+        with:
+          mysql version: "5.7.27"
+          character set server: "utf8mb4"
+          collation server: "utf8mb4_unicode_ci"
+
+      - name: Generate config file
+        run: make config/config.yaml
+
+      - name: Wait for MySQL to initialize
+        run: sleep 15
+
+      - name: Create MySQL databases
+        run: |
+          mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_migrations;'
+          mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_automigrate; USE pipeline_automigrate; CREATE TABLE `schema_migrations` (`version` bigint(20) NOT NULL, `dirty` tinyint(1) NOT NULL, PRIMARY KEY (`version`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
+
+      - name: Test MySQL database migrations
+        run: |
+          make bin/migrate
+          bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
+
+      - name: Test MySQL database auto migrations
+        run: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/config.go ./cmd/pipeline/migrate.go ./cmd/pipeline/vars.go
+        env:
+          PIPELINE_DATABASE_HOST: "127.0.0.1"
+          PIPELINE_DATABASE_USER: root
+          PIPELINE_DATABASE_PASSWORD: ""
+          PIPELINE_DATABASE_ROLE: ""
+          PIPELINE_DATABASE_NAME: pipeline_automigrate
+
+      - name: Test MySQL database schema diff
+        run: |
+          sudo apt-get install -y mysql-utilities
+          mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+
+      - name: Test MySQL database migrations are reversible
+        run: |
+          bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" down -all
+          bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
+
+      - name: Test MySQL database schema diff again
+        run: |
+          mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Create PostgreSQL databases
+        run: |
+          psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE pipeline_migrations;"
+          psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE pipeline_automigrate;"
+          psql -h 127.0.0.1 -U postgres -d pipeline_automigrate -c 'CREATE TABLE schema_migrations (version bigint NOT NULL, dirty BOOLEAN NOT NULL, PRIMARY KEY (version));'
+
+      - name: Test PostgreSQL database migrations
+        run: |
+          make bin/migrate
+          bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" up
+
+      - name: Test PostgreSQL database auto migrations
+        run: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/config.go ./cmd/pipeline/migrate.go ./cmd/pipeline/vars.go
+        env:
+          PIPELINE_DATABASE_DIALECT: postgres
+          PIPELINE_DATABASE_HOST: 127.0.0.1
+          PIPELINE_DATABASE_PORT: 5432
+          PIPELINE_DATABASE_TLS: disable
+          PIPELINE_DATABASE_USER: postgres
+          PIPELINE_DATABASE_PASSWORD: postgres
+          PIPELINE_DATABASE_ROLE: ""
+          PIPELINE_DATABASE_NAME: pipeline_automigrate
+
+      - name: Install migra for PostgreSQL database diffs
+        run: pip install migra[pg]
+
+      - name: Test PostgreSQL database schema diff
+        run: migra postgresql://postgres:postgres@localhost/pipeline_migrations postgresql://postgres:postgres@localhost/pipeline_automigrate --unsafe
+
+      - name: Test PostgreSQL database migrations are reversible
+        run: |
+          bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" down -all
+          bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" up
+
+      - name: Test PostgreSQL database schema diff again
+        run: migra postgresql://postgres:postgres@localhost/pipeline_migrations postgresql://postgres:postgres@localhost/pipeline_automigrate --unsafe
 
   lint:
     name: Lint
