@@ -1,4 +1,5 @@
 version: 2
+
 updates:
     - package-ecosystem: "gomod"
         # Files stored in repository root
@@ -15,5 +16,13 @@ updates:
           - "dependencies"
       schedule:
           interval: "daily"
+      open-pull-requests-limit: 0
+
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      labels:
+        - "dependencies"
+      schedule:
+        interval: "daily"
       open-pull-requests-limit: 0
 
