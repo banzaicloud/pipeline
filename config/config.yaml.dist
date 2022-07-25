@@ -161,7 +161,7 @@ dex:
 #        charts:
 #            nodepoolLabelOperator:
 #                chart: "banzaicloud-stable/nodepool-labels-operator"
-#                version: "0.2.6"
+#                version: "0.2.7"
 #
 #                # See https://github.com/banzaicloud/nodepool-labels-operator/tree/master/charts/nodepool-labels-operator for details
 #                values: {}
@@ -367,7 +367,7 @@ dex:
 #        ith:
 #            enabled: true
 #            chart: "banzaicloud-stable/instance-termination-handler"
-#            version: "0.1.2"
+#            version: "0.1.3"
 #
 #        autoscaler:
 #            enabled: true
