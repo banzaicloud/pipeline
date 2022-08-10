@@ -28,11 +28,12 @@ const (
 
 func TestBlockingTags(t *testing.T) {
 	cases := []struct {
-		name    string
-		request *secret.CreateSecretRequest
+		name      string
+		request   *secret.CreateSecretRequest
+		expectErr error
 	}{
-		{name: "readonly", request: &requestReadOnly},
-		{name: "forbidden", request: &requestForbidden},
+		{name: "readonly", request: &requestReadOnly, expectErr: ReadOnlyError{SecretID: secret.GenerateSecretID(&requestReadOnly)}},
+		{name: "forbidden", request: &requestForbidden, expectErr: ForbiddenError{ForbiddenTag: secret.TagKubeConfig}},
 	}
 
 	for _, tc := range cases {
@@ -45,28 +46,21 @@ func TestBlockingTags(t *testing.T) {
 
 			secretID, err := store.Store(orgID, tc.request)
 			if err != nil {
-				t.Errorf("error during storing readonly secret: %s", err.Error())
-				t.FailNow()
+				t.Fatalf("error during storing readonly secret: %s", err.Error())
 			}
 
 			err = store.Delete(orgID, secretID)
 			if err == nil {
-				t.Error("readonly secret deleted..")
-				t.FailNow()
+				t.Fatalf("readonly secret deleted..")
+			}
 
-				tc.request.Tags = append(tc.request.Tags, "newtag")
+			err = store.Update(orgID, secretID, tc.request)
+			if err == nil {
+				t.Fatalf("readonly secret updated..")
+			}
 
-				err = store.Update(orgID, secretID, tc.request)
-				if err == nil {
-					t.Error("readonly secret updated..")
-					t.FailNow()
-				}
-
-				expErr := ReadOnlyError{SecretID: secretID}
-				if !reflect.DeepEqual(err, expErr) {
-					t.Errorf("expected error: %s, got: %s", expErr, err.Error())
-					t.FailNow()
-				}
+			if !reflect.DeepEqual(err, tc.expectErr) {
+				t.Fatalf("expected error: %s, got: %s", tc.expectErr, err.Error())
 			}
 		})
 	}
