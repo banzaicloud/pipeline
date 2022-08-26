@@ -95,7 +95,7 @@ jobs:
 
   build:
     name: Build
-    needs: [check-integrity]
+    needs: check-integrity
     runs-on: ubuntu-latest
 
     services:
@@ -213,14 +213,17 @@ jobs:
 
   database-test:
     name: Database test
-
-    # testing with MySQL is easier on ubuntu-18.04 because the `mysql-utilities` package is available in
-    # the apt repository and the security level of the OS is also lower, no need to use `--ssl-mode=DISABLED`
-    runs-on: ubuntu-18.04
-
+    runs-on: ubuntu-20.04
     needs: build
 
     services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
       postgres:
         image: postgres:9.6
         env:
@@ -240,23 +243,13 @@ jobs:
           GOFLAG: -mod=readonly
           GOCACHE: "/tmp/go/cache"
 
-      - name: Set up MySQL
-        uses: samin/mysql-action@v1.3
-        with:
-          mysql version: "5.7.27"
-          character set server: "utf8mb4"
-          collation server: "utf8mb4_unicode_ci"
-
       - name: Generate config file
         run: make config/config.yaml
 
-      - name: Wait for MySQL to initialize
-        run: sleep 15
-
       - name: Create MySQL databases
         run: |
-          mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_migrations;'
-          mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_automigrate; USE pipeline_automigrate; CREATE TABLE `schema_migrations` (`version` bigint(20) NOT NULL, `dirty` tinyint(1) NOT NULL, PRIMARY KEY (`version`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
+          mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_migrations CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
+          mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_automigrate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; USE pipeline_automigrate; CREATE TABLE `schema_migrations` (`version` bigint(20) NOT NULL, `dirty` tinyint(1) NOT NULL, PRIMARY KEY (`version`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
 
       - name: Test MySQL database migrations
         run: |
@@ -272,9 +265,41 @@ jobs:
           PIPELINE_DATABASE_ROLE: ""
           PIPELINE_DATABASE_NAME: pipeline_automigrate
 
+      # needs a little workaround as mysql-utilities package is not available in the apt repository
+      # in ubuntu 20.04 because of Python 2 deprecation
+      # see: https://bootpanic.com/unable-to-install-mysqldiff-on-ubuntu-20-04/
+      - name: Install mysqldiff
+        run: |
+          mkdir -p ~/Downloads/mysqldiff
+          cd ~/Downloads/mysqldiff
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/p/python-nacl/python-nacl_1.3.0-2_amd64.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/p/pyodbc/python-pyodbc_4.0.22-1build2_amd64.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/p/paramiko/python-paramiko_2.6.0-1_all.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/a/antlr4-cpp-runtime/libantlr4-runtime4.7.2_4.7.2+dfsg-1_amd64.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/main/p/poppler/libpoppler90_0.80.0-0ubuntu1_amd64.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/n/netcdf/libnetcdf13_4.6.2-1build1_amd64.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/p/proj/libproj13_5.2.0-1_amd64.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/libg/libgeotiff-dfsg/libgeotiff2_1.4.3-1_amd64.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/g/gdal/gdal-data_2.4.2+dfsg-1build2_all.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/g/gdal/libgdal20_2.4.2+dfsg-1build2_amd64.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/m/mysql-connector-python/python-mysql.connector_8.0.15-1_all.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/m/mysql-workbench/mysql-workbench-data_8.0.17+dfsg-1ubuntu2_all.deb
+          wget http://old-releases.ubuntu.com/ubuntu/pool/universe/m/mysql-workbench/mysql-workbench_8.0.17+dfsg-1ubuntu2_amd64.deb
+          wget http://archive.ubuntu.com/ubuntu/pool/universe/m/mysql-utilities/mysql-utilities_1.6.4-1_all.deb
+          sudo apt-get update
+          sudo apt-get install ./*.deb
+          cat <<EOF | sudo tee /etc/apt/preferences.d/pin-gdal
+          Package: gdal-data
+          Pin: version 2.4.2+dfsg-1build2
+          Pin-Priority: 1337
+          
+          Package: libgdal20
+          Pin: version 2.4.2+dfsg-1build2
+          Pin-Priority: 1337
+          EOF
+
       - name: Test MySQL database schema diff
         run: |
-          sudo apt-get install -y mysql-utilities
           mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
 
       - name: Test MySQL database migrations are reversible
