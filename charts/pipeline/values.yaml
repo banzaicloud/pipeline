@@ -19,7 +19,7 @@ hostAliases: []
 
 image:
   repository: ghcr.io/banzaicloud/pipeline
-  tag: 0.78.0
+  tag: 0.81.0
   pullPolicy: IfNotPresent
 
 resources:
