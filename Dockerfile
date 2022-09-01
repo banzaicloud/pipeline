@@ -31,7 +31,7 @@ FROM alpine:3.13 AS iamauth
 
 WORKDIR /tmp
 
-ENV IAM_AUTH_VERSION 0.4.0
+ENV IAM_AUTH_VERSION 0.5.9
 ENV IAM_AUTH_URL "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${IAM_AUTH_VERSION}"
 RUN set -xe \
     && wget ${IAM_AUTH_URL}/aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 \

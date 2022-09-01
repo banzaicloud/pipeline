@@ -728,7 +728,7 @@ func (c *EKSCluster) GetK8sUserConfig() ([]byte, error) {
 		k8sutil.CreateAuthInfoFunc(func(clusterName string) *clientcmdapi.AuthInfo {
 			return &clientcmdapi.AuthInfo{
 				Exec: &clientcmdapi.ExecConfig{
-					APIVersion: "client.authentication.k8s.io/v1alpha1",
+					APIVersion: parsedAdminConfig.AuthInfos["eks"].Exec.APIVersion,
 					Command:    "aws-iam-authenticator",
 					Args:       []string{"token", "-i", clusterName},
 				},
