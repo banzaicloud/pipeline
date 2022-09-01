@@ -125,7 +125,7 @@ func generateK8sConfig(clusterName string, apiEndpoint string, certificateAuthor
 				Name: "eks",
 				AuthInfo: clientcmdapi.AuthInfo{
 					Exec: &clientcmdapi.ExecConfig{
-						APIVersion: "client.authentication.k8s.io/v1beta1",
+						APIVersion: "client.authentication.k8s.io/v1alpha1",
 						Command:    "aws-iam-authenticator",
 						Args:       []string{"token", "-i", clusterName},
 						Env: []clientcmdapi.ExecEnvVar{
