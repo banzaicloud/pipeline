@@ -170,7 +170,7 @@ configuration:
     #           default: true
 
   # Distribution settings
-  # distribution:
+  distribution:
 
   #   eks:
   #     # EKS Cloud Formation template location
@@ -190,12 +190,15 @@ configuration:
   #     # Enable create & update of EKS addons like coredns
   #     enableAddons: false
 
-  #   pke:
-  #     amazon:
+    pke:
+      amazon:
+        enabled: true
   #       globalRegion: us-east-1
   #       defaultImages: {}
   #       defaultNetworkProvider: "cilium"
   #       defaultNodeVolumeSize: 0 # GiB, 0/fallback: max(50, AMISize)
+      azure:
+        enabled: true
 
   # Database configuration
   database:
