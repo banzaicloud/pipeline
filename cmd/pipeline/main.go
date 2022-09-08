@@ -436,6 +436,7 @@ func main() {
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{
+				Enabled:                     config.Distribution.PKE.Azure.Enabled,
 				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
 				PipelineExternalURL:         externalBaseURL,
 				PipelineExternalURLInsecure: externalURLInsecure,
@@ -672,6 +673,7 @@ func main() {
 		dynamicClientFactory,
 		unifiedHelmReleaser,
 		config.Auth,
+		config.Distribution,
 		clusterAuthService,
 	)
 

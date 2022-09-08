@@ -36,6 +36,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -86,6 +87,7 @@ type ClusterCreatorSecretStore interface {
 }
 
 type ClusterCreatorConfig struct {
+	Enabled                     bool
 	OIDCIssuerURL               string
 	PipelineExternalURL         string
 	PipelineExternalURLInsecure bool
@@ -157,6 +159,11 @@ type ClusterCreationParams struct {
 
 // Create
 func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParams) (cl pke.Cluster, err error) {
+	if !cc.config.Enabled {
+		err = pkgErrors.ErrorNotSupportedDistributionType
+		return
+	}
+
 	sir, err := cc.secrets.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return

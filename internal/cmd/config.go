@@ -61,30 +61,7 @@ type Config struct {
 		APICa   string
 	}
 
-	Distribution struct {
-		EKS struct {
-			TemplateLocation            string
-			DefaultNodeVolumeEncryption *struct {
-				Enabled          bool
-				EncryptionKeyARN string
-			}
-			DefaultNodeVolumeSize int
-			ExposeAdminKubeconfig bool
-			SSH                   struct {
-				Generate bool
-			}
-			EnableAddons bool
-		}
-
-		PKE struct {
-			Amazon struct {
-				GlobalRegion           string
-				DefaultImages          map[string]string
-				DefaultNetworkProvider string
-				DefaultNodeVolumeSize  int
-			}
-		}
-	}
+	Distribution DistributionConfig
 
 	Helm helm.Config
 
@@ -521,6 +498,35 @@ func (c TelemetryConfig) Validate() error {
 	return err
 }
 
+type DistributionConfig struct {
+	EKS struct {
+		TemplateLocation            string
+		DefaultNodeVolumeEncryption *struct {
+			Enabled          bool
+			EncryptionKeyARN string
+		}
+		DefaultNodeVolumeSize int
+		ExposeAdminKubeconfig bool
+		SSH                   struct {
+			Generate bool
+		}
+		EnableAddons bool
+	}
+
+	PKE struct {
+		Amazon struct {
+			Enabled                bool
+			GlobalRegion           string
+			DefaultImages          map[string]string
+			DefaultNetworkProvider string
+			DefaultNodeVolumeSize  int
+		}
+		Azure struct {
+			Enabled bool
+		}
+	}
+}
+
 // Configure configures some defaults in the Viper instance.
 func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Log configuration
@@ -877,10 +883,13 @@ traefik:
 	v.SetDefault("distribution::eks::ssh::generate", true)
 	v.SetDefault("distribution::eks::enableAddons", false)
 
+	v.SetDefault("distribution::pke::amazon::enabled", true)
 	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
 	v.SetDefault("distribution::pke::amazon::defaultImages", map[string]string{})
 	v.SetDefault("distribution::pke::amazon::defaultNetworkProvider", "cilium")
 	v.SetDefault("distribution::pke::amazon::defaultNodeVolumeSize", 0)
+
+	v.SetDefault("distribution::pke::azure::enabled", true)
 
 	v.SetDefault("cloudinfo::endpoint", "")
 
