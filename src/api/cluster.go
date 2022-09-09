@@ -32,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	eksdriver "github.com/banzaicloud/pipeline/internal/cluster/distribution/eks/eksprovider/driver"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
+	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/global"
 	azureDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	vsphereDriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
@@ -63,6 +64,7 @@ type ClusterAPI struct {
 
 	helmService        cluster.HelmService
 	authConfig         auth.Config
+	distributionConfig cmd.DistributionConfig
 	clientSecretGetter clusterAuth.ClusterClientSecretGetter
 }
 
@@ -97,6 +99,7 @@ func NewClusterAPI(
 	clientFactory common.DynamicClientFactory,
 	helmService cluster.HelmService,
 	authConfig auth.Config,
+	distributionConfig cmd.DistributionConfig,
 	clientSecretGetter clusterAuth.ClusterClientSecretGetter,
 ) *ClusterAPI {
 	return &ClusterAPI{
@@ -112,6 +115,7 @@ func NewClusterAPI(
 		clientFactory:           clientFactory,
 		helmService:             helmService,
 		authConfig:              authConfig,
+		distributionConfig:      distributionConfig,
 		clientSecretGetter:      clientSecretGetter,
 	}
 }

@@ -17,6 +17,7 @@ package api
 import (
 	"github.com/pkg/errors"
 
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
@@ -33,6 +34,8 @@ func isInvalid(err error) bool {
 
 	switch err {
 	case secret.ErrSecretNotExists:
+		return true
+	case pkgErrors.ErrorNotSupportedDistributionType:
 		return true
 	}
 

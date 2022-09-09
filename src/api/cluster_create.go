@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,7 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	clusterAPI "github.com/banzaicloud/pipeline/src/api/cluster"
 	"github.com/banzaicloud/pipeline/src/auth"
 	"github.com/banzaicloud/pipeline/src/cluster"
@@ -259,6 +261,14 @@ func (a *ClusterAPI) createCluster(
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 			Error:   err.Error(),
+		}
+	}
+
+	if strings.HasPrefix(commonCluster.GetDistribution(), pkgCluster.PKE) && commonCluster.GetCloud() == pkgCluster.Amazon && !a.distributionConfig.PKE.Amazon.Enabled {
+		return nil, &pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: pkgErrors.ErrorNotSupportedDistributionType.Error(),
+			Error:   pkgErrors.ErrorNotSupportedDistributionType.Error(),
 		}
 	}
 

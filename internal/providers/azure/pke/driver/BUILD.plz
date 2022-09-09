@@ -21,6 +21,7 @@ go_library(
         "//pkg/cluster",
         "//pkg/cluster/pke",
         "//pkg/common",
+        "//pkg/errors",
         "//pkg/k8sclient",
         "//pkg/providers/azure",
         "//src/auth",
