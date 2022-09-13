@@ -164,6 +164,10 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 		return
 	}
 
+	if err = intPKE.ValidatePKEKubernetesVersion(params.Kubernetes.Version); err != nil {
+		return
+	}
+
 	sir, err := cc.secrets.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return
