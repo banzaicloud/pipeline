@@ -18,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
@@ -30,6 +31,14 @@ type CreateClusterPKE struct {
 	Kubernetes Kubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty" binding:"required"`
 	KubeADM    KubeADM    `json:"kubeadm,omitempty" yaml:"kubeadm,omitempty"`
 	CRI        CRI        `json:"cri,omitempty" yaml:"cri,omitempty" binding:"required"`
+}
+
+func (pke *CreateClusterPKE) Validate() error {
+	if err := intPKE.ValidatePKEKubernetesVersion(pke.Kubernetes.Version); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdateClusterPKE describes Pipeline's EC2/BanzaiCloud fields of a UpdateCluster request
