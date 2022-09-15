@@ -7,6 +7,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/global",
+        "//internal/pke",
         "//pkg/common",
         "//third_party/go:github.com__pkg__errors",
     ],
