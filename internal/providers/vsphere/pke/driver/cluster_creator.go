@@ -149,6 +149,10 @@ type VspherePKEClusterCreationParams struct {
 
 // Create
 func (cc VspherePKEClusterCreator) Create(ctx context.Context, params VspherePKEClusterCreationParams) (cl pke.PKEOnVsphereCluster, err error) {
+	if err = intPKE.ValidatePKEKubernetesVersion(params.Kubernetes.Version); err != nil {
+		return
+	}
+
 	var vsphereSecret *secret.SecretItemResponse
 	vsphereSecret, err = cc.secrets.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {

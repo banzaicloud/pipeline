@@ -37,6 +37,8 @@ func isInvalid(err error) bool {
 		return true
 	case pkgErrors.ErrorNotSupportedDistributionType:
 		return true
+	case pkgErrors.ErrorNotSupportedKubernetesVersion:
+		return true
 	}
 
 	switch err.(type) {

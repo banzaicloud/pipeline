@@ -18,16 +18,42 @@ import (
 	"fmt"
 	"strings"
 
+	"emperror.dev/errors"
+	"github.com/Masterminds/semver/v3"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/global"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 const (
-	DefaultServiceCIDR = "10.32.0.0/24"
-	DefaultPodCIDR     = "10.200.0.0/16"
-	DefaultNetwork     = "cilium"
+	DefaultServiceCIDR     = "10.32.0.0/24"
+	DefaultPodCIDR         = "10.200.0.0/16"
+	DefaultNetwork         = "cilium"
+	SupportedPKEVersionMin = "1.19"
+	SupportedPKEVersionMax = "1.21"
 )
+
+func ValidatePKEKubernetesVersion(version string) error {
+	requiredVersion, err := semver.NewVersion(version)
+	if err != nil {
+		return err
+	}
+	minVersion, err := semver.NewVersion(SupportedPKEVersionMin)
+	if err != nil {
+		return err
+	}
+	maxVersion, err := semver.NewVersion(SupportedPKEVersionMax)
+	if err != nil {
+		return err
+	}
+
+	if requiredVersion.LessThan(minVersion) || requiredVersion.GreaterThan(maxVersion) {
+		return errors.Wrap(pkgErrors.ErrorNotSupportedKubernetesVersion, fmt.Sprintf("Required %s, supported min-max: %s-%s", version, SupportedPKEVersionMin, SupportedPKEVersionMax))
+	}
+
+	return nil
+}
 
 type CRI struct {
 	Runtime       string

@@ -7,6 +7,9 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//internal/global",
+        "//pkg/errors",
+        "//third_party/go:emperror.dev__errors",
+        "//third_party/go:github.com__Masterminds__semver__v3",
         "//third_party/go:github.com__sirupsen__logrus",
     ],
 )

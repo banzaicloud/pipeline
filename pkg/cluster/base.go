@@ -332,11 +332,11 @@ func (r *CreateClusterRequest) Validate() error {
 
 	switch r.Cloud {
 	case Amazon:
-		// eks validate
+		// pke validate
 		if r.Properties.CreateClusterPKE != nil {
-			// r.Properties.CreateClusterPKE.Validate()
-			return nil
+			return r.Properties.CreateClusterPKE.Validate()
 		}
+		// eks validate
 		return r.Properties.CreateClusterEKS.Validate()
 	case Azure:
 		// aks validate
