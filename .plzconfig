@@ -1,5 +1,5 @@
 [please]
-version = 16.18.0
+version = 16.22.0
 
 [build]
 PassUnsafeEnv = VAULT_ADDR
@@ -17,9 +17,9 @@ mga-version = 0.4.2
 licensei-version = 0.2.0
 migrate-version = 4.9.1
 kubectl-version = 1.20.5
-helm-version = 3.5.3
-wollemi-version = 0.7.0
-etcd-version = 3.4.16
+helm-version = 3.6.1
+wollemi-version = 0.8.1
+etcd-version = 3.5.5
 kube-apiserver-version = 1.19.11
 
 [alias "tidy"]

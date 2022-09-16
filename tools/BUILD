@@ -9,15 +9,23 @@ wollemi_wrapper(
     visibility = ["PUBLIC"],
 )
 
+remote_file(
+    name = "godeps",
+    binary = True,
+    exported_files = ["godeps"],
+    extract = True,
+    url = f"https://github.com/sagikazarmark/please-go-modules/releases/download/v0.0.33/godeps_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz",
+)
+
 sh_cmd(
     name = "plz-tidy",
     cmd = [
-        "$(out_exe ///pleasegomod//:godeps) -dir third_party/go -clean -builtin -wollemi",
+        "$(out_exe //tools:godeps) -dir third_party/go -clean -builtin -wollemi",
         "$(out_exe :wollemi-wrapper) gofmt",
         "$(out_exe :wollemi-wrapper) gofmt ./internal/.generated/...",
     ],
     deps = [
         ":wollemi-wrapper",
-        "///pleasegomod//:godeps",
+        "//tools:godeps",
     ],
 )
