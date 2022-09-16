@@ -14,6 +14,14 @@ config_setting(
     },
 )
 
+config_setting(
+    name = "__config_darwin_arm64",
+    values = {
+        "os": "darwin",
+        "cpu": "arm64",
+    },
+)
+
 go_mod_download(
     name = "cloud.google.com__go",
     _tag = "download",
@@ -2724,6 +2732,7 @@ go_module(
         ":golang.org__x__sys__unix",
     ] + select({
         ":__config_darwin_amd64": [],
+        ":__config_darwin_arm64": [],
         ":__config_linux_amd64": [":github.com__containerd__containerd__log"],
         "default": [],
     }),
@@ -4775,6 +4784,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = select({
         ":__config_darwin_amd64": [":github.com__mitchellh__go-homedir"],
+        ":__config_darwin_arm64": [":github.com__mitchellh__go-homedir"],
         ":__config_linux_amd64": [],
         "default": [],
     }),
@@ -10321,6 +10331,7 @@ go_module(
         ":google.golang.org__grpc__credentials__oauth",
     ] + select({
         ":__config_darwin_amd64": [],
+        ":__config_darwin_arm64": [],
         ":__config_linux_amd64": [":golang.org__x__sys__unix"],
         "default": [],
     }),
@@ -10925,6 +10936,7 @@ go_module(
         ":google.golang.org__grpc__grpclog",
     ] + select({
         ":__config_darwin_amd64": [],
+        ":__config_darwin_arm64": [],
         ":__config_linux_amd64": [":golang.org__x__sys__unix"],
         "default": [],
     }),
@@ -10989,6 +11001,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [":google.golang.org__grpc__grpclog"] + select({
         ":__config_darwin_amd64": [],
+        ":__config_darwin_arm64": [],
         ":__config_linux_amd64": [":golang.org__x__sys__unix"],
         "default": [],
     }),
