@@ -74,10 +74,11 @@ remote_file(
     ],
     extract = True,
     hashes = [
-        "27245adea2e0951913276d8c321d79b91caaf904ae3fdaab65194ab41c01db08",  # Note: v3.4.16, darwin, amd64, zip.
-        "2e2d5b3572e077e7641193ed07b4929b0eaf0dc2f9463e9b677765528acafb89",  # Note: v3.4.16, linux, amd64, tar.gz.
-        "6712ff22aeec39ed19688b1edf6747194193b074548fc62163e4804ca0264512",  # Note: v3.4.16, linux, arm64, tar.gz.
-        "b862c38da3788b15d76a447ec845a2fee79ca702f67e9acd064cd939303bf9f6",  # Note: v3.4.16, windows, amd64, zip.
+        "8bd279948877cfb730345ecff2478f69eaaa02513c2a43384ba182c9985267bd",  # Note: v3.5.5, darwin, amd64, zip.
+        "33094133a771b2d086dc04f2ede41c249258947042de72132af127972880171f",  # Note: v3.5.5, darwin, arm64, zip.
+        "7910a2fdb1863c80b885d06f6729043bff0540f2006bf6af34674df2636cb906",  # Note: v3.5.5, linux, amd64, tar.gz.
+        "a8d177ae8ecfd1ef025c35ac8c444041d14e67028c1a7b4eda3a69a8dee5f9c3",  # Note: v3.5.5, linux, arm64, tar.gz.
+        "bcabe6bbeb1ac0b91395e19856e39c1056c05eb303b714670876acf21158bd3f",  # Note: v3.5.5, windows, amd64, zip.
     ],
     test_only = True,
     url = [
@@ -89,9 +90,4 @@ remote_file(
             _etcd_archive_extension[CONFIG.HOSTOS],
         ),
     ],
-)
-
-http_archive(
-    name = "pleasegomod",
-    urls = [f"https://github.com/sagikazarmark/please-go-modules/releases/download/v0.0.19/godeps_{CONFIG.HOSTOS}_{CONFIG.HOSTARCH}.tar.gz"],
 )
