@@ -1379,31 +1379,30 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 	}
 
 	secretObj, err = clientset.CoreV1().Secrets(adminSANamespace).Get(ctx, secretName, metav1.GetOptions{})
-	if err != nil {
-		if googleErr, ok := errors.Cause(err).(*googleapi.Error); ok && googleErr.Code == http.StatusNotFound { // Note: secret not found, let's create one.
-			adminSATokenSecret := v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      secretName,
-					Namespace: adminSANamespace,
-					Annotations: map[string]string{
-						"kubernetes.io/service-account.name": adminSAName,
-					},
+	if err != nil &&
+		k8sErrors.IsNotFound(err) {
+		adminSATokenSecret := v1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: adminSANamespace,
+				Annotations: map[string]string{
+					"kubernetes.io/service-account.name": adminSAName,
 				},
-				Type: "kubernetes.io/service-account-token",
-			}
-
-			secretObj, err = clientset.CoreV1().Secrets(adminSANamespace).Create(ctx, &adminSATokenSecret, metav1.CreateOptions{})
-			if err != nil {
-				return "", errors.WrapIfWithDetails(err, "creating kubernetes secret failed", "namespace", adminSANamespace, "secret", secretName)
-			}
-		} else {
-			return "", errors.WrapIfWithDetails(
-				err,
-				"retrieving kubernetes secret failed with unexpected error",
-				"namespace", adminSANamespace,
-				"secret", secretName,
-			)
+			},
+			Type: "kubernetes.io/service-account-token",
 		}
+
+		secretObj, err = clientset.CoreV1().Secrets(adminSANamespace).Create(ctx, &adminSATokenSecret, metav1.CreateOptions{})
+		if err != nil {
+			return "", errors.WrapIfWithDetails(err, "creating kubernetes secret failed", "namespace", adminSANamespace, "secret", secretName)
+		}
+	} else if err != nil { // && !k8sErrors.IsNotFound(err) {
+		return "", errors.WrapIfWithDetails(
+			err,
+			"retrieving kubernetes secret failed with unexpected error",
+			"namespace", adminSANamespace,
+			"secret", secretName,
+		)
 	}
 
 	token, ok := secretObj.Data["token"]
