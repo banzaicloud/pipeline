@@ -1367,41 +1367,51 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 		return "", errors.WrapIfWithDetails(err, "retrieving service account failed", "namespace", adminSANamespace, "service account", serviceAccount.Name)
 	}
 
-	secretName := adminSAName + "-token"
-
 	// Note: From K8s 1.24 ServiceAccounts don't have default secrets
 	// created for them (source:
 	// https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.24.md#no-really-you-must-read-this-before-you-upgrade,
 	// second point). We create one manually to provide an SA token.
-	if len(serviceAccount.Secrets) == 0 {
-		adminSATokenSecret := v1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretName,
-				Namespace: adminSANamespace,
-				Annotations: map[string]string{
-					"kubernetes.io/service-account.name": adminSAName,
-				},
-			},
-			Type: "kubernetes.io/service-account-token",
-		}
+	var secretObj *v1.Secret
 
-		_, err := clientset.CoreV1().Secrets(adminSANamespace).Create(ctx, &adminSATokenSecret, metav1.CreateOptions{})
-		if err != nil {
-			return "", errors.WrapIfWithDetails(err, "creating kubernetes secret failed", "namespace", adminSANamespace, "secret", secretName)
-		}
-	} else {
+	secretName := adminSAName + "-token"
+	if len(serviceAccount.Secrets) != 0 {
 		secretName = serviceAccount.Secrets[0].Name
 	}
 
-	secretObj, err := clientset.CoreV1().Secrets(adminSANamespace).Get(ctx, secretName, metav1.GetOptions{})
+	secretObj, err = clientset.CoreV1().Secrets(adminSANamespace).Get(ctx, secretName, metav1.GetOptions{})
 	if err != nil {
-		return "", errors.WrapIfWithDetails(err, "retrieving kubernetes secret found", "namespace", adminSANamespace, "secret", secretName)
-	}
-	if token, ok := secretObj.Data["token"]; ok {
-		return string(token), nil
+		if googleErr, ok := errors.Cause(err).(*googleapi.Error); ok && googleErr.Code == http.StatusNotFound { // Note: secret not found, let's create one.
+			adminSATokenSecret := v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: adminSANamespace,
+					Annotations: map[string]string{
+						"kubernetes.io/service-account.name": adminSAName,
+					},
+				},
+				Type: "kubernetes.io/service-account-token",
+			}
+
+			secretObj, err = clientset.CoreV1().Secrets(adminSANamespace).Create(ctx, &adminSATokenSecret, metav1.CreateOptions{})
+			if err != nil {
+				return "", errors.WrapIfWithDetails(err, "creating kubernetes secret failed", "namespace", adminSANamespace, "secret", secretName)
+			}
+		} else {
+			return "", errors.WrapIfWithDetails(
+				err,
+				"retrieving kubernetes secret failed with unexpected error",
+				"namespace", adminSANamespace,
+				"secret", secretName,
+			)
+		}
 	}
 
-	return "", errors.New("failed to configure serviceAccountToken")
+	token, ok := secretObj.Data["token"]
+	if !ok {
+		return "", errors.NewWithDetails("retrieving secret token data failed", "namespace", adminSANamespace, "secret", secretName, "key", "token")
+	}
+
+	return string(token), nil
 }
 
 // CreateGKEClusterFromModel creates ClusterModel struct from model
