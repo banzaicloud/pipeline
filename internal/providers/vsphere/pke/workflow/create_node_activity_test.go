@@ -39,7 +39,7 @@ func TestCreateNodeActivity_GenerateVMConfig(t *testing.T) {
 				"ClusterID":            "269",
 				"ClusterName":          "vmware-test-638",
 				"KubernetesMasterMode": "default",
-				"KubernetesVersion":    "1.15.12",
+				"KubernetesVersion":    "1.21.14",
 				"NodePoolName":         "pool1",
 				"OrgID":                "2",
 				"PKEVersion":           "0.9.3",

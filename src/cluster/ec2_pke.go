@@ -49,7 +49,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const defaultK8sVersion = "1.17.5"
+const defaultK8sVersion = "1.21.14"
 
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
 
