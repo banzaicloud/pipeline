@@ -624,7 +624,7 @@ export NO_PROXY="{{ .NoProxy }}"
 
 export PATH=$PATH:/usr/local/bin/
 if ! command -v pke > /dev/null 2>&1; then
-	until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
+  until curl -vL https://github.com/banzaicloud/pke/releases/download/{{ .PKEVersion }}/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 	chmod +x /usr/local/bin/pke
 fi
 
@@ -660,7 +660,7 @@ const workerUserDataScriptTemplate = `#!/bin/sh
 export HTTP_PROXY="{{ .HttpProxy }}"
 export HTTPS_PROXY="{{ .HttpsProxy }}"
 export NO_PROXY="{{ .NoProxy }}"
-until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
+until curl -vL https://github.com/banzaicloud/pke/releases/download/{{ .PKEVersion }}/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 

@@ -408,7 +408,7 @@ PUBLIC_ADDRESS="{{ if .PublicAddress }}{{ .PublicAddress }}{{ else }}$PRIVATE_IP
 
 export PATH=$PATH:/usr/local/bin/
 if ! command -v pke > /dev/null 2>&1; then
-	until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
+  until curl -vL https://github.com/banzaicloud/pke/releases/download/{{ .PKEVersion }}/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 	chmod +x /usr/local/bin/pke
 fi
 
@@ -449,8 +449,8 @@ set -x
 
 export PATH=$PATH:/usr/local/bin/
 if ! command -v pke > /dev/null 2>&1; then
-until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
-chmod +x /usr/local/bin/pke
+  until curl -vL https://github.com/banzaicloud/pke/releases/download/{{ .PKEVersion }}/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
+  chmod +x /usr/local/bin/pke
 fi
 
 PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
