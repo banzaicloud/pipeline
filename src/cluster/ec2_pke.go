@@ -49,7 +49,7 @@ import (
 	"github.com/banzaicloud/pipeline/src/secret"
 )
 
-const defaultK8sVersion = "1.17.5"
+const defaultK8sVersion = "1.21.14"
 
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
 
@@ -859,7 +859,8 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(
 			"--kubernetes-api-server=%q "+
 			"--kubernetes-cluster-name=%q "+
 			"--kubernetes-master-mode=%q "+
-			"--kubernetes-advertise-address=0.0.0.0:6443",
+			"--kubernetes-advertise-address=0.0.0.0:6443 "+
+			"--kubernetes-node-name=$(curl http://169.254.169.254/latest/meta-data/local-hostname) ",
 			subcommand,
 			url,
 			strconv.FormatBool(urlInsecure),

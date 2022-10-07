@@ -31,7 +31,7 @@ const (
 	DefaultPodCIDR         = "10.200.0.0/16"
 	DefaultNetwork         = "cilium"
 	SupportedPKEVersionMin = "1.19"
-	SupportedPKEVersionMax = "1.21"
+	SupportedPKEVersionMax = "1.23.12"
 )
 
 func ValidatePKEKubernetesVersion(version string) error {
