@@ -252,6 +252,14 @@ paths:
         x-go-name: Gpu
       - explode: true
         in: query
+        name: cr
+        required: false
+        schema:
+          type: string
+        style: form
+        x-go-name: Cr
+      - explode: true
+        in: query
         name: version
         required: false
         schema:

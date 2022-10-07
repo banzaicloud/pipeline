@@ -16,6 +16,8 @@ package pkeawsadapter
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
@@ -52,11 +54,18 @@ func (s CloudinfoImageSelector) SelectImage(ctx context.Context, criteria pkeaws
 		)
 	}
 
+	isGPUInstance := func(instanceType string) bool {
+		return strings.HasPrefix(instanceType, "p2.") || strings.HasPrefix(instanceType, "p3.") ||
+			strings.HasPrefix(instanceType, "g3.") || strings.HasPrefix(instanceType, "g4.")
+	}
+
 	opts := &cloudinfo.GetImagesOpts{
 		Version:    optional.NewString(kubeVersion.String()),
 		Os:         optional.NewString(criteria.OperatingSystem),
 		PkeVersion: optional.NewString(criteria.PKEVersion),
 		LatestOnly: optional.NewString("true"),
+		Gpu:        optional.NewString(strconv.FormatBool(isGPUInstance(criteria.InstanceType))),
+		Cr:         optional.NewString(criteria.ContainerRuntime),
 	}
 
 	const (

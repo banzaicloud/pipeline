@@ -31,6 +31,7 @@ type ImagesApiService service
 // GetImagesOpts Optional parameters for the method 'GetImages'
 type GetImagesOpts struct {
     Gpu optional.String
+    Cr optional.String
     Version optional.String
     Os optional.String
     PkeVersion optional.String
@@ -45,6 +46,7 @@ GetImages Provides a list of available images on a given provider in a specific 
  * @param region
  * @param optional nil or *GetImagesOpts - Optional Parameters:
  * @param "Gpu" (optional.String) - 
+ * @param "Cr" (optional.String) - 
  * @param "Version" (optional.String) - 
  * @param "Os" (optional.String) - 
  * @param "PkeVersion" (optional.String) - 
@@ -75,6 +77,9 @@ func (a *ImagesApiService) GetImages(ctx _context.Context, provider string, serv
 
 	if localVarOptionals != nil && localVarOptionals.Gpu.IsSet() {
 		localVarQueryParams.Add("gpu", parameterToString(localVarOptionals.Gpu.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.Cr.IsSet() {
+		localVarQueryParams.Add("cr", parameterToString(localVarOptionals.Cr.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.Version.IsSet() {
 		localVarQueryParams.Add("version", parameterToString(localVarOptionals.Version.Value(), ""))
