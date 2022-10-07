@@ -222,6 +222,11 @@ paths:
           in: query
           schema:
             type: string
+        - x-go-name: Cr
+          name: cr
+          in: query
+          schema:
+            type: string
         - x-go-name: Version
           name: version
           in: query

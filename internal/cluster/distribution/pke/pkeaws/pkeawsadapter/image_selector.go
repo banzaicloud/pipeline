@@ -65,6 +65,7 @@ func (s CloudinfoImageSelector) SelectImage(ctx context.Context, criteria pkeaws
 		PkeVersion: optional.NewString(criteria.PKEVersion),
 		LatestOnly: optional.NewString("true"),
 		Gpu:        optional.NewString(strconv.FormatBool(isGPUInstance(criteria.InstanceType))),
+		Cr:         optional.NewString(criteria.ContainerRuntime),
 	}
 
 	const (
