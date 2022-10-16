@@ -387,6 +387,15 @@ func main() {
 			restoreBackupActivity := velero.NewRestoreBackupActivity(clusterManager, unifiedHelmReleaser, global.DB(), config.Cluster.DisasterRecovery)
 			worker.RegisterActivityWithOptions(restoreBackupActivity.Execute, activity.RegisterOptions{Name: clustersetup.RestoreBackupActivityName})
 
+			deployAWSEBSCSIDriverActivity := clustersetup.NewDeployAWSEBSCSIDriverActivity(
+				config.Cluster.Labels,
+				unifiedHelmReleaser,
+			)
+			worker.RegisterActivityWithOptions(
+				deployAWSEBSCSIDriverActivity.Execute,
+				activity.RegisterOptions{Name: clustersetup.DeployAWSEBSCSIDriverActivityName},
+			)
+
 			deployIngressControllerActivity := clustersetup.NewDeployIngressControllerActivity(
 				config.Cluster.Labels,
 				unifiedHelmReleaser,

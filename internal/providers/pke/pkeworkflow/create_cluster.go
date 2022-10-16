@@ -22,6 +22,7 @@ import (
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/pkg/sdk/brn"
 	"github.com/banzaicloud/pipeline/pkg/sdk/cadence/lib/pipeline/processlog"
 )
@@ -47,19 +48,26 @@ type CreateClusterWorkflowInput struct {
 	PipelineExternalURLInsecure bool
 	OIDCEnabled                 bool
 	VPCID                       string
+	KubernetesVersion           string
 }
 
 type CreateClusterWorkflow struct {
-	DefaultNodeVolumeSize int
-	GlobalRegion          string
-	processLogger         processlog.ProcessLogger
+	DefaultEBSCSIDriverChartVersion string
+	DefaultNodeVolumeSize           int
+	GlobalRegion                    string
+	processLogger                   processlog.ProcessLogger
 }
 
-func NewCreateClusterWorkflow(defaultNodeVolumeSize int, globalRegion string) CreateClusterWorkflow {
+func NewCreateClusterWorkflow(
+	defaultEBSCSIDriverChartVersion string,
+	defaultNodeVolumeSize int,
+	globalRegion string,
+) CreateClusterWorkflow {
 	return CreateClusterWorkflow{
-		DefaultNodeVolumeSize: defaultNodeVolumeSize,
-		GlobalRegion:          globalRegion,
-		processLogger:         processlog.New(),
+		DefaultEBSCSIDriverChartVersion: defaultEBSCSIDriverChartVersion,
+		DefaultNodeVolumeSize:           defaultNodeVolumeSize,
+		GlobalRegion:                    globalRegion,
+		processLogger:                   processlog.New(),
 	}
 }
 
@@ -406,9 +414,9 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 
 	// Create nodes
 	{
-		futures := make([]workflow.Future, len(nodePools))
+		futures := make([]workflow.Future, 0, len(nodePools))
 
-		for i, np := range nodePools {
+		for _, np := range nodePools {
 			if !np.Master {
 				subnetIDs := np.Subnets
 				if len(np.Subnets) == 0 {
@@ -430,19 +438,51 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 					SSHKeyName:                keyOut.KeyName,
 				}
 
-				futures[i] = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput)
+				futures = append(
+					futures,
+					workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput),
+				)
 			}
 		}
 
-		errs := make([]error, len(futures))
-		for i, future := range futures {
+		errs := make([]error, 0, len(futures))
+		for index, future := range futures {
 			if future != nil {
-				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't create nodepool %q", nodePools[i].Name)
+				if err := future.Get(ctx, nil); err != nil {
+					errs = append(errs, errors.Wrapf(err, "couldn't create nodepool %q", nodePools[index].Name))
+				}
 			}
 		}
 
-		return errors.Combine(errs...)
+		if len(errs) > 0 {
+			return errors.Combine(errs...)
+		}
 	}
+
+	// Note: install EBS CSI driver for PVCs from K8s 1.23.
+	// Source: https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html
+	{
+		activityInput := clustersetup.DeployAWSEBSCSIDriverActivityInput{
+			ClusterID:         input.ClusterID,
+			KubernetesVersion: input.KubernetesVersion,
+			ChartVersion:      w.DefaultEBSCSIDriverChartVersion,
+		}
+
+		err := workflow.ExecuteActivity(
+			ctx,
+			clustersetup.DeployAWSEBSCSIDriverActivityName,
+			activityInput,
+		).Get(ctx, nil)
+		if err != nil {
+			return errors.WrapIfWithDetails(
+				err,
+				"installing EBS CSI driver Helm chart failed",
+				"activityInput", activityInput,
+			)
+		}
+	}
+
+	return nil
 }
 
 type decodableError struct {

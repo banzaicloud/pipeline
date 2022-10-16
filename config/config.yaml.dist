@@ -386,6 +386,7 @@ dex:
 #helm:
 #    home: "./var/cache"
 #    repositories:
+#        aws-ebs-csi-driver: "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
 #        stable: "https://charts.helm.sh/stable"
 #        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
 #        bitnami: "https://charts.bitnami.com/bitnami"
@@ -421,6 +422,7 @@ distribution:
        amazon:
            enabled: true
 #            globalRegion: us-east-1
+#            defaultEBSCSIDriverChartVersion: "2.12.1"
 #            defaultImages: {}
 #            defaultNetworkProvider: "cilium"
 #            defaultNodeVolumeSize: 0 # GiB, 0/fallback: max(50, AMISize)
