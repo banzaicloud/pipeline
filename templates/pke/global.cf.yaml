@@ -16,6 +16,8 @@ Resources:
           Action:
           - "sts:AssumeRole"
       RoleName: !Join ["", [ !Ref "AWS::StackName" , "-worker" ]]
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
       Policies:
       - PolicyName: PkeKubernetesWorkerPolicy
         PolicyDocument:
