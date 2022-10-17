@@ -74,11 +74,10 @@ func NewClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonC
 
 	if strings.HasPrefix(cluster.GetDistribution(), pkgCluster.PKE) && cluster.GetCloud() == pkgCluster.Amazon {
 		return &pkeCreator{
-			workflowClient: workflowClient,
-
-			commonCreator: *common,
-
-			oidcEnabled: request.Properties.CreateClusterPKE.Kubernetes.OIDC.Enabled,
+			workflowClient:    workflowClient,
+			commonCreator:     *common,
+			oidcEnabled:       request.Properties.CreateClusterPKE.Kubernetes.OIDC.Enabled,
+			kubernetesVersion: request.Properties.CreateClusterPKE.Kubernetes.Version,
 		}
 	}
 
@@ -94,7 +93,8 @@ type pkeCreator struct {
 
 	commonCreator
 
-	oidcEnabled bool
+	oidcEnabled       bool
+	kubernetesVersion string
 }
 
 // Create implements the clusterCreator interface.
@@ -119,6 +119,7 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 		PipelineExternalURL:         externalBaseURL,
 		PipelineExternalURLInsecure: externalBaseURLInsecure,
 		OIDCEnabled:                 c.oidcEnabled,
+		KubernetesVersion:           c.kubernetesVersion,
 	}
 
 	providerConfig := c.request.Properties.CreateClusterPKE.Network.ProviderConfig

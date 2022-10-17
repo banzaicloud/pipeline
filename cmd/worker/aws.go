@@ -36,6 +36,7 @@ func registerAwsWorkflows(
 	awsSecretStore awsworkflow.SecretStore,
 ) {
 	createClusterWorkflow := pkeworkflow.NewCreateClusterWorkflow(
+		config.Distribution.PKE.Amazon.DefaultEBSCSIDriverChartVersion,
 		config.Distribution.PKE.Amazon.DefaultNodeVolumeSize,
 		config.Distribution.PKE.Amazon.GlobalRegion,
 	)

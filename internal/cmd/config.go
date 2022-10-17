@@ -515,11 +515,12 @@ type DistributionConfig struct {
 
 	PKE struct {
 		Amazon struct {
-			Enabled                bool
-			GlobalRegion           string
-			DefaultImages          map[string]string
-			DefaultNetworkProvider string
-			DefaultNodeVolumeSize  int
+			Enabled                         bool
+			GlobalRegion                    string
+			DefaultEBSCSIDriverChartVersion string
+			DefaultImages                   map[string]string
+			DefaultNetworkProvider          string
+			DefaultNodeVolumeSize           int
 		}
 		Azure struct {
 			Enabled bool
@@ -866,6 +867,7 @@ traefik:
 
 	// Helm configuration
 	v.SetDefault("helm::home", "./var/cache")
+	v.SetDefault("helm::repositories::aws-ebs-csi-driver", "https://kubernetes-sigs.github.io/aws-ebs-csi-driver")
 	v.SetDefault("helm::repositories::stable", "https://charts.helm.sh/stable")
 	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
 	v.SetDefault("helm::repositories::bitnami", "https://charts.bitnami.com/bitnami")
@@ -885,6 +887,7 @@ traefik:
 
 	v.SetDefault("distribution::pke::amazon::enabled", true)
 	v.SetDefault("distribution::pke::amazon::globalRegion", "us-east-1")
+	v.SetDefault("distribution::pke::amazon::defaultEBSCSIDriverChartVersion", "2.12.1")
 	v.SetDefault("distribution::pke::amazon::defaultImages", map[string]string{})
 	v.SetDefault("distribution::pke::amazon::defaultNetworkProvider", "cilium")
 	v.SetDefault("distribution::pke::amazon::defaultNodeVolumeSize", 0)

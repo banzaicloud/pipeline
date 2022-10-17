@@ -108,6 +108,12 @@ func (a *BootstrapWorkflow) Execute(ctx workflow.Context, input BootstrapWorkflo
 					KubernetesVersion: input.KubernetesVersion,
 					AddonName:         "kube-proxy",
 				}),
+			workflow.ExecuteActivity(ctx, CreateAddonActivityName,
+				CreateAddonActivityInput{
+					EKSActivityInput:  commonActivityInput,
+					KubernetesVersion: input.KubernetesVersion,
+					AddonName:         "aws-ebs-csi-driver",
+				}),
 		)
 	}
 
