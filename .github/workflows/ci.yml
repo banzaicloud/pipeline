@@ -15,7 +15,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3.1.0
         with:
-          go-version: 1.16
+          go-version: 1.19
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -112,7 +112,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3.1.0
         with:
-          go-version: 1.16
+          go-version: 1.19
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -145,7 +145,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3.1.0
         with:
-          go-version: 1.16
+          go-version: 1.19
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -189,7 +189,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.19
 
       - name: Set up Please
         uses: sagikazarmark/setup-please-action@v0
@@ -238,7 +238,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.19
         env:
           GOFLAG: -mod=readonly
           GOCACHE: "/tmp/go/cache"
@@ -369,7 +369,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.19
 
       - name: Checkout code
         uses: actions/checkout@v2
