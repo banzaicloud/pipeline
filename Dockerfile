@@ -1,7 +1,7 @@
-ARG GO_VERSION=1.16
+ARG GO_VERSION=1.19
 ARG FROM_IMAGE=scratch
 
-FROM golang:${GO_VERSION}-alpine3.12 AS builder
+FROM golang:${GO_VERSION}-alpine3.16 AS builder
 
 # set up nsswitch.conf for Go's "netgo" implementation
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
