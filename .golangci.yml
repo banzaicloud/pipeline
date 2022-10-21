@@ -12,8 +12,8 @@ run:
     timeout: 10m
 
 linters-settings:
-    golint:
-        min-confidence: 0.9
+    revive:
+        confidence: 0.9
     gocyclo:
         min-complexity: 15
     goimports:
@@ -67,6 +67,8 @@ linters:
         - testpackage
         - unparam
 
+        # deprecated (since v1.41.0), replaced by revive
+        - golint
         # deprecated (since v1.49.0), replaced by unused
         - deadcode
     fast: false
