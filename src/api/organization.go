@@ -189,6 +189,17 @@ func (a *OrganizationAPI) DeleteOrganization(c *gin.Context) {
 
 	user := auth.GetCurrentUser(c.Request)
 	organization, err := auth.GetOrganizationById(uint(id))
+	if err != nil {
+		message := "error getting organization: " + err.Error()
+		log.Info(message)
+		statusCode := auth.GormErrorToStatusCode(err)
+		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
+			Code:    statusCode,
+			Message: message,
+			Error:   message,
+		})
+	}
+
 	deleteName := organization.Name
 
 	err = deleteOrgFromDB(organization, user)
