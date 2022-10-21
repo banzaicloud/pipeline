@@ -54,13 +54,12 @@ func (g *GormClustersTestSuite) SetupSuite() {
 
 	// insert 10 records to the database
 	for i := 1; i < 11; i++ {
-		models :=
-			&clustermodel.ClusterModel{
-				ID:             uint(i),
-				UID:            fmt.Sprintf("testuuid_%d", i),
-				Name:           "testing",
-				OrganizationID: 1,
-			}
+		models := &clustermodel.ClusterModel{
+			ID:             uint(i),
+			UID:            fmt.Sprintf("testuuid_%d", i),
+			Name:           "testing",
+			OrganizationID: 1,
+		}
 		err := g.db.Create(models).Error
 		require.NoError(g.T(), err)
 	}

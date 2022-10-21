@@ -263,7 +263,8 @@ func NewService(
 	envService EnvService,
 	releaser Releaser,
 	clusterService ClusterService,
-	logger Logger) Service {
+	logger Logger,
+) Service {
 	return service{
 		config:         config,
 		clusterCharts:  clusterCharts,

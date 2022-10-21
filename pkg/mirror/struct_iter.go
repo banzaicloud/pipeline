@@ -27,18 +27,18 @@ import (
 //
 // Example:
 //
-//  s := struct{
-//  	...
-//  }{
-//  	...
-//  }
-//	iter := unstructured.StructRange(s)
+// s := struct{
+// 	...
+// }{
+// 	...
+// }
+// iter := unstructured.StructRange(s)
 // 	for iter.Next() {
-//		f := iter.Field()
-//		v := iter.Value()
-//		...
-//	}
-//
+// 	f := iter.Field()
+// 	v := iter.Value()
+// 	...
+// }
+
 func StructRange(v interface{}) *StructIter {
 	return NewStructIter(reflect.ValueOf(v))
 }

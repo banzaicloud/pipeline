@@ -49,7 +49,8 @@ func GetAzureClusterResourceGroupName(distribution string, clusterResourceGroup 
 
 // GetSecretForBucket gets formatted secret for ARK backup bucket
 func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string,
-	bucketResourceGroup string, clusterResourceGroup string) (string, error) {
+	bucketResourceGroup string, clusterResourceGroup string,
+) (string, error) {
 	s := getSecret(secret)
 	s.StorageAccount = storageAccount
 

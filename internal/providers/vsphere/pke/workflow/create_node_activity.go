@@ -216,8 +216,7 @@ func (a CreateNodeActivity) Execute(ctx context.Context, input CreateNodeActivit
 
 	folderName := input.FolderName
 	if folderName == "" {
-		folderName =
-			secretValues[secrettype.VsphereFolder]
+		folderName = secretValues[secrettype.VsphereFolder]
 	}
 
 	folder, err := finder.FolderOrDefault(ctx, folderName)

@@ -153,7 +153,8 @@ var (
 func InstallSecret(cc interface {
 	GetK8sConfig() ([]byte, error)
 	GetOrganizationId() uint
-}, secretName string, req InstallSecretRequest) (string, error) {
+}, secretName string, req InstallSecretRequest,
+) (string, error) {
 	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get k8s config")

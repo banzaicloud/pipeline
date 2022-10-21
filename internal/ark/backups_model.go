@@ -35,16 +35,16 @@ type ClusterBackupsModel struct {
 	Name         string
 	Cloud        string
 	Distribution string
-	//deprecated: nodes are no longer synced from object storage
+	// deprecated: nodes are no longer synced from object storage
 	NodeCount uint
-	//deprecated: nodes are no longer synced from object storage
+	// deprecated: nodes are no longer synced from object storage
 	ContentChecked bool
 	StartedAt      *time.Time
 	CompletedAt    *time.Time
 	ExpireAt       *time.Time
 
 	State []byte `sql:"type:json"`
-	//deprecated: nodes are no longer synced from object storage
+	// deprecated: nodes are no longer synced from object storage
 	Nodes []byte `sql:"type:json"`
 
 	Status        string

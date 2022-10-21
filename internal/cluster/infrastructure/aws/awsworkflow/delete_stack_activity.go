@@ -45,9 +45,8 @@ type DeleteStackActivityInput struct {
 	StackName string
 }
 
-//   DeleteStackActivityOutput holds the output data of the DeleteStackActivity
-type DeleteStackActivityOutput struct {
-}
+// DeleteStackActivityOutput holds the output data of the DeleteStackActivity
+type DeleteStackActivityOutput struct{}
 
 // NewDeleteStackActivity instantiates a new DeleteStackActivity
 func NewDeleteStackActivity(awsSessionFactory AWSFactory) *DeleteStackActivity {

@@ -44,8 +44,7 @@ type PostFunctioner interface {
 }
 
 // ErrorHandler is the common struct which implement Error function
-type ErrorHandler struct {
-}
+type ErrorHandler struct{}
 
 func (*ErrorHandler) Error(c CommonCluster, err error) {
 	_ = c.SetStatus(pkgCluster.Error, err.Error())

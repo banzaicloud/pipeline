@@ -32,8 +32,7 @@ const (
 	clientSecret = "clientSecret"
 )
 
-type dummyClusterClientSecretGetter struct {
-}
+type dummyClusterClientSecretGetter struct{}
 
 func (dummyClusterClientSecretGetter) GetClusterClientSecret(_ context.Context, _ uint) (clusterAuth.ClusterClientSecret, error) {
 	return clusterAuth.ClusterClientSecret{

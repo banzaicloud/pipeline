@@ -99,7 +99,8 @@ func getSecretName(userName string) string {
 }
 
 func generateK8sConfig(clusterName string, apiEndpoint string, certificateAuthorityData []byte,
-	awsAccessKeyID string, awsSecretAccessKey string) *clientcmdapi.Config {
+	awsAccessKeyID string, awsSecretAccessKey string,
+) *clientcmdapi.Config {
 	return &clientcmdapi.Config{
 		APIVersion: "v1",
 		Clusters: []clientcmdapi.NamedCluster{
@@ -449,7 +450,8 @@ func WaitForASGToBeFulfilled(
 	logger *zap.SugaredLogger,
 	awsSession *session.Session,
 	stackName string,
-	nodePoolName string) error {
+	nodePoolName string,
+) error {
 	logger = logger.With("stackName", stackName)
 	logger.Info("wait for ASG to be fulfilled")
 

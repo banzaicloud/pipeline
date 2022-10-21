@@ -44,7 +44,6 @@ func (c *Client) getScheduleSpec(req *api.CreateScheduleRequest) arkAPI.Schedule
 
 // CreateOrUpdateSchedule creates an ARK schedule by a CreateScheduleRequest
 func (c *Client) CreateOrUpdateSchedule(req *api.CreateScheduleRequest) error {
-
 	schedule := arkAPI.Schedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.Namespace,

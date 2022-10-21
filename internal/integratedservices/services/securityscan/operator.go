@@ -65,7 +65,6 @@ func MakeIntegratedServiceOperator(
 	integratedServiceWhitelistService IntegratedServiceWhiteListService,
 	errorHandler common.ErrorHandler,
 	logger common.Logger,
-
 ) IntegratedServiceOperator {
 	return IntegratedServiceOperator{
 		config:           config,

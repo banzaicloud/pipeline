@@ -36,7 +36,8 @@ func WaitForASGToBeFulfilled(
 	clusterName string,
 	nodePoolName string,
 	waitAttempts int,
-	waitInterval time.Duration) error {
+	waitInterval time.Duration,
+) error {
 	logurLogger := logrusadapter.New(logrus.New())
 	m := autoscaling.NewManager(awsSession, autoscaling.MetricsEnabled(true), autoscaling.Logger{
 		Logger: logurLogger,

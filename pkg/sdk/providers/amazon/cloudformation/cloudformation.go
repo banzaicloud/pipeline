@@ -63,7 +63,7 @@ func NewOptionalStackParameter(key string, shouldUseNewValueInsteadOfPrevious bo
 // ParseStackParameters parses the specified outputs into the provided object
 // pointer and returns an error on failure.
 //
-// The object pointer may be
+// # The object pointer may be
 //
 // 1. an arbitrary struct parsing into the exported fields of the struct (use
 // mapstructure tags if the fields are named differently than the output keys,
@@ -84,7 +84,7 @@ func ParseStackOutputs(outputs []*cloudformation.Output, objectPointer interface
 // ParseStackParameters parses the specified parameters into the provided object
 // pointer and returns an error on failure.
 //
-// The object pointer may be
+// # The object pointer may be
 //
 // 1. an arbitrary struct parsing into the exported fields of the struct (use
 // mapstructure tags if the fields are named differently than the parameter
@@ -128,7 +128,7 @@ func parseStackValue(rawValue string, resultType interface{}) (result interface{
 // ParseStackValues parses the specified raw values into the provided object
 // pointer and returns an error on failure.
 //
-// The object pointer may be
+// # The object pointer may be
 //
 // 1. an arbitrary struct parsing into the exported fields of the struct (use
 // mapstructure tags if the fields are named differently than the parameter

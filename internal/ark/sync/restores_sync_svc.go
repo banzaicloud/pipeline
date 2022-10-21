@@ -141,7 +141,8 @@ func (s *RestoresSyncService) syncRestore(
 }
 
 func (s *RestoresSyncService) getRestoreResultFromObjectStore(req *api.PersistRestoreRequest) (
-	*api.RestoreResults, error) {
+	*api.RestoreResults, error,
+) {
 	bs := ark.BucketsServiceFactory(s.org, s.db, s.logger)
 	bucket, err := bs.GetByID(req.BucketID)
 	if err != nil {

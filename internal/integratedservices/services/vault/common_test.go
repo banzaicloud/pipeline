@@ -114,8 +114,7 @@ func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID str
 	return nil
 }
 
-type dummyHelmService struct {
-}
+type dummyHelmService struct{}
 
 func (d dummyHelmService) ApplyDeployment(
 	ctx context.Context,
@@ -151,8 +150,7 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	}, nil
 }
 
-type dummyKubernetesService struct {
-}
+type dummyKubernetesService struct{}
 
 // GetKubeConfig gets a kube config for a specific cluster.
 func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {

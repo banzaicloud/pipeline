@@ -39,10 +39,10 @@ type DeleteControlPlaneActivityInput struct {
 	EKSActivityInput
 }
 
-//   DeleteControlPlaneActivityOutput holds the output data of the DeleteControlPlaneActivity
+// DeleteControlPlaneActivityOutput holds the output data of the DeleteControlPlaneActivity
 type DeleteControlPlaneActivityOutput struct{}
 
-//   DeleteControlPlaneActivity instantiates a new DeleteControlPlaneActivity
+// DeleteControlPlaneActivity instantiates a new DeleteControlPlaneActivity
 func NewDeleteControlPlaneActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *DeleteControlPlaneActivity {
 	return &DeleteControlPlaneActivity{
 		awsSessionFactory: awsSessionFactory,

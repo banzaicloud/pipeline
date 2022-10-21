@@ -307,7 +307,8 @@ func (p NodePoolPreparer) prepareExistingNodePool(ctx context.Context, nodePool 
 func logMismatchOn(nl interface {
 	getLogger() logrus.FieldLogger
 	getNamespace() string
-}, fieldName string, currentValue, incomingValue interface{}) {
+}, fieldName string, currentValue, incomingValue interface{},
+) {
 	logMismatch(nl.getLogger(), nl.getNamespace(), fieldName, currentValue, incomingValue)
 }
 

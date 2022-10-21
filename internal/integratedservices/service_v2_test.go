@@ -65,7 +65,8 @@ func TestISServiceV2_List(t *testing.T) {
 				registry *IntegratedServiceManagerRegistry,
 				dispatcher *IntegratedServiceOperationDispatcher,
 				repository *IntegratedServiceRepository,
-				arguments args) {
+				arguments args,
+			) {
 				(*repository).(*MockIntegratedServiceRepository).On("GetIntegratedServices", ctx, clusterID).Return(nil, nil)
 				(*registry).(*MockIntegratedServiceManagerRegistry).On("GetIntegratedServiceNames").Return([]string{"fake"})
 				(*dispatcher).(*MockIntegratedServiceOperationDispatcher).On("IsBeingDispatched", ctx, clusterID, "fake").Return(true, nil)
@@ -94,7 +95,8 @@ func TestISServiceV2_List(t *testing.T) {
 				registry *IntegratedServiceManagerRegistry,
 				dispatcher *IntegratedServiceOperationDispatcher,
 				repository *IntegratedServiceRepository,
-				arguments args) {
+				arguments args,
+			) {
 				(*repository).(*MockIntegratedServiceRepository).On("GetIntegratedServices", ctx, clusterID).
 					Return([]IntegratedService{
 						{
@@ -131,7 +133,8 @@ func TestISServiceV2_List(t *testing.T) {
 				registry *IntegratedServiceManagerRegistry,
 				dispatcher *IntegratedServiceOperationDispatcher,
 				repository *IntegratedServiceRepository,
-				arguments args) {
+				arguments args,
+			) {
 				(*repository).(*MockIntegratedServiceRepository).On("GetIntegratedServices", ctx, clusterID).
 					Return([]IntegratedService{
 						{
@@ -210,7 +213,8 @@ func TestISServiceV2_Details(t *testing.T) {
 				registry *IntegratedServiceManagerRegistry,
 				dispatcher *IntegratedServiceOperationDispatcher,
 				repository *IntegratedServiceRepository,
-				arguments args) {
+				arguments args,
+			) {
 				(*dispatcher).(*MockIntegratedServiceOperationDispatcher).On("IsBeingDispatched", arguments.ctx, arguments.clusterID, arguments.serviceName).
 					Return(true, nil)
 			},
@@ -239,7 +243,8 @@ func TestISServiceV2_Details(t *testing.T) {
 				registry *IntegratedServiceManagerRegistry,
 				dispatcher *IntegratedServiceOperationDispatcher,
 				repository *IntegratedServiceRepository,
-				arguments args) {
+				arguments args,
+			) {
 				(*repository).(*MockIntegratedServiceRepository).On("GetIntegratedService", arguments.ctx, arguments.clusterID, arguments.serviceName).
 					Return(IntegratedService{
 						Name:   "fake",
@@ -277,7 +282,8 @@ func TestISServiceV2_Details(t *testing.T) {
 				registry *IntegratedServiceManagerRegistry,
 				dispatcher *IntegratedServiceOperationDispatcher,
 				repository *IntegratedServiceRepository,
-				arguments args) {
+				arguments args,
+			) {
 				(*repository).(*MockIntegratedServiceRepository).On("GetIntegratedService", arguments.ctx, arguments.clusterID, arguments.serviceName).
 					Return(IntegratedService{}, integratedServiceNotFoundError{})
 				(*dispatcher).(*MockIntegratedServiceOperationDispatcher).On("IsBeingDispatched", arguments.ctx, arguments.clusterID, arguments.serviceName).

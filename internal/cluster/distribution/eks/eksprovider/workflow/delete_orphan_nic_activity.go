@@ -40,7 +40,7 @@ type DeleteOrphanNICActivityInput struct {
 
 type DeleteOrphanNICActivityOutput struct{}
 
-//   DeleteOrphanNICActivity instantiates a new DeleteOrphanNICActivity
+// DeleteOrphanNICActivity instantiates a new DeleteOrphanNICActivity
 func NewDeleteOrphanNICActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *DeleteOrphanNICActivity {
 	return &DeleteOrphanNICActivity{
 		awsSessionFactory: awsSessionFactory,

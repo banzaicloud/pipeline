@@ -48,7 +48,7 @@ func TestParseTelemetryFromFile(t *testing.T) {
 
 	if *update {
 		t.Logf("update %s", golden)
-		if err := ioutil.WriteFile(golden, tb, 0644); err != nil {
+		if err := ioutil.WriteFile(golden, tb, 0o644); err != nil {
 			t.Fatalf("failed to update golden: %+v", err)
 		}
 	}

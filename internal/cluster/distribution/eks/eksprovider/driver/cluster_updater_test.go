@@ -718,8 +718,7 @@ func TestNewNodePoolsFromUpdateRequest(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.caseDescription, func(t *testing.T) {
-			actualRequestedDeletedNodePools, actualRequestedNewNodePools, actualRequestedUpdatedNodePools, actualErr :=
-				newNodePoolsFromUpdateRequest(testCase.input.currentNodePools, testCase.input.requestedNodePools)
+			actualRequestedDeletedNodePools, actualRequestedNewNodePools, actualRequestedUpdatedNodePools, actualErr := newNodePoolsFromUpdateRequest(testCase.input.currentNodePools, testCase.input.requestedNodePools)
 
 			if testCase.output.expectedErr == nil {
 				require.NoError(t, actualErr)

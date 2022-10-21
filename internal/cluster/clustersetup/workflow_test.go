@@ -53,8 +53,7 @@ type WorkflowTestSuite struct {
 	env *testsuite.TestWorkflowEnvironment
 }
 
-type DeployClusterAutoscalerActivity struct {
-}
+type DeployClusterAutoscalerActivity struct{}
 
 func (a DeployClusterAutoscalerActivity) Execute(ctx context.Context, input DeployClusterAutoscalerActivityInput) error {
 	return nil

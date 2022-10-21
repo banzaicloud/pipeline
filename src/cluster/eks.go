@@ -391,7 +391,8 @@ func (c *EKSCluster) GetDistribution() string {
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-// 		This will become obsolete once we have the Node Pool API ready
+//
+//	This will become obsolete once we have the Node Pool API ready
 func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 	c.log.Info("start updating node pools")
 

@@ -187,7 +187,7 @@ func (a anchoreService) userExists(ctx context.Context, client AnchoreClient, us
 	return anchoreUsr != nil, nil
 }
 
-//  ensureUserCredentials makes sure the user credentials secret is up to date
+// ensureUserCredentials makes sure the user credentials secret is up to date
 func (a anchoreService) ensureUserCredentials(ctx context.Context, orgID uint, client AnchoreClient, userName string) error {
 	// check the user at anchore
 	_, err := client.GetUserCredentials(ctx, userName)

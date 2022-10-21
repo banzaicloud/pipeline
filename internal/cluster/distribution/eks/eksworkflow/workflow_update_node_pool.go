@@ -162,7 +162,6 @@ func (w UpdateNodePoolWorkflow) Execute(ctx workflow.Context, input UpdateNodePo
 			NodeVolumeSize              int            `mapstructure:"NodeVolumeSize"`
 			TemplateVersion             semver.Version `mapstructure:"TemplateVersion,omitempty"`  // Note: TemplateVersion is only available from template version 2.0.0.
 			UseInstanceStore            string         `mapstructure:"UseInstanceStore,omitempty"` // Note: TemplateVersion is only available from template version 2.2.0.
-
 		}
 		err = sdkCloudFormation.ParseStackParameters(getCFStackOutput.Stack.Parameters, &parameters)
 		if err != nil {

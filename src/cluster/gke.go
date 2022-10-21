@@ -1127,10 +1127,9 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 	for _, nodePoolToCreate := range nodePoolsToCreate {
 		log.Infof("Creating node pool %s", nodePoolToCreate.Name)
 
-		createCall, err :=
-			svc.Projects.Zones.Clusters.NodePools.Create(cc.ProjectID, cc.Zone, cc.Name, &gke.CreateNodePoolRequest{
-				NodePool: nodePoolToCreate,
-			}).Context(context.Background()).Do()
+		createCall, err := svc.Projects.Zones.Clusters.NodePools.Create(cc.ProjectID, cc.Zone, cc.Name, &gke.CreateNodePoolRequest{
+			NodePool: nodePoolToCreate,
+		}).Context(context.Background()).Do()
 		if err != nil {
 			return nil, err
 		}
@@ -1149,9 +1148,8 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 	for _, nodePoolName := range nodePoolsToDelete {
 		log.Infof("Deleting node pool %s", nodePoolName)
 
-		deleteCall, err :=
-			svc.Projects.Zones.Clusters.NodePools.Delete(cc.ProjectID, cc.Zone, cc.Name, nodePoolName).Context(
-				context.Background()).Do()
+		deleteCall, err := svc.Projects.Zones.Clusters.NodePools.Delete(cc.ProjectID, cc.Zone, cc.Name, nodePoolName).Context(
+			context.Background()).Do()
 		if err != nil {
 			return nil, err
 		}

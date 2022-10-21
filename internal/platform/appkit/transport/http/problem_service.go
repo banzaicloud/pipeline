@@ -27,16 +27,18 @@ import (
 
 // ServiceProblemMatcher is a problem matcher for service errors.
 // If the returned error matches the following interface, a special service problem is returned by NewProblem:
-// 	type ServiceError interface {
-// 		ServiceError() bool
-// 	}
+//
+//	type ServiceError interface {
+//		ServiceError() bool
+//	}
 type serviceProblemMatcher struct{}
 
 // NewServiceProblemMatcher returns a problem matcher for service errors.
 // If the returned error matches the following interface, a special service problem is returned by NewProblem:
-// 	type ServiceError interface {
-// 		ServiceError() bool
-// 	}
+//
+//	type ServiceError interface {
+//		ServiceError() bool
+//	}
 func NewServiceProblemMatcher() appkithttp.ProblemMatcher {
 	return serviceProblemMatcher{}
 }

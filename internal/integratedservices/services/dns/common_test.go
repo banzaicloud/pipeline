@@ -126,8 +126,7 @@ func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID str
 	return nil
 }
 
-type dummyHelmService struct {
-}
+type dummyHelmService struct{}
 
 func (d dummyHelmService) ApplyDeployment(
 	ctx context.Context,

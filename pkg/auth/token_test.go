@@ -45,7 +45,7 @@ func newTime(value time.Time) *time.Time {
 }
 
 func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
-	now := time.Date(2019, time.September, 20, 14, 44, 00, 00, time.UTC)
+	now := time.Date(2019, time.September, 20, 14, 44, 0o0, 0o0, time.UTC)
 
 	generator := NewJWTTokenGenerator(
 		"issuer",

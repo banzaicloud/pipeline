@@ -29,22 +29,22 @@ import (
 
 const UploadSSHKeyActivityName = "eks-upload-ssh-key"
 
-//  UploadSSHKeyActivity responsible for uploading SSH key
+// UploadSSHKeyActivity responsible for uploading SSH key
 type UploadSSHKeyActivity struct {
 	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
-//  UploadSSHKeyActivityInput holds data needed to upload SSH key
+// UploadSSHKeyActivityInput holds data needed to upload SSH key
 type UploadSSHKeyActivityInput struct {
 	EKSActivityInput
 	SSHKeyName  string
 	SSHSecretID string
 }
 
-//  UploadSSHKeyActivityOutput holds the output data of UploadSSHKeyActivity
+// UploadSSHKeyActivityOutput holds the output data of UploadSSHKeyActivity
 type UploadSSHKeyActivityOutput struct{}
 
-//  UploadSSHKeyActivity instantiates a new  UploadSSHKeyActivity
+// UploadSSHKeyActivity instantiates a new  UploadSSHKeyActivity
 func NewUploadSSHKeyActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *UploadSSHKeyActivity {
 	return &UploadSSHKeyActivity{
 		awsSessionFactory: awsSessionFactory,

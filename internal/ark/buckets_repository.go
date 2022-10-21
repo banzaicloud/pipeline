@@ -75,7 +75,8 @@ func (s *BucketsRepository) FindOneByID(id uint) (*ClusterBackupBucketsModel, er
 
 // GetActiveDeploymentModel gets the active ARK deployment, if any
 func (s *BucketsRepository) GetActiveDeploymentModel(bucket *ClusterBackupBucketsModel) (
-	deployment ClusterBackupDeploymentsModel, err error) {
+	deployment ClusterBackupDeploymentsModel, err error,
+) {
 	err = s.db.Model(&bucket).Related(&deployment, "Deployment").Error
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {

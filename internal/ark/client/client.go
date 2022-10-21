@@ -19,8 +19,8 @@ import (
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
 	"github.com/sirupsen/logrus"
 	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/kubernetes/scheme"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -48,7 +48,6 @@ type Client struct {
 
 // New creates an initialized Client instance
 func New(config []byte, namespace string, logger logrus.FieldLogger) (client *Client, err error) {
-
 	client = &Client{
 		Config:    config,
 		Logger:    logger,

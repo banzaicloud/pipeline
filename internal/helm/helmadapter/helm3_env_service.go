@@ -123,7 +123,7 @@ func (h helm3EnvService) AddRepository(ctx context.Context, helmEnv helm.HelmEnv
 
 	f.Update(&c)
 
-	if err := f.WriteFile(repoFile, 0644); err != nil {
+	if err := f.WriteFile(repoFile, 0o644); err != nil {
 		return err
 	}
 	h.logger.Info("repository has been added", map[string]interface{}{"repository": repository.Name})
@@ -162,7 +162,7 @@ func (h helm3EnvService) DeleteRepository(_ context.Context, helmEnv helm.HelmEn
 		h.logger.Debug("repository not  found", map[string]interface{}{"repository": repoName})
 		return nil
 	}
-	if err := r.WriteFile(repoFile, 0644); err != nil {
+	if err := r.WriteFile(repoFile, 0o644); err != nil {
 		return err
 	}
 
@@ -529,7 +529,7 @@ func (h helm3EnvService) EnsureEnv(ctx context.Context, helmEnv helm.HelmEnv, de
 	}
 
 	f := repo.NewFile()
-	if err := f.WriteFile(helmEnv.GetHome(), 0644); err != nil {
+	if err := f.WriteFile(helmEnv.GetHome(), 0o644); err != nil {
 		return helm.HelmEnv{}, false, errors.WrapIf(err, "failed to create the repo file")
 	}
 

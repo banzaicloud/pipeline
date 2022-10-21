@@ -113,8 +113,7 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 
 	modelCluster := eksCluster.GetModel()
 
-	requestedDeletedNodePools, requestedNewNodePools, requestedUpdatedNodePools, err :=
-		newNodePoolsFromUpdateRequest(modelCluster.NodePools, request.EKS.NodePools)
+	requestedDeletedNodePools, requestedNewNodePools, requestedUpdatedNodePools, err := newNodePoolsFromUpdateRequest(modelCluster.NodePools, request.EKS.NodePools)
 	if err != nil {
 		return err
 	}
@@ -181,7 +180,8 @@ func (c *EksClusterUpdater) update(ctx context.Context, logger logrus.FieldLogge
 func (c *EksClusterUpdater) UpdateCluster(ctx context.Context,
 	request *pkgCluster.UpdateClusterRequest,
 	commonCluster cluster.CommonCluster,
-	userID uint) error {
+	userID uint,
+) error {
 	eksCluster := commonCluster.(*cluster.EKSCluster)
 
 	logger := c.logger.WithFields(logrus.Fields{

@@ -30,7 +30,6 @@ import (
 // - a []interface{}
 // - a map[string]interface{}
 // where the last two can only contain JSON structure values.
-//
 func Copy(v interface{}) (interface{}, error) {
 	switch val := v.(type) {
 	case nil, Boolean, Number, String:

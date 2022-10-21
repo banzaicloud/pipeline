@@ -185,8 +185,7 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	}, nil
 }
 
-type dummyKubernetesService struct {
-}
+type dummyKubernetesService struct{}
 
 func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o client.Object) error {
 	return nil
