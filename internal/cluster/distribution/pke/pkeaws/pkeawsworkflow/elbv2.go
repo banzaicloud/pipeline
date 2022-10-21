@@ -25,8 +25,6 @@ import (
 
 // cloudFormationAPI redefines the elbv2iface.ELBV2API
 // interface in order to generate mock for it.
-// nolint:deadcode // Used for mock generation and only the original interface
-// is referenced.
 type elbv2API interface {
 	elbv2iface.ELBV2API
 }

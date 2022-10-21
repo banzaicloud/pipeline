@@ -25,9 +25,6 @@ import (
 
 // ec2API redefines the ec2iface.EC2API interface in order to generate mock for
 // it.
-//
-// nolint:deadcode // Used for mock generation and only the original interface
-// is referenced.
 type ec2API interface {
 	ec2iface.EC2API
 }

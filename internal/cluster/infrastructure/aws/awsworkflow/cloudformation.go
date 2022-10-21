@@ -25,8 +25,6 @@ import (
 
 // cloudFormationAPI redefines the cloudformationiface.CloudFormationAPI
 // interface in order to generate mock for it.
-// nolint:deadcode // Used for mock generation and only the original interface
-// is referenced.
 type cloudFormationAPI interface {
 	cfi.CloudFormationAPI
 }

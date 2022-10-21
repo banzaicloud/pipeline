@@ -67,4 +67,6 @@ linters:
         - testpackage
         - unparam
 
+        # deprecated (since v1.49.0), replaced by unused
+        - deadcode
     fast: false
