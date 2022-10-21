@@ -67,8 +67,64 @@ linters:
         - testpackage
         - unparam
 
+        # Introduced with 1.50.0 since 1.30.0 (https://github.com/golangci/golangci-lint/blob/bac47a7e52a1dcd91fc7d3e33af2686e22cc9e0f/CHANGELOG.md)
+        # TODO: enable them one by one to test and configure
+        - asasalint
+        - bidichk
+        - contextcheck
+        - containedctx
+        - cyclop
+        - decorder
+        - dupword
+        - durationcheck
+        - errchkjson
+        - errname
+        - errorlint
+        - execinquery
+        - exhaustivestruct
+        - exhaustruct
+        - forbidigo
+        - forcetypeassert
+        - gomoddirectives
+        - grouper
+        - ifshort
+        - importas
+        - interfacebloat
+        - ireturn
+        - logrlint
+        - maintidx
+        - makezero
+        - nilerr
+        - nilnil
+        - nolintlint
+        - nonamedreturns
+        - nosnakecase
+        - nosprintfhostport
+        - paralleltest
+        - predeclared
+        - promlinter
+        - reassign
+        - tagliatelle
+        - tenv
+        - testableexamples
+        - thelper
+        - tparallel
+        - usestdlibvars
+        - varnamelen
+        - wastedassign
+        - wrapcheck
+
+        # incompatible with goimports
+        - gci
+
         # deprecated (since v1.41.0), replaced by revive
         - golint
         # deprecated (since v1.49.0), replaced by unused
         - deadcode
+        - structcheck
+
     fast: false
+
+issues:
+    max-issues-per-linter: 0
+    max-same-issues: 0
