@@ -270,7 +270,8 @@ func getProviderNameForChart(p string) string {
 func installSecret(cl interface {
 	GetK8sConfig() ([]byte, error)
 	GetOrganizationId() uint
-}, namespace string, secretName string, secretDataKey string, secretValue []byte) (string, error) {
+}, namespace string, secretName string, secretDataKey string, secretValue []byte,
+) (string, error) {
 	req := cluster.InstallSecretRequest{
 		// Note: leave the Source field empty as the secret needs to be transformed
 		Namespace: namespace,

@@ -25,8 +25,7 @@ type ServiceAccountService interface {
 	IsAdminServiceAccount(*User) bool
 }
 
-type serviceAccountService struct {
-}
+type serviceAccountService struct{}
 
 func NewServiceAccountService() ServiceAccountService {
 	return serviceAccountService{}

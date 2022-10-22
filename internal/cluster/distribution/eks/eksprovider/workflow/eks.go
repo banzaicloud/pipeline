@@ -25,8 +25,6 @@ import (
 
 // eksAPI redefines the eksiface.EKSAPI
 // interface in order to generate mock for it.
-// nolint:deadcode // Used for mock generation and only the original interface
-// is referenced.
 type eksAPI interface {
 	eksi.EKSAPI
 }

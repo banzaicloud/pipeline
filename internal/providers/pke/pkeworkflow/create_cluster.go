@@ -252,7 +252,6 @@ func (w CreateClusterWorkflow) Execute(ctx workflow.Context, input CreateCluster
 		var createSubnetFutures []workflow.Future
 		for zone, ip := range availabilityZoneMap {
 			activityInput := CreateSubnetActivityInput{
-
 				AWSActivityInput: awsActivityInput,
 				ClusterID:        input.ClusterID,
 				ClusterName:      input.ClusterName,

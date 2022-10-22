@@ -27,9 +27,10 @@ import (
 
 // NewValidationWithViolationsProblemMatcher returns a problem matcher for validation errors that contain violations.
 // If the returned error matches the following interface, a special validation problem is returned by NewProblem:
-// 	type violationError interface {
-// 		Violations() map[string][]string
-// 	}
+//
+//	type violationError interface {
+//		Violations() map[string][]string
+//	}
 func NewValidationWithViolationsProblemMatcher() appkithttp.ProblemMatcher {
 	return validationWithViolationsProblemMatcher{}
 }

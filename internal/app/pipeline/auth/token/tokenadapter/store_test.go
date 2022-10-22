@@ -34,7 +34,7 @@ func TestBankVaultsStore_Store(t *testing.T) {
 	userID := "1"
 	tokenID := "token"
 	tokenName := "name"
-	expiresAt := time.Date(2019, time.September, 30, 15, 15, 00, 00, time.UTC)
+	expiresAt := time.Date(2019, time.September, 30, 15, 15, 0o0, 0o0, time.UTC)
 
 	err := store.Store(context.Background(), userID, tokenID, tokenName, &expiresAt)
 	require.NoError(t, err)
@@ -60,7 +60,7 @@ func TestBankVaultsStore_List(t *testing.T) {
 	userID := "1"
 	tokenID := "token"
 	tokenName := "name"
-	expiresAt := time.Date(2019, time.September, 30, 15, 15, 00, 00, time.UTC)
+	expiresAt := time.Date(2019, time.September, 30, 15, 15, 0o0, 0o0, time.UTC)
 
 	err := bstore.Store(fmt.Sprint(userID), &auth.Token{
 		ID:        tokenID,
@@ -92,7 +92,7 @@ func TestBankVaultsStore_Lookup(t *testing.T) {
 	userID := "1"
 	tokenID := "token"
 	tokenName := "name"
-	expiresAt := time.Date(2019, time.September, 30, 15, 15, 00, 00, time.UTC)
+	expiresAt := time.Date(2019, time.September, 30, 15, 15, 0o0, 0o0, time.UTC)
 
 	err := bstore.Store(fmt.Sprint(userID), &auth.Token{
 		ID:        tokenID,
@@ -122,7 +122,7 @@ func TestBankVaultsStore_Revoke(t *testing.T) {
 	userID := "1"
 	tokenID := "token"
 	tokenName := "name"
-	expiresAt := time.Date(2019, time.September, 30, 15, 15, 00, 00, time.UTC)
+	expiresAt := time.Date(2019, time.September, 30, 15, 15, 0o0, 0o0, time.UTC)
 
 	err := bstore.Store(fmt.Sprint(userID), &auth.Token{
 		ID:        tokenID,

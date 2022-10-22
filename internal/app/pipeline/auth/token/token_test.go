@@ -160,7 +160,7 @@ func TestService_ListTokens(t *testing.T) {
 			ID:        "tokenid",
 			Name:      "generated",
 			ExpiresAt: nil,
-			CreatedAt: time.Date(2019, time.September, 30, 14, 37, 00, 00, time.UTC),
+			CreatedAt: time.Date(2019, time.September, 30, 14, 37, 0o0, 0o0, time.UTC),
 		},
 	}
 
@@ -194,7 +194,7 @@ func TestService_GetToken(t *testing.T) {
 		ID:        tokenID,
 		Name:      "generated",
 		ExpiresAt: nil,
-		CreatedAt: time.Date(2019, time.September, 30, 14, 37, 00, 00, time.UTC),
+		CreatedAt: time.Date(2019, time.September, 30, 14, 37, 0o0, 0o0, time.UTC),
 	}
 
 	store := new(MockStore)

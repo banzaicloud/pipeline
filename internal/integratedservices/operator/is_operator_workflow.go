@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package operator
 
 import (
@@ -84,8 +85,7 @@ func (w IntegratedServicesOperatorWorkflow) Execute(ctx workflow.Context, input 
 const SingleClusterIntegratedServiceOperatorInstallerWorkflowName = "single-cluster-integrated-service-operator-installer"
 
 // SingleClusterIntegratedServiceOperatorInstallerWorkflow workflow component struct
-type SingleClusterIntegratedServiceOperatorInstallerWorkflow struct {
-}
+type SingleClusterIntegratedServiceOperatorInstallerWorkflow struct{}
 
 // SingleClusterIntegratedServiceOperatorInstallerWorkflowInput input definition for the SingleClusterIntegratedServiceOperatorInstallerWorkflow
 type SingleClusterIntegratedServiceOperatorInstallerWorkflowInput struct {

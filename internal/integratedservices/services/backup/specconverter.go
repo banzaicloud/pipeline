@@ -25,8 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/integratedservices"
 )
 
-type SpecConverter struct {
-}
+type SpecConverter struct{}
 
 func (s SpecConverter) ConvertSpec(ctx context.Context, service v1alpha1.ServiceInstance) (integratedservices.IntegratedServiceSpec, error) {
 	if service.Spec.Backup.Spec == nil {

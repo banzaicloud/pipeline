@@ -18,14 +18,15 @@ import (
 	"context"
 	"fmt"
 	"time"
+
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/integrated-service-sdk/api/v1alpha1"
+	"github.com/banzaicloud/pipeline/internal/ark/api"
 	arkAPI "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
-	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
 const (
@@ -124,15 +125,14 @@ func (c *Client) CreateDeleteBackupRequestByName(name string) error {
 
 // GetBackupByName gets an ARK backup by name
 func (c *Client) WaitForActivationPhase(name string, phase v1alpha1.Phase) error {
-
 	backupSI := &v1alpha1.ServiceInstance{}
 
 	// wait for the status of the newly created resource
 	for count := 0; count < 60; count++ {
 
 		err := c.Client.Get(context.Background(), types.NamespacedName{
-			Name:      name,
-			//TODO retrive somehow IS namespace
+			Name: name,
+			// TODO retrive somehow IS namespace
 			Namespace: "pipeline-system",
 		}, backupSI)
 
@@ -142,7 +142,7 @@ func (c *Client) WaitForActivationPhase(name string, phase v1alpha1.Phase) error
 			// TODO use a specific error to signal shouldRetry
 			if backupSI != nil && backupSI.Status.Status == v1alpha1.StatusManaged &&
 				backupSI.Status.Phase == phase {
-				//is.logger.Debug("Service instance status populated.")
+				// is.logger.Debug("Service instance status populated.")
 				// step forward
 				return nil
 			}

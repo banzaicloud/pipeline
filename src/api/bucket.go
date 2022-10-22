@@ -548,8 +548,7 @@ func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretNa
 }
 
 // bucketController gathers bucket related operations / helpers
-type bucketController struct {
-}
+type bucketController struct{}
 
 // GetBucket handler for retrieving bucket details by name
 // it retrieves all the managed buckets and filters them by name

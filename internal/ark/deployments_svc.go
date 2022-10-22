@@ -110,7 +110,8 @@ func (s *DeploymentsService) GetActiveDeployment() (*ClusterBackupDeploymentsMod
 }
 
 func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBackupBucketsModel,
-	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool) error {
+	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool,
+) error {
 	var deployment *ClusterBackupDeploymentsModel
 	req, err := s.deploy(bucket, restoreMode, useClusterSecret, serviceAccountRoleARN, useProviderSecret)
 	if err != nil {
@@ -154,7 +155,8 @@ func (s *DeploymentsService) Deploy(helmService HelmService, bucket *ClusterBack
 }
 
 func (s *DeploymentsService) Activate(service api.Service, bucket *ClusterBackupBucketsModel,
-	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool) error {
+	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool,
+) error {
 	var deployment *ClusterBackupDeploymentsModel
 	req, err := s.deploy(bucket, restoreMode, useClusterSecret, serviceAccountRoleARN, useProviderSecret)
 	if err != nil {
@@ -212,7 +214,8 @@ func (s *DeploymentsService) Activate(service api.Service, bucket *ClusterBackup
 }
 
 func (s *DeploymentsService) deploy(bucket *ClusterBackupBucketsModel,
-	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool) (*ConfigRequest, error) {
+	restoreMode bool, useClusterSecret bool, serviceAccountRoleARN string, useProviderSecret bool,
+) (*ConfigRequest, error) {
 	if !restoreMode {
 		_, err := s.GetActiveDeployment()
 		if err == nil {
@@ -285,7 +288,8 @@ func (s *DeploymentsService) deploy(bucket *ClusterBackupBucketsModel,
 func installSecret(cl interface {
 	GetK8sConfig() ([]byte, error)
 	GetOrganizationId() uint
-}, namespace string, secretName string, secretContent secretContents) (string, error) {
+}, namespace string, secretName string, secretContent secretContents,
+) (string, error) {
 	req := cluster.InstallSecretRequest{
 		// Note: leave the Source field empty as the secret needs to be transformed
 		Namespace: namespace,

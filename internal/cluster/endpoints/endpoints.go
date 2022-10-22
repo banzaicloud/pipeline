@@ -185,11 +185,12 @@ func (m EndpointManager) getLoadBalancersWithIngressPaths(serviceList *v1.Servic
 // getIngressEndpoints iterates through all the rules->paths defined in the given Ingress object
 // and returns a collection of EndPointURLs form it.
 // The EndPointURLs struct is constructed as:
-//             EndPointURLs {
-//                     ServiceName: {path from ingress rule}
-//                     URL: http://{loadBalancerPublicHost}/{path from ingress rule}
-//                     HelmReleaseName: {helm generated release name}
-//             }
+//
+//	EndPointURLs {
+//	        ServiceName: {path from ingress rule}
+//	        URL: http://{loadBalancerPublicHost}/{path from ingress rule}
+//	        HelmReleaseName: {helm generated release name}
+//	}
 func getIngressEndpoints(
 	loadBalancerPublicHost string,
 	ingress *v1beta1.Ingress,

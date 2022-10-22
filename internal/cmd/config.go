@@ -213,7 +213,7 @@ func (c ClusterConfig) Validate() error {
 	errs = errors.Append(errs, c.Logging.Validate())
 
 	if c.Manifest != "" {
-		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0666)
+		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0o666)
 		_ = file.Close()
 		if err != nil {
 			errs = errors.Append(errs, errors.Wrap(err, "cluster manifest file is not readable"))

@@ -54,8 +54,7 @@ func (r RepoValidators) Validate(ctx context.Context, repository Repository) err
 	return nil
 }
 
-type repoValidator struct {
-}
+type repoValidator struct{}
 
 func (r repoValidator) Validate(ctx context.Context, repository Repository) error {
 	var violations []string

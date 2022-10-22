@@ -47,7 +47,6 @@ type ClusterManager interface {
 
 // Service manages integrated services on Kubernetes clusters.
 type Service interface {
-
 	// Activate activates a integrated service.
 	Activate(ctx context.Context, clusterID uint, serviceName string, spec map[string]interface{}) error
 

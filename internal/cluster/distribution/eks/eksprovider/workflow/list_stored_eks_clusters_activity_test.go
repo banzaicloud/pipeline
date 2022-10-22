@@ -257,11 +257,9 @@ func TestListStoredEKSClustersActivityExecute(t *testing.T) {
 					require.NotEmpty(t, eksCluster.Cluster.UID)
 					require.InEpsilon(t, time.Now().Unix(), eksCluster.Cluster.UpdatedAt.Unix(), 3.0)
 
-					eksCluster.Cluster.CreatedAt =
-						testCase.output.expectedOutput.EKSClusters[genericClusterID].Cluster.CreatedAt
+					eksCluster.Cluster.CreatedAt = testCase.output.expectedOutput.EKSClusters[genericClusterID].Cluster.CreatedAt
 					eksCluster.Cluster.UID = testCase.output.expectedOutput.EKSClusters[genericClusterID].Cluster.UID
-					eksCluster.Cluster.UpdatedAt =
-						testCase.output.expectedOutput.EKSClusters[genericClusterID].Cluster.UpdatedAt
+					eksCluster.Cluster.UpdatedAt = testCase.output.expectedOutput.EKSClusters[genericClusterID].Cluster.UpdatedAt
 
 					actualOutput.EKSClusters[genericClusterID] = eksCluster
 				}

@@ -178,8 +178,7 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	}, nil
 }
 
-type dummyKubernetesService struct {
-}
+type dummyKubernetesService struct{}
 
 // DeleteObject deletes an Object from a specific cluster.
 func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o client.Object) error {

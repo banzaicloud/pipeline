@@ -146,7 +146,8 @@ func (s *BucketsService) GetBackupsFromObjectStore(bucket *api.Bucket) ([]*arkAP
 
 // GetActiveDeploymentModel gets the active ARK ClusterBackupDeploymentsModel
 func (s *BucketsService) GetActiveDeploymentModel(bucket *ClusterBackupBucketsModel) (
-	ClusterBackupDeploymentsModel, error) {
+	ClusterBackupDeploymentsModel, error,
+) {
 	return s.repository.GetActiveDeploymentModel(bucket)
 }
 
@@ -252,7 +253,8 @@ func (s *BucketsService) FindOrCreateBucket(req *api.CreateBucketRequest) (*Clus
 
 // GetNodesFromBackupContents gets core.NodeList from a backup in an object store bucket
 func (s *BucketsService) GetNodesFromBackupContents(bucket *api.Bucket, backupName string) (
-	nodes core.NodeList, err error) {
+	nodes core.NodeList, err error,
+) {
 	nodes.APIVersion = "v1"
 
 	buf := new(bytes.Buffer)

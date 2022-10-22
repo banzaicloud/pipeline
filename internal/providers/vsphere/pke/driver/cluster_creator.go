@@ -386,8 +386,7 @@ func (p VspherePKEClusterCreationParamsPreparer) getNodePoolsPreparer(dataProvid
 	}
 }
 
-type clusterCreatorNodePoolPreparerDataProvider struct {
-}
+type clusterCreatorNodePoolPreparerDataProvider struct{}
 
 func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePools(ctx context.Context) ([]pke.NodePool, error) {
 	return nil, nil

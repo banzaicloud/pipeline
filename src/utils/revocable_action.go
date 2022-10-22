@@ -64,7 +64,7 @@ func (ctx *ActionCallContext) OnFailed(error error) {
 		if ok {
 			revocableAction.UndoAction() // nolint: errcheck
 		}
-		//else: not revocable action
+		// else: not revocable action
 	}
 }
 

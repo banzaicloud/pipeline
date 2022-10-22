@@ -37,7 +37,8 @@ type OutputResolver interface {
 func NewServiceConversion(
 	statusMapper services.StatusMapper,
 	specConverters map[string]integratedservices.SpecConversion,
-	outputResolvers map[string]OutputResolver) *ServiceConversion {
+	outputResolvers map[string]OutputResolver,
+) *ServiceConversion {
 	return &ServiceConversion{
 		statusMapper:    statusMapper,
 		specConversion:  specConverters,

@@ -27,8 +27,7 @@ type clusterEvents interface {
 	ClusterUpdated(clusterID uint)
 }
 
-type nopClusterEvents struct {
-}
+type nopClusterEvents struct{}
 
 func NewNopClusterEvents() *nopClusterEvents {
 	return &nopClusterEvents{}

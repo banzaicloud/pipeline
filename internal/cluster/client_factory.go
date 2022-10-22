@@ -60,8 +60,6 @@ func (f ClientFactory) FromSecret(ctx context.Context, secretID string) (kuberne
 
 // dynamicInterface redefines the dynamic.Interface in order to generate mock
 // for it.
-// nolint:deadcode // Used for mock generation and only the original interface
-// is referenced.
 type dynamicInterface interface {
 	dynamic.Interface
 }
@@ -70,8 +68,6 @@ type dynamicInterface interface {
 
 // dynamicNamespacedResourceInterface redefines the
 // dynamic.NamespaceableResourceInterface in order to generate mock for it.
-// nolint:deadcode // Used for mock generation and only a derived interface
-// is referenced.
 type dynamicNamespaceableResourceInterface interface {
 	dynamic.NamespaceableResourceInterface
 }

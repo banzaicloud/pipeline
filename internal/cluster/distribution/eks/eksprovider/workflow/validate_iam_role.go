@@ -26,22 +26,22 @@ import (
 
 const ValidateIAMRoleActivityName = "eks-validate-iam-role"
 
-//  ValidateIAMRoleActivity responsible for validating IAM role
+// ValidateIAMRoleActivity responsible for validating IAM role
 type ValidateIAMRoleActivity struct {
 	awsSessionFactory *awsworkflow.AWSSessionFactory
 }
 
-//  ValidateIAMRoleActivityInput holds data needed to validate IAM Role
+// ValidateIAMRoleActivityInput holds data needed to validate IAM Role
 type ValidateIAMRoleActivityInput struct {
 	EKSActivityInput
 
 	ClusterRoleID string
 }
 
-//  ValidateIAMRoleActivityOutput holds the output data of ValidateIAMRoleActivity
+// ValidateIAMRoleActivityOutput holds the output data of ValidateIAMRoleActivity
 type ValidateIAMRoleActivityOutput struct{}
 
-//  NewValidateIAMRoleActivity instantiates a new  ValidateIAMRoleActivity
+// NewValidateIAMRoleActivity instantiates a new  ValidateIAMRoleActivity
 func NewValidateIAMRoleActivity(awsSessionFactory *awsworkflow.AWSSessionFactory) *ValidateIAMRoleActivity {
 	return &ValidateIAMRoleActivity{
 		awsSessionFactory: awsSessionFactory,

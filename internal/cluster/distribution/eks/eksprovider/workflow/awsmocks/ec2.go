@@ -20,8 +20,6 @@ import (
 
 // #+testify:mock
 
-// nolint:deadcode // Used for mock generation and only the original interface
-// is referenced.
 type ec2clientstub interface {
 	ec2stub.Client
 }

@@ -45,7 +45,7 @@ type ReleaseResource struct {
 	Kind string `json:"kind" yaml:"kind"`
 }
 
-//  Release represents information related to a helm chart release
+// Release represents information related to a helm chart release
 type Release struct {
 	// ReleaseInput struct encapsulating information about the release to be created
 	ReleaseName      string

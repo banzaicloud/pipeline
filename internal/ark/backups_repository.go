@@ -96,7 +96,8 @@ func (r *BackupsRepository) FindOneByID(id uint) (*ClusterBackupsModel, error) {
 
 // FindByPersistRequest returns a ClusterBackupsModel by PersistBackupRequest
 func (r *BackupsRepository) FindByPersistRequest(req *api.PersistBackupRequest) (
-	*ClusterBackupsModel, error) {
+	*ClusterBackupsModel, error,
+) {
 	var backup ClusterBackupsModel
 
 	query := ClusterBackupsModel{

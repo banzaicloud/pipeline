@@ -120,7 +120,8 @@ func GetOrCreateServiceAccount(log logrus.FieldLogger, client *kubernetes.Client
 func GetOrCreateClusterRoleBinding(log logrus.FieldLogger,
 	client *kubernetes.Clientset,
 	name string, serviceAccount *v1.ServiceAccount,
-	clusterRole *rbacv1.ClusterRole) (*rbacv1.ClusterRoleBinding, error) {
+	clusterRole *rbacv1.ClusterRole,
+) (*rbacv1.ClusterRoleBinding, error) {
 	fieldSelector := fields.SelectorFromSet(fields.Set{"metadata.name": name})
 
 	ctx := context.Background()

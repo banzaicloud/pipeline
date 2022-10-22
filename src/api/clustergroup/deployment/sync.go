@@ -27,8 +27,10 @@ import (
 
 // @Summary Synchronize Cluster Group Deployment
 // @Description install / upgrade deployment to target clusters where deployment is not found or has wrong
-// 	version/values (like somebody deleted, updated the deployment on that given cluster using Single Cluster Deployment API),
-// 	deletes deployment from target clusters which are not member of a cluster group anymore
+//
+//	version/values (like somebody deleted, updated the deployment on that given cluster using Single Cluster Deployment API),
+//	deletes deployment from target clusters which are not member of a cluster group anymore
+//
 // @Tags clustergroup deployments
 // @Accept json
 // @Produce json

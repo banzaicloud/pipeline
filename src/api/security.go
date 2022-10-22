@@ -267,7 +267,8 @@ type securityHandlers struct {
 func NewSecurityApiHandlers(
 	clusterGetter apiCommon.ClusterGetter,
 	errorHandler internalCommon.ErrorHandler,
-	logger internalCommon.Logger) SecurityHandler {
+	logger internalCommon.Logger,
+) SecurityHandler {
 	wlSvc := anchore.NewSecurityResourceService(logger)
 	return securityHandlers{
 		clusterGetter:   clusterGetter,
