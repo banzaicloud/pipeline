@@ -19,10 +19,10 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"regexp"
 
 	"emperror.dev/errors"
-	"github.com/antihax/optional"
 	"gopkg.in/resty.v1"
 
 	"github.com/banzaicloud/pipeline/.gen/anchore"
@@ -75,16 +75,26 @@ type AnchoreClient interface {
 type anchoreClient struct {
 	userName string
 	password string
-	endpoint string
+	host     string
+	scheme   string
+	path     string
 	logger   common.Logger
 	insecure bool
 }
 
 func NewAnchoreClient(userName string, password string, endpoint string, insecure bool, logger common.Logger) AnchoreClient {
+	url, err := url.Parse(endpoint)
+	if err != nil {
+		logger.Error("parsing Anchore endpoint failed")
+		return nil
+	}
+
 	return anchoreClient{
 		userName: userName,
 		password: password,
-		endpoint: endpoint,
+		host:     url.Host,
+		scheme:   url.Scheme,
+		path:     url.Path,
 		logger:   logger.WithFields(map[string]interface{}{"anchore-client": ""}),
 		insecure: insecure,
 	}
@@ -94,11 +104,9 @@ func (a anchoreClient) CreateAccount(ctx context.Context, accountName string, em
 	fnCtx := map[string]interface{}{"accountName": accountName, "email": email}
 	a.logger.Info("creating anchore account", fnCtx)
 
-	_, resp, err := a.getRestClient().UserManagementApi.CreateAccount(a.authorizedContext(ctx),
-		anchore.AccountCreationRequest{
-			Name:  accountName,
-			Email: email,
-		})
+	_, resp, err := a.getRestClient().UserManagementApi.CreateAccountExecute(
+		a.getRestClient().UserManagementApi.CreateAccount(a.authorizedContext(ctx)),
+	)
 
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		a.logger.Debug("failed to create anchore account", fnCtx)
@@ -114,11 +122,9 @@ func (a anchoreClient) CreateUser(ctx context.Context, accountName string, userN
 	fnCtx := map[string]interface{}{"accountName": accountName, "userName": userName}
 	a.logger.Info("creating anchore user", fnCtx)
 
-	_, resp, err := a.getRestClient().UserManagementApi.CreateUser(a.authorizedContext(ctx),
-		accountName, anchore.UserCreationRequest{
-			Username: userName,
-			Password: password,
-		})
+	_, resp, err := a.getRestClient().UserManagementApi.CreateUserExecute(
+		a.getRestClient().UserManagementApi.CreateUser(a.authorizedContext(ctx), accountName),
+	)
 
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		a.logger.Debug("failed to create anchore user", fnCtx)
@@ -134,7 +140,9 @@ func (a anchoreClient) GetUser(ctx context.Context, userName string) (interface{
 	fnCtx := map[string]interface{}{"userName": userName}
 	a.logger.Info("retrieving anchore user", fnCtx)
 
-	usr, resp, err := a.getRestClient().UserManagementApi.GetAccountUser(a.authorizedContext(ctx), userName, userName)
+	usr, resp, err := a.getRestClient().UserManagementApi.GetAccountUserExecute(
+		a.getRestClient().UserManagementApi.GetAccountUser(a.authorizedContext(ctx), userName, userName),
+	)
 	if err != nil && resp == nil { // TODO: simplify error checking (openapi returns a generic error for 404 as well)
 		a.logger.Debug("failed to retrieve user from anchore", fnCtx)
 
@@ -159,7 +167,9 @@ func (a anchoreClient) GetUserCredentials(ctx context.Context, userName string) 
 	fnCtx := map[string]interface{}{"userName": userName}
 	a.logger.Info("retrieving anchore credentials", fnCtx)
 
-	credentials, resp, err := a.getRestClient().UserManagementApi.ListUserCredentials(a.authorizedContext(ctx), userName, userName)
+	credentials, resp, err := a.getRestClient().UserManagementApi.ListUserCredentialsExecute(
+		a.getRestClient().UserManagementApi.ListUserCredentials(a.authorizedContext(ctx), userName, userName),
+	)
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		a.logger.Debug("failed to retrieve user credentials from anchore", fnCtx)
 
@@ -180,16 +190,25 @@ func (a anchoreClient) DeleteAccount(ctx context.Context, accountName string) er
 	a.logger.Info("deleting anchore account", fnCtx)
 
 	// update the status of the account before delete
-	s, ur, err := a.getRestClient().UserManagementApi.UpdateAccountState(a.authorizedContext(ctx), accountName, anchore.AccountStatus{State: "disabled"})
+	var desiredState anchore.AccountStatus
+	disabled := "disabled"
+	desiredState.State = &disabled
 
-	if err != nil || ur.StatusCode != http.StatusOK || s.State != "disabled" {
+	updateAccountRequest := a.getRestClient().UserManagementApi.UpdateAccountState(a.authorizedContext(ctx), accountName)
+	updateAccountRequest.DesiredState(desiredState)
+
+	s, ur, err := a.getRestClient().UserManagementApi.UpdateAccountStateExecute(updateAccountRequest)
+
+	if err != nil || ur.StatusCode != http.StatusOK || *s.State != "disabled" {
 		a.logger.Debug("failed to deactivate anchore account", fnCtx)
 
 		return errors.WrapIfWithDetails(err, "failed to deactivate anchore account", fnCtx)
 	}
 
 	// delete the account upon successful disable
-	dr, err := a.getRestClient().UserManagementApi.DeleteAccount(a.authorizedContext(ctx), accountName)
+	dr, err := a.getRestClient().UserManagementApi.DeleteAccountExecute(
+		a.getRestClient().UserManagementApi.DeleteAccount(a.authorizedContext(ctx), accountName),
+	)
 	if err != nil || (dr.StatusCode != http.StatusOK && dr.StatusCode != http.StatusNoContent) {
 		a.logger.Debug("failed to delete anchore account", fnCtx)
 
@@ -204,7 +223,9 @@ func (a anchoreClient) GetAccount(ctx context.Context, accountName string) (stri
 	fnCtx := map[string]interface{}{"accountName": accountName}
 	a.logger.Info("retrieving anchore account", fnCtx)
 
-	acc, r, err := a.getRestClient().UserManagementApi.GetAccount(a.authorizedContext(ctx), accountName)
+	acc, r, err := a.getRestClient().UserManagementApi.GetAccountExecute(
+		a.getRestClient().UserManagementApi.GetAccount(a.authorizedContext(ctx), accountName),
+	)
 	if err != nil || r.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to get anchore account", fnCtx)
 
@@ -219,7 +240,9 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 	fnCtx := map[string]interface{}{"accountName": accountName, "userName": userName}
 	a.logger.Info("deleting anchore user", fnCtx)
 
-	r, err := a.getRestClient().UserManagementApi.DeleteUser(a.authorizedContext(ctx), accountName, userName)
+	r, err := a.getRestClient().UserManagementApi.DeleteUserExecute(
+		a.getRestClient().UserManagementApi.DeleteUser(a.authorizedContext(ctx), accountName, userName),
+	)
 	if err != nil || r.StatusCode != http.StatusNoContent {
 		a.logger.Debug("failed to delete anchore user", fnCtx)
 
@@ -234,20 +257,24 @@ func (a anchoreClient) ActivatePolicy(ctx context.Context, policyID string) erro
 	fnCtx := map[string]interface{}{"policyId": policyID}
 	a.logger.Info("activating anchore policy", fnCtx)
 
-	getOpts := &anchore.GetPolicyOpts{Detail: optional.NewBool(true)}
+	getPolicyRequest := a.getRestClient().PoliciesApi.GetPolicy(a.authorizedContext(ctx), policyID)
+	getPolicyRequest.Detail(true)
 
-	policyBundle, resp, err := a.getRestClient().PoliciesApi.GetPolicy(a.authorizedContext(ctx), policyID, getOpts)
+	policyBundle, resp, err := a.getRestClient().PoliciesApi.GetPolicyExecute(getPolicyRequest)
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		a.logger.Debug("failed to get anchore policy", fnCtx)
 
 		return errors.WrapIfWithDetails(err, "failed to get anchore policy", fnCtx)
 	}
 
-	policyBundle[0].Active = true
+	active := true
+	policyBundle[0].Active = &active
 
-	updateOpts := &anchore.UpdatePolicyOpts{Active: optional.NewBool(true)}
+	updatePolicyRequest := a.getRestClient().PoliciesApi.UpdatePolicy(a.authorizedContext(ctx), policyID)
+	updatePolicyRequest.Bundle(policyBundle[0])
+	updatePolicyRequest.Active(true)
 
-	_, resp, err = a.getRestClient().PoliciesApi.UpdatePolicy(a.authorizedContext(ctx), policyID, policyBundle[0], updateOpts)
+	_, resp, err = a.getRestClient().PoliciesApi.UpdatePolicyExecute(updatePolicyRequest)
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		a.logger.Debug("failed to activate policy", fnCtx)
 
@@ -273,7 +300,9 @@ func (a anchoreClient) CreatePolicy(ctx context.Context, policyRaw map[string]in
 		return "", errors.WrapIfWithDetails(err, "failed to unmarshal policy", fnCtx)
 	}
 
-	policyRecord, resp, err := a.getRestClient().PoliciesApi.AddPolicy(a.authorizedContext(ctx), policy, nil)
+	policyRecord, resp, err := a.getRestClient().PoliciesApi.AddPolicyExecute(
+		a.getRestClient().PoliciesApi.AddPolicy(a.authorizedContext(ctx)),
+	)
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		a.logger.Debug("failed to create anchore policy", fnCtx)
 
@@ -281,7 +310,7 @@ func (a anchoreClient) CreatePolicy(ctx context.Context, policyRaw map[string]in
 	}
 
 	a.logger.Info("anchore policy created", fnCtx)
-	return policyRecord.PolicyId, nil
+	return *policyRecord.PolicyId, nil
 }
 
 func (a anchoreClient) AddRegistry(ctx context.Context, registry Registry) error {
@@ -297,18 +326,20 @@ func (a anchoreClient) AddRegistry(ctx context.Context, registry Registry) error
 		}
 	}
 
-	request := anchore.RegistryConfigurationRequest{
-		Registry:       registry.Registry,
-		RegistryName:   registry.Registry,
-		RegistryUser:   registry.Username,
-		RegistryPass:   registry.Password,
-		RegistryType:   registryType,
-		RegistryVerify: registry.Verify,
+	registryData := anchore.RegistryConfigurationRequest{
+		Registry:       &registry.Registry,
+		RegistryName:   &registry.Registry,
+		RegistryUser:   &registry.Username,
+		RegistryPass:   &registry.Password,
+		RegistryType:   &registryType,
+		RegistryVerify: &registry.Verify,
 	}
 
-	opts := &anchore.CreateRegistryOpts{Validate: optional.NewBool(true)}
+	createRegistryRequest := a.getRestClient().RegistriesApi.CreateRegistry(a.authorizedContext(ctx))
+	createRegistryRequest = createRegistryRequest.Registrydata(registryData)
+	createRegistryRequest = createRegistryRequest.Validate(true)
 
-	_, resp, err := a.getRestClient().RegistriesApi.CreateRegistry(a.authorizedContext(ctx), request, opts)
+	_, resp, err := a.getRestClient().RegistriesApi.CreateRegistryExecute(createRegistryRequest)
 
 	if err != nil || resp.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to add anchore registry", fnCtx)
@@ -325,8 +356,9 @@ func (a anchoreClient) GetRegistry(ctx context.Context, registryName string) ([]
 		"registryName": registryName,
 	})
 
-	opts := &anchore.GetRegistryOpts{}
-	registry, resp, err := a.getRestClient().RegistriesApi.GetRegistry(a.authorizedContext(ctx), registryName, opts)
+	registry, resp, err := a.getRestClient().RegistriesApi.GetRegistryExecute(
+		a.getRestClient().RegistriesApi.GetRegistry(a.authorizedContext(ctx), registryName),
+	)
 
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		return nil, errors.WrapIfWithDetails(err, "failed to get registry", registryName)
@@ -357,8 +389,9 @@ func (a anchoreClient) DeleteRegistry(ctx context.Context, registry Registry) er
 	fnCtx := map[string]interface{}{"registry": registry.Registry}
 	a.logger.Info("deleting anchore registry", fnCtx)
 
-	opts := &anchore.DeleteRegistryOpts{}
-	resp, err := a.getRestClient().RegistriesApi.DeleteRegistry(a.authorizedContext(ctx), registry.Registry, opts)
+	resp, err := a.getRestClient().RegistriesApi.DeleteRegistryExecute(
+		a.getRestClient().RegistriesApi.DeleteRegistry(a.authorizedContext(ctx), registry.Registry),
+	)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		return errors.WrapIfWithDetails(err, "failed to delete anchore registry", fnCtx)
 	}
@@ -378,7 +411,8 @@ func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
 
 func (a anchoreClient) getRestClient() *anchore.APIClient {
 	return anchore.NewAPIClient(&anchore.Configuration{
-		BasePath:      a.endpoint,
+		Host:          a.host,
+		Scheme:        a.scheme,
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Pipeline/go",
 		HTTPClient: &http.Client{
@@ -388,6 +422,12 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 				},
 			},
 		},
+		Servers: anchore.ServerConfigurations{
+			{
+				URL: a.path,
+			},
+		},
+		OperationServers: map[string]anchore.ServerConfigurations{},
 	})
 }
 
