@@ -28,9 +28,7 @@ TEST_FORMAT = short-verbose
 endif
 
 CLOUDINFO_VERSION = 0.9.5
-DEX_VERSION = 2.19.0
-# TODO: use an exact version
-ANCHORE_VERSION = 156836d
+ANCHORE_VERSION = 1.1.0
 
 GOLANGCI_VERSION = 1.50.0
 LICENSEI_VERSION = 0.3.1
@@ -354,7 +352,7 @@ generate-cloudinfo-client: apis/cloudinfo/openapi.yaml ## Generate client from C
 	$(call restore_backup_file,.gen/cloudinfo/BUILD.plz)
 
 apis/anchore/swagger.yaml:
-	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
+	curl https://raw.githubusercontent.com/anchore/anchore-engine/v${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
 
 .PHONY: generate-anchore-client
 generate-anchore-client: ## apis/anchore/swagger.yaml ## https://github.com/anchore/anchore-engine/pull/846 ## Generate client from Anchore OpenAPI spec
