@@ -2,5 +2,7 @@ go_library(
     name = "pipeline",
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     visibility = ["PUBLIC"],
-    deps = [],
+    deps = [
+        "//third_party/go:github.com__gorilla__mux",
+    ],
 )
