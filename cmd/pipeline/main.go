@@ -424,10 +424,23 @@ func main() {
 
 	var group run.Group
 
+	url, _ := url.Parse(config.Cloudinfo.Endpoint)
+	if err != nil {
+		emperror.Panic(errors.WrapIf(err, "failed to parse Cloudinfo endpoint"))
+	}
+
 	cloudinfoClient := cloudinfo.NewClient(cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
-		BasePath:      config.Cloudinfo.Endpoint,
+		Host:          url.Host,
+		Scheme:        url.Scheme,
 		DefaultHeader: make(map[string]string),
 		UserAgent:     fmt.Sprintf("Pipeline/%s", version),
+		Debug:         true,
+		Servers: cloudinfoapi.ServerConfigurations{
+			{
+				URL:         url.Path,
+			},
+		},
+		OperationServers: map[string]cloudinfoapi.ServerConfigurations{},
 	}))
 
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)

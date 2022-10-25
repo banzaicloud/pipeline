@@ -69,7 +69,9 @@ func (c *Client) GetProductDetails(
 }
 
 func (c *Client) warmProductCache(ctx context.Context, cloud string, service string, region string) error {
-	response, _, err := c.apiClient.ProductsApi.GetProducts(ctx, cloud, service, region)
+	response, _, err := c.apiClient.ProductsApi.GetProductsExecute(
+		c.apiClient.ProductsApi.GetProducts(ctx, cloud, service, region),
+	)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -80,7 +82,7 @@ func (c *Client) warmProductCache(ctx context.Context, cloud string, service str
 				cloud:       cloud,
 				service:     service,
 				region:      region,
-				productType: product.Type,
+				productType: *product.Type,
 			},
 			product,
 		)

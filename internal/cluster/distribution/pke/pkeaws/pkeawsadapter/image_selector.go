@@ -21,7 +21,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/Masterminds/semver/v3"
-	"github.com/antihax/optional"
 
 	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	"github.com/banzaicloud/pipeline/internal/cluster/distribution/pke/pkeaws"
@@ -59,28 +58,32 @@ func (s CloudinfoImageSelector) SelectImage(ctx context.Context, criteria pkeaws
 			strings.HasPrefix(instanceType, "g3.") || strings.HasPrefix(instanceType, "g4.")
 	}
 
-	opts := &cloudinfo.GetImagesOpts{
-		Version:    optional.NewString(kubeVersion.String()),
-		Os:         optional.NewString(criteria.OperatingSystem),
-		PkeVersion: optional.NewString(criteria.PKEVersion),
-		LatestOnly: optional.NewString("true"),
-		Gpu:        optional.NewString(strconv.FormatBool(isGPUInstance(criteria.InstanceType))),
-		Cr:         optional.NewString(criteria.ContainerRuntime),
-	}
-
 	const (
 		cloudProvider = "amazon"
 		serviceName   = "pke"
 	)
 
-	images, _, err := s.client.ImagesApi.GetImages(ctx, cloudProvider, serviceName, criteria.Region, opts)
+	getImagesRequest := s.client.ImagesApi.GetImages(ctx, cloudProvider, serviceName, criteria.Region)
+	getImagesRequest.Version(kubeVersion.String())
+	getImagesRequest.Os(criteria.OperatingSystem)
+	getImagesRequest.PkeVersion(criteria.PKEVersion)
+	getImagesRequest.LatestOnly("true")
+	getImagesRequest.Gpu(strconv.FormatBool(isGPUInstance(criteria.InstanceType)))
+	getImagesRequest.Cr(criteria.ContainerRuntime)
+
+	images, _, err := s.client.ImagesApi.GetImagesExecute(getImagesRequest)
 	if err != nil {
 		return "", errors.WrapIfWithDetails(
 			err, "get images from cloudinfo",
 			"cloudProvider", cloudProvider,
 			"service", serviceName,
 			"region", criteria.Region,
-			"getImagesOpts", opts,
+			"version", kubeVersion.String(),
+			"os", criteria.OperatingSystem,
+			"PkeVersion", criteria.PKEVersion,
+			"LatestOnly", "true",
+			"Gpu", strconv.FormatBool(isGPUInstance(criteria.InstanceType)),
+			"Cr", criteria.ContainerRuntime,
 		)
 	}
 	if len(images) == 0 {
@@ -89,22 +92,35 @@ func (s CloudinfoImageSelector) SelectImage(ctx context.Context, criteria pkeaws
 			"cloudProvider", cloudProvider,
 			"service", serviceName,
 			"region", criteria.Region,
-			"getImagesOpts", opts,
+			"region", criteria.Region,
+			"version", kubeVersion.String(),
+			"os", criteria.OperatingSystem,
+			"PkeVersion", criteria.PKEVersion,
+			"LatestOnly", "true",
+			"Gpu", strconv.FormatBool(isGPUInstance(criteria.InstanceType)),
+			"Cr", criteria.ContainerRuntime,
 		)
 	}
 
 	// As a result of a bug in cloudinfo,
 	// the returned item might be empty
 	// See https://github.com/banzaicloud/cloudinfo/pull/356
-	if images[0].Name == "" {
+	e := ""
+	if images[0].Name == &e {
 		return "", errors.WithDetails(
 			errors.WithStack(pkeaws.ImageNotFoundError),
 			"cloudProvider", cloudProvider,
 			"service", serviceName,
 			"region", criteria.Region,
-			"getImagesOpts", opts,
+			"region", criteria.Region,
+			"version", kubeVersion.String(),
+			"os", criteria.OperatingSystem,
+			"PkeVersion", criteria.PKEVersion,
+			"LatestOnly", "true",
+			"Gpu", strconv.FormatBool(isGPUInstance(criteria.InstanceType)),
+			"Cr", criteria.ContainerRuntime,
 		)
 	}
 
-	return images[0].Name, nil
+	return *images[0].Name, nil
 }

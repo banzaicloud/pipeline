@@ -59,9 +59,9 @@ func (s cloudinfoNodePoolLabelSource) GetLabels(
 		return nil, err
 	}
 
-	labels := make(map[string]string, len(details.Attributes))
+	labels := make(map[string]string, len(*details.Attributes))
 
-	for key, value := range details.Attributes {
+	for key, value := range *details.Attributes {
 		labels[nodePoolLabelKeyPrefix+labelFormatRe.ReplaceAllString(key, "_")] = labelFormatRe.ReplaceAllString(value, "_")
 	}
 

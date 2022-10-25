@@ -22,7 +22,9 @@ import (
 
 // GetServiceRegions returns the cloud provider regions where the specified service is available.
 func (c *Client) GetServiceRegions(ctx context.Context, cloudProvider string, service string) ([]string, error) {
-	regions, _, err := c.apiClient.RegionsApi.GetRegions(ctx, cloudProvider, service)
+	regions, _, err := c.apiClient.RegionsApi.GetRegionsExecute(
+		c.apiClient.RegionsApi.GetRegions(ctx, cloudProvider, service),
+	)
 	if err != nil {
 		return nil, errors.WrapWithDetails(
 			err, "could not get service availability regions",
@@ -33,7 +35,7 @@ func (c *Client) GetServiceRegions(ctx context.Context, cloudProvider string, se
 
 	regionIds := make([]string, len(regions))
 	for idx, region := range regions {
-		regionIds[idx] = region.Id
+		regionIds[idx] = *region.Id
 	}
 
 	return regionIds, nil
