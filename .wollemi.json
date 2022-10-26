@@ -52,7 +52,6 @@
         "github.com/ThreeDotsLabs/watermill/message/subscriber": "//third_party/go:github.com__ThreeDotsLabs__watermill__message__subscriber",
         "github.com/ThreeDotsLabs/watermill/pubsub/gochannel": "//third_party/go:github.com__ThreeDotsLabs__watermill__pubsub__gochannel",
         "github.com/ThreeDotsLabs/watermill/pubsub/sync": "//third_party/go:github.com__ThreeDotsLabs__watermill__pubsub__sync",
-        "github.com/antihax/optional": "//third_party/go:github.com__antihax__optional",
         "github.com/aokoli/goutils": "//third_party/go:github.com__aokoli__goutils",
         "github.com/apache/thrift/lib/go/thrift": "//third_party/go:github.com__apache__thrift__lib__go__thrift",
         "github.com/asaskevich/EventBus": "//third_party/go:github.com__asaskevich__EventBus",

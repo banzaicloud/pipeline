@@ -19,7 +19,6 @@ require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/ThreeDotsLabs/watermill v1.1.0
-	github.com/antihax/optional v1.0.0
 	github.com/aokoli/goutils v1.1.0
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.37.1
