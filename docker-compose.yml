@@ -77,7 +77,7 @@ services:
             - ./etc/config/dex.yml:/dex.yml
 
     cadence:
-        image: ubercadence/server:0.22.1-auto-setup
+        image: ubercadence/server:0.23.2-auto-setup
         environment:
             LOG_LEVEL: debug,info
             DB: mysql
@@ -88,7 +88,7 @@ services:
             - mysql
 
     cadence-web:
-        image: ubercadence/web:v3.28.7
+        image: ubercadence/web:v3.29.5
         environment:
             CADENCE_TCHANNEL_PEERS: cadence:7933
         depends_on:
