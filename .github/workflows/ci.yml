@@ -62,7 +62,7 @@ jobs:
 
       - name: Set Git refname
         id: set-git-refname
-        run: echo ::set-output name=git_refname::$(echo "${{ github.ref }}" | sed -r 's@refs/(heads|pull|tags)/@@g' )
+        run: echo "git_refname=$(echo \"${{ github.ref }}\" | sed -r 's@refs/(heads|pull|tags)/@@g' )" >> $GITHUB_OUTPUT
 
       - name: Cache licenses
         id: cache-licenses
@@ -292,7 +292,7 @@ jobs:
           Package: gdal-data
           Pin: version 2.4.2+dfsg-1build2
           Pin-Priority: 1337
-          
+
           Package: libgdal20
           Pin: version 2.4.2+dfsg-1build2
           Pin-Priority: 1337
