@@ -18,6 +18,7 @@ ignored = [
   "github.com/samuel/go-thrift", # BSD-3
   "github.com/uber-go/tally", # MIT
   "github.com/leodido/go-urn", # MIT
+	"github.com/form3tech-oss/jwt-go", # MIT
 
   "github.com/davecgh/go-spew", # ISC license
 
