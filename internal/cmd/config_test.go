@@ -53,7 +53,7 @@ func TestConfigure_DefaultValueBinding(t *testing.T) {
 						ExternalDNS: dns.ExternalDNSChartConfig{
 							ChartConfigBase: dns.ChartConfigBase{
 								Chart:   "bitnami/external-dns",
-								Version: "6.5.1",
+								Version: "6.12.2",
 							},
 							Values: dns.ExternalDNSChartValuesConfig{
 								Image: dns.ExternalDNSChartValuesImageConfig{
