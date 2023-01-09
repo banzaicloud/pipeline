@@ -28,3 +28,20 @@ type HelmRepoListItem struct {
 
 	TlsSecretRef string `json:"tlsSecretRef,omitempty"`
 }
+
+// AssertHelmRepoListItemRequired checks if the required fields are not zero-ed
+func AssertHelmRepoListItemRequired(obj HelmRepoListItem) error {
+	return nil
+}
+
+// AssertRecurseHelmRepoListItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of HelmRepoListItem (e.g. [][]HelmRepoListItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseHelmRepoListItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aHelmRepoListItem, ok := obj.(HelmRepoListItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertHelmRepoListItemRequired(aHelmRepoListItem)
+	})
+}

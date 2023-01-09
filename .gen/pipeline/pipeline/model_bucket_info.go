@@ -37,3 +37,39 @@ type BucketInfo struct {
 	// the reason for the error status
 	StatusMessage string `json:"statusMessage,omitempty"`
 }
+
+// AssertBucketInfoRequired checks if the required fields are not zero-ed
+func AssertBucketInfoRequired(obj BucketInfo) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"managed": obj.Managed,
+		"cloud": obj.Cloud,
+		"location": obj.Location,
+		"status": obj.Status,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertBucketInfoSecretRequired(obj.Secret); err != nil {
+		return err
+	}
+	if err := AssertAzureBlobStoragePropsRequired(obj.Aks); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseBucketInfoRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of BucketInfo (e.g. [][]BucketInfo), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseBucketInfoRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aBucketInfo, ok := obj.(BucketInfo)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertBucketInfoRequired(aBucketInfo)
+	})
+}

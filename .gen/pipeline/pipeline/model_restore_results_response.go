@@ -16,3 +16,26 @@ type RestoreResultsResponse struct {
 
 	Warnings RestoreResultWarnings `json:"warnings,omitempty"`
 }
+
+// AssertRestoreResultsResponseRequired checks if the required fields are not zero-ed
+func AssertRestoreResultsResponseRequired(obj RestoreResultsResponse) error {
+	if err := AssertRestoreResultErrorsRequired(obj.Errors); err != nil {
+		return err
+	}
+	if err := AssertRestoreResultWarningsRequired(obj.Warnings); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseRestoreResultsResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of RestoreResultsResponse (e.g. [][]RestoreResultsResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseRestoreResultsResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aRestoreResultsResponse, ok := obj.(RestoreResultsResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertRestoreResultsResponseRequired(aRestoreResultsResponse)
+	})
+}

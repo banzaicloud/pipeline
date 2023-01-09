@@ -22,3 +22,20 @@ type UpdateNodePoolDrainOptions struct {
 	// Only evict those pods that matches this selector.
 	PodSelector string `json:"podSelector,omitempty"`
 }
+
+// AssertUpdateNodePoolDrainOptionsRequired checks if the required fields are not zero-ed
+func AssertUpdateNodePoolDrainOptionsRequired(obj UpdateNodePoolDrainOptions) error {
+	return nil
+}
+
+// AssertRecurseUpdateNodePoolDrainOptionsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateNodePoolDrainOptions (e.g. [][]UpdateNodePoolDrainOptions), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateNodePoolDrainOptionsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateNodePoolDrainOptions, ok := obj.(UpdateNodePoolDrainOptions)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateNodePoolDrainOptionsRequired(aUpdateNodePoolDrainOptions)
+	})
+}

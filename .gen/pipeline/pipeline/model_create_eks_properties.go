@@ -14,3 +14,32 @@ type CreateEksProperties struct {
 
 	Eks CreateEksPropertiesEks `json:"eks"`
 }
+
+// AssertCreateEksPropertiesRequired checks if the required fields are not zero-ed
+func AssertCreateEksPropertiesRequired(obj CreateEksProperties) error {
+	elements := map[string]interface{}{
+		"eks": obj.Eks,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertCreateEksPropertiesEksRequired(obj.Eks); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreateEksPropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateEksProperties (e.g. [][]CreateEksProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateEksPropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateEksProperties, ok := obj.(CreateEksProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateEksPropertiesRequired(aCreateEksProperties)
+	})
+}

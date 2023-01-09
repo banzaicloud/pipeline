@@ -14,3 +14,20 @@ type UpdateClusterRequest struct {
 
 	Version string `json:"version,omitempty"`
 }
+
+// AssertUpdateClusterRequestRequired checks if the required fields are not zero-ed
+func AssertUpdateClusterRequestRequired(obj UpdateClusterRequest) error {
+	return nil
+}
+
+// AssertRecurseUpdateClusterRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateClusterRequest (e.g. [][]UpdateClusterRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateClusterRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateClusterRequest, ok := obj.(UpdateClusterRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateClusterRequestRequired(aUpdateClusterRequest)
+	})
+}

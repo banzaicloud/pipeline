@@ -43,3 +43,39 @@ type EnableArkRequest struct {
 
 	Options BackupOptions `json:"options,omitempty"`
 }
+
+// AssertEnableArkRequestRequired checks if the required fields are not zero-ed
+func AssertEnableArkRequestRequired(obj EnableArkRequest) error {
+	elements := map[string]interface{}{
+		"cloud": obj.Cloud,
+		"bucketName": obj.BucketName,
+		"schedule": obj.Schedule,
+		"ttl": obj.Ttl,
+		"secretId": obj.SecretId,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertLabelsRequired(obj.Labels); err != nil {
+		return err
+	}
+	if err := AssertBackupOptionsRequired(obj.Options); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseEnableArkRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EnableArkRequest (e.g. [][]EnableArkRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEnableArkRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEnableArkRequest, ok := obj.(EnableArkRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEnableArkRequestRequired(aEnableArkRequest)
+	})
+}

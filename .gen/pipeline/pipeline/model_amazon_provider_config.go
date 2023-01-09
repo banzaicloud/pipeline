@@ -14,3 +14,32 @@ type AmazonProviderConfig struct {
 
 	AutoScalingGroup AmazonAutoScalingGroup `json:"autoScalingGroup"`
 }
+
+// AssertAmazonProviderConfigRequired checks if the required fields are not zero-ed
+func AssertAmazonProviderConfigRequired(obj AmazonProviderConfig) error {
+	elements := map[string]interface{}{
+		"autoScalingGroup": obj.AutoScalingGroup,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertAmazonAutoScalingGroupRequired(obj.AutoScalingGroup); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseAmazonProviderConfigRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of AmazonProviderConfig (e.g. [][]AmazonProviderConfig), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseAmazonProviderConfigRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aAmazonProviderConfig, ok := obj.(AmazonProviderConfig)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertAmazonProviderConfigRequired(aAmazonProviderConfig)
+	})
+}

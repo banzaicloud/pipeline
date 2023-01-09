@@ -24,3 +24,23 @@ type BaseUpdateNodePoolOptions struct {
 
 	Drain UpdateNodePoolDrainOptions `json:"drain,omitempty"`
 }
+
+// AssertBaseUpdateNodePoolOptionsRequired checks if the required fields are not zero-ed
+func AssertBaseUpdateNodePoolOptionsRequired(obj BaseUpdateNodePoolOptions) error {
+	if err := AssertUpdateNodePoolDrainOptionsRequired(obj.Drain); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseBaseUpdateNodePoolOptionsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of BaseUpdateNodePoolOptions (e.g. [][]BaseUpdateNodePoolOptions), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseBaseUpdateNodePoolOptionsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aBaseUpdateNodePoolOptions, ok := obj.(BaseUpdateNodePoolOptions)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertBaseUpdateNodePoolOptionsRequired(aBaseUpdateNodePoolOptions)
+	})
+}

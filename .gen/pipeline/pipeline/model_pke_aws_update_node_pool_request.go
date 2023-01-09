@@ -35,3 +35,35 @@ type PkeAwsUpdateNodePoolRequest struct {
 
 	Options BaseUpdateNodePoolOptions `json:"options,omitempty"`
 }
+
+// AssertPkeAwsUpdateNodePoolRequestRequired checks if the required fields are not zero-ed
+func AssertPkeAwsUpdateNodePoolRequestRequired(obj PkeAwsUpdateNodePoolRequest) error {
+	elements := map[string]interface{}{
+		"size": obj.Size,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertNodePoolAutoScalingRequired(obj.Autoscaling); err != nil {
+		return err
+	}
+	if err := AssertBaseUpdateNodePoolOptionsRequired(obj.Options); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecursePkeAwsUpdateNodePoolRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of PkeAwsUpdateNodePoolRequest (e.g. [][]PkeAwsUpdateNodePoolRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecursePkeAwsUpdateNodePoolRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aPkeAwsUpdateNodePoolRequest, ok := obj.(PkeAwsUpdateNodePoolRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertPkeAwsUpdateNodePoolRequestRequired(aPkeAwsUpdateNodePoolRequest)
+	})
+}

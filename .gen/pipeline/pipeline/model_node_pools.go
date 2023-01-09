@@ -15,3 +15,20 @@ type NodePools struct {
 
 	NodePools map[string]NodePool `json:"nodePools,omitempty"`
 }
+
+// AssertNodePoolsRequired checks if the required fields are not zero-ed
+func AssertNodePoolsRequired(obj NodePools) error {
+	return nil
+}
+
+// AssertRecurseNodePoolsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodePools (e.g. [][]NodePools), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodePoolsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodePools, ok := obj.(NodePools)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodePoolsRequired(aNodePools)
+	})
+}

@@ -22,3 +22,20 @@ type CommonError struct {
 	// Error message
 	Error string `json:"error,omitempty"`
 }
+
+// AssertCommonErrorRequired checks if the required fields are not zero-ed
+func AssertCommonErrorRequired(obj CommonError) error {
+	return nil
+}
+
+// AssertRecurseCommonErrorRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CommonError (e.g. [][]CommonError), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCommonErrorRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCommonError, ok := obj.(CommonError)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCommonErrorRequired(aCommonError)
+	})
+}

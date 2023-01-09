@@ -18,3 +18,20 @@ type ClusterImage struct {
 
 	ImageDigest string `json:"imageDigest,omitempty"`
 }
+
+// AssertClusterImageRequired checks if the required fields are not zero-ed
+func AssertClusterImageRequired(obj ClusterImage) error {
+	return nil
+}
+
+// AssertRecurseClusterImageRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ClusterImage (e.g. [][]ClusterImage), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseClusterImageRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aClusterImage, ok := obj.(ClusterImage)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertClusterImageRequired(aClusterImage)
+	})
+}

@@ -29,3 +29,20 @@ type VersionResponse struct {
 
 	InstanceUuid string `json:"instance_uuid,omitempty"`
 }
+
+// AssertVersionResponseRequired checks if the required fields are not zero-ed
+func AssertVersionResponseRequired(obj VersionResponse) error {
+	return nil
+}
+
+// AssertRecurseVersionResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of VersionResponse (e.g. [][]VersionResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseVersionResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aVersionResponse, ok := obj.(VersionResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertVersionResponseRequired(aVersionResponse)
+	})
+}

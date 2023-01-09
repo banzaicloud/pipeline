@@ -19,3 +19,29 @@ type EksNodePoolVolumeEncryption struct {
 	// KMS key ARN to use for node volume encryption.
 	EncryptionKeyARN string `json:"encryptionKeyARN,omitempty"`
 }
+
+// AssertEksNodePoolVolumeEncryptionRequired checks if the required fields are not zero-ed
+func AssertEksNodePoolVolumeEncryptionRequired(obj EksNodePoolVolumeEncryption) error {
+	elements := map[string]interface{}{
+		"enabled": obj.Enabled,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseEksNodePoolVolumeEncryptionRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksNodePoolVolumeEncryption (e.g. [][]EksNodePoolVolumeEncryption), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksNodePoolVolumeEncryptionRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksNodePoolVolumeEncryption, ok := obj.(EksNodePoolVolumeEncryption)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksNodePoolVolumeEncryptionRequired(aEksNodePoolVolumeEncryption)
+	})
+}

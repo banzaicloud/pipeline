@@ -32,3 +32,20 @@ type ListDeploymentsResponseItem struct {
 
 	Supported bool `json:"supported,omitempty"`
 }
+
+// AssertListDeploymentsResponseItemRequired checks if the required fields are not zero-ed
+func AssertListDeploymentsResponseItemRequired(obj ListDeploymentsResponseItem) error {
+	return nil
+}
+
+// AssertRecurseListDeploymentsResponseItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ListDeploymentsResponseItem (e.g. [][]ListDeploymentsResponseItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseListDeploymentsResponseItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aListDeploymentsResponseItem, ok := obj.(ListDeploymentsResponseItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertListDeploymentsResponseItemRequired(aListDeploymentsResponseItem)
+	})
+}

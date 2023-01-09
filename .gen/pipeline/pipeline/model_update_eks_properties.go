@@ -14,3 +14,32 @@ type UpdateEksProperties struct {
 
 	Eks UpdateEksPropertiesEks `json:"eks"`
 }
+
+// AssertUpdateEksPropertiesRequired checks if the required fields are not zero-ed
+func AssertUpdateEksPropertiesRequired(obj UpdateEksProperties) error {
+	elements := map[string]interface{}{
+		"eks": obj.Eks,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertUpdateEksPropertiesEksRequired(obj.Eks); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseUpdateEksPropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateEksProperties (e.g. [][]UpdateEksProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateEksPropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateEksProperties, ok := obj.(UpdateEksProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateEksPropertiesRequired(aUpdateEksProperties)
+	})
+}

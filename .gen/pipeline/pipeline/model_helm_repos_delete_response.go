@@ -18,3 +18,20 @@ type HelmReposDeleteResponse struct {
 
 	Name string `json:"name,omitempty"`
 }
+
+// AssertHelmReposDeleteResponseRequired checks if the required fields are not zero-ed
+func AssertHelmReposDeleteResponseRequired(obj HelmReposDeleteResponse) error {
+	return nil
+}
+
+// AssertRecurseHelmReposDeleteResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of HelmReposDeleteResponse (e.g. [][]HelmReposDeleteResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseHelmReposDeleteResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aHelmReposDeleteResponse, ok := obj.(HelmReposDeleteResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertHelmReposDeleteResponseRequired(aHelmReposDeleteResponse)
+	})
+}

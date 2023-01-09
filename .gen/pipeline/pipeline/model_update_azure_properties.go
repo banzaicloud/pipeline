@@ -14,3 +14,32 @@ type UpdateAzureProperties struct {
 
 	Azure UpdateAzurePropertiesAzure `json:"azure"`
 }
+
+// AssertUpdateAzurePropertiesRequired checks if the required fields are not zero-ed
+func AssertUpdateAzurePropertiesRequired(obj UpdateAzureProperties) error {
+	elements := map[string]interface{}{
+		"azure": obj.Azure,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertUpdateAzurePropertiesAzureRequired(obj.Azure); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseUpdateAzurePropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateAzureProperties (e.g. [][]UpdateAzureProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateAzurePropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateAzureProperties, ok := obj.(UpdateAzureProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateAzurePropertiesRequired(aUpdateAzureProperties)
+	})
+}

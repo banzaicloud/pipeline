@@ -10,7 +10,7 @@
 
 package pipeline
 
-type CreatePkeOnVsphereClusterRequestAllOf struct {
+type CreatePkeonVsphereClusterRequestAllOf struct {
 
 	// Secret ID used to setup VSphere storage classes. Overrides the default settings in main cluster secret.
 	StorageSecretId string `json:"storageSecretId,omitempty"`
@@ -27,8 +27,30 @@ type CreatePkeOnVsphereClusterRequestAllOf struct {
 	// Virtual machines will be created in this resource pool. Overrides default value from the main cluster secret.
 	ResourcePool string `json:"resourcePool,omitempty"`
 
-	Nodepools []PkeOnVsphereNodePool `json:"nodepools,omitempty"`
+	Nodepools []PkeonVsphereNodePool `json:"nodepools,omitempty"`
 
 	// IPv4 range to allocate addresses for LoadBalancer Services (MetalLB)
 	LoadBalancerIPRange string `json:"loadBalancerIPRange,omitempty"`
+}
+
+// AssertCreatePkeonVsphereClusterRequestAllOfRequired checks if the required fields are not zero-ed
+func AssertCreatePkeonVsphereClusterRequestAllOfRequired(obj CreatePkeonVsphereClusterRequestAllOf) error {
+	for _, el := range obj.Nodepools {
+		if err := AssertPkeonVsphereNodePoolRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseCreatePkeonVsphereClusterRequestAllOfRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkeonVsphereClusterRequestAllOf (e.g. [][]CreatePkeonVsphereClusterRequestAllOf), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkeonVsphereClusterRequestAllOfRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkeonVsphereClusterRequestAllOf, ok := obj.(CreatePkeonVsphereClusterRequestAllOf)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkeonVsphereClusterRequestAllOfRequired(aCreatePkeonVsphereClusterRequestAllOf)
+	})
 }

@@ -20,3 +20,33 @@ type CreateObjectStoreBucketRequest struct {
 
 	Properties CreateObjectStoreBucketProperties `json:"properties"`
 }
+
+// AssertCreateObjectStoreBucketRequestRequired checks if the required fields are not zero-ed
+func AssertCreateObjectStoreBucketRequestRequired(obj CreateObjectStoreBucketRequest) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"properties": obj.Properties,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertCreateObjectStoreBucketPropertiesRequired(obj.Properties); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreateObjectStoreBucketRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateObjectStoreBucketRequest (e.g. [][]CreateObjectStoreBucketRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateObjectStoreBucketRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateObjectStoreBucketRequest, ok := obj.(CreateObjectStoreBucketRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateObjectStoreBucketRequestRequired(aCreateObjectStoreBucketRequest)
+	})
+}

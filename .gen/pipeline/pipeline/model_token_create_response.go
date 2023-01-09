@@ -18,3 +18,31 @@ type TokenCreateResponse struct {
 
 	Name string `json:"name"`
 }
+
+// AssertTokenCreateResponseRequired checks if the required fields are not zero-ed
+func AssertTokenCreateResponseRequired(obj TokenCreateResponse) error {
+	elements := map[string]interface{}{
+		"id": obj.Id,
+		"token": obj.Token,
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseTokenCreateResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of TokenCreateResponse (e.g. [][]TokenCreateResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseTokenCreateResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aTokenCreateResponse, ok := obj.(TokenCreateResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertTokenCreateResponseRequired(aTokenCreateResponse)
+	})
+}

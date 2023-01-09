@@ -16,3 +16,29 @@ type PostLeaderElectionResponse struct {
 
 	Ip string `json:"ip,omitempty"`
 }
+
+// AssertPostLeaderElectionResponseRequired checks if the required fields are not zero-ed
+func AssertPostLeaderElectionResponseRequired(obj PostLeaderElectionResponse) error {
+	elements := map[string]interface{}{
+		"hostname": obj.Hostname,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecursePostLeaderElectionResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of PostLeaderElectionResponse (e.g. [][]PostLeaderElectionResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecursePostLeaderElectionResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aPostLeaderElectionResponse, ok := obj.(PostLeaderElectionResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertPostLeaderElectionResponseRequired(aPostLeaderElectionResponse)
+	})
+}

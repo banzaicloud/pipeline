@@ -20,3 +20,31 @@ type CreateSecretRequest struct {
 
 	Values map[string]interface{} `json:"values"`
 }
+
+// AssertCreateSecretRequestRequired checks if the required fields are not zero-ed
+func AssertCreateSecretRequestRequired(obj CreateSecretRequest) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"type": obj.Type,
+		"values": obj.Values,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreateSecretRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateSecretRequest (e.g. [][]CreateSecretRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateSecretRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateSecretRequest, ok := obj.(CreateSecretRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateSecretRequestRequired(aCreateSecretRequest)
+	})
+}

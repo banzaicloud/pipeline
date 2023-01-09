@@ -14,3 +14,32 @@ type UpdatePkeProperties struct {
 
 	Pke UpdatePkePropertiesPke `json:"pke"`
 }
+
+// AssertUpdatePkePropertiesRequired checks if the required fields are not zero-ed
+func AssertUpdatePkePropertiesRequired(obj UpdatePkeProperties) error {
+	elements := map[string]interface{}{
+		"pke": obj.Pke,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertUpdatePkePropertiesPkeRequired(obj.Pke); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseUpdatePkePropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdatePkeProperties (e.g. [][]UpdatePkeProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdatePkePropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdatePkeProperties, ok := obj.(UpdatePkeProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdatePkePropertiesRequired(aUpdatePkeProperties)
+	})
+}

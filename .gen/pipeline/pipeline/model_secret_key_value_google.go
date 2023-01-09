@@ -32,3 +32,38 @@ type SecretKeyValueGoogle struct {
 
 	ClientX509CertUrl string `json:"client_x509_cert_url"`
 }
+
+// AssertSecretKeyValueGoogleRequired checks if the required fields are not zero-ed
+func AssertSecretKeyValueGoogleRequired(obj SecretKeyValueGoogle) error {
+	elements := map[string]interface{}{
+		"type": obj.Type,
+		"project_id": obj.ProjectId,
+		"private_key_id": obj.PrivateKeyId,
+		"private_key": obj.PrivateKey,
+		"client_email": obj.ClientEmail,
+		"client_id": obj.ClientId,
+		"auth_uri": obj.AuthUri,
+		"token_uri": obj.TokenUri,
+		"auth_provider_x509_cert_url": obj.AuthProviderX509CertUrl,
+		"client_x509_cert_url": obj.ClientX509CertUrl,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseSecretKeyValueGoogleRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of SecretKeyValueGoogle (e.g. [][]SecretKeyValueGoogle), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseSecretKeyValueGoogleRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aSecretKeyValueGoogle, ok := obj.(SecretKeyValueGoogle)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertSecretKeyValueGoogleRequired(aSecretKeyValueGoogle)
+	})
+}

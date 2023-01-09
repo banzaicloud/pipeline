@@ -21,3 +21,20 @@ type EksSubnet struct {
 	// The AZ to create the subnet into.
 	AvailabilityZone string `json:"availabilityZone,omitempty"`
 }
+
+// AssertEksSubnetRequired checks if the required fields are not zero-ed
+func AssertEksSubnetRequired(obj EksSubnet) error {
+	return nil
+}
+
+// AssertRecurseEksSubnetRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksSubnet (e.g. [][]EksSubnet), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksSubnetRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksSubnet, ok := obj.(EksSubnet)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksSubnetRequired(aEksSubnet)
+	})
+}

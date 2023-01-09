@@ -18,3 +18,20 @@ type EksAuthConfigUsers struct {
 
 	Userarn string `json:"userarn,omitempty"`
 }
+
+// AssertEksAuthConfigUsersRequired checks if the required fields are not zero-ed
+func AssertEksAuthConfigUsersRequired(obj EksAuthConfigUsers) error {
+	return nil
+}
+
+// AssertRecurseEksAuthConfigUsersRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksAuthConfigUsers (e.g. [][]EksAuthConfigUsers), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksAuthConfigUsersRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksAuthConfigUsers, ok := obj.(EksAuthConfigUsers)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksAuthConfigUsersRequired(aEksAuthConfigUsers)
+	})
+}

@@ -18,3 +18,29 @@ type NodeItem struct {
 
 	Status NodeItemStatus `json:"status,omitempty"`
 }
+
+// AssertNodeItemRequired checks if the required fields are not zero-ed
+func AssertNodeItemRequired(obj NodeItem) error {
+	if err := AssertNodeItemMetadataRequired(obj.Metadata); err != nil {
+		return err
+	}
+	if err := AssertNodeItemSpecRequired(obj.Spec); err != nil {
+		return err
+	}
+	if err := AssertNodeItemStatusRequired(obj.Status); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseNodeItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodeItem (e.g. [][]NodeItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodeItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodeItem, ok := obj.(NodeItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodeItemRequired(aNodeItem)
+	})
+}

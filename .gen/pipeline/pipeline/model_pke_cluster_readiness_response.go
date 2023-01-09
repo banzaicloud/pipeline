@@ -14,3 +14,23 @@ type PkeClusterReadinessResponse struct {
 
 	Master PkeClusterReadinessResponseMaster `json:"master,omitempty"`
 }
+
+// AssertPkeClusterReadinessResponseRequired checks if the required fields are not zero-ed
+func AssertPkeClusterReadinessResponseRequired(obj PkeClusterReadinessResponse) error {
+	if err := AssertPkeClusterReadinessResponseMasterRequired(obj.Master); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecursePkeClusterReadinessResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of PkeClusterReadinessResponse (e.g. [][]PkeClusterReadinessResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecursePkeClusterReadinessResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aPkeClusterReadinessResponse, ok := obj.(PkeClusterReadinessResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertPkeClusterReadinessResponseRequired(aPkeClusterReadinessResponse)
+	})
+}

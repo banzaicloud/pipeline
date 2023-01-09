@@ -24,3 +24,30 @@ type SubnetInfo struct {
 	// Name of the subnetwork
 	Name string `json:"name,omitempty"`
 }
+
+// AssertSubnetInfoRequired checks if the required fields are not zero-ed
+func AssertSubnetInfoRequired(obj SubnetInfo) error {
+	elements := map[string]interface{}{
+		"cidrs": obj.Cidrs,
+		"id": obj.Id,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseSubnetInfoRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of SubnetInfo (e.g. [][]SubnetInfo), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseSubnetInfoRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aSubnetInfo, ok := obj.(SubnetInfo)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertSubnetInfoRequired(aSubnetInfo)
+	})
+}

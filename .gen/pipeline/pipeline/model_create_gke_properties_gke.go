@@ -26,3 +26,32 @@ type CreateGkePropertiesGke struct {
 
 	NodePools map[string]NodePoolsGoogle `json:"nodePools"`
 }
+
+// AssertCreateGkePropertiesGkeRequired checks if the required fields are not zero-ed
+func AssertCreateGkePropertiesGkeRequired(obj CreateGkePropertiesGke) error {
+	elements := map[string]interface{}{
+		"nodePools": obj.NodePools,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertCreateGkePropertiesGkeMasterRequired(obj.Master); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreateGkePropertiesGkeRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateGkePropertiesGke (e.g. [][]CreateGkePropertiesGke), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateGkePropertiesGkeRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateGkePropertiesGke, ok := obj.(CreateGkePropertiesGke)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateGkePropertiesGkeRequired(aCreateGkePropertiesGke)
+	})
+}

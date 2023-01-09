@@ -14,3 +14,32 @@ type CreateGkeProperties struct {
 
 	Gke CreateGkePropertiesGke `json:"gke"`
 }
+
+// AssertCreateGkePropertiesRequired checks if the required fields are not zero-ed
+func AssertCreateGkePropertiesRequired(obj CreateGkeProperties) error {
+	elements := map[string]interface{}{
+		"gke": obj.Gke,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertCreateGkePropertiesGkeRequired(obj.Gke); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreateGkePropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateGkeProperties (e.g. [][]CreateGkeProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateGkePropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateGkeProperties, ok := obj.(CreateGkeProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateGkePropertiesRequired(aCreateGkeProperties)
+	})
+}

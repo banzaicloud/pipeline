@@ -50,3 +50,39 @@ type CreateNodePoolRequest struct {
 
 	NodePools map[string]NodePool `json:"nodePools,omitempty"`
 }
+
+// AssertCreateNodePoolRequestRequired checks if the required fields are not zero-ed
+func AssertCreateNodePoolRequestRequired(obj CreateNodePoolRequest) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"size": obj.Size,
+		"instanceType": obj.InstanceType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertNodePoolAutoScalingRequired(obj.Autoscaling); err != nil {
+		return err
+	}
+	if obj.VolumeEncryption != nil {
+		if err := AssertEksNodePoolVolumeEncryptionRequired(*obj.VolumeEncryption); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseCreateNodePoolRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateNodePoolRequest (e.g. [][]CreateNodePoolRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateNodePoolRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateNodePoolRequest, ok := obj.(CreateNodePoolRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateNodePoolRequestRequired(aCreateNodePoolRequest)
+	})
+}

@@ -20,3 +20,46 @@ type CreatePkeProperties struct {
 
 	Cri CreatePkePropertiesCri `json:"cri"`
 }
+
+// AssertCreatePkePropertiesRequired checks if the required fields are not zero-ed
+func AssertCreatePkePropertiesRequired(obj CreatePkeProperties) error {
+	elements := map[string]interface{}{
+		"network": obj.Network,
+		"nodePools": obj.NodePools,
+		"kubernetes": obj.Kubernetes,
+		"cri": obj.Cri,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertCreatePkePropertiesNetworkRequired(obj.Network); err != nil {
+		return err
+	}
+	for _, el := range obj.NodePools {
+		if err := AssertNodePoolsPkeRequired(el); err != nil {
+			return err
+		}
+	}
+	if err := AssertCreatePkePropertiesKubernetesRequired(obj.Kubernetes); err != nil {
+		return err
+	}
+	if err := AssertCreatePkePropertiesCriRequired(obj.Cri); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreatePkePropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkeProperties (e.g. [][]CreatePkeProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkePropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkeProperties, ok := obj.(CreatePkeProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkePropertiesRequired(aCreatePkeProperties)
+	})
+}

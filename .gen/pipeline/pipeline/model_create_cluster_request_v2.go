@@ -22,3 +22,30 @@ type CreateClusterRequestV2 struct {
 
 	Type string `json:"type"`
 }
+
+// AssertCreateClusterRequestV2Required checks if the required fields are not zero-ed
+func AssertCreateClusterRequestV2Required(obj CreateClusterRequestV2) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"type": obj.Type,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreateClusterRequestV2Required recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateClusterRequestV2 (e.g. [][]CreateClusterRequestV2), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateClusterRequestV2Required(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateClusterRequestV2, ok := obj.(CreateClusterRequestV2)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateClusterRequestV2Required(aCreateClusterRequestV2)
+	})
+}

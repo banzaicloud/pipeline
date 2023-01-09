@@ -20,3 +20,20 @@ type Resource struct {
 
 	Request string `json:"request,omitempty"`
 }
+
+// AssertResourceRequired checks if the required fields are not zero-ed
+func AssertResourceRequired(obj Resource) error {
+	return nil
+}
+
+// AssertRecurseResourceRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of Resource (e.g. [][]Resource), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseResourceRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aResource, ok := obj.(Resource)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertResourceRequired(aResource)
+	})
+}

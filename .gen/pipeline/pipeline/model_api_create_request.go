@@ -16,3 +16,20 @@ type ApiCreateRequest struct {
 
 	Name string `json:"name,omitempty"`
 }
+
+// AssertApiCreateRequestRequired checks if the required fields are not zero-ed
+func AssertApiCreateRequestRequired(obj ApiCreateRequest) error {
+	return nil
+}
+
+// AssertRecurseApiCreateRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ApiCreateRequest (e.g. [][]ApiCreateRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseApiCreateRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aApiCreateRequest, ok := obj.(ApiCreateRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertApiCreateRequestRequired(aApiCreateRequest)
+	})
+}

@@ -22,3 +22,38 @@ type CreatePkeClusterKubernetes struct {
 
 	Network CreatePkeClusterKubernetesNetwork `json:"network,omitempty"`
 }
+
+// AssertCreatePkeClusterKubernetesRequired checks if the required fields are not zero-ed
+func AssertCreatePkeClusterKubernetesRequired(obj CreatePkeClusterKubernetes) error {
+	elements := map[string]interface{}{
+		"version": obj.Version,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertCreatePkeClusterKubernetesOidcRequired(obj.Oidc); err != nil {
+		return err
+	}
+	if err := AssertCreatePkeClusterKubernetesCriRequired(obj.Cri); err != nil {
+		return err
+	}
+	if err := AssertCreatePkeClusterKubernetesNetworkRequired(obj.Network); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreatePkeClusterKubernetesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkeClusterKubernetes (e.g. [][]CreatePkeClusterKubernetes), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkeClusterKubernetesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkeClusterKubernetes, ok := obj.(CreatePkeClusterKubernetes)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkeClusterKubernetesRequired(aCreatePkeClusterKubernetes)
+	})
+}

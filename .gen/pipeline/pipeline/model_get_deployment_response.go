@@ -36,3 +36,20 @@ type GetDeploymentResponse struct {
 	// current values of the deployment
 	Values map[string]interface{} `json:"values,omitempty"`
 }
+
+// AssertGetDeploymentResponseRequired checks if the required fields are not zero-ed
+func AssertGetDeploymentResponseRequired(obj GetDeploymentResponse) error {
+	return nil
+}
+
+// AssertRecurseGetDeploymentResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of GetDeploymentResponse (e.g. [][]GetDeploymentResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseGetDeploymentResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aGetDeploymentResponse, ok := obj.(GetDeploymentResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertGetDeploymentResponseRequired(aGetDeploymentResponse)
+	})
+}

@@ -28,3 +28,26 @@ type ScheduleResponse struct {
 
 	LastBackup string `json:"lastBackup,omitempty"`
 }
+
+// AssertScheduleResponseRequired checks if the required fields are not zero-ed
+func AssertScheduleResponseRequired(obj ScheduleResponse) error {
+	if err := AssertLabelsRequired(obj.Labels); err != nil {
+		return err
+	}
+	if err := AssertBackupOptionsRequired(obj.Options); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseScheduleResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ScheduleResponse (e.g. [][]ScheduleResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseScheduleResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aScheduleResponse, ok := obj.(ScheduleResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertScheduleResponseRequired(aScheduleResponse)
+	})
+}

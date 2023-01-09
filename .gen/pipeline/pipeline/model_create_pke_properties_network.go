@@ -20,3 +20,32 @@ type CreatePkePropertiesNetwork struct {
 
 	Provider string `json:"provider"`
 }
+
+// AssertCreatePkePropertiesNetworkRequired checks if the required fields are not zero-ed
+func AssertCreatePkePropertiesNetworkRequired(obj CreatePkePropertiesNetwork) error {
+	elements := map[string]interface{}{
+		"apiServerAddress": obj.ApiServerAddress,
+		"serviceCIDR": obj.ServiceCIDR,
+		"podCIDR": obj.PodCIDR,
+		"provider": obj.Provider,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreatePkePropertiesNetworkRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkePropertiesNetwork (e.g. [][]CreatePkePropertiesNetwork), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkePropertiesNetworkRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkePropertiesNetwork, ok := obj.(CreatePkePropertiesNetwork)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkePropertiesNetworkRequired(aCreatePkePropertiesNetwork)
+	})
+}

@@ -20,3 +20,32 @@ type SecretKeyValueAzure struct {
 
 	AZURE_SUBSCRIPTION_ID string `json:"AZURE_SUBSCRIPTION_ID"`
 }
+
+// AssertSecretKeyValueAzureRequired checks if the required fields are not zero-ed
+func AssertSecretKeyValueAzureRequired(obj SecretKeyValueAzure) error {
+	elements := map[string]interface{}{
+		"AZURE_CLIENT_ID": obj.AZURE_CLIENT_ID,
+		"AZURE_CLIENT_SECRET": obj.AZURE_CLIENT_SECRET,
+		"AZURE_TENANT_ID": obj.AZURE_TENANT_ID,
+		"AZURE_SUBSCRIPTION_ID": obj.AZURE_SUBSCRIPTION_ID,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseSecretKeyValueAzureRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of SecretKeyValueAzure (e.g. [][]SecretKeyValueAzure), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseSecretKeyValueAzureRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aSecretKeyValueAzure, ok := obj.(SecretKeyValueAzure)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertSecretKeyValueAzureRequired(aSecretKeyValueAzure)
+	})
+}

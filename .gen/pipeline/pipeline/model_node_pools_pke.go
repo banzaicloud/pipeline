@@ -28,3 +28,38 @@ type NodePoolsPke struct {
 
 	Hosts []PkeHosts `json:"hosts,omitempty"`
 }
+
+// AssertNodePoolsPkeRequired checks if the required fields are not zero-ed
+func AssertNodePoolsPkeRequired(obj NodePoolsPke) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"roles": obj.Roles,
+		"autoscaling": obj.Autoscaling,
+		"provider": obj.Provider,
+		"providerConfig": obj.ProviderConfig,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Hosts {
+		if err := AssertPkeHostsRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseNodePoolsPkeRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodePoolsPke (e.g. [][]NodePoolsPke), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodePoolsPkeRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodePoolsPke, ok := obj.(NodePoolsPke)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodePoolsPkeRequired(aNodePoolsPke)
+	})
+}

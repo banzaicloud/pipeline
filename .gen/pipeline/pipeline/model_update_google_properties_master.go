@@ -14,3 +14,20 @@ type UpdateGooglePropertiesMaster struct {
 
 	Version string `json:"version,omitempty"`
 }
+
+// AssertUpdateGooglePropertiesMasterRequired checks if the required fields are not zero-ed
+func AssertUpdateGooglePropertiesMasterRequired(obj UpdateGooglePropertiesMaster) error {
+	return nil
+}
+
+// AssertRecurseUpdateGooglePropertiesMasterRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateGooglePropertiesMaster (e.g. [][]UpdateGooglePropertiesMaster), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateGooglePropertiesMasterRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateGooglePropertiesMaster, ok := obj.(UpdateGooglePropertiesMaster)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateGooglePropertiesMasterRequired(aUpdateGooglePropertiesMaster)
+	})
+}

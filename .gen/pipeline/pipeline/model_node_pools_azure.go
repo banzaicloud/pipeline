@@ -24,3 +24,30 @@ type NodePoolsAzure struct {
 
 	Labels map[string]string `json:"labels,omitempty"`
 }
+
+// AssertNodePoolsAzureRequired checks if the required fields are not zero-ed
+func AssertNodePoolsAzureRequired(obj NodePoolsAzure) error {
+	elements := map[string]interface{}{
+		"count": obj.Count,
+		"instanceType": obj.InstanceType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseNodePoolsAzureRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodePoolsAzure (e.g. [][]NodePoolsAzure), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodePoolsAzureRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodePoolsAzure, ok := obj.(NodePoolsAzure)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodePoolsAzureRequired(aNodePoolsAzure)
+	})
+}

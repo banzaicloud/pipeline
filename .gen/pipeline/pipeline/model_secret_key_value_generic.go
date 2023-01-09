@@ -14,3 +14,20 @@ type SecretKeyValueGeneric struct {
 
 	Any string `json:"any,omitempty"`
 }
+
+// AssertSecretKeyValueGenericRequired checks if the required fields are not zero-ed
+func AssertSecretKeyValueGenericRequired(obj SecretKeyValueGeneric) error {
+	return nil
+}
+
+// AssertRecurseSecretKeyValueGenericRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of SecretKeyValueGeneric (e.g. [][]SecretKeyValueGeneric), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseSecretKeyValueGenericRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aSecretKeyValueGeneric, ok := obj.(SecretKeyValueGeneric)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertSecretKeyValueGenericRequired(aSecretKeyValueGeneric)
+	})
+}

@@ -18,3 +18,26 @@ type ResourceSummary struct {
 
 	Status string `json:"status,omitempty"`
 }
+
+// AssertResourceSummaryRequired checks if the required fields are not zero-ed
+func AssertResourceSummaryRequired(obj ResourceSummary) error {
+	if err := AssertResourceRequired(obj.Cpu); err != nil {
+		return err
+	}
+	if err := AssertResourceRequired(obj.Memory); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseResourceSummaryRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ResourceSummary (e.g. [][]ResourceSummary), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseResourceSummaryRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aResourceSummary, ok := obj.(ResourceSummary)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertResourceSummaryRequired(aResourceSummary)
+	})
+}

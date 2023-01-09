@@ -18,3 +18,30 @@ type EksAuthConfig struct {
 
 	MapAccounts []string `json:"mapAccounts,omitempty"`
 }
+
+// AssertEksAuthConfigRequired checks if the required fields are not zero-ed
+func AssertEksAuthConfigRequired(obj EksAuthConfig) error {
+	for _, el := range obj.MapRoles {
+		if err := AssertEksAuthConfigRolesRequired(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.MapUsers {
+		if err := AssertEksAuthConfigUsersRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseEksAuthConfigRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksAuthConfig (e.g. [][]EksAuthConfig), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksAuthConfigRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksAuthConfig, ok := obj.(EksAuthConfig)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksAuthConfigRequired(aEksAuthConfig)
+	})
+}

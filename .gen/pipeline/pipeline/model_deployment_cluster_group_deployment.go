@@ -34,3 +34,29 @@ type DeploymentClusterGroupDeployment struct {
 
 	Version string `json:"version,omitempty"`
 }
+
+// AssertDeploymentClusterGroupDeploymentRequired checks if the required fields are not zero-ed
+func AssertDeploymentClusterGroupDeploymentRequired(obj DeploymentClusterGroupDeployment) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseDeploymentClusterGroupDeploymentRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of DeploymentClusterGroupDeployment (e.g. [][]DeploymentClusterGroupDeployment), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseDeploymentClusterGroupDeploymentRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aDeploymentClusterGroupDeployment, ok := obj.(DeploymentClusterGroupDeployment)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertDeploymentClusterGroupDeploymentRequired(aDeploymentClusterGroupDeployment)
+	})
+}

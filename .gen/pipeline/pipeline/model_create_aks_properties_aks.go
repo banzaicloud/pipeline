@@ -20,3 +20,31 @@ type CreateAksPropertiesAks struct {
 
 	VnetSubnetID string `json:"vnetSubnetID,omitempty"`
 }
+
+// AssertCreateAksPropertiesAksRequired checks if the required fields are not zero-ed
+func AssertCreateAksPropertiesAksRequired(obj CreateAksPropertiesAks) error {
+	elements := map[string]interface{}{
+		"resourceGroup": obj.ResourceGroup,
+		"kubernetesVersion": obj.KubernetesVersion,
+		"nodePools": obj.NodePools,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreateAksPropertiesAksRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateAksPropertiesAks (e.g. [][]CreateAksPropertiesAks), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateAksPropertiesAksRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateAksPropertiesAks, ok := obj.(CreateAksPropertiesAks)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateAksPropertiesAksRequired(aCreateAksPropertiesAks)
+	})
+}

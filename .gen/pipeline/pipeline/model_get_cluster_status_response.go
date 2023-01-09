@@ -52,3 +52,26 @@ type GetClusterStatusResponse struct {
 
 	TotalSummary ResourceSummary `json:"totalSummary,omitempty"`
 }
+
+// AssertGetClusterStatusResponseRequired checks if the required fields are not zero-ed
+func AssertGetClusterStatusResponseRequired(obj GetClusterStatusResponse) error {
+	if err := AssertOidcConfigRequired(obj.Oidc); err != nil {
+		return err
+	}
+	if err := AssertResourceSummaryRequired(obj.TotalSummary); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseGetClusterStatusResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of GetClusterStatusResponse (e.g. [][]GetClusterStatusResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseGetClusterStatusResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aGetClusterStatusResponse, ok := obj.(GetClusterStatusResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertGetClusterStatusResponseRequired(aGetClusterStatusResponse)
+	})
+}

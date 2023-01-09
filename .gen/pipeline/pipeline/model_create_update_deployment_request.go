@@ -40,3 +40,29 @@ type CreateUpdateDeploymentRequest struct {
 	// current values of the deployment
 	Values map[string]interface{} `json:"values,omitempty"`
 }
+
+// AssertCreateUpdateDeploymentRequestRequired checks if the required fields are not zero-ed
+func AssertCreateUpdateDeploymentRequestRequired(obj CreateUpdateDeploymentRequest) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreateUpdateDeploymentRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateUpdateDeploymentRequest (e.g. [][]CreateUpdateDeploymentRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateUpdateDeploymentRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateUpdateDeploymentRequest, ok := obj.(CreateUpdateDeploymentRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateUpdateDeploymentRequestRequired(aCreateUpdateDeploymentRequest)
+	})
+}

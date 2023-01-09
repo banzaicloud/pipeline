@@ -16,5 +16,27 @@ type HelmChartDetailsResponse struct {
 
 	Repo string `json:"repo,omitempty"`
 
-	Versions []HelmChartDetailsResponseVersions `json:"versions,omitempty"`
+	Versions []HelmChartDetailsResponseVersionsInner `json:"versions,omitempty"`
+}
+
+// AssertHelmChartDetailsResponseRequired checks if the required fields are not zero-ed
+func AssertHelmChartDetailsResponseRequired(obj HelmChartDetailsResponse) error {
+	for _, el := range obj.Versions {
+		if err := AssertHelmChartDetailsResponseVersionsInnerRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseHelmChartDetailsResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of HelmChartDetailsResponse (e.g. [][]HelmChartDetailsResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseHelmChartDetailsResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aHelmChartDetailsResponse, ok := obj.(HelmChartDetailsResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertHelmChartDetailsResponseRequired(aHelmChartDetailsResponse)
+	})
 }

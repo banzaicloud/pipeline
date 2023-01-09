@@ -39,3 +39,48 @@ type CreateEksPropertiesEks struct {
 	// User defined tags to be added to created AWS resources. Empty keys and values are not permitted.
 	Tags map[string]string `json:"tags,omitempty"`
 }
+
+// AssertCreateEksPropertiesEksRequired checks if the required fields are not zero-ed
+func AssertCreateEksPropertiesEksRequired(obj CreateEksPropertiesEks) error {
+	elements := map[string]interface{}{
+		"nodePools": obj.NodePools,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertEksAuthConfigRequired(obj.AuthConfig); err != nil {
+		return err
+	}
+	for _, el := range obj.EncryptionConfig {
+		if err := AssertEksEncryptionConfigRequired(el); err != nil {
+			return err
+		}
+	}
+	if err := AssertEksVpcRequired(obj.Vpc); err != nil {
+		return err
+	}
+	for _, el := range obj.Subnets {
+		if err := AssertEksSubnetRequired(el); err != nil {
+			return err
+		}
+	}
+	if err := AssertEksIamRequired(obj.Iam); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreateEksPropertiesEksRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateEksPropertiesEks (e.g. [][]CreateEksPropertiesEks), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateEksPropertiesEksRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateEksPropertiesEks, ok := obj.(CreateEksPropertiesEks)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateEksPropertiesEksRequired(aCreateEksPropertiesEks)
+	})
+}

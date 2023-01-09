@@ -18,3 +18,20 @@ type NodeItemStatusAllocatable struct {
 
 	Pods string `json:"pods,omitempty"`
 }
+
+// AssertNodeItemStatusAllocatableRequired checks if the required fields are not zero-ed
+func AssertNodeItemStatusAllocatableRequired(obj NodeItemStatusAllocatable) error {
+	return nil
+}
+
+// AssertRecurseNodeItemStatusAllocatableRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodeItemStatusAllocatable (e.g. [][]NodeItemStatusAllocatable), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodeItemStatusAllocatableRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodeItemStatusAllocatable, ok := obj.(NodeItemStatusAllocatable)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodeItemStatusAllocatableRequired(aNodeItemStatusAllocatable)
+	})
+}

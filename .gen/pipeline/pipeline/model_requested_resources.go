@@ -32,3 +32,20 @@ type RequestedResources struct {
 	// Maximum number of nodes in the recommended cluster
 	MaxNodes int32 `json:"maxNodes,omitempty"`
 }
+
+// AssertRequestedResourcesRequired checks if the required fields are not zero-ed
+func AssertRequestedResourcesRequired(obj RequestedResources) error {
+	return nil
+}
+
+// AssertRecurseRequestedResourcesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of RequestedResources (e.g. [][]RequestedResources), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseRequestedResourcesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aRequestedResources, ok := obj.(RequestedResources)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertRequestedResourcesRequired(aRequestedResources)
+	})
+}

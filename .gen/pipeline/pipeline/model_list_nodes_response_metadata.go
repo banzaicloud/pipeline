@@ -16,3 +16,20 @@ type ListNodesResponseMetadata struct {
 
 	ResourceVersion string `json:"resourceVersion,omitempty"`
 }
+
+// AssertListNodesResponseMetadataRequired checks if the required fields are not zero-ed
+func AssertListNodesResponseMetadataRequired(obj ListNodesResponseMetadata) error {
+	return nil
+}
+
+// AssertRecurseListNodesResponseMetadataRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ListNodesResponseMetadata (e.g. [][]ListNodesResponseMetadata), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseListNodesResponseMetadataRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aListNodesResponseMetadata, ok := obj.(ListNodesResponseMetadata)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertListNodesResponseMetadataRequired(aListNodesResponseMetadata)
+	})
+}

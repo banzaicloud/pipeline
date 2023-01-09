@@ -16,3 +16,20 @@ type CreateClusterResponse202 struct {
 
 	Id int32 `json:"id,omitempty"`
 }
+
+// AssertCreateClusterResponse202Required checks if the required fields are not zero-ed
+func AssertCreateClusterResponse202Required(obj CreateClusterResponse202) error {
+	return nil
+}
+
+// AssertRecurseCreateClusterResponse202Required recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateClusterResponse202 (e.g. [][]CreateClusterResponse202), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateClusterResponse202Required(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateClusterResponse202, ok := obj.(CreateClusterResponse202)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateClusterResponse202Required(aCreateClusterResponse202)
+	})
+}

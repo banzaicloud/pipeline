@@ -18,3 +18,20 @@ type RestoreResultErrors struct {
 
 	Namespaces map[string][]string `json:"namespaces,omitempty"`
 }
+
+// AssertRestoreResultErrorsRequired checks if the required fields are not zero-ed
+func AssertRestoreResultErrorsRequired(obj RestoreResultErrors) error {
+	return nil
+}
+
+// AssertRecurseRestoreResultErrorsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of RestoreResultErrors (e.g. [][]RestoreResultErrors), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseRestoreResultErrorsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aRestoreResultErrors, ok := obj.(RestoreResultErrors)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertRestoreResultErrorsRequired(aRestoreResultErrors)
+	})
+}

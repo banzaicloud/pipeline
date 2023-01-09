@@ -18,3 +18,29 @@ type RouteTableInfo struct {
 	// Name of the route table
 	Name string `json:"name,omitempty"`
 }
+
+// AssertRouteTableInfoRequired checks if the required fields are not zero-ed
+func AssertRouteTableInfoRequired(obj RouteTableInfo) error {
+	elements := map[string]interface{}{
+		"id": obj.Id,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseRouteTableInfoRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of RouteTableInfo (e.g. [][]RouteTableInfo), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseRouteTableInfoRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aRouteTableInfo, ok := obj.(RouteTableInfo)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertRouteTableInfoRequired(aRouteTableInfo)
+	})
+}

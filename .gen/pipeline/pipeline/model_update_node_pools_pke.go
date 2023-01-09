@@ -36,3 +36,20 @@ type UpdateNodePoolsPke struct {
 	// user provided custom node labels to be placed onto the nodes of the node pool
 	Labels map[string]string `json:"labels,omitempty"`
 }
+
+// AssertUpdateNodePoolsPkeRequired checks if the required fields are not zero-ed
+func AssertUpdateNodePoolsPkeRequired(obj UpdateNodePoolsPke) error {
+	return nil
+}
+
+// AssertRecurseUpdateNodePoolsPkeRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateNodePoolsPke (e.g. [][]UpdateNodePoolsPke), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateNodePoolsPkeRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateNodePoolsPke, ok := obj.(UpdateNodePoolsPke)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateNodePoolsPkeRequired(aUpdateNodePoolsPke)
+	})
+}

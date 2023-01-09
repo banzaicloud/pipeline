@@ -15,3 +15,25 @@ type GoogleProjects struct {
 
 	Projects []GoogleProject `json:"projects,omitempty"`
 }
+
+// AssertGoogleProjectsRequired checks if the required fields are not zero-ed
+func AssertGoogleProjectsRequired(obj GoogleProjects) error {
+	for _, el := range obj.Projects {
+		if err := AssertGoogleProjectRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseGoogleProjectsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of GoogleProjects (e.g. [][]GoogleProjects), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseGoogleProjectsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aGoogleProjects, ok := obj.(GoogleProjects)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertGoogleProjectsRequired(aGoogleProjects)
+	})
+}

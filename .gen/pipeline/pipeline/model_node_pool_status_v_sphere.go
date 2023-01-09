@@ -22,3 +22,20 @@ type NodePoolStatusVSphere struct {
 
 	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
 }
+
+// AssertNodePoolStatusVSphereRequired checks if the required fields are not zero-ed
+func AssertNodePoolStatusVSphereRequired(obj NodePoolStatusVSphere) error {
+	return nil
+}
+
+// AssertRecurseNodePoolStatusVSphereRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodePoolStatusVSphere (e.g. [][]NodePoolStatusVSphere), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodePoolStatusVSphereRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodePoolStatusVSphere, ok := obj.(NodePoolStatusVSphere)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodePoolStatusVSphereRequired(aNodePoolStatusVSphere)
+	})
+}

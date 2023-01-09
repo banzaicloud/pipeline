@@ -14,3 +14,20 @@ type BackupServiceResponse struct {
 
 	Enabled bool `json:"enabled,omitempty"`
 }
+
+// AssertBackupServiceResponseRequired checks if the required fields are not zero-ed
+func AssertBackupServiceResponseRequired(obj BackupServiceResponse) error {
+	return nil
+}
+
+// AssertRecurseBackupServiceResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of BackupServiceResponse (e.g. [][]BackupServiceResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseBackupServiceResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aBackupServiceResponse, ok := obj.(BackupServiceResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertBackupServiceResponseRequired(aBackupServiceResponse)
+	})
+}

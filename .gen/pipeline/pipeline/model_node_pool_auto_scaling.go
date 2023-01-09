@@ -22,3 +22,30 @@ type NodePoolAutoScaling struct {
 	// Maximum node pool size.
 	MaxSize int32 `json:"maxSize"`
 }
+
+// AssertNodePoolAutoScalingRequired checks if the required fields are not zero-ed
+func AssertNodePoolAutoScalingRequired(obj NodePoolAutoScaling) error {
+	elements := map[string]interface{}{
+		"minSize": obj.MinSize,
+		"maxSize": obj.MaxSize,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseNodePoolAutoScalingRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodePoolAutoScaling (e.g. [][]NodePoolAutoScaling), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodePoolAutoScalingRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodePoolAutoScaling, ok := obj.(NodePoolAutoScaling)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodePoolAutoScalingRequired(aNodePoolAutoScaling)
+	})
+}

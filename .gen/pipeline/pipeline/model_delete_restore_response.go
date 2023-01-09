@@ -16,3 +16,20 @@ type DeleteRestoreResponse struct {
 
 	Status int32 `json:"status,omitempty"`
 }
+
+// AssertDeleteRestoreResponseRequired checks if the required fields are not zero-ed
+func AssertDeleteRestoreResponseRequired(obj DeleteRestoreResponse) error {
+	return nil
+}
+
+// AssertRecurseDeleteRestoreResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of DeleteRestoreResponse (e.g. [][]DeleteRestoreResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseDeleteRestoreResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aDeleteRestoreResponse, ok := obj.(DeleteRestoreResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertDeleteRestoreResponseRequired(aDeleteRestoreResponse)
+	})
+}

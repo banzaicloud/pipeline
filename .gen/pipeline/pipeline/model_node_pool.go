@@ -48,3 +48,39 @@ type NodePool struct {
 	// Setup available instance stores (NVMe disks) to use for Kubelet root if available. As a result emptyDir volumes will be provisioned on local instance storage disks. You can check out available instance storages here https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes.
 	UseInstanceStore bool `json:"useInstanceStore,omitempty"`
 }
+
+// AssertNodePoolRequired checks if the required fields are not zero-ed
+func AssertNodePoolRequired(obj NodePool) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"size": obj.Size,
+		"instanceType": obj.InstanceType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertNodePoolAutoScalingRequired(obj.Autoscaling); err != nil {
+		return err
+	}
+	if obj.VolumeEncryption != nil {
+		if err := AssertEksNodePoolVolumeEncryptionRequired(*obj.VolumeEncryption); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseNodePoolRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodePool (e.g. [][]NodePool), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodePoolRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodePool, ok := obj.(NodePool)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodePoolRequired(aNodePool)
+	})
+}

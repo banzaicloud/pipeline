@@ -17,3 +17,20 @@ type CreateUpdateDeploymentResponse struct {
 	// deployment notes in base64 encoded format
 	Notes string `json:"notes,omitempty"`
 }
+
+// AssertCreateUpdateDeploymentResponseRequired checks if the required fields are not zero-ed
+func AssertCreateUpdateDeploymentResponseRequired(obj CreateUpdateDeploymentResponse) error {
+	return nil
+}
+
+// AssertRecurseCreateUpdateDeploymentResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateUpdateDeploymentResponse (e.g. [][]CreateUpdateDeploymentResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateUpdateDeploymentResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateUpdateDeploymentResponse, ok := obj.(CreateUpdateDeploymentResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateUpdateDeploymentResponseRequired(aCreateUpdateDeploymentResponse)
+	})
+}

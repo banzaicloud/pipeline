@@ -22,3 +22,25 @@ type ScanLogItem struct {
 
 	Action string `json:"action,omitempty"`
 }
+
+// AssertScanLogItemRequired checks if the required fields are not zero-ed
+func AssertScanLogItemRequired(obj ScanLogItem) error {
+	for _, el := range obj.Image {
+		if err := AssertScanLogItemImageRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseScanLogItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ScanLogItem (e.g. [][]ScanLogItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseScanLogItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aScanLogItem, ok := obj.(ScanLogItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertScanLogItemRequired(aScanLogItem)
+	})
+}

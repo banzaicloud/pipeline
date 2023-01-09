@@ -18,3 +18,20 @@ type EksAuthConfigRoles struct {
 
 	Rolearn string `json:"rolearn,omitempty"`
 }
+
+// AssertEksAuthConfigRolesRequired checks if the required fields are not zero-ed
+func AssertEksAuthConfigRolesRequired(obj EksAuthConfigRoles) error {
+	return nil
+}
+
+// AssertRecurseEksAuthConfigRolesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksAuthConfigRoles (e.g. [][]EksAuthConfigRoles), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksAuthConfigRolesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksAuthConfigRoles, ok := obj.(EksAuthConfigRoles)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksAuthConfigRolesRequired(aEksAuthConfigRoles)
+	})
+}

@@ -33,9 +33,48 @@ type AmazonAutoScalingGroup struct {
 
 	Subnets []string `json:"subnets"`
 
-	Tags map[string]map[string]interface{} `json:"tags"`
+	Tags map[string]interface{} `json:"tags"`
 
 	SpotPrice string `json:"spotPrice"`
 
 	Size AmazonAutoScalingGroupSize `json:"size"`
+}
+
+// AssertAmazonAutoScalingGroupRequired checks if the required fields are not zero-ed
+func AssertAmazonAutoScalingGroupRequired(obj AmazonAutoScalingGroup) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"image": obj.Image,
+		"zones": obj.Zones,
+		"instanceType": obj.InstanceType,
+		"launchConfigurationName": obj.LaunchConfigurationName,
+		"vpcID": obj.VpcID,
+		"securityGroupID": obj.SecurityGroupID,
+		"subnets": obj.Subnets,
+		"tags": obj.Tags,
+		"spotPrice": obj.SpotPrice,
+		"size": obj.Size,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertAmazonAutoScalingGroupSizeRequired(obj.Size); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseAmazonAutoScalingGroupRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of AmazonAutoScalingGroup (e.g. [][]AmazonAutoScalingGroup), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseAmazonAutoScalingGroupRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aAmazonAutoScalingGroup, ok := obj.(AmazonAutoScalingGroup)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertAmazonAutoScalingGroupRequired(aAmazonAutoScalingGroup)
+	})
 }

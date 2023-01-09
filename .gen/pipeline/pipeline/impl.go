@@ -10,13 +10,8 @@
 
 package pipeline
 
-type SecretTypeResponseFields struct {
-
-	Name string `json:"name,omitempty"`
-
-	Required bool `json:"required,omitempty"`
-
-	IsSafeToDisplay bool `json:"isSafeToDisplay,omitempty"`
-
-	Description string `json:"description,omitempty"`
+// ImplResponse response defines an error code with the associated body
+type ImplResponse struct {
+	Code int
+	Body interface{}
 }

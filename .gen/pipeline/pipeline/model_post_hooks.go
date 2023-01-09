@@ -14,3 +14,20 @@ type PostHooks struct {
 
 	PostHookFunctionName map[string]interface{} `json:"PostHookFunctionName,omitempty"`
 }
+
+// AssertPostHooksRequired checks if the required fields are not zero-ed
+func AssertPostHooksRequired(obj PostHooks) error {
+	return nil
+}
+
+// AssertRecursePostHooksRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of PostHooks (e.g. [][]PostHooks), otherwise ErrTypeAssertionError is thrown.
+func AssertRecursePostHooksRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aPostHooks, ok := obj.(PostHooks)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertPostHooksRequired(aPostHooks)
+	})
+}

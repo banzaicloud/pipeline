@@ -16,3 +16,20 @@ type UrlItem struct {
 
 	Url string `json:"url,omitempty"`
 }
+
+// AssertUrlItemRequired checks if the required fields are not zero-ed
+func AssertUrlItemRequired(obj UrlItem) error {
+	return nil
+}
+
+// AssertRecurseUrlItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UrlItem (e.g. [][]UrlItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUrlItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUrlItem, ok := obj.(UrlItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUrlItemRequired(aUrlItem)
+	})
+}

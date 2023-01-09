@@ -14,3 +14,25 @@ type ListEndpointsResponse struct {
 
 	Endpoints []EndpointItem `json:"endpoints,omitempty"`
 }
+
+// AssertListEndpointsResponseRequired checks if the required fields are not zero-ed
+func AssertListEndpointsResponseRequired(obj ListEndpointsResponse) error {
+	for _, el := range obj.Endpoints {
+		if err := AssertEndpointItemRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseListEndpointsResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ListEndpointsResponse (e.g. [][]ListEndpointsResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseListEndpointsResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aListEndpointsResponse, ok := obj.(ListEndpointsResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertListEndpointsResponseRequired(aListEndpointsResponse)
+	})
+}

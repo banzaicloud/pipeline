@@ -14,3 +14,25 @@ type NamespaceListResponse struct {
 
 	Namespaces []NamespaceItem `json:"namespaces,omitempty"`
 }
+
+// AssertNamespaceListResponseRequired checks if the required fields are not zero-ed
+func AssertNamespaceListResponseRequired(obj NamespaceListResponse) error {
+	for _, el := range obj.Namespaces {
+		if err := AssertNamespaceItemRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseNamespaceListResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NamespaceListResponse (e.g. [][]NamespaceListResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNamespaceListResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNamespaceListResponse, ok := obj.(NamespaceListResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNamespaceListResponseRequired(aNamespaceListResponse)
+	})
+}
