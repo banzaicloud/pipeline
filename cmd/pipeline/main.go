@@ -437,7 +437,7 @@ func main() {
 		Debug:         true,
 		Servers: cloudinfoapi.ServerConfigurations{
 			{
-				URL:         url.Path,
+				URL: url.Path,
 			},
 		},
 		OperationServers: map[string]cloudinfoapi.ServerConfigurations{},
