@@ -41,11 +41,11 @@ const (
 
 func TestToAzurePKEClusterCreationParams(t *testing.T) {
 	var (
-		Azuresubnet = pipeline.PkeOnAzureNodePoolSubnet{
+		Azuresubnet = pipeline.PkeonAzureNodePoolSubnet{
 			Name: "test-subnet",
 			Cidr: "1.1.1.1/16",
 		}
-		Nodepool = pipeline.PkeOnAzureNodePool{
+		Nodepool = pipeline.PkeonAzureNodePool{
 			Labels:       nil,
 			Name:         "nodepool1",
 			Roles:        []string{"role"},
@@ -57,7 +57,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			MinCount:     1,
 			MaxCount:     3,
 		}
-		Azurenetwork = pipeline.PkeOnAzureClusterNetwork{
+		Azurenetwork = pipeline.PkeonAzureClusterNetwork{
 			Name: "test-net",
 			Cidr: "1.1.1.1/10",
 		}
@@ -96,7 +96,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				Type:          PKEOnAzure,
 				Location:      Location,
 				ResourceGroup: ResourceGroup,
-				Nodepools:     []pipeline.PkeOnAzureNodePool{Nodepool},
+				Nodepools:     []pipeline.PkeonAzureNodePool{Nodepool},
 				Kubernetes: pipeline.CreatePkeClusterKubernetes{
 					Cri:     cri,
 					Network: network,

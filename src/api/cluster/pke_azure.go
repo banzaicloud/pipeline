@@ -23,7 +23,7 @@ import (
 
 const PKEOnAzure = pke.PKEOnAzure
 
-type CreatePKEOnAzureClusterRequest pipeline.CreatePkeOnAzureClusterRequest
+type CreatePKEOnAzureClusterRequest pipeline.CreatePkeonAzureClusterRequest
 
 func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.ClusterCreationParams {
 	var accessPoints pke.AccessPoints
@@ -85,7 +85,7 @@ func clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(o pipeline.PkeCluster
 	}
 }
 
-type UpdatePKEOnAzureClusterRequest pipeline.UpdatePkeOnAzureClusterRequest
+type UpdatePKEOnAzureClusterRequest pipeline.UpdatePkeonAzureClusterRequest
 
 func (req UpdatePKEOnAzureClusterRequest) ToAzurePKEClusterUpdateParams(clusterID, userID uint) driver.ClusterUpdateParams {
 	return driver.ClusterUpdateParams{
@@ -94,7 +94,7 @@ func (req UpdatePKEOnAzureClusterRequest) ToAzurePKEClusterUpdateParams(clusterI
 	}
 }
 
-func azureRequestToClusterNodepools(request []pipeline.PkeOnAzureNodePool, userID uint) []driver.NodePool {
+func azureRequestToClusterNodepools(request []pipeline.PkeonAzureNodePool, userID uint) []driver.NodePool {
 	nodepools := make([]driver.NodePool, len(request))
 	for i, node := range request {
 		nodepools[i] = driver.NodePool{
