@@ -55,3 +55,39 @@ type NodePoolSummary struct {
 	// Details and reasoning about the status value.
 	StatusMessage string `json:"statusMessage,omitempty"`
 }
+
+// AssertNodePoolSummaryRequired checks if the required fields are not zero-ed
+func AssertNodePoolSummaryRequired(obj NodePoolSummary) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"size": obj.Size,
+		"instanceType": obj.InstanceType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertNodePoolAutoScalingRequired(obj.Autoscaling); err != nil {
+		return err
+	}
+	if obj.VolumeEncryption != nil {
+		if err := AssertEksNodePoolVolumeEncryptionRequired(*obj.VolumeEncryption); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseNodePoolSummaryRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodePoolSummary (e.g. [][]NodePoolSummary), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodePoolSummaryRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodePoolSummary, ok := obj.(NodePoolSummary)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodePoolSummaryRequired(aNodePoolSummary)
+	})
+}

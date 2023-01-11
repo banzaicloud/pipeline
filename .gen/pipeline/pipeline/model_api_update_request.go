@@ -16,3 +16,20 @@ type ApiUpdateRequest struct {
 
 	Name string `json:"name,omitempty"`
 }
+
+// AssertApiUpdateRequestRequired checks if the required fields are not zero-ed
+func AssertApiUpdateRequestRequired(obj ApiUpdateRequest) error {
+	return nil
+}
+
+// AssertRecurseApiUpdateRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ApiUpdateRequest (e.g. [][]ApiUpdateRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseApiUpdateRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aApiUpdateRequest, ok := obj.(ApiUpdateRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertApiUpdateRequestRequired(aApiUpdateRequest)
+	})
+}

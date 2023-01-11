@@ -22,3 +22,20 @@ type ApiMember struct {
 
 	Status string `json:"status,omitempty"`
 }
+
+// AssertApiMemberRequired checks if the required fields are not zero-ed
+func AssertApiMemberRequired(obj ApiMember) error {
+	return nil
+}
+
+// AssertRecurseApiMemberRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ApiMember (e.g. [][]ApiMember), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseApiMemberRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aApiMember, ok := obj.(ApiMember)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertApiMemberRequired(aApiMember)
+	})
+}

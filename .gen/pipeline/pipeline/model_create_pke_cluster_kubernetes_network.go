@@ -20,3 +20,20 @@ type CreatePkeClusterKubernetesNetwork struct {
 
 	ProviderConfig map[string]interface{} `json:"providerConfig,omitempty"`
 }
+
+// AssertCreatePkeClusterKubernetesNetworkRequired checks if the required fields are not zero-ed
+func AssertCreatePkeClusterKubernetesNetworkRequired(obj CreatePkeClusterKubernetesNetwork) error {
+	return nil
+}
+
+// AssertRecurseCreatePkeClusterKubernetesNetworkRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkeClusterKubernetesNetwork (e.g. [][]CreatePkeClusterKubernetesNetwork), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkeClusterKubernetesNetworkRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkeClusterKubernetesNetwork, ok := obj.(CreatePkeClusterKubernetesNetwork)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkeClusterKubernetesNetworkRequired(aCreatePkeClusterKubernetesNetwork)
+	})
+}

@@ -26,3 +26,29 @@ type UpdateNodePoolsAzure struct {
 
 	VnetSubnetID string `json:"vnetSubnetID,omitempty"`
 }
+
+// AssertUpdateNodePoolsAzureRequired checks if the required fields are not zero-ed
+func AssertUpdateNodePoolsAzureRequired(obj UpdateNodePoolsAzure) error {
+	elements := map[string]interface{}{
+		"count": obj.Count,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseUpdateNodePoolsAzureRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateNodePoolsAzure (e.g. [][]UpdateNodePoolsAzure), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateNodePoolsAzureRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateNodePoolsAzure, ok := obj.(UpdateNodePoolsAzure)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateNodePoolsAzureRequired(aUpdateNodePoolsAzure)
+	})
+}

@@ -91,3 +91,18 @@ func (_m *SecretStore) GetSecretValues(ctx context.Context, secretID string) (ma
 
 	return r0, r1
 }
+
+type mockConstructorTestingTNewSecretStore interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewSecretStore creates a new instance of SecretStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewSecretStore(t mockConstructorTestingTNewSecretStore) *SecretStore {
+	mock := &SecretStore{}
+	mock.Mock.Test(t)
+
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+
+	return mock
+}

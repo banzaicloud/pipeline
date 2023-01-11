@@ -21,3 +21,20 @@ type EksIam struct {
 	// Marks if the userid associated with the clusters AWS secret has to be used in kubeconfig (bypasses IAM user creation).
 	DefaultUser bool `json:"defaultUser,omitempty"`
 }
+
+// AssertEksIamRequired checks if the required fields are not zero-ed
+func AssertEksIamRequired(obj EksIam) error {
+	return nil
+}
+
+// AssertRecurseEksIamRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksIam (e.g. [][]EksIam), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksIamRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksIam, ok := obj.(EksIam)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksIamRequired(aEksIam)
+	})
+}

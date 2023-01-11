@@ -14,3 +14,20 @@ type ResourceGroupCreated struct {
 
 	Name string `json:"name,omitempty"`
 }
+
+// AssertResourceGroupCreatedRequired checks if the required fields are not zero-ed
+func AssertResourceGroupCreatedRequired(obj ResourceGroupCreated) error {
+	return nil
+}
+
+// AssertRecurseResourceGroupCreatedRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ResourceGroupCreated (e.g. [][]ResourceGroupCreated), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseResourceGroupCreatedRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aResourceGroupCreated, ok := obj.(ResourceGroupCreated)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertResourceGroupCreatedRequired(aResourceGroupCreated)
+	})
+}

@@ -36,3 +36,20 @@ type NodePoolStatus struct {
 
 	Template string `json:"template,omitempty"`
 }
+
+// AssertNodePoolStatusRequired checks if the required fields are not zero-ed
+func AssertNodePoolStatusRequired(obj NodePoolStatus) error {
+	return nil
+}
+
+// AssertRecurseNodePoolStatusRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodePoolStatus (e.g. [][]NodePoolStatus), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodePoolStatusRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodePoolStatus, ok := obj.(NodePoolStatus)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodePoolStatusRequired(aNodePoolStatus)
+	})
+}

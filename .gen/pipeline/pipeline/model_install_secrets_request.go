@@ -16,3 +16,32 @@ type InstallSecretsRequest struct {
 
 	Query InstallSecretsRequestQuery `json:"query,omitempty"`
 }
+
+// AssertInstallSecretsRequestRequired checks if the required fields are not zero-ed
+func AssertInstallSecretsRequestRequired(obj InstallSecretsRequest) error {
+	elements := map[string]interface{}{
+		"namespace": obj.Namespace,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertInstallSecretsRequestQueryRequired(obj.Query); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseInstallSecretsRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of InstallSecretsRequest (e.g. [][]InstallSecretsRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseInstallSecretsRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aInstallSecretsRequest, ok := obj.(InstallSecretsRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertInstallSecretsRequestRequired(aInstallSecretsRequest)
+	})
+}

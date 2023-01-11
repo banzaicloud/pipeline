@@ -16,3 +16,20 @@ type ClusterConfig struct {
 
 	Data string `json:"data,omitempty"`
 }
+
+// AssertClusterConfigRequired checks if the required fields are not zero-ed
+func AssertClusterConfigRequired(obj ClusterConfig) error {
+	return nil
+}
+
+// AssertRecurseClusterConfigRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ClusterConfig (e.g. [][]ClusterConfig), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseClusterConfigRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aClusterConfig, ok := obj.(ClusterConfig)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertClusterConfigRequired(aClusterConfig)
+	})
+}

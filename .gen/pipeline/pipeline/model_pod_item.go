@@ -26,3 +26,31 @@ type PodItem struct {
 
 	ResourceSummary ResourceSummary `json:"resourceSummary,omitempty"`
 }
+
+// AssertPodItemRequired checks if the required fields are not zero-ed
+func AssertPodItemRequired(obj PodItem) error {
+	if err := AssertPodItemLabelsRequired(obj.Labels); err != nil {
+		return err
+	}
+	for _, el := range obj.Conditions {
+		if err := AssertPodConditionRequired(el); err != nil {
+			return err
+		}
+	}
+	if err := AssertResourceSummaryRequired(obj.ResourceSummary); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecursePodItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of PodItem (e.g. [][]PodItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecursePodItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aPodItem, ok := obj.(PodItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertPodItemRequired(aPodItem)
+	})
+}

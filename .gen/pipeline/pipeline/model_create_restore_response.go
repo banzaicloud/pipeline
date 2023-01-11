@@ -16,3 +16,23 @@ type CreateRestoreResponse struct {
 
 	Status int32 `json:"status,omitempty"`
 }
+
+// AssertCreateRestoreResponseRequired checks if the required fields are not zero-ed
+func AssertCreateRestoreResponseRequired(obj CreateRestoreResponse) error {
+	if err := AssertRestoreResponseRequired(obj.Restore); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreateRestoreResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateRestoreResponse (e.g. [][]CreateRestoreResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateRestoreResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateRestoreResponse, ok := obj.(CreateRestoreResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateRestoreResponseRequired(aCreateRestoreResponse)
+	})
+}

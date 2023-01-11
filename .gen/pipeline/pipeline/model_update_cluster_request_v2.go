@@ -12,5 +12,27 @@ package pipeline
 
 type UpdateClusterRequestV2 struct {
 
-	Nodepools []PkeOnVsphereNodePool `json:"nodepools,omitempty"`
+	Nodepools []PkeonVsphereNodePool `json:"nodepools,omitempty"`
+}
+
+// AssertUpdateClusterRequestV2Required checks if the required fields are not zero-ed
+func AssertUpdateClusterRequestV2Required(obj UpdateClusterRequestV2) error {
+	for _, el := range obj.Nodepools {
+		if err := AssertPkeonVsphereNodePoolRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseUpdateClusterRequestV2Required recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateClusterRequestV2 (e.g. [][]UpdateClusterRequestV2), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateClusterRequestV2Required(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateClusterRequestV2, ok := obj.(UpdateClusterRequestV2)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateClusterRequestV2Required(aUpdateClusterRequestV2)
+	})
 }

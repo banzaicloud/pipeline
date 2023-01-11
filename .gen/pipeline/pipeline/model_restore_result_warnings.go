@@ -18,3 +18,20 @@ type RestoreResultWarnings struct {
 
 	Namespaces map[string][]string `json:"namespaces,omitempty"`
 }
+
+// AssertRestoreResultWarningsRequired checks if the required fields are not zero-ed
+func AssertRestoreResultWarningsRequired(obj RestoreResultWarnings) error {
+	return nil
+}
+
+// AssertRecurseRestoreResultWarningsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of RestoreResultWarnings (e.g. [][]RestoreResultWarnings), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseRestoreResultWarningsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aRestoreResultWarnings, ok := obj.(RestoreResultWarnings)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertRestoreResultWarningsRequired(aRestoreResultWarnings)
+	})
+}

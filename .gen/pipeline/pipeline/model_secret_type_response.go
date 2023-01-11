@@ -12,5 +12,27 @@ package pipeline
 
 type SecretTypeResponse struct {
 
-	Fields []SecretTypeResponseFields `json:"fields,omitempty"`
+	Fields []SecretTypeResponseFieldsInner `json:"fields,omitempty"`
+}
+
+// AssertSecretTypeResponseRequired checks if the required fields are not zero-ed
+func AssertSecretTypeResponseRequired(obj SecretTypeResponse) error {
+	for _, el := range obj.Fields {
+		if err := AssertSecretTypeResponseFieldsInnerRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseSecretTypeResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of SecretTypeResponse (e.g. [][]SecretTypeResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseSecretTypeResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aSecretTypeResponse, ok := obj.(SecretTypeResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertSecretTypeResponseRequired(aSecretTypeResponse)
+	})
 }

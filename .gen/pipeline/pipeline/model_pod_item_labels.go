@@ -18,3 +18,20 @@ type PodItemLabels struct {
 
 	Release string `json:"release,omitempty"`
 }
+
+// AssertPodItemLabelsRequired checks if the required fields are not zero-ed
+func AssertPodItemLabelsRequired(obj PodItemLabels) error {
+	return nil
+}
+
+// AssertRecursePodItemLabelsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of PodItemLabels (e.g. [][]PodItemLabels), otherwise ErrTypeAssertionError is thrown.
+func AssertRecursePodItemLabelsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aPodItemLabels, ok := obj.(PodItemLabels)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertPodItemLabelsRequired(aPodItemLabels)
+	})
+}

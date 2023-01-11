@@ -19,3 +19,29 @@ type BaseUpdateNodePoolRequest struct {
 	// Node pool labels.
 	Labels map[string]string `json:"labels,omitempty"`
 }
+
+// AssertBaseUpdateNodePoolRequestRequired checks if the required fields are not zero-ed
+func AssertBaseUpdateNodePoolRequestRequired(obj BaseUpdateNodePoolRequest) error {
+	elements := map[string]interface{}{
+		"size": obj.Size,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseBaseUpdateNodePoolRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of BaseUpdateNodePoolRequest (e.g. [][]BaseUpdateNodePoolRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseBaseUpdateNodePoolRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aBaseUpdateNodePoolRequest, ok := obj.(BaseUpdateNodePoolRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertBaseUpdateNodePoolRequestRequired(aBaseUpdateNodePoolRequest)
+	})
+}

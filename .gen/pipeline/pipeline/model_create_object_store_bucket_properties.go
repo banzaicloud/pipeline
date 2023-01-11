@@ -18,3 +18,35 @@ type CreateObjectStoreBucketProperties struct {
 
 	Google *CreateGoogleObjectStoreBucketProperties `json:"google,omitempty"`
 }
+
+// AssertCreateObjectStoreBucketPropertiesRequired checks if the required fields are not zero-ed
+func AssertCreateObjectStoreBucketPropertiesRequired(obj CreateObjectStoreBucketProperties) error {
+	if obj.Amazon != nil {
+		if err := AssertCreateAmazonObjectStoreBucketPropertiesRequired(*obj.Amazon); err != nil {
+			return err
+		}
+	}
+	if obj.Azure != nil {
+		if err := AssertCreateAzureObjectStoreBucketPropertiesRequired(*obj.Azure); err != nil {
+			return err
+		}
+	}
+	if obj.Google != nil {
+		if err := AssertCreateGoogleObjectStoreBucketPropertiesRequired(*obj.Google); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseCreateObjectStoreBucketPropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateObjectStoreBucketProperties (e.g. [][]CreateObjectStoreBucketProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateObjectStoreBucketPropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateObjectStoreBucketProperties, ok := obj.(CreateObjectStoreBucketProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateObjectStoreBucketPropertiesRequired(aCreateObjectStoreBucketProperties)
+	})
+}

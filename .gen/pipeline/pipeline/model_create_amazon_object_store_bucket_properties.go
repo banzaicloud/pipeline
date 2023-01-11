@@ -14,3 +14,29 @@ type CreateAmazonObjectStoreBucketProperties struct {
 
 	Location string `json:"location"`
 }
+
+// AssertCreateAmazonObjectStoreBucketPropertiesRequired checks if the required fields are not zero-ed
+func AssertCreateAmazonObjectStoreBucketPropertiesRequired(obj CreateAmazonObjectStoreBucketProperties) error {
+	elements := map[string]interface{}{
+		"location": obj.Location,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreateAmazonObjectStoreBucketPropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateAmazonObjectStoreBucketProperties (e.g. [][]CreateAmazonObjectStoreBucketProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateAmazonObjectStoreBucketPropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateAmazonObjectStoreBucketProperties, ok := obj.(CreateAmazonObjectStoreBucketProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateAmazonObjectStoreBucketPropertiesRequired(aCreateAmazonObjectStoreBucketProperties)
+	})
+}

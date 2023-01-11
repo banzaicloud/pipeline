@@ -18,3 +18,23 @@ type UpdateGoogleProperties struct {
 
 	NodePools map[string]UpdateNodePoolsGoogle `json:"nodePools,omitempty"`
 }
+
+// AssertUpdateGooglePropertiesRequired checks if the required fields are not zero-ed
+func AssertUpdateGooglePropertiesRequired(obj UpdateGoogleProperties) error {
+	if err := AssertUpdateGooglePropertiesMasterRequired(obj.Master); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseUpdateGooglePropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateGoogleProperties (e.g. [][]UpdateGoogleProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateGooglePropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateGoogleProperties, ok := obj.(UpdateGoogleProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateGooglePropertiesRequired(aUpdateGoogleProperties)
+	})
+}

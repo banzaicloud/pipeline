@@ -18,3 +18,20 @@ type NodeItemStatusCapacity struct {
 
 	Pods string `json:"pods,omitempty"`
 }
+
+// AssertNodeItemStatusCapacityRequired checks if the required fields are not zero-ed
+func AssertNodeItemStatusCapacityRequired(obj NodeItemStatusCapacity) error {
+	return nil
+}
+
+// AssertRecurseNodeItemStatusCapacityRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodeItemStatusCapacity (e.g. [][]NodeItemStatusCapacity), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodeItemStatusCapacityRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodeItemStatusCapacity, ok := obj.(NodeItemStatusCapacity)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodeItemStatusCapacityRequired(aNodeItemStatusCapacity)
+	})
+}

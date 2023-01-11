@@ -18,3 +18,31 @@ type CreateAzureObjectStoreBucketProperties struct {
 
 	ResourceGroup string `json:"resourceGroup"`
 }
+
+// AssertCreateAzureObjectStoreBucketPropertiesRequired checks if the required fields are not zero-ed
+func AssertCreateAzureObjectStoreBucketPropertiesRequired(obj CreateAzureObjectStoreBucketProperties) error {
+	elements := map[string]interface{}{
+		"storageAccount": obj.StorageAccount,
+		"location": obj.Location,
+		"resourceGroup": obj.ResourceGroup,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreateAzureObjectStoreBucketPropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateAzureObjectStoreBucketProperties (e.g. [][]CreateAzureObjectStoreBucketProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateAzureObjectStoreBucketPropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateAzureObjectStoreBucketProperties, ok := obj.(CreateAzureObjectStoreBucketProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateAzureObjectStoreBucketPropertiesRequired(aCreateAzureObjectStoreBucketProperties)
+	})
+}

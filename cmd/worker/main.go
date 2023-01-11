@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/base32"
 	"fmt"
+	"net/url"
 	"os"
 	"syscall"
 	"text/template"
@@ -437,8 +438,14 @@ func main() {
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
 		worker.RegisterActivityWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
 
+		url, _ := url.Parse(config.Cloudinfo.Endpoint)
+		if err != nil {
+			emperror.Panic(errors.WrapIf(err, "failed to parse Cloudinfo endpoint"))
+		}
+
 		cloudinfoClient := cloudinfoapi.NewAPIClient(&cloudinfoapi.Configuration{
-			BasePath:      config.Cloudinfo.Endpoint,
+			Host:          url.Host,
+			Scheme:        url.Scheme,
 			DefaultHeader: make(map[string]string),
 			UserAgent:     fmt.Sprintf("Pipeline/%s", version),
 		})

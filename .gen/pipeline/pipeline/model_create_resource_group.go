@@ -18,3 +18,31 @@ type CreateResourceGroup struct {
 
 	SecretId string `json:"secretId"`
 }
+
+// AssertCreateResourceGroupRequired checks if the required fields are not zero-ed
+func AssertCreateResourceGroupRequired(obj CreateResourceGroup) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"location": obj.Location,
+		"secretId": obj.SecretId,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreateResourceGroupRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateResourceGroup (e.g. [][]CreateResourceGroup), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateResourceGroupRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateResourceGroup, ok := obj.(CreateResourceGroup)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateResourceGroupRequired(aCreateResourceGroup)
+	})
+}

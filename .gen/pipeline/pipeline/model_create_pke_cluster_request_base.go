@@ -26,3 +26,37 @@ type CreatePkeClusterRequestBase struct {
 
 	Proxy PkeClusterHttpProxy `json:"proxy,omitempty"`
 }
+
+// AssertCreatePkeClusterRequestBaseRequired checks if the required fields are not zero-ed
+func AssertCreatePkeClusterRequestBaseRequired(obj CreatePkeClusterRequestBase) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"type": obj.Type,
+		"kubernetes": obj.Kubernetes,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertCreatePkeClusterKubernetesRequired(obj.Kubernetes); err != nil {
+		return err
+	}
+	if err := AssertPkeClusterHttpProxyRequired(obj.Proxy); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreatePkeClusterRequestBaseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkeClusterRequestBase (e.g. [][]CreatePkeClusterRequestBase), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkeClusterRequestBaseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkeClusterRequestBase, ok := obj.(CreatePkeClusterRequestBase)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkeClusterRequestBaseRequired(aCreatePkeClusterRequestBase)
+	})
+}

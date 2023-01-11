@@ -12,5 +12,25 @@ package pipeline
 
 type NodeItemStatusDaemonEndpoints struct {
 
-	KubeletEndpoint map[string]interface{} `json:"kubeletEndpoint,omitempty"`
+	KubeletEndpoint NodeItemStatusDaemonEndpointsKubeletEndpoint `json:"kubeletEndpoint,omitempty"`
+}
+
+// AssertNodeItemStatusDaemonEndpointsRequired checks if the required fields are not zero-ed
+func AssertNodeItemStatusDaemonEndpointsRequired(obj NodeItemStatusDaemonEndpoints) error {
+	if err := AssertNodeItemStatusDaemonEndpointsKubeletEndpointRequired(obj.KubeletEndpoint); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseNodeItemStatusDaemonEndpointsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodeItemStatusDaemonEndpoints (e.g. [][]NodeItemStatusDaemonEndpoints), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodeItemStatusDaemonEndpointsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodeItemStatusDaemonEndpoints, ok := obj.(NodeItemStatusDaemonEndpoints)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodeItemStatusDaemonEndpointsRequired(aNodeItemStatusDaemonEndpoints)
+	})
 }

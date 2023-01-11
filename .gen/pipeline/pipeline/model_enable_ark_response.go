@@ -14,3 +14,20 @@ type EnableArkResponse struct {
 
 	Status int32 `json:"status,omitempty"`
 }
+
+// AssertEnableArkResponseRequired checks if the required fields are not zero-ed
+func AssertEnableArkResponseRequired(obj EnableArkResponse) error {
+	return nil
+}
+
+// AssertRecurseEnableArkResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EnableArkResponse (e.g. [][]EnableArkResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEnableArkResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEnableArkResponse, ok := obj.(EnableArkResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEnableArkResponseRequired(aEnableArkResponse)
+	})
+}

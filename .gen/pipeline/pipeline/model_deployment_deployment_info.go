@@ -36,3 +36,25 @@ type DeploymentDeploymentInfo struct {
 
 	Version int32 `json:"version,omitempty"`
 }
+
+// AssertDeploymentDeploymentInfoRequired checks if the required fields are not zero-ed
+func AssertDeploymentDeploymentInfoRequired(obj DeploymentDeploymentInfo) error {
+	for _, el := range obj.TargetClusters {
+		if err := AssertDeploymentTargetClusterStatusRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseDeploymentDeploymentInfoRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of DeploymentDeploymentInfo (e.g. [][]DeploymentDeploymentInfo), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseDeploymentDeploymentInfoRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aDeploymentDeploymentInfo, ok := obj.(DeploymentDeploymentInfo)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertDeploymentDeploymentInfoRequired(aDeploymentDeploymentInfo)
+	})
+}

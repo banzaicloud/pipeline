@@ -16,3 +16,32 @@ type CreateRestoreRequest struct {
 
 	Options BackupOptions `json:"options,omitempty"`
 }
+
+// AssertCreateRestoreRequestRequired checks if the required fields are not zero-ed
+func AssertCreateRestoreRequestRequired(obj CreateRestoreRequest) error {
+	elements := map[string]interface{}{
+		"backupName": obj.BackupName,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertBackupOptionsRequired(obj.Options); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreateRestoreRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateRestoreRequest (e.g. [][]CreateRestoreRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateRestoreRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateRestoreRequest, ok := obj.(CreateRestoreRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateRestoreRequestRequired(aCreateRestoreRequest)
+	})
+}

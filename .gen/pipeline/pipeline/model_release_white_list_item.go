@@ -18,3 +18,30 @@ type ReleaseWhiteListItem struct {
 
 	Reason string `json:"reason,omitempty"`
 }
+
+// AssertReleaseWhiteListItemRequired checks if the required fields are not zero-ed
+func AssertReleaseWhiteListItemRequired(obj ReleaseWhiteListItem) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"owner": obj.Owner,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseReleaseWhiteListItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ReleaseWhiteListItem (e.g. [][]ReleaseWhiteListItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseReleaseWhiteListItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aReleaseWhiteListItem, ok := obj.(ReleaseWhiteListItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertReleaseWhiteListItemRequired(aReleaseWhiteListItem)
+	})
+}

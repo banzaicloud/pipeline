@@ -49,3 +49,40 @@ type EksUpdateNodePoolRequest struct {
 
 	Options BaseUpdateNodePoolOptions `json:"options,omitempty"`
 }
+
+// AssertEksUpdateNodePoolRequestRequired checks if the required fields are not zero-ed
+func AssertEksUpdateNodePoolRequestRequired(obj EksUpdateNodePoolRequest) error {
+	elements := map[string]interface{}{
+		"size": obj.Size,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertNodePoolAutoScalingRequired(obj.Autoscaling); err != nil {
+		return err
+	}
+	if obj.VolumeEncryption != nil {
+		if err := AssertEksNodePoolVolumeEncryptionRequired(*obj.VolumeEncryption); err != nil {
+			return err
+		}
+	}
+	if err := AssertBaseUpdateNodePoolOptionsRequired(obj.Options); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseEksUpdateNodePoolRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksUpdateNodePoolRequest (e.g. [][]EksUpdateNodePoolRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksUpdateNodePoolRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksUpdateNodePoolRequest, ok := obj.(EksUpdateNodePoolRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksUpdateNodePoolRequestRequired(aEksUpdateNodePoolRequest)
+	})
+}

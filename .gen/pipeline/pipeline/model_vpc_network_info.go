@@ -21,3 +21,30 @@ type VpcNetworkInfo struct {
 	// Name of the VPC network
 	Name string `json:"name,omitempty"`
 }
+
+// AssertVpcNetworkInfoRequired checks if the required fields are not zero-ed
+func AssertVpcNetworkInfoRequired(obj VpcNetworkInfo) error {
+	elements := map[string]interface{}{
+		"cidrs": obj.Cidrs,
+		"id": obj.Id,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseVpcNetworkInfoRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of VpcNetworkInfo (e.g. [][]VpcNetworkInfo), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseVpcNetworkInfoRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aVpcNetworkInfo, ok := obj.(VpcNetworkInfo)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertVpcNetworkInfoRequired(aVpcNetworkInfo)
+	})
+}

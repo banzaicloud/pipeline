@@ -14,3 +14,29 @@ type ActivateIntegratedServiceRequest struct {
 
 	Spec map[string]interface{} `json:"spec"`
 }
+
+// AssertActivateIntegratedServiceRequestRequired checks if the required fields are not zero-ed
+func AssertActivateIntegratedServiceRequestRequired(obj ActivateIntegratedServiceRequest) error {
+	elements := map[string]interface{}{
+		"spec": obj.Spec,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseActivateIntegratedServiceRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ActivateIntegratedServiceRequest (e.g. [][]ActivateIntegratedServiceRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseActivateIntegratedServiceRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aActivateIntegratedServiceRequest, ok := obj.(ActivateIntegratedServiceRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertActivateIntegratedServiceRequestRequired(aActivateIntegratedServiceRequest)
+	})
+}

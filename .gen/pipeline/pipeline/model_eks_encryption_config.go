@@ -18,3 +18,23 @@ type EksEncryptionConfig struct {
 	// Resource kinds to encrypt with the corresponding encryption provider.
 	Resources []string `json:"resources,omitempty"`
 }
+
+// AssertEksEncryptionConfigRequired checks if the required fields are not zero-ed
+func AssertEksEncryptionConfigRequired(obj EksEncryptionConfig) error {
+	if err := AssertEksEncryptionConfigProviderRequired(obj.Provider); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseEksEncryptionConfigRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksEncryptionConfig (e.g. [][]EksEncryptionConfig), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksEncryptionConfigRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksEncryptionConfig, ok := obj.(EksEncryptionConfig)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksEncryptionConfigRequired(aEksEncryptionConfig)
+	})
+}

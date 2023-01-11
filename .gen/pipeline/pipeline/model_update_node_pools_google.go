@@ -22,3 +22,29 @@ type UpdateNodePoolsGoogle struct {
 
 	InstanceType string `json:"instanceType,omitempty"`
 }
+
+// AssertUpdateNodePoolsGoogleRequired checks if the required fields are not zero-ed
+func AssertUpdateNodePoolsGoogleRequired(obj UpdateNodePoolsGoogle) error {
+	elements := map[string]interface{}{
+		"count": obj.Count,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseUpdateNodePoolsGoogleRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateNodePoolsGoogle (e.g. [][]UpdateNodePoolsGoogle), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateNodePoolsGoogleRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateNodePoolsGoogle, ok := obj.(UpdateNodePoolsGoogle)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateNodePoolsGoogleRequired(aUpdateNodePoolsGoogle)
+	})
+}

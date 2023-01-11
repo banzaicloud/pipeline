@@ -14,3 +14,29 @@ type CreatePkePropertiesCri struct {
 
 	Runtime string `json:"runtime"`
 }
+
+// AssertCreatePkePropertiesCriRequired checks if the required fields are not zero-ed
+func AssertCreatePkePropertiesCriRequired(obj CreatePkePropertiesCri) error {
+	elements := map[string]interface{}{
+		"runtime": obj.Runtime,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreatePkePropertiesCriRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkePropertiesCri (e.g. [][]CreatePkePropertiesCri), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkePropertiesCriRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkePropertiesCri, ok := obj.(CreatePkePropertiesCri)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkePropertiesCriRequired(aCreatePkePropertiesCri)
+	})
+}

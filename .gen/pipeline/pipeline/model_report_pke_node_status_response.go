@@ -15,3 +15,20 @@ type ReportPkeNodeStatusResponse struct {
 	// ID of the registered process
 	ProcessId string `json:"processId,omitempty"`
 }
+
+// AssertReportPkeNodeStatusResponseRequired checks if the required fields are not zero-ed
+func AssertReportPkeNodeStatusResponseRequired(obj ReportPkeNodeStatusResponse) error {
+	return nil
+}
+
+// AssertRecurseReportPkeNodeStatusResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ReportPkeNodeStatusResponse (e.g. [][]ReportPkeNodeStatusResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseReportPkeNodeStatusResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aReportPkeNodeStatusResponse, ok := obj.(ReportPkeNodeStatusResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertReportPkeNodeStatusResponseRequired(aReportPkeNodeStatusResponse)
+	})
+}

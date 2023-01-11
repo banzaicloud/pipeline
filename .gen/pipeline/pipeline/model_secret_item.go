@@ -30,3 +30,20 @@ type SecretItem struct {
 
 	Values map[string]interface{} `json:"values,omitempty"`
 }
+
+// AssertSecretItemRequired checks if the required fields are not zero-ed
+func AssertSecretItemRequired(obj SecretItem) error {
+	return nil
+}
+
+// AssertRecurseSecretItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of SecretItem (e.g. [][]SecretItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseSecretItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aSecretItem, ok := obj.(SecretItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertSecretItemRequired(aSecretItem)
+	})
+}

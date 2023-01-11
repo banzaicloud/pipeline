@@ -18,3 +18,20 @@ type InstallSecretRequestSpecItem struct {
 
 	Value string `json:"value,omitempty"`
 }
+
+// AssertInstallSecretRequestSpecItemRequired checks if the required fields are not zero-ed
+func AssertInstallSecretRequestSpecItemRequired(obj InstallSecretRequestSpecItem) error {
+	return nil
+}
+
+// AssertRecurseInstallSecretRequestSpecItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of InstallSecretRequestSpecItem (e.g. [][]InstallSecretRequestSpecItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseInstallSecretRequestSpecItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aInstallSecretRequestSpecItem, ok := obj.(InstallSecretRequestSpecItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertInstallSecretRequestSpecItemRequired(aInstallSecretRequestSpecItem)
+	})
+}

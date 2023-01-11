@@ -26,3 +26,30 @@ type HelmReposAddRequest struct {
 
 	TlsSecretRef string `json:"tlsSecretRef,omitempty"`
 }
+
+// AssertHelmReposAddRequestRequired checks if the required fields are not zero-ed
+func AssertHelmReposAddRequestRequired(obj HelmReposAddRequest) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"url": obj.Url,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseHelmReposAddRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of HelmReposAddRequest (e.g. [][]HelmReposAddRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseHelmReposAddRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aHelmReposAddRequest, ok := obj.(HelmReposAddRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertHelmReposAddRequestRequired(aHelmReposAddRequest)
+	})
+}

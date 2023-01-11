@@ -36,3 +36,26 @@ type BackupResponse struct {
 
 	ClusterId int32 `json:"clusterId,omitempty"`
 }
+
+// AssertBackupResponseRequired checks if the required fields are not zero-ed
+func AssertBackupResponseRequired(obj BackupResponse) error {
+	if err := AssertLabelsRequired(obj.Labels); err != nil {
+		return err
+	}
+	if err := AssertBackupOptionsRequired(obj.Options); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseBackupResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of BackupResponse (e.g. [][]BackupResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseBackupResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aBackupResponse, ok := obj.(BackupResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertBackupResponseRequired(aBackupResponse)
+	})
+}

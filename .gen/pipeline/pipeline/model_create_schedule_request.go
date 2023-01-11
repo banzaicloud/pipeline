@@ -22,3 +22,37 @@ type CreateScheduleRequest struct {
 
 	Options BackupOptions `json:"options,omitempty"`
 }
+
+// AssertCreateScheduleRequestRequired checks if the required fields are not zero-ed
+func AssertCreateScheduleRequestRequired(obj CreateScheduleRequest) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"schedule": obj.Schedule,
+		"ttl": obj.Ttl,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertLabelsRequired(obj.Labels); err != nil {
+		return err
+	}
+	if err := AssertBackupOptionsRequired(obj.Options); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreateScheduleRequestRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateScheduleRequest (e.g. [][]CreateScheduleRequest), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateScheduleRequestRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateScheduleRequest, ok := obj.(CreateScheduleRequest)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateScheduleRequestRequired(aCreateScheduleRequest)
+	})
+}

@@ -16,3 +16,20 @@ type CreateScheduleResponse struct {
 
 	Status int32 `json:"status,omitempty"`
 }
+
+// AssertCreateScheduleResponseRequired checks if the required fields are not zero-ed
+func AssertCreateScheduleResponseRequired(obj CreateScheduleResponse) error {
+	return nil
+}
+
+// AssertRecurseCreateScheduleResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateScheduleResponse (e.g. [][]CreateScheduleResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateScheduleResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateScheduleResponse, ok := obj.(CreateScheduleResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateScheduleResponseRequired(aCreateScheduleResponse)
+	})
+}

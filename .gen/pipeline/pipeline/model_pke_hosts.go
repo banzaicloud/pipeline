@@ -18,3 +18,31 @@ type PkeHosts struct {
 
 	Roles []string `json:"roles"`
 }
+
+// AssertPkeHostsRequired checks if the required fields are not zero-ed
+func AssertPkeHostsRequired(obj PkeHosts) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+		"privateIP": obj.PrivateIP,
+		"roles": obj.Roles,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecursePkeHostsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of PkeHosts (e.g. [][]PkeHosts), otherwise ErrTypeAssertionError is thrown.
+func AssertRecursePkeHostsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aPkeHosts, ok := obj.(PkeHosts)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertPkeHostsRequired(aPkeHosts)
+	})
+}

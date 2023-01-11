@@ -15,3 +15,20 @@ type UpdateNodePoolResponse struct {
 	// Node pool update process ID.
 	ProcessId string `json:"processId,omitempty"`
 }
+
+// AssertUpdateNodePoolResponseRequired checks if the required fields are not zero-ed
+func AssertUpdateNodePoolResponseRequired(obj UpdateNodePoolResponse) error {
+	return nil
+}
+
+// AssertRecurseUpdateNodePoolResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateNodePoolResponse (e.g. [][]UpdateNodePoolResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateNodePoolResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateNodePoolResponse, ok := obj.(UpdateNodePoolResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateNodePoolResponseRequired(aUpdateNodePoolResponse)
+	})
+}

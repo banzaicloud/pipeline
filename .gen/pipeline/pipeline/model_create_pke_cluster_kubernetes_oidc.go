@@ -14,3 +14,20 @@ type CreatePkeClusterKubernetesOidc struct {
 
 	Enabled bool `json:"enabled,omitempty"`
 }
+
+// AssertCreatePkeClusterKubernetesOidcRequired checks if the required fields are not zero-ed
+func AssertCreatePkeClusterKubernetesOidcRequired(obj CreatePkeClusterKubernetesOidc) error {
+	return nil
+}
+
+// AssertRecurseCreatePkeClusterKubernetesOidcRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkeClusterKubernetesOidc (e.g. [][]CreatePkeClusterKubernetesOidc), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkeClusterKubernetesOidcRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkeClusterKubernetesOidc, ok := obj.(CreatePkeClusterKubernetesOidc)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkeClusterKubernetesOidcRequired(aCreatePkeClusterKubernetesOidc)
+	})
+}

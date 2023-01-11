@@ -24,3 +24,25 @@ type ApiClusterGroup struct {
 
 	Uid string `json:"uid,omitempty"`
 }
+
+// AssertApiClusterGroupRequired checks if the required fields are not zero-ed
+func AssertApiClusterGroupRequired(obj ApiClusterGroup) error {
+	for _, el := range obj.Members {
+		if err := AssertApiMemberRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseApiClusterGroupRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ApiClusterGroup (e.g. [][]ApiClusterGroup), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseApiClusterGroupRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aApiClusterGroup, ok := obj.(ApiClusterGroup)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertApiClusterGroupRequired(aApiClusterGroup)
+	})
+}

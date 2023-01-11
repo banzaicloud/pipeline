@@ -16,3 +16,33 @@ type CreatePkePropertiesKubernetes struct {
 
 	Rbac CreatePkePropertiesKubernetesRbac `json:"rbac"`
 }
+
+// AssertCreatePkePropertiesKubernetesRequired checks if the required fields are not zero-ed
+func AssertCreatePkePropertiesKubernetesRequired(obj CreatePkePropertiesKubernetes) error {
+	elements := map[string]interface{}{
+		"version": obj.Version,
+		"rbac": obj.Rbac,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertCreatePkePropertiesKubernetesRbacRequired(obj.Rbac); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseCreatePkePropertiesKubernetesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreatePkePropertiesKubernetes (e.g. [][]CreatePkePropertiesKubernetes), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreatePkePropertiesKubernetesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreatePkePropertiesKubernetes, ok := obj.(CreatePkePropertiesKubernetes)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreatePkePropertiesKubernetesRequired(aCreatePkePropertiesKubernetes)
+	})
+}

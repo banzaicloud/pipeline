@@ -24,3 +24,20 @@ type BackupOptions struct {
 
 	IncludeClusterResources bool `json:"includeClusterResources,omitempty"`
 }
+
+// AssertBackupOptionsRequired checks if the required fields are not zero-ed
+func AssertBackupOptionsRequired(obj BackupOptions) error {
+	return nil
+}
+
+// AssertRecurseBackupOptionsRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of BackupOptions (e.g. [][]BackupOptions), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseBackupOptionsRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aBackupOptions, ok := obj.(BackupOptions)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertBackupOptionsRequired(aBackupOptions)
+	})
+}

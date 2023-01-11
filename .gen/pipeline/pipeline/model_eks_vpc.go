@@ -18,3 +18,20 @@ type EksVpc struct {
 	// The CIDR range for the VPC in case new VPC is created.
 	Cidr string `json:"cidr,omitempty"`
 }
+
+// AssertEksVpcRequired checks if the required fields are not zero-ed
+func AssertEksVpcRequired(obj EksVpc) error {
+	return nil
+}
+
+// AssertRecurseEksVpcRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of EksVpc (e.g. [][]EksVpc), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseEksVpcRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aEksVpc, ok := obj.(EksVpc)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertEksVpcRequired(aEksVpc)
+	})
+}

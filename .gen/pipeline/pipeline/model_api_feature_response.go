@@ -26,3 +26,23 @@ type ApiFeatureResponse struct {
 
 	Status map[string]interface{} `json:"status,omitempty"`
 }
+
+// AssertApiFeatureResponseRequired checks if the required fields are not zero-ed
+func AssertApiFeatureResponseRequired(obj ApiFeatureResponse) error {
+	if err := AssertApiClusterGroupRequired(obj.ClusterGroup); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertRecurseApiFeatureResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ApiFeatureResponse (e.g. [][]ApiFeatureResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseApiFeatureResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aApiFeatureResponse, ok := obj.(ApiFeatureResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertApiFeatureResponseRequired(aApiFeatureResponse)
+	})
+}

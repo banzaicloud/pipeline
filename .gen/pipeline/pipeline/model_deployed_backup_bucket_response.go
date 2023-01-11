@@ -32,3 +32,20 @@ type DeployedBackupBucketResponse struct {
 
 	ClusterDistribution string `json:"clusterDistribution,omitempty"`
 }
+
+// AssertDeployedBackupBucketResponseRequired checks if the required fields are not zero-ed
+func AssertDeployedBackupBucketResponseRequired(obj DeployedBackupBucketResponse) error {
+	return nil
+}
+
+// AssertRecurseDeployedBackupBucketResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of DeployedBackupBucketResponse (e.g. [][]DeployedBackupBucketResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseDeployedBackupBucketResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aDeployedBackupBucketResponse, ok := obj.(DeployedBackupBucketResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertDeployedBackupBucketResponseRequired(aDeployedBackupBucketResponse)
+	})
+}

@@ -14,3 +14,29 @@ type CreateGoogleObjectStoreBucketProperties struct {
 
 	Location string `json:"location"`
 }
+
+// AssertCreateGoogleObjectStoreBucketPropertiesRequired checks if the required fields are not zero-ed
+func AssertCreateGoogleObjectStoreBucketPropertiesRequired(obj CreateGoogleObjectStoreBucketProperties) error {
+	elements := map[string]interface{}{
+		"location": obj.Location,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseCreateGoogleObjectStoreBucketPropertiesRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of CreateGoogleObjectStoreBucketProperties (e.g. [][]CreateGoogleObjectStoreBucketProperties), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseCreateGoogleObjectStoreBucketPropertiesRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aCreateGoogleObjectStoreBucketProperties, ok := obj.(CreateGoogleObjectStoreBucketProperties)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertCreateGoogleObjectStoreBucketPropertiesRequired(aCreateGoogleObjectStoreBucketProperties)
+	})
+}

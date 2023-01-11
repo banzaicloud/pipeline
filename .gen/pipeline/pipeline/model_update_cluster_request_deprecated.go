@@ -16,3 +16,30 @@ type UpdateClusterRequestDeprecated struct {
 
 	Properties map[string]interface{} `json:"properties"`
 }
+
+// AssertUpdateClusterRequestDeprecatedRequired checks if the required fields are not zero-ed
+func AssertUpdateClusterRequestDeprecatedRequired(obj UpdateClusterRequestDeprecated) error {
+	elements := map[string]interface{}{
+		"cloud": obj.Cloud,
+		"properties": obj.Properties,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertRecurseUpdateClusterRequestDeprecatedRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of UpdateClusterRequestDeprecated (e.g. [][]UpdateClusterRequestDeprecated), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseUpdateClusterRequestDeprecatedRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aUpdateClusterRequestDeprecated, ok := obj.(UpdateClusterRequestDeprecated)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertUpdateClusterRequestDeprecatedRequired(aUpdateClusterRequestDeprecated)
+	})
+}

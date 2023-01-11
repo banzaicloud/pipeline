@@ -24,7 +24,7 @@ import (
 
 const PKEOnVsphere = pke.PKEOnVsphere
 
-type CreatePKEOnVsphereClusterRequest pipeline.CreatePkeOnVsphereClusterRequest
+type CreatePKEOnVsphereClusterRequest pipeline.CreatePkeonVsphereClusterRequest
 
 func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(organizationID, userID uint) driver.VspherePKEClusterCreationParams {
 	storagetSecretID := req.StorageSecretId
@@ -69,7 +69,7 @@ func (req CreatePKEOnVsphereClusterRequest) ToVspherePKEClusterCreationParams(or
 	}
 }
 
-type UpdatePKEOnVsphereClusterRequest pipeline.UpdatePkeOnVsphereClusterRequest
+type UpdatePKEOnVsphereClusterRequest pipeline.UpdatePkeonVsphereClusterRequest
 
 func (req UpdatePKEOnVsphereClusterRequest) ToVspherePKEClusterUpdateParams(clusterID, userID uint) driver.VspherePKEClusterUpdateParams {
 	return driver.VspherePKEClusterUpdateParams{
@@ -78,7 +78,7 @@ func (req UpdatePKEOnVsphereClusterRequest) ToVspherePKEClusterUpdateParams(clus
 	}
 }
 
-func vsphereRequestToClusterNodepools(request []pipeline.PkeOnVsphereNodePool, userID uint) []driver.NodePool {
+func vsphereRequestToClusterNodepools(request []pipeline.PkeonVsphereNodePool, userID uint) []driver.NodePool {
 	nodepools := make([]driver.NodePool, len(request))
 	for i, node := range request {
 		nodepools[i] = driver.NodePool{

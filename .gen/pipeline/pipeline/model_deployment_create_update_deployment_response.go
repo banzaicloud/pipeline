@@ -16,3 +16,25 @@ type DeploymentCreateUpdateDeploymentResponse struct {
 
 	TargetClusters []DeploymentTargetClusterStatus `json:"targetClusters,omitempty"`
 }
+
+// AssertDeploymentCreateUpdateDeploymentResponseRequired checks if the required fields are not zero-ed
+func AssertDeploymentCreateUpdateDeploymentResponseRequired(obj DeploymentCreateUpdateDeploymentResponse) error {
+	for _, el := range obj.TargetClusters {
+		if err := AssertDeploymentTargetClusterStatusRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseDeploymentCreateUpdateDeploymentResponseRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of DeploymentCreateUpdateDeploymentResponse (e.g. [][]DeploymentCreateUpdateDeploymentResponse), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseDeploymentCreateUpdateDeploymentResponseRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aDeploymentCreateUpdateDeploymentResponse, ok := obj.(DeploymentCreateUpdateDeploymentResponse)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertDeploymentCreateUpdateDeploymentResponseRequired(aDeploymentCreateUpdateDeploymentResponse)
+	})
+}

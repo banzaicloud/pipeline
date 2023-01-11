@@ -28,3 +28,20 @@ type ProcessEvent struct {
 
 	Timestamp time.Time `json:"timestamp,omitempty"`
 }
+
+// AssertProcessEventRequired checks if the required fields are not zero-ed
+func AssertProcessEventRequired(obj ProcessEvent) error {
+	return nil
+}
+
+// AssertRecurseProcessEventRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of ProcessEvent (e.g. [][]ProcessEvent), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseProcessEventRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aProcessEvent, ok := obj.(ProcessEvent)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertProcessEventRequired(aProcessEvent)
+	})
+}

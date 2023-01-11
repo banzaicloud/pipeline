@@ -14,3 +14,20 @@ type NamespaceItem struct {
 
 	Name string `json:"name,omitempty"`
 }
+
+// AssertNamespaceItemRequired checks if the required fields are not zero-ed
+func AssertNamespaceItemRequired(obj NamespaceItem) error {
+	return nil
+}
+
+// AssertRecurseNamespaceItemRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NamespaceItem (e.g. [][]NamespaceItem), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNamespaceItemRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNamespaceItem, ok := obj.(NamespaceItem)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNamespaceItemRequired(aNamespaceItem)
+	})
+}

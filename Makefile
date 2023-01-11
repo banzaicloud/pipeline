@@ -28,16 +28,14 @@ TEST_FORMAT = short-verbose
 endif
 
 CLOUDINFO_VERSION = 0.9.5
-DEX_VERSION = 2.19.0
-# TODO: use an exact version
-ANCHORE_VERSION = 156836d
+ANCHORE_VERSION = 1.1.0
 
 GOLANGCI_VERSION = 1.50.0
 LICENSEI_VERSION = 0.3.1
-OPENAPI_GENERATOR_VERSION = v4.3.1
+OPENAPI_GENERATOR_VERSION = v6.2.0
 MIGRATE_VERSION = 4.9.1
 GOTESTSUM_VERSION = 0.4.1
-MGA_VERSION = 0.4.2
+MGA_VERSION = 0.9.0
 GRYPE_VERSION = 0.32.0
 ETCD_VERSION = 3.4.16
 KUBE_APISERVER_VERSION = 1.19.11
@@ -327,7 +325,7 @@ generate-openapi: validate-openapi ## Generate go server based on openapi descri
 	-g go-server \
 	-o /local/.gen/pipeline
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
-	rm .gen/pipeline/{Dockerfile,go.*,README.md,main.go,go/api*.go,go/logger.go,go/routers.go}
+	rm .gen/pipeline/{Dockerfile,go.*,README.md,main.go,go/api*.go}
 	mv .gen/pipeline/go .gen/pipeline/pipeline
 	$(call restore_backup_file,.gen/pipeline/pipeline/BUILD.plz)
 
@@ -354,7 +352,7 @@ generate-cloudinfo-client: apis/cloudinfo/openapi.yaml ## Generate client from C
 	$(call restore_backup_file,.gen/cloudinfo/BUILD.plz)
 
 apis/anchore/swagger.yaml:
-	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
+	curl https://raw.githubusercontent.com/anchore/anchore-engine/v${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
 
 .PHONY: generate-anchore-client
 generate-anchore-client: ## apis/anchore/swagger.yaml ## https://github.com/anchore/anchore-engine/pull/846 ## Generate client from Anchore OpenAPI spec

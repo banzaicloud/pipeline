@@ -16,13 +16,57 @@ type NodeItemStatus struct {
 
 	Allocatable NodeItemStatusAllocatable `json:"allocatable,omitempty"`
 
-	Conditions []NodeItemStatusConditions `json:"conditions,omitempty"`
+	Conditions []NodeItemStatusConditionsInner `json:"conditions,omitempty"`
 
-	Addresses []NodeItemStatusAddresses `json:"addresses,omitempty"`
+	Addresses []NodeItemStatusAddressesInner `json:"addresses,omitempty"`
 
 	DaemonEndpoints NodeItemStatusDaemonEndpoints `json:"daemonEndpoints,omitempty"`
 
 	NodeInfo NodeItemStatusNodeInfo `json:"nodeInfo,omitempty"`
 
-	Images []NodeItemStatusImages `json:"images,omitempty"`
+	Images []NodeItemStatusImagesInner `json:"images,omitempty"`
+}
+
+// AssertNodeItemStatusRequired checks if the required fields are not zero-ed
+func AssertNodeItemStatusRequired(obj NodeItemStatus) error {
+	if err := AssertNodeItemStatusCapacityRequired(obj.Capacity); err != nil {
+		return err
+	}
+	if err := AssertNodeItemStatusAllocatableRequired(obj.Allocatable); err != nil {
+		return err
+	}
+	for _, el := range obj.Conditions {
+		if err := AssertNodeItemStatusConditionsInnerRequired(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.Addresses {
+		if err := AssertNodeItemStatusAddressesInnerRequired(el); err != nil {
+			return err
+		}
+	}
+	if err := AssertNodeItemStatusDaemonEndpointsRequired(obj.DaemonEndpoints); err != nil {
+		return err
+	}
+	if err := AssertNodeItemStatusNodeInfoRequired(obj.NodeInfo); err != nil {
+		return err
+	}
+	for _, el := range obj.Images {
+		if err := AssertNodeItemStatusImagesInnerRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertRecurseNodeItemStatusRequired recursively checks if required fields are not zero-ed in a nested slice.
+// Accepts only nested slice of NodeItemStatus (e.g. [][]NodeItemStatus), otherwise ErrTypeAssertionError is thrown.
+func AssertRecurseNodeItemStatusRequired(objSlice interface{}) error {
+	return AssertRecurseInterfaceRequired(objSlice, func(obj interface{}) error {
+		aNodeItemStatus, ok := obj.(NodeItemStatus)
+		if !ok {
+			return ErrTypeAssertionError
+		}
+		return AssertNodeItemStatusRequired(aNodeItemStatus)
+	})
 }

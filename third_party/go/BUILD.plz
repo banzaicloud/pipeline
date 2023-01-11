@@ -855,22 +855,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__antihax__optional",
-    _tag = "download",
-    module = "github.com/antihax/optional",
-    version = "v1.0.0",
-)
-
-go_module(
-    name = "github.com__antihax__optional",
-    download = ":_github.com__antihax__optional#download",
-    install = ["."],
-    module = "github.com/antihax/optional",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__aokoli__goutils",
     _tag = "download",
     module = "github.com/aokoli/goutils",
