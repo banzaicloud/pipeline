@@ -3,7 +3,7 @@
   {{- $serviceName := include "pipeline.fullname" . -}}
   {{- $servicePort := .Values.service.externalPort -}}
   {{- range .Values.ingress.hosts }}
-  {{- $url := splitList "/" . }}
+  {{- $url := splitList "/" .host }}
   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ first $url }}{{ rest $url | join "/" }}
   {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
