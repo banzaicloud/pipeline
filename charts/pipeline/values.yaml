@@ -91,17 +91,31 @@ serviceMonitor:
   labels: {}
 
 ingress:
-  enabled: false
-  annotations: {}
-  #    traefik.frontend.rule.type: PathPrefix
-  hosts: []
-  #   - "/"
-  #   - "domain.com/xyz"
-  #   - "domain.com"
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    # -- Enable [ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/).
+    enabled: false
+
+    # -- Ingress [class name](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class).
+    className: ""
+
+    # -- Annotations to be added to the ingress.
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+
+    # -- Ingress host configuration.
+    # @default -- See [values.yaml](values.yaml).
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
+
+    # -- Ingress TLS configuration.
+    # @default -- See [values.yaml](values.yaml).
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
 
 ## Additional environment variables to set
 extraEnvs: []
