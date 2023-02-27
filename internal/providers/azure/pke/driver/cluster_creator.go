@@ -44,7 +44,7 @@ import (
 )
 
 const (
-	pkeVersion      = "0.9.3"
+	pkeVersion      = "0.9.4-dev.1"
 	MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 )
 
