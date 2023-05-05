@@ -38,7 +38,7 @@ require (
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v1.3.0
-	github.com/gin-gonic/gin v1.6.2
+	github.com/gin-gonic/gin v1.9.0
 	github.com/go-kit/kit v0.10.0
 	github.com/gofrs/flock v0.8.0
 	github.com/gofrs/uuid v3.2.0+incompatible
@@ -51,7 +51,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1
 	github.com/jonboulle/clockwork v0.2.0
-	github.com/json-iterator/go v1.1.11
+	github.com/json-iterator/go v1.1.12
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/microcosm-cc/bluemonday v1.0.17
@@ -73,16 +73,17 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.0
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.1
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
+	github.com/ugorji/go v1.1.7 // indirect
 	github.com/vmware-tanzu/velero v1.5.1
 	github.com/vmware/govmomi v0.22.0
 	go.opencensus.io v0.23.0
 	go.uber.org/cadence v0.19.0
 	go.uber.org/yarpc v1.55.0
 	go.uber.org/zap v1.18.1
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
-	golang.org/x/net v0.0.0-20211209124913-491a49abca63
+	golang.org/x/crypto v0.5.0
+	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
 	google.golang.org/api v0.44.0
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
