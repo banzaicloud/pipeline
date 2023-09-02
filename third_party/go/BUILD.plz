@@ -26,7 +26,7 @@ go_mod_download(
     name = "cloud.google.com__go",
     _tag = "download",
     module = "cloud.google.com/go",
-    version = "v0.81.0",
+    version = "v0.99.0",
 )
 
 go_module(
@@ -101,6 +101,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":go.opencensus.io__trace",
+        ":golang.org__x__xerrors",
         ":google.golang.org__api__googleapi",
         ":google.golang.org__genproto__googleapis__rpc__code",
         ":google.golang.org__grpc__status",
@@ -239,7 +240,7 @@ go_mod_download(
     name = "github.com__Azure__azure-sdk-for-go",
     _tag = "download",
     module = "github.com/Azure/azure-sdk-for-go",
-    version = "v44.2.0+incompatible",
+    version = "v56.3.0+incompatible",
 )
 
 go_module(
@@ -345,6 +346,7 @@ go_module(
         ":github.com__Azure__go-autorest__autorest",
         ":github.com__Azure__go-autorest__autorest__azure",
         ":github.com__Azure__go-autorest__autorest__to",
+        ":github.com__Azure__go-autorest__autorest__validation",
         ":github.com__Azure__go-autorest__tracing",
     ],
 )
@@ -432,7 +434,7 @@ go_mod_download(
     name = "github.com__Azure__go-autorest__autorest",
     _tag = "download",
     module = "github.com/Azure/go-autorest/autorest",
-    version = "v0.11.12",
+    version = "v0.11.27",
 )
 
 go_module(
@@ -456,6 +458,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__Azure__go-autorest__autorest",
+        ":github.com__Azure__go-autorest__logger",
         ":github.com__Azure__go-autorest__tracing",
     ],
 )
@@ -464,7 +467,7 @@ go_mod_download(
     name = "github.com__Azure__go-autorest__autorest__adal",
     _tag = "download",
     module = "github.com/Azure/go-autorest/autorest/adal",
-    version = "v0.9.5",
+    version = "v0.9.20",
 )
 
 go_module(
@@ -475,8 +478,9 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__Azure__go-autorest__autorest__date",
+        ":github.com__Azure__go-autorest__logger",
         ":github.com__Azure__go-autorest__tracing",
-        ":github.com__form3tech-oss__jwt-go",
+        ":github.com__golang-jwt__jwt__v4",
         ":golang.org__x__crypto__pkcs12",
     ],
 )
@@ -577,7 +581,7 @@ go_mod_download(
     name = "github.com__Azure__go-autorest__logger",
     _tag = "download",
     module = "github.com/Azure/go-autorest/logger",
-    version = "v0.2.0",
+    version = "v0.2.1",
 )
 
 go_module(
@@ -609,13 +613,22 @@ go_mod_download(
     name = "github.com__BurntSushi__toml",
     _tag = "download",
     module = "github.com/BurntSushi/toml",
-    version = "v0.3.1",
+    version = "v1.1.0",
 )
 
 go_module(
     name = "github.com__BurntSushi__toml",
     download = ":_github.com__BurntSushi__toml#download",
     install = ["."],
+    module = "github.com/BurntSushi/toml",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__BurntSushi__toml__internal"],
+)
+
+go_module(
+    name = "github.com__BurntSushi__toml__internal",
+    download = ":_github.com__BurntSushi__toml#download",
+    install = ["internal"],
     module = "github.com/BurntSushi/toml",
     visibility = ["PUBLIC"],
     deps = [],
@@ -700,7 +713,7 @@ go_mod_download(
     name = "github.com__Masterminds__squirrel",
     _tag = "download",
     module = "github.com/Masterminds/squirrel",
-    version = "v1.5.0",
+    version = "v1.5.3",
 )
 
 go_module(
@@ -922,7 +935,7 @@ go_mod_download(
     name = "github.com__aws__aws-sdk-go",
     _tag = "download",
     module = "github.com/aws/aws-sdk-go",
-    version = "v1.37.1",
+    version = "v1.43.16",
 )
 
 go_module(
@@ -1194,6 +1207,7 @@ go_module(
         ":github.com__aws__aws-sdk-go__aws__request",
         ":github.com__aws__aws-sdk-go__internal__ini",
         ":github.com__aws__aws-sdk-go__internal__shareddefaults",
+        ":github.com__aws__aws-sdk-go__service__sts",
     ],
 )
 
@@ -1380,6 +1394,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__aws__aws-sdk-go__aws",
+        ":github.com__aws__aws-sdk-go__aws__request",
         ":github.com__aws__aws-sdk-go__private__protocol",
         ":github.com__aws__aws-sdk-go__private__protocol__eventstream",
     ],
@@ -1770,6 +1785,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__aws__aws-sdk-go__aws",
+        ":github.com__aws__aws-sdk-go__aws__arn",
         ":github.com__aws__aws-sdk-go__aws__awserr",
         ":github.com__aws__aws-sdk-go__aws__awsutil",
         ":github.com__aws__aws-sdk-go__aws__client",
@@ -2492,7 +2508,7 @@ go_mod_download(
     name = "github.com__cespare__xxhash__v2",
     _tag = "download",
     module = "github.com/cespare/xxhash/v2",
-    version = "v2.1.1",
+    version = "v2.1.2",
 )
 
 go_module(
@@ -2508,7 +2524,7 @@ go_mod_download(
     name = "github.com__containerd__containerd",
     _tag = "download",
     module = "github.com/containerd/containerd",
-    version = "v1.4.4",
+    version = "v1.6.6",
 )
 
 go_module(
@@ -2517,7 +2533,11 @@ go_module(
     install = ["archive/compression"],
     module = "github.com/containerd/containerd",
     visibility = ["PUBLIC"],
-    deps = [":github.com__containerd__containerd__log"],
+    deps = [
+        ":github.com__containerd__containerd__log",
+        ":github.com__klauspost__compress__zstd",
+        ":golang.org__x__sys__execabs",
+    ],
 )
 
 go_module(
@@ -2528,9 +2548,9 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__containerd__containerd__errdefs",
+        ":github.com__containerd__containerd__filters",
         ":github.com__opencontainers__go-digest",
         ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
     ],
 )
 
@@ -2545,10 +2565,8 @@ go_module(
         ":github.com__containerd__containerd__errdefs",
         ":github.com__containerd__containerd__filters",
         ":github.com__containerd__containerd__log",
-        ":github.com__containerd__containerd__sys",
         ":github.com__opencontainers__go-digest",
         ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
         ":github.com__sirupsen__logrus",
     ],
 )
@@ -2560,7 +2578,6 @@ go_module(
     module = "github.com/containerd/containerd",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__pkg__errors",
         ":google.golang.org__grpc__codes",
         ":google.golang.org__grpc__status",
     ],
@@ -2575,7 +2592,6 @@ go_module(
     deps = [
         ":github.com__containerd__containerd__errdefs",
         ":github.com__containerd__containerd__log",
-        ":github.com__pkg__errors",
     ],
 )
 
@@ -2586,13 +2602,15 @@ go_module(
     module = "github.com/containerd/containerd",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__containerd__containerd__archive__compression",
         ":github.com__containerd__containerd__content",
         ":github.com__containerd__containerd__errdefs",
+        ":github.com__containerd__containerd__labels",
         ":github.com__containerd__containerd__log",
         ":github.com__containerd__containerd__platforms",
         ":github.com__opencontainers__go-digest",
         ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
+        ":github.com__sirupsen__logrus",
         ":golang.org__x__sync__errgroup",
         ":golang.org__x__sync__semaphore",
     ],
@@ -2604,10 +2622,7 @@ go_module(
     install = ["labels"],
     module = "github.com/containerd/containerd",
     visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__containerd__containerd__errdefs",
-        ":github.com__pkg__errors",
-    ],
+    deps = [":github.com__containerd__containerd__errdefs"],
 )
 
 go_module(
@@ -2629,7 +2644,6 @@ go_module(
         ":github.com__containerd__containerd__errdefs",
         ":github.com__containerd__containerd__log",
         ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
     ],
 )
 
@@ -2655,8 +2669,8 @@ go_module(
         ":github.com__containerd__containerd__log",
         ":github.com__containerd__containerd__platforms",
         ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
         ":github.com__sirupsen__logrus",
+        ":golang.org__x__sync__semaphore",
     ],
 )
 
@@ -2674,12 +2688,28 @@ go_module(
         ":github.com__containerd__containerd__log",
         ":github.com__containerd__containerd__reference",
         ":github.com__containerd__containerd__remotes",
+        ":github.com__containerd__containerd__remotes__docker__auth",
         ":github.com__containerd__containerd__remotes__docker__schema1",
+        ":github.com__containerd__containerd__remotes__errors",
         ":github.com__containerd__containerd__version",
+        ":github.com__moby__locker",
         ":github.com__opencontainers__go-digest",
         ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
         ":github.com__sirupsen__logrus",
+        ":golang.org__x__net__context__ctxhttp",
+    ],
+)
+
+go_module(
+    name = "github.com__containerd__containerd__remotes__docker__auth",
+    download = ":_github.com__containerd__containerd#download",
+    install = ["remotes/docker/auth"],
+    module = "github.com/containerd/containerd",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__containerd__containerd__log",
+        ":github.com__containerd__containerd__remotes__errors",
+        ":github.com__containerd__containerd__version",
         ":golang.org__x__net__context__ctxhttp",
     ],
 )
@@ -2700,26 +2730,17 @@ go_module(
         ":github.com__opencontainers__go-digest",
         ":github.com__opencontainers__image-spec__specs-go",
         ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
         ":golang.org__x__sync__errgroup",
     ],
 )
 
 go_module(
-    name = "github.com__containerd__containerd__sys",
+    name = "github.com__containerd__containerd__remotes__errors",
     download = ":_github.com__containerd__containerd#download",
-    install = ["sys"],
+    install = ["remotes/errors"],
     module = "github.com/containerd/containerd",
     visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__pkg__errors",
-        ":golang.org__x__sys__unix",
-    ] + select({
-        ":__config_darwin_amd64": [],
-        ":__config_darwin_arm64": [],
-        ":__config_linux_amd64": [":github.com__containerd__containerd__log"],
-        "default": [],
-    }),
+    deps = [],
 )
 
 go_module(
@@ -2787,7 +2808,7 @@ go_mod_download(
     name = "github.com__cyphar__filepath-securejoin",
     _tag = "download",
     module = "github.com/cyphar/filepath-securejoin",
-    version = "v0.2.2",
+    version = "v0.2.3",
 )
 
 go_module(
@@ -2796,7 +2817,7 @@ go_module(
     install = ["."],
     module = "github.com/cyphar/filepath-securejoin",
     visibility = ["PUBLIC"],
-    deps = [":github.com__pkg__errors"],
+    deps = [],
 )
 
 go_mod_download(
@@ -2813,102 +2834,6 @@ go_module(
     module = "github.com/davecgh/go-spew",
     visibility = ["PUBLIC"],
     deps = [],
-)
-
-go_mod_download(
-    name = "github.com__deislabs__oras",
-    _tag = "download",
-    module = "github.com/deislabs/oras",
-    version = "v0.11.1",
-)
-
-go_module(
-    name = "github.com__deislabs__oras__pkg__artifact",
-    download = ":_github.com__deislabs__oras#download",
-    install = ["pkg/artifact"],
-    module = "github.com/deislabs/oras",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "github.com__deislabs__oras__pkg__auth",
-    download = ":_github.com__deislabs__oras#download",
-    install = ["pkg/auth"],
-    module = "github.com/deislabs/oras",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__containerd__containerd__remotes"],
-)
-
-go_module(
-    name = "github.com__deislabs__oras__pkg__auth__docker",
-    download = ":_github.com__deislabs__oras#download",
-    install = ["pkg/auth/docker"],
-    module = "github.com/deislabs/oras",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__containerd__containerd__remotes",
-        ":github.com__containerd__containerd__remotes__docker",
-        ":github.com__deislabs__oras__pkg__auth",
-        ":github.com__docker__cli__cli__config",
-        ":github.com__docker__cli__cli__config__configfile",
-        ":github.com__docker__cli__cli__config__credentials",
-        ":github.com__docker__cli__cli__config__types",
-        ":github.com__docker__docker__api__types",
-        ":github.com__docker__docker__registry",
-        ":github.com__pkg__errors",
-    ],
-)
-
-go_module(
-    name = "github.com__deislabs__oras__pkg__content",
-    download = ":_github.com__deislabs__oras#download",
-    install = ["pkg/content"],
-    module = "github.com/deislabs/oras",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__containerd__containerd__content",
-        ":github.com__containerd__containerd__content__local",
-        ":github.com__containerd__containerd__errdefs",
-        ":github.com__opencontainers__go-digest",
-        ":github.com__opencontainers__image-spec__specs-go",
-        ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
-    ],
-)
-
-go_module(
-    name = "github.com__deislabs__oras__pkg__context",
-    download = ":_github.com__deislabs__oras#download",
-    install = ["pkg/context"],
-    module = "github.com/deislabs/oras",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__containerd__containerd__log",
-        ":github.com__sirupsen__logrus",
-    ],
-)
-
-go_module(
-    name = "github.com__deislabs__oras__pkg__oras",
-    download = ":_github.com__deislabs__oras#download",
-    install = ["pkg/oras"],
-    module = "github.com/deislabs/oras",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__containerd__containerd__content",
-        ":github.com__containerd__containerd__images",
-        ":github.com__containerd__containerd__log",
-        ":github.com__containerd__containerd__remotes",
-        ":github.com__deislabs__oras__pkg__artifact",
-        ":github.com__deislabs__oras__pkg__content",
-        ":github.com__opencontainers__go-digest",
-        ":github.com__opencontainers__image-spec__specs-go",
-        ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
-        ":golang.org__x__sync__errgroup",
-        ":golang.org__x__sync__semaphore",
-    ],
 )
 
 go_mod_download(
@@ -2952,7 +2877,7 @@ go_mod_download(
     name = "github.com__docker__cli",
     _tag = "download",
     module = "github.com/docker/cli",
-    version = "v20.10.5+incompatible",
+    version = "v20.10.17+incompatible",
 )
 
 go_module(
@@ -3409,7 +3334,7 @@ go_mod_download(
     name = "github.com__docker__docker-credential-helpers",
     _tag = "download",
     module = "github.com/docker/docker-credential-helpers",
-    version = "v0.6.3",
+    version = "v0.6.4",
 )
 
 go_module(
@@ -3418,7 +3343,10 @@ go_module(
     install = ["client"],
     module = "github.com/docker/docker-credential-helpers",
     visibility = ["PUBLIC"],
-    deps = [":github.com__docker__docker-credential-helpers__credentials"],
+    deps = [
+        ":github.com__docker__docker-credential-helpers__credentials",
+        ":golang.org__x__sys__execabs",
+    ],
 )
 
 go_module(
@@ -3459,7 +3387,7 @@ go_mod_download(
     name = "github.com__docker__go-metrics",
     _tag = "download",
     module = "github.com/docker/go-metrics",
-    version = "v0.0.0-20180209012529-399ea8c73916",
+    version = "v0.0.1",
 )
 
 go_module(
@@ -3494,7 +3422,7 @@ go_mod_download(
     name = "github.com__evanphx__json-patch",
     _tag = "download",
     module = "github.com/evanphx/json-patch",
-    version = "v4.11.0+incompatible",
+    version = "v5.6.0+incompatible",
 )
 
 go_module(
@@ -3542,7 +3470,7 @@ go_mod_download(
     name = "github.com__fatih__color",
     _tag = "download",
     module = "github.com/fatih/color",
-    version = "v1.10.0",
+    version = "v1.13.0",
 )
 
 go_module(
@@ -3555,22 +3483,6 @@ go_module(
         ":github.com__mattn__go-colorable",
         ":github.com__mattn__go-isatty",
     ],
-)
-
-go_mod_download(
-    name = "github.com__form3tech-oss__jwt-go",
-    _tag = "download",
-    module = "github.com/form3tech-oss/jwt-go",
-    version = "v3.2.2+incompatible",
-)
-
-go_module(
-    name = "github.com__form3tech-oss__jwt-go",
-    download = ":_github.com__form3tech-oss__jwt-go#download",
-    install = ["."],
-    module = "github.com/form3tech-oss/jwt-go",
-    visibility = ["PUBLIC"],
-    deps = [],
 )
 
 go_mod_download(
@@ -3726,6 +3638,22 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__go-gorp__gorp__v3",
+    _tag = "download",
+    module = "github.com/go-gorp/gorp/v3",
+    version = "v3.0.2",
+)
+
+go_module(
+    name = "github.com__go-gorp__gorp__v3",
+    download = ":_github.com__go-gorp__gorp__v3#download",
+    install = ["."],
+    module = "github.com/go-gorp/gorp/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__go-kit__kit",
     _tag = "download",
     module = "github.com/go-kit/kit",
@@ -3852,7 +3780,7 @@ go_mod_download(
     name = "github.com__go-logr__logr",
     _tag = "download",
     module = "github.com/go-logr/logr",
-    version = "v0.4.0",
+    version = "v1.2.3",
 )
 
 go_module(
@@ -3868,7 +3796,7 @@ go_mod_download(
     name = "github.com__go-openapi__jsonpointer",
     _tag = "download",
     module = "github.com/go-openapi/jsonpointer",
-    version = "v0.19.3",
+    version = "v0.19.5",
 )
 
 go_module(
@@ -3884,7 +3812,7 @@ go_mod_download(
     name = "github.com__go-openapi__jsonreference",
     _tag = "download",
     module = "github.com/go-openapi/jsonreference",
-    version = "v0.19.3",
+    version = "v0.19.5",
 )
 
 go_module(
@@ -3923,7 +3851,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag",
     _tag = "download",
     module = "github.com/go-openapi/swag",
-    version = "v0.19.5",
+    version = "v0.19.14",
 )
 
 go_module(
@@ -4003,7 +3931,7 @@ go_mod_download(
     name = "github.com__go-sql-driver__mysql",
     _tag = "download",
     module = "github.com/go-sql-driver/mysql",
-    version = "v1.5.0",
+    version = "v1.6.0",
 )
 
 go_module(
@@ -4111,7 +4039,7 @@ go_mod_download(
     name = "github.com__gofrs__flock",
     _tag = "download",
     module = "github.com/gofrs/flock",
-    version = "v0.8.0",
+    version = "v0.8.1",
 )
 
 go_module(
@@ -4127,7 +4055,7 @@ go_mod_download(
     name = "github.com__gofrs__uuid",
     _tag = "download",
     module = "github.com/gofrs/uuid",
-    version = "v3.2.0+incompatible",
+    version = "v4.0.0+incompatible",
 )
 
 go_module(
@@ -4165,10 +4093,26 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__golang-jwt__jwt__v4",
+    _tag = "download",
+    module = "github.com/golang-jwt/jwt/v4",
+    version = "v4.2.0",
+)
+
+go_module(
+    name = "github.com__golang-jwt__jwt__v4",
+    download = ":_github.com__golang-jwt__jwt__v4#download",
+    install = ["."],
+    module = "github.com/golang-jwt/jwt/v4",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__golang__groupcache",
     _tag = "download",
     module = "github.com/golang/groupcache",
-    version = "v0.0.0-20200121045136-8c9f03a8e57e",
+    version = "v0.0.0-20210331224755-41bb18bfe9da",
 )
 
 go_module(
@@ -4184,7 +4128,7 @@ go_mod_download(
     name = "github.com__golang__mock",
     _tag = "download",
     module = "github.com/golang/mock",
-    version = "v1.5.0",
+    version = "v1.6.0",
 )
 
 go_module(
@@ -4280,7 +4224,7 @@ go_mod_download(
     name = "github.com__golang__snappy",
     _tag = "download",
     module = "github.com/golang/snappy",
-    version = "v0.0.1",
+    version = "v0.0.3",
 )
 
 go_module(
@@ -4296,7 +4240,7 @@ go_mod_download(
     name = "github.com__google__btree",
     _tag = "download",
     module = "github.com/google/btree",
-    version = "v1.0.0",
+    version = "v1.0.1",
 )
 
 go_module(
@@ -4309,10 +4253,86 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__google__gnostic",
+    _tag = "download",
+    module = "github.com/google/gnostic",
+    version = "v0.5.7-v3refs",
+)
+
+go_module(
+    name = "github.com__google__gnostic__compiler",
+    download = ":_github.com__google__gnostic#download",
+    install = ["compiler"],
+    module = "github.com/google/gnostic",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__golang__protobuf__proto",
+        ":github.com__golang__protobuf__ptypes__any",
+        ":github.com__google__gnostic__extensions",
+        ":github.com__google__gnostic__jsonschema",
+        ":gopkg.in__yaml.v3",
+    ],
+)
+
+go_module(
+    name = "github.com__google__gnostic__extensions",
+    download = ":_github.com__google__gnostic#download",
+    install = ["extensions"],
+    module = "github.com/google/gnostic",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__golang__protobuf__proto",
+        ":github.com__golang__protobuf__ptypes",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__anypb",
+    ],
+)
+
+go_module(
+    name = "github.com__google__gnostic__jsonschema",
+    download = ":_github.com__google__gnostic#download",
+    install = ["jsonschema"],
+    module = "github.com/google/gnostic",
+    visibility = ["PUBLIC"],
+    deps = [":gopkg.in__yaml.v3"],
+)
+
+go_module(
+    name = "github.com__google__gnostic__openapiv2",
+    download = ":_github.com__google__gnostic#download",
+    install = ["openapiv2"],
+    module = "github.com/google/gnostic",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__gnostic__compiler",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__anypb",
+        ":gopkg.in__yaml.v3",
+    ],
+)
+
+go_module(
+    name = "github.com__google__gnostic__openapiv3",
+    download = ":_github.com__google__gnostic#download",
+    install = ["openapiv3"],
+    module = "github.com/google/gnostic",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__google__gnostic__compiler",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__anypb",
+        ":gopkg.in__yaml.v3",
+    ],
+)
+
+go_mod_download(
     name = "github.com__google__go-cmp",
     _tag = "download",
     module = "github.com/google/go-cmp",
-    version = "v0.5.5",
+    version = "v0.5.8",
 )
 
 go_module(
@@ -4381,13 +4401,22 @@ go_mod_download(
     name = "github.com__google__gofuzz",
     _tag = "download",
     module = "github.com/google/gofuzz",
-    version = "v1.1.0",
+    version = "v1.2.0",
 )
 
 go_module(
     name = "github.com__google__gofuzz",
     download = ":_github.com__google__gofuzz#download",
     install = ["."],
+    module = "github.com/google/gofuzz",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__google__gofuzz__bytesource"],
+)
+
+go_module(
+    name = "github.com__google__gofuzz__bytesource",
+    download = ":_github.com__google__gofuzz#download",
+    install = ["bytesource"],
     module = "github.com/google/gofuzz",
     visibility = ["PUBLIC"],
     deps = [],
@@ -4413,7 +4442,7 @@ go_mod_download(
     name = "github.com__google__uuid",
     _tag = "download",
     module = "github.com/google/uuid",
-    version = "v1.1.2",
+    version = "v1.2.0",
 )
 
 go_module(
@@ -4429,7 +4458,7 @@ go_mod_download(
     name = "github.com__googleapis__gax-go__v2",
     _tag = "download",
     module = "github.com/googleapis/gax-go/v2",
-    version = "v2.0.5",
+    version = "v2.1.1",
 )
 
 go_module(
@@ -4439,9 +4468,39 @@ go_module(
     module = "github.com/googleapis/gax-go/v2",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__googleapis__gax-go__v2__apierror",
         ":google.golang.org__grpc",
         ":google.golang.org__grpc__codes",
         ":google.golang.org__grpc__status",
+    ],
+)
+
+go_module(
+    name = "github.com__googleapis__gax-go__v2__apierror",
+    download = ":_github.com__googleapis__gax-go__v2#download",
+    install = ["apierror"],
+    module = "github.com/googleapis/gax-go/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__googleapis__gax-go__v2__apierror__internal__proto",
+        ":google.golang.org__api__googleapi",
+        ":google.golang.org__genproto__googleapis__rpc__errdetails",
+        ":google.golang.org__grpc__status",
+        ":google.golang.org__protobuf__encoding__protojson",
+    ],
+)
+
+go_module(
+    name = "github.com__googleapis__gax-go__v2__apierror__internal__proto",
+    download = ":_github.com__googleapis__gax-go__v2#download",
+    install = ["apierror/internal/proto"],
+    module = "github.com/googleapis/gax-go/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genproto__googleapis__rpc__code",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__anypb",
     ],
 )
 
@@ -4637,7 +4696,7 @@ go_mod_download(
     name = "github.com__hashicorp__errwrap",
     _tag = "download",
     module = "github.com/hashicorp/errwrap",
-    version = "v1.0.0",
+    version = "v1.1.0",
 )
 
 go_module(
@@ -4685,7 +4744,7 @@ go_mod_download(
     name = "github.com__hashicorp__go-multierror",
     _tag = "download",
     module = "github.com/hashicorp/go-multierror",
-    version = "v1.0.0",
+    version = "v1.1.1",
 )
 
 go_module(
@@ -5219,7 +5278,7 @@ go_mod_download(
     name = "github.com__jmoiron__sqlx",
     _tag = "download",
     module = "github.com/jmoiron/sqlx",
-    version = "v1.3.1",
+    version = "v1.3.5",
 )
 
 go_module(
@@ -5273,10 +5332,26 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__josharian__intern",
+    _tag = "download",
+    module = "github.com/josharian/intern",
+    version = "v1.0.0",
+)
+
+go_module(
+    name = "github.com__josharian__intern",
+    download = ":_github.com__josharian__intern#download",
+    install = ["."],
+    module = "github.com/josharian/intern",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__json-iterator__go",
     _tag = "download",
     module = "github.com/json-iterator/go",
-    version = "v1.1.11",
+    version = "v1.1.12",
 )
 
 go_module(
@@ -5289,6 +5364,72 @@ go_module(
         ":github.com__modern-go__concurrent",
         ":github.com__modern-go__reflect2",
     ],
+)
+
+go_mod_download(
+    name = "github.com__klauspost__compress",
+    _tag = "download",
+    module = "github.com/klauspost/compress",
+    version = "v1.13.6",
+)
+
+go_module(
+    name = "github.com__klauspost__compress",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["."],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__fse",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["fse"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__huff0",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["huff0"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__klauspost__compress__fse"],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__internal__snapref",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["internal/snapref"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__zstd",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["zstd"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__klauspost__compress",
+        ":github.com__klauspost__compress__huff0",
+        ":github.com__klauspost__compress__internal__snapref",
+        ":github.com__klauspost__compress__zstd__internal__xxhash",
+    ],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__zstd__internal__xxhash",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["zstd/internal/xxhash"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -5381,7 +5522,7 @@ go_mod_download(
     name = "github.com__lib__pq",
     _tag = "download",
     module = "github.com/lib/pq",
-    version = "v1.10.0",
+    version = "v1.10.6",
 )
 
 go_module(
@@ -5475,7 +5616,7 @@ go_mod_download(
     name = "github.com__mailru__easyjson",
     _tag = "download",
     module = "github.com/mailru/easyjson",
-    version = "v0.7.0",
+    version = "v0.7.6",
 )
 
 go_module(
@@ -5493,7 +5634,7 @@ go_module(
     install = ["jlexer"],
     module = "github.com/mailru/easyjson",
     visibility = ["PUBLIC"],
-    deps = [],
+    deps = [":github.com__josharian__intern"],
 )
 
 go_module(
@@ -5509,7 +5650,7 @@ go_mod_download(
     name = "github.com__mattn__go-colorable",
     _tag = "download",
     module = "github.com/mattn/go-colorable",
-    version = "v0.1.8",
+    version = "v0.1.12",
 )
 
 go_module(
@@ -5541,7 +5682,7 @@ go_mod_download(
     name = "github.com__mattn__go-isatty",
     _tag = "download",
     module = "github.com/mattn/go-isatty",
-    version = "v0.0.12",
+    version = "v0.0.14",
 )
 
 go_module(
@@ -5557,7 +5698,7 @@ go_mod_download(
     name = "github.com__mattn__go-runewidth",
     _tag = "download",
     module = "github.com/mattn/go-runewidth",
-    version = "v0.0.7",
+    version = "v0.0.9",
 )
 
 go_module(
@@ -5634,7 +5775,7 @@ go_mod_download(
     name = "github.com__mitchellh__copystructure",
     _tag = "download",
     module = "github.com/mitchellh/copystructure",
-    version = "v1.1.1",
+    version = "v1.2.0",
 )
 
 go_module(
@@ -5714,7 +5855,7 @@ go_mod_download(
     name = "github.com__mitchellh__reflectwalk",
     _tag = "download",
     module = "github.com/mitchellh/reflectwalk",
-    version = "v1.0.1",
+    version = "v1.0.2",
 )
 
 go_module(
@@ -5722,6 +5863,22 @@ go_module(
     download = ":_github.com__mitchellh__reflectwalk#download",
     install = ["."],
     module = "github.com/mitchellh/reflectwalk",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__moby__locker",
+    _tag = "download",
+    module = "github.com/moby/locker",
+    version = "v1.0.1",
+)
+
+go_module(
+    name = "github.com__moby__locker",
+    download = ":_github.com__moby__locker#download",
+    install = ["."],
+    module = "github.com/moby/locker",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -5755,7 +5912,7 @@ go_mod_download(
     name = "github.com__moby__term",
     _tag = "download",
     module = "github.com/moby/term",
-    version = "v0.0.0-20201216013528-df9cb8a40635",
+    version = "v0.0.0-20210619224110-3f7ff695adc6",
 )
 
 go_module(
@@ -5787,7 +5944,7 @@ go_mod_download(
     name = "github.com__modern-go__reflect2",
     _tag = "download",
     module = "github.com/modern-go/reflect2",
-    version = "v1.0.1",
+    version = "v1.0.2",
 )
 
 go_module(
@@ -5796,7 +5953,7 @@ go_module(
     install = ["."],
     module = "github.com/modern-go/reflect2",
     visibility = ["PUBLIC"],
-    deps = [":github.com__modern-go__concurrent"],
+    deps = [],
 )
 
 go_mod_download(
@@ -5899,7 +6056,7 @@ go_mod_download(
     name = "github.com__onsi__gomega",
     _tag = "download",
     module = "github.com/onsi/gomega",
-    version = "v1.14.0",
+    version = "v1.19.0",
 )
 
 go_module(
@@ -5909,10 +6066,7 @@ go_module(
     module = "github.com/onsi/gomega",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__onsi__gomega__internal__assertion",
-        ":github.com__onsi__gomega__internal__asyncassertion",
-        ":github.com__onsi__gomega__internal__defaults",
-        ":github.com__onsi__gomega__internal__testingtsupport",
+        ":github.com__onsi__gomega__internal",
         ":github.com__onsi__gomega__matchers",
         ":github.com__onsi__gomega__types",
     ],
@@ -5946,55 +6100,26 @@ go_module(
         ":github.com__onsi__gomega",
         ":github.com__onsi__gomega__format",
         ":github.com__onsi__gomega__gbytes",
+        ":github.com__onsi__gomega__internal__gutil",
     ],
 )
 
 go_module(
-    name = "github.com__onsi__gomega__internal__assertion",
+    name = "github.com__onsi__gomega__internal",
     download = ":_github.com__onsi__gomega#download",
-    install = ["internal/assertion"],
+    install = ["internal"],
     module = "github.com/onsi/gomega",
     visibility = ["PUBLIC"],
     deps = [":github.com__onsi__gomega__types"],
 )
 
 go_module(
-    name = "github.com__onsi__gomega__internal__asyncassertion",
+    name = "github.com__onsi__gomega__internal__gutil",
     download = ":_github.com__onsi__gomega#download",
-    install = ["internal/asyncassertion"],
-    module = "github.com/onsi/gomega",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__onsi__gomega__internal__oraclematcher",
-        ":github.com__onsi__gomega__types",
-    ],
-)
-
-go_module(
-    name = "github.com__onsi__gomega__internal__defaults",
-    download = ":_github.com__onsi__gomega#download",
-    install = ["internal/defaults"],
+    install = ["internal/gutil"],
     module = "github.com/onsi/gomega",
     visibility = ["PUBLIC"],
     deps = [],
-)
-
-go_module(
-    name = "github.com__onsi__gomega__internal__oraclematcher",
-    download = ":_github.com__onsi__gomega#download",
-    install = ["internal/oraclematcher"],
-    module = "github.com/onsi/gomega",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__onsi__gomega__types"],
-)
-
-go_module(
-    name = "github.com__onsi__gomega__internal__testingtsupport",
-    download = ":_github.com__onsi__gomega#download",
-    install = ["internal/testingtsupport"],
-    module = "github.com/onsi/gomega",
-    visibility = ["PUBLIC"],
-    deps = [":github.com__onsi__gomega__types"],
 )
 
 go_module(
@@ -6005,7 +6130,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__onsi__gomega__format",
-        ":github.com__onsi__gomega__internal__oraclematcher",
+        ":github.com__onsi__gomega__internal__gutil",
         ":github.com__onsi__gomega__matchers__support__goraph__bipartitegraph",
         ":github.com__onsi__gomega__types",
         ":golang.org__x__net__html__charset",
@@ -6082,7 +6207,7 @@ go_mod_download(
     name = "github.com__opencontainers__image-spec",
     _tag = "download",
     module = "github.com/opencontainers/image-spec",
-    version = "v1.0.1",
+    version = "v1.0.3-0.20211202183452-c5a74bcca799",
 )
 
 go_module(
@@ -6322,7 +6447,7 @@ go_mod_download(
     name = "github.com__prometheus__client_golang",
     _tag = "download",
     module = "github.com/prometheus/client_golang",
-    version = "v1.11.0",
+    version = "v1.12.1",
 )
 
 go_module(
@@ -6335,12 +6460,12 @@ go_module(
         ":github.com__beorn7__perks__quantile",
         ":github.com__cespare__xxhash__v2",
         ":github.com__golang__protobuf__proto",
-        ":github.com__golang__protobuf__ptypes",
         ":github.com__prometheus__client_golang__prometheus__internal",
         ":github.com__prometheus__client_model__go",
         ":github.com__prometheus__common__expfmt",
         ":github.com__prometheus__common__model",
         ":github.com__prometheus__procfs",
+        ":google.golang.org__protobuf__types__known__timestamppb",
     ],
 )
 
@@ -6359,7 +6484,10 @@ go_module(
     install = ["prometheus/internal"],
     module = "github.com/prometheus/client_golang",
     visibility = ["PUBLIC"],
-    deps = [":github.com__prometheus__client_model__go"],
+    deps = [
+        ":github.com__prometheus__client_model__go",
+        ":github.com__prometheus__common__model",
+    ],
 )
 
 go_module(
@@ -6398,7 +6526,7 @@ go_mod_download(
     name = "github.com__prometheus__common",
     _tag = "download",
     module = "github.com/prometheus/common",
-    version = "v0.26.0",
+    version = "v0.32.1",
 )
 
 go_module(
@@ -6439,7 +6567,7 @@ go_mod_download(
     name = "github.com__prometheus__procfs",
     _tag = "download",
     module = "github.com/prometheus/procfs",
-    version = "v0.6.0",
+    version = "v0.7.3",
 )
 
 go_module(
@@ -6513,7 +6641,7 @@ go_mod_download(
     name = "github.com__rubenv__sql-migrate",
     _tag = "download",
     module = "github.com/rubenv/sql-migrate",
-    version = "v0.0.0-20200616145509-8d140a17f351",
+    version = "v1.1.2",
 )
 
 go_module(
@@ -6523,8 +6651,8 @@ go_module(
     module = "github.com/rubenv/sql-migrate",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__go-gorp__gorp__v3",
         ":github.com__rubenv__sql-migrate__sqlparse",
-        ":gopkg.in__gorp.v1",
     ],
 )
 
@@ -6756,7 +6884,7 @@ go_mod_download(
     name = "github.com__spf13__cast",
     _tag = "download",
     module = "github.com/spf13/cast",
-    version = "v1.3.1",
+    version = "v1.4.1",
 )
 
 go_module(
@@ -6772,7 +6900,7 @@ go_mod_download(
     name = "github.com__spf13__cobra",
     _tag = "download",
     module = "github.com/spf13/cobra",
-    version = "v1.1.3",
+    version = "v1.5.0",
 )
 
 go_module(
@@ -6820,7 +6948,7 @@ go_mod_download(
     name = "github.com__spf13__viper",
     _tag = "download",
     module = "github.com/spf13/viper",
-    version = "v1.8.0",
+    version = "v1.8.1",
 )
 
 go_module(
@@ -6850,7 +6978,7 @@ go_mod_download(
     name = "github.com__stretchr__objx",
     _tag = "download",
     module = "github.com/stretchr/objx",
-    version = "v0.2.0",
+    version = "v0.4.0",
 )
 
 go_module(
@@ -6866,7 +6994,7 @@ go_mod_download(
     name = "github.com__stretchr__testify",
     _tag = "download",
     module = "github.com/stretchr/testify",
-    version = "v1.7.0",
+    version = "v1.8.0",
 )
 
 go_module(
@@ -7951,7 +8079,7 @@ go_mod_download(
     name = "github.com__xlab__treeprint",
     _tag = "download",
     module = "github.com/xlab/treeprint",
-    version = "v0.0.0-20181112141820-a009c3971eca",
+    version = "v1.1.0",
 )
 
 go_module(
@@ -7961,6 +8089,25 @@ go_module(
     module = "github.com/xlab/treeprint",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "go.etcd.io__etcd__api__v3",
+    _tag = "download",
+    module = "go.etcd.io/etcd/api/v3",
+    version = "v3.5.4",
+)
+
+go_module(
+    name = "go.etcd.io__etcd__api__v3__v3rpc__rpctypes",
+    download = ":_go.etcd.io__etcd__api__v3#download",
+    install = ["v3rpc/rpctypes"],
+    module = "go.etcd.io/etcd/api/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__status",
+    ],
 )
 
 go_mod_download(
@@ -9280,7 +9427,7 @@ go_mod_download(
     name = "golang.org__x__crypto",
     _tag = "download",
     module = "golang.org/x/crypto",
-    version = "v0.0.0-20210220033148-5ea612d1eb83",
+    version = "v0.0.0-20220525230936-793ad666bf5e",
 )
 
 go_module(
@@ -9325,6 +9472,15 @@ go_module(
     install = ["curve25519"],
     module = "golang.org/x/crypto",
     visibility = ["PUBLIC"],
+    deps = [":golang.org__x__crypto__curve25519__internal__field"],
+)
+
+go_module(
+    name = "golang.org__x__crypto__curve25519__internal__field",
+    download = ":_golang.org__x__crypto#download",
+    install = ["curve25519/internal/field"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
     deps = [],
 )
 
@@ -9332,6 +9488,15 @@ go_module(
     name = "golang.org__x__crypto__ed25519",
     download = ":_golang.org__x__crypto#download",
     install = ["ed25519"],
+    module = "golang.org/x/crypto",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "golang.org__x__crypto__internal__poly1305",
+    download = ":_golang.org__x__crypto#download",
+    install = ["internal/poly1305"],
     module = "golang.org/x/crypto",
     visibility = ["PUBLIC"],
     deps = [],
@@ -9451,15 +9616,6 @@ go_module(
 )
 
 go_module(
-    name = "golang.org__x__crypto__poly1305",
-    download = ":_golang.org__x__crypto#download",
-    install = ["poly1305"],
-    module = "golang.org/x/crypto",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
     name = "golang.org__x__crypto__scrypt",
     download = ":_golang.org__x__crypto#download",
     install = ["scrypt"],
@@ -9478,7 +9634,7 @@ go_module(
         ":golang.org__x__crypto__chacha20",
         ":golang.org__x__crypto__curve25519",
         ":golang.org__x__crypto__ed25519",
-        ":golang.org__x__crypto__poly1305",
+        ":golang.org__x__crypto__internal__poly1305",
         ":golang.org__x__crypto__ssh__internal__bcrypt_pbkdf",
     ],
 )
@@ -9496,7 +9652,7 @@ go_mod_download(
     name = "golang.org__x__net",
     _tag = "download",
     module = "golang.org/x/net",
-    version = "v0.0.0-20211209124913-491a49abca63",
+    version = "v0.0.0-20220722155237-a158d28d115b",
 )
 
 go_module(
@@ -9680,7 +9836,7 @@ go_mod_download(
     name = "golang.org__x__oauth2",
     _tag = "download",
     module = "golang.org/x/oauth2",
-    version = "v0.0.0-20210402161424-2e8d93401602",
+    version = "v0.0.0-20211104180415-d3ed0bb246c8",
 )
 
 go_module(
@@ -9693,6 +9849,15 @@ go_module(
 )
 
 go_module(
+    name = "golang.org__x__oauth2__authhandler",
+    download = ":_golang.org__x__oauth2#download",
+    install = ["authhandler"],
+    module = "golang.org/x/oauth2",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__oauth2"],
+)
+
+go_module(
     name = "golang.org__x__oauth2__google",
     download = ":_golang.org__x__oauth2#download",
     install = ["google"],
@@ -9701,6 +9866,7 @@ go_module(
     deps = [
         ":cloud.google.com__go__compute__metadata",
         ":golang.org__x__oauth2",
+        ":golang.org__x__oauth2__authhandler",
         ":golang.org__x__oauth2__google__internal__externalaccount",
         ":golang.org__x__oauth2__internal",
         ":golang.org__x__oauth2__jws",
@@ -9752,7 +9918,7 @@ go_mod_download(
     name = "golang.org__x__sync",
     _tag = "download",
     module = "golang.org/x/sync",
-    version = "v0.0.0-20210220032951-036812b2e83c",
+    version = "v0.0.0-20220722155255-886fb9371eb4",
 )
 
 go_module(
@@ -9777,7 +9943,7 @@ go_mod_download(
     name = "golang.org__x__sys",
     _tag = "download",
     module = "golang.org/x/sys",
-    version = "v0.0.0-20210630005230-0f9fa26af87c",
+    version = "v0.0.0-20220722155257-8c9f86f7a55f",
 )
 
 go_module(
@@ -9811,7 +9977,7 @@ go_mod_download(
     name = "golang.org__x__term",
     _tag = "download",
     module = "golang.org/x/term",
-    version = "v0.0.0-20210220032956-6a3ed077a48d",
+    version = "v0.0.0-20210927222741-03fcf44c2211",
 )
 
 go_module(
@@ -9827,7 +9993,7 @@ go_mod_download(
     name = "golang.org__x__text",
     _tag = "download",
     module = "golang.org/x/text",
-    version = "v0.3.6",
+    version = "v0.3.7",
 )
 
 go_module(
@@ -10078,7 +10244,7 @@ go_mod_download(
     name = "golang.org__x__time",
     _tag = "download",
     module = "golang.org/x/time",
-    version = "v0.0.0-20210723032227-1f47c861a9ac",
+    version = "v0.0.0-20220210224613-90d013bbcef8",
 )
 
 go_module(
@@ -10086,6 +10252,31 @@ go_module(
     download = ":_golang.org__x__time#download",
     install = ["rate"],
     module = "golang.org/x/time",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "golang.org__x__xerrors",
+    _tag = "download",
+    module = "golang.org/x/xerrors",
+    version = "v0.0.0-20200804184101-5ec99f83aff1",
+)
+
+go_module(
+    name = "golang.org__x__xerrors",
+    download = ":_golang.org__x__xerrors#download",
+    install = ["."],
+    module = "golang.org/x/xerrors",
+    visibility = ["PUBLIC"],
+    deps = [":golang.org__x__xerrors__internal"],
+)
+
+go_module(
+    name = "golang.org__x__xerrors__internal",
+    download = ":_golang.org__x__xerrors#download",
+    install = ["internal"],
+    module = "golang.org/x/xerrors",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -10110,7 +10301,7 @@ go_mod_download(
     name = "google.golang.org__api",
     _tag = "download",
     module = "google.golang.org/api",
-    version = "v0.44.0",
+    version = "v0.61.0",
 )
 
 go_module(
@@ -10251,6 +10442,7 @@ go_module(
     module = "google.golang.org/api",
     visibility = ["PUBLIC"],
     deps = [
+        ":golang.org__x__oauth2__google",
         ":google.golang.org__api__internal",
         ":google.golang.org__api__option",
     ],
@@ -10329,6 +10521,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":go.opencensus.io__plugin__ochttp",
+        ":golang.org__x__net__http2",
         ":golang.org__x__oauth2",
         ":google.golang.org__api__googleapi__transport",
         ":google.golang.org__api__internal",
@@ -10367,7 +10560,7 @@ go_mod_download(
     name = "google.golang.org__genproto",
     _tag = "download",
     module = "google.golang.org/genproto",
-    version = "v0.0.0-20210602131652-f16073e35f0c",
+    version = "v0.0.0-20220502173005-c8bf987b8c21",
 )
 
 go_module(
@@ -10377,7 +10570,6 @@ go_module(
     module = "google.golang.org/genproto",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__golang__protobuf__proto",
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
         ":google.golang.org__protobuf__types__descriptorpb",
@@ -10391,7 +10583,6 @@ go_module(
     module = "google.golang.org/genproto",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__golang__protobuf__proto",
         ":google.golang.org__genproto__googleapis__api__annotations",
         ":google.golang.org__grpc",
         ":google.golang.org__grpc__codes",
@@ -10410,7 +10601,6 @@ go_module(
     module = "google.golang.org/genproto",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__golang__protobuf__proto",
         ":google.golang.org__genproto__googleapis__api__annotations",
         ":google.golang.org__genproto__googleapis__type__expr",
         ":google.golang.org__grpc",
@@ -10418,6 +10608,7 @@ go_module(
         ":google.golang.org__grpc__status",
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__fieldmaskpb",
     ],
 )
 
@@ -10428,9 +10619,21 @@ go_module(
     module = "google.golang.org/genproto",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__golang__protobuf__proto",
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__rpc__errdetails",
+    download = ":_google.golang.org__genproto#download",
+    install = ["googleapis/rpc/errdetails"],
+    module = "google.golang.org/genproto",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__known__durationpb",
     ],
 )
 
@@ -10441,7 +10644,6 @@ go_module(
     module = "google.golang.org/genproto",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__golang__protobuf__proto",
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
         ":google.golang.org__protobuf__types__known__anypb",
@@ -10455,7 +10657,6 @@ go_module(
     module = "google.golang.org/genproto",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__golang__protobuf__proto",
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
     ],
@@ -11113,7 +11314,30 @@ go_mod_download(
     name = "google.golang.org__protobuf",
     _tag = "download",
     module = "google.golang.org/protobuf",
-    version = "v1.26.0",
+    version = "v1.28.0",
+)
+
+go_module(
+    name = "google.golang.org__protobuf__encoding__protojson",
+    download = ":_google.golang.org__protobuf#download",
+    install = ["encoding/protojson"],
+    module = "google.golang.org/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__internal__encoding__json",
+        ":google.golang.org__protobuf__internal__encoding__messageset",
+        ":google.golang.org__protobuf__internal__errors",
+        ":google.golang.org__protobuf__internal__filedesc",
+        ":google.golang.org__protobuf__internal__flags",
+        ":google.golang.org__protobuf__internal__genid",
+        ":google.golang.org__protobuf__internal__order",
+        ":google.golang.org__protobuf__internal__pragma",
+        ":google.golang.org__protobuf__internal__set",
+        ":google.golang.org__protobuf__internal__strs",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__reflect__protoregistry",
+    ],
 )
 
 go_module(
@@ -11189,6 +11413,19 @@ go_module(
         ":google.golang.org__protobuf__internal__encoding__text",
         ":google.golang.org__protobuf__internal__errors",
         ":google.golang.org__protobuf__reflect__protoreflect",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__protobuf__internal__encoding__json",
+    download = ":_google.golang.org__protobuf#download",
+    install = ["internal/encoding/json"],
+    module = "google.golang.org/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__internal__detrand",
+        ":google.golang.org__protobuf__internal__errors",
+        ":google.golang.org__protobuf__internal__strs",
     ],
 )
 
@@ -11475,7 +11712,6 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":google.golang.org__protobuf__reflect__protoreflect",
-        ":google.golang.org__protobuf__runtime__protoiface",
         ":google.golang.org__protobuf__runtime__protoimpl",
     ],
 )
@@ -11507,6 +11743,19 @@ go_module(
 )
 
 go_module(
+    name = "google.golang.org__protobuf__types__known__fieldmaskpb",
+    download = ":_google.golang.org__protobuf#download",
+    install = ["types/known/fieldmaskpb"],
+    module = "google.golang.org/protobuf",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
+)
+
+go_module(
     name = "google.golang.org__protobuf__types__known__timestamppb",
     download = ":_google.golang.org__protobuf#download",
     install = ["types/known/timestamppb"],
@@ -11516,22 +11765,6 @@ go_module(
         ":google.golang.org__protobuf__reflect__protoreflect",
         ":google.golang.org__protobuf__runtime__protoimpl",
     ],
-)
-
-go_mod_download(
-    name = "gopkg.in__gorp.v1",
-    _tag = "download",
-    module = "gopkg.in/gorp.v1",
-    version = "v1.7.2",
-)
-
-go_module(
-    name = "gopkg.in__gorp.v1",
-    download = ":_gopkg.in__gorp.v1#download",
-    install = ["."],
-    module = "gopkg.in/gorp.v1",
-    visibility = ["PUBLIC"],
-    deps = [],
 )
 
 go_mod_download(
@@ -11653,7 +11886,7 @@ go_mod_download(
     name = "gopkg.in__yaml.v3",
     _tag = "download",
     module = "gopkg.in/yaml.v3",
-    version = "v3.0.0-20210107192922-496545a6307b",
+    version = "v3.0.1",
 )
 
 go_module(
@@ -11669,36 +11902,7 @@ go_mod_download(
     name = "helm.sh__helm__v3",
     _tag = "download",
     module = "helm.sh/helm/v3",
-    version = "v3.6.1",
-)
-
-go_module(
-    name = "helm.sh__helm__v3__internal__experimental__registry",
-    download = ":_helm.sh__helm__v3#download",
-    install = ["internal/experimental/registry"],
-    module = "helm.sh/helm/v3",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__containerd__containerd__content",
-        ":github.com__containerd__containerd__errdefs",
-        ":github.com__containerd__containerd__remotes",
-        ":github.com__deislabs__oras__pkg__auth",
-        ":github.com__deislabs__oras__pkg__auth__docker",
-        ":github.com__deislabs__oras__pkg__content",
-        ":github.com__deislabs__oras__pkg__context",
-        ":github.com__deislabs__oras__pkg__oras",
-        ":github.com__docker__go-units",
-        ":github.com__gosuri__uitable",
-        ":github.com__opencontainers__go-digest",
-        ":github.com__opencontainers__image-spec__specs-go",
-        ":github.com__opencontainers__image-spec__specs-go__v1",
-        ":github.com__pkg__errors",
-        ":github.com__sirupsen__logrus",
-        ":helm.sh__helm__v3__pkg__chart",
-        ":helm.sh__helm__v3__pkg__chart__loader",
-        ":helm.sh__helm__v3__pkg__chartutil",
-        ":helm.sh__helm__v3__pkg__helmpath",
-    ],
+    version = "v3.10.1",
 )
 
 go_module(
@@ -11730,9 +11934,9 @@ go_module(
         ":github.com__pkg__errors",
         ":helm.sh__helm__v3__pkg__chart",
         ":helm.sh__helm__v3__pkg__chart__loader",
-        ":helm.sh__helm__v3__pkg__gates",
         ":helm.sh__helm__v3__pkg__helmpath",
         ":helm.sh__helm__v3__pkg__provenance",
+        ":helm.sh__helm__v3__pkg__registry",
         ":helm.sh__helm__v3__pkg__repo",
     ],
 )
@@ -11810,7 +12014,6 @@ go_module(
         ":github.com__gosuri__uitable",
         ":github.com__pkg__errors",
         ":golang.org__x__term",
-        ":helm.sh__helm__v3__internal__experimental__registry",
         ":helm.sh__helm__v3__pkg__chart",
         ":helm.sh__helm__v3__pkg__chart__loader",
         ":helm.sh__helm__v3__pkg__chartutil",
@@ -11824,12 +12027,15 @@ go_module(
         ":helm.sh__helm__v3__pkg__lint__support",
         ":helm.sh__helm__v3__pkg__postrender",
         ":helm.sh__helm__v3__pkg__provenance",
+        ":helm.sh__helm__v3__pkg__pusher",
+        ":helm.sh__helm__v3__pkg__registry",
         ":helm.sh__helm__v3__pkg__release",
         ":helm.sh__helm__v3__pkg__releaseutil",
         ":helm.sh__helm__v3__pkg__repo",
         ":helm.sh__helm__v3__pkg__storage",
         ":helm.sh__helm__v3__pkg__storage__driver",
         ":helm.sh__helm__v3__pkg__time",
+        ":helm.sh__helm__v3__pkg__uploader",
         ":k8s.io__api__core__v1",
         ":k8s.io__apimachinery__pkg__api__errors",
         ":k8s.io__apimachinery__pkg__api__meta",
@@ -11906,6 +12112,7 @@ go_module(
         ":github.com__spf13__pflag",
         ":helm.sh__helm__v3__pkg__helmpath",
         ":k8s.io__cli-runtime__pkg__genericclioptions",
+        ":k8s.io__client-go__rest",
     ],
 )
 
@@ -11932,7 +12139,6 @@ go_module(
     deps = [
         ":github.com__Masterminds__semver__v3",
         ":github.com__pkg__errors",
-        ":helm.sh__helm__v3__internal__experimental__registry",
         ":helm.sh__helm__v3__internal__fileutil",
         ":helm.sh__helm__v3__internal__resolver",
         ":helm.sh__helm__v3__internal__third_party__dep__fs",
@@ -11943,6 +12149,7 @@ go_module(
         ":helm.sh__helm__v3__pkg__getter",
         ":helm.sh__helm__v3__pkg__helmpath",
         ":helm.sh__helm__v3__pkg__provenance",
+        ":helm.sh__helm__v3__pkg__registry",
         ":helm.sh__helm__v3__pkg__repo",
         ":sigs.k8s.io__yaml",
     ],
@@ -11972,15 +12179,6 @@ go_module(
 )
 
 go_module(
-    name = "helm.sh__helm__v3__pkg__gates",
-    download = ":_helm.sh__helm__v3#download",
-    install = ["pkg/gates"],
-    module = "helm.sh/helm/v3",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
     name = "helm.sh__helm__v3__pkg__getter",
     download = ":_helm.sh__helm__v3#download",
     install = ["pkg/getter"],
@@ -11988,12 +12186,12 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__pkg__errors",
-        ":helm.sh__helm__v3__internal__experimental__registry",
         ":helm.sh__helm__v3__internal__tlsutil",
         ":helm.sh__helm__v3__internal__urlutil",
         ":helm.sh__helm__v3__internal__version",
         ":helm.sh__helm__v3__pkg__cli",
         ":helm.sh__helm__v3__pkg__plugin",
+        ":helm.sh__helm__v3__pkg__registry",
     ],
 )
 
@@ -12027,6 +12225,8 @@ go_module(
     deps = [
         ":github.com__evanphx__json-patch",
         ":github.com__pkg__errors",
+        ":go.etcd.io__etcd__api__v3__v3rpc__rpctypes",
+        ":google.golang.org__grpc__codes",
         ":helm.sh__helm__v3__internal__third_party__k8s.io__kubernetes__deployment__util",
         ":k8s.io__api__apps__v1",
         ":k8s.io__api__apps__v1beta1",
@@ -12051,6 +12251,8 @@ go_module(
         ":k8s.io__apimachinery__pkg__watch",
         ":k8s.io__cli-runtime__pkg__genericclioptions",
         ":k8s.io__cli-runtime__pkg__resource",
+        ":k8s.io__client-go__discovery",
+        ":k8s.io__client-go__dynamic",
         ":k8s.io__client-go__kubernetes",
         ":k8s.io__client-go__kubernetes__scheme",
         ":k8s.io__client-go__tools__cache",
@@ -12162,6 +12364,47 @@ go_module(
 )
 
 go_module(
+    name = "helm.sh__helm__v3__pkg__pusher",
+    download = ":_helm.sh__helm__v3#download",
+    install = ["pkg/pusher"],
+    module = "helm.sh/helm/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":helm.sh__helm__v3__pkg__chart__loader",
+        ":helm.sh__helm__v3__pkg__cli",
+        ":helm.sh__helm__v3__pkg__registry",
+    ],
+)
+
+go_module(
+    name = "helm.sh__helm__v3__pkg__registry",
+    download = ":_helm.sh__helm__v3#download",
+    install = ["pkg/registry"],
+    module = "helm.sh/helm/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__Masterminds__semver__v3",
+        ":github.com__containerd__containerd__remotes",
+        ":github.com__opencontainers__image-spec__specs-go__v1",
+        ":github.com__pkg__errors",
+        ":github.com__sirupsen__logrus",
+        ":helm.sh__helm__v3__internal__version",
+        ":helm.sh__helm__v3__pkg__chart",
+        ":helm.sh__helm__v3__pkg__chart__loader",
+        ":helm.sh__helm__v3__pkg__helmpath",
+        ":oras.land__oras-go__pkg__auth",
+        ":oras.land__oras-go__pkg__auth__docker",
+        ":oras.land__oras-go__pkg__content",
+        ":oras.land__oras-go__pkg__context",
+        ":oras.land__oras-go__pkg__oras",
+        ":oras.land__oras-go__pkg__registry",
+        ":oras.land__oras-go__pkg__registry__remote",
+        ":oras.land__oras-go__pkg__registry__remote__auth",
+    ],
+)
+
+go_module(
     name = "helm.sh__helm__v3__pkg__release",
     download = ":_helm.sh__helm__v3#download",
     install = ["pkg/release"],
@@ -12262,6 +12505,19 @@ go_module(
     module = "helm.sh/helm/v3",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_module(
+    name = "helm.sh__helm__v3__pkg__uploader",
+    download = ":_helm.sh__helm__v3#download",
+    install = ["pkg/uploader"],
+    module = "helm.sh/helm/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":helm.sh__helm__v3__pkg__pusher",
+        ":helm.sh__helm__v3__pkg__registry",
+    ],
 )
 
 go_mod_download(
@@ -19098,7 +19354,7 @@ go_mod_download(
     name = "k8s.io__klog__v2",
     _tag = "download",
     module = "k8s.io/klog/v2",
-    version = "v2.9.0",
+    version = "v2.70.1",
 )
 
 go_module(
@@ -19107,14 +19363,66 @@ go_module(
     install = ["."],
     module = "k8s.io/klog/v2",
     visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-logr__logr",
+        ":k8s.io__klog__v2__internal__buffer",
+        ":k8s.io__klog__v2__internal__clock",
+        ":k8s.io__klog__v2__internal__dbg",
+        ":k8s.io__klog__v2__internal__serialize",
+        ":k8s.io__klog__v2__internal__severity",
+    ],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__buffer",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/buffer"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [":k8s.io__klog__v2__internal__severity"],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__clock",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/clock"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__dbg",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/dbg"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__serialize",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/serialize"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
     deps = [":github.com__go-logr__logr"],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__severity",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/severity"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
     name = "k8s.io__kube-openapi",
     _tag = "download",
     module = "k8s.io/kube-openapi",
-    version = "v0.0.0-20211110012726-3cc51fd1e909",
+    version = "v0.0.0-20220803162953-67bda5d908f1",
 )
 
 go_module(
@@ -19124,8 +19432,10 @@ go_module(
     module = "k8s.io/kube-openapi",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__googleapis__gnostic__openapiv2",
+        ":github.com__google__gnostic__openapiv2",
+        ":github.com__google__gnostic__openapiv3",
         ":gopkg.in__yaml.v2",
+        ":gopkg.in__yaml.v3",
     ],
 )
 
@@ -19136,6 +19446,19 @@ go_module(
     module = "k8s.io/kube-openapi",
     visibility = ["PUBLIC"],
     deps = [":k8s.io__kube-openapi__pkg__util__proto"],
+)
+
+go_module(
+    name = "k8s.io__kube-openapi__pkg__validation__spec",
+    download = ":_k8s.io__kube-openapi#download",
+    install = ["pkg/validation/spec"],
+    module = "k8s.io/kube-openapi",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__jsonreference",
+        ":github.com__go-openapi__swag",
+        ":github.com__google__gnostic__openapiv2",
+    ],
 )
 
 go_mod_download(
@@ -19562,7 +19885,7 @@ go_mod_download(
     name = "k8s.io__utils",
     _tag = "download",
     module = "k8s.io/utils",
-    version = "v0.0.0-20210722164352-7f3ee0f31471",
+    version = "v0.0.0-20220728103510-ee6ede2d64ed",
 )
 
 go_module(
@@ -19771,6 +20094,178 @@ go_module(
         ":logur.dev__logur",
         ":logur.dev__logur__conformance",
     ],
+)
+
+go_mod_download(
+    name = "oras.land__oras-go",
+    _tag = "download",
+    module = "oras.land/oras-go",
+    version = "v1.2.0",
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__artifact",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/artifact"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__auth",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/auth"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__containerd__containerd__remotes"],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__auth__docker",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/auth/docker"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__containerd__containerd__remotes",
+        ":github.com__containerd__containerd__remotes__docker",
+        ":github.com__docker__cli__cli__config",
+        ":github.com__docker__cli__cli__config__configfile",
+        ":github.com__docker__cli__cli__config__credentials",
+        ":github.com__docker__cli__cli__config__types",
+        ":github.com__docker__distribution__registry__api__errcode",
+        ":github.com__docker__distribution__registry__client__auth",
+        ":github.com__docker__distribution__registry__client__transport",
+        ":github.com__docker__docker__api__types",
+        ":github.com__docker__docker__errdefs",
+        ":github.com__docker__docker__registry",
+        ":github.com__docker__go-connections__tlsconfig",
+        ":github.com__pkg__errors",
+        ":github.com__sirupsen__logrus",
+        ":oras.land__oras-go__pkg__auth",
+    ],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__content",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/content"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__containerd__containerd__content",
+        ":github.com__containerd__containerd__content__local",
+        ":github.com__containerd__containerd__errdefs",
+        ":github.com__containerd__containerd__remotes",
+        ":github.com__containerd__containerd__remotes__docker",
+        ":github.com__opencontainers__go-digest",
+        ":github.com__opencontainers__image-spec__specs-go",
+        ":github.com__opencontainers__image-spec__specs-go__v1",
+        ":github.com__pkg__errors",
+        ":oras.land__oras-go__pkg__artifact",
+        ":oras.land__oras-go__pkg__auth__docker",
+    ],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__context",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/context"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__containerd__containerd__log",
+        ":github.com__sirupsen__logrus",
+    ],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__oras",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/oras"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__containerd__containerd__content",
+        ":github.com__containerd__containerd__errdefs",
+        ":github.com__containerd__containerd__images",
+        ":github.com__containerd__containerd__log",
+        ":github.com__containerd__containerd__remotes",
+        ":github.com__opencontainers__go-digest",
+        ":github.com__opencontainers__image-spec__specs-go__v1",
+        ":github.com__pkg__errors",
+        ":golang.org__x__sync__errgroup",
+        ":golang.org__x__sync__semaphore",
+        ":oras.land__oras-go__pkg__content",
+        ":oras.land__oras-go__pkg__target",
+    ],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__registry",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/registry"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__opencontainers__go-digest",
+        ":oras.land__oras-go__pkg__content",
+    ],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__registry__remote",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/registry/remote"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oras.land__oras-go__pkg__content",
+        ":oras.land__oras-go__pkg__registry",
+        ":oras.land__oras-go__pkg__registry__remote__auth",
+        ":oras.land__oras-go__pkg__registry__remote__internal__errutil",
+    ],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__registry__remote__auth",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/registry/remote/auth"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oras.land__oras-go__pkg__content",
+        ":oras.land__oras-go__pkg__registry__remote__internal__errutil",
+        ":oras.land__oras-go__pkg__registry__remote__internal__syncutil",
+    ],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__registry__remote__internal__errutil",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/registry/remote/internal/errutil"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__registry__remote__internal__syncutil",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/registry/remote/internal/syncutil"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "oras.land__oras-go__pkg__target",
+    download = ":_oras.land__oras-go#download",
+    install = ["pkg/target"],
+    module = "oras.land/oras-go",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__containerd__containerd__remotes"],
 )
 
 go_mod_download(
@@ -20441,35 +20936,7 @@ go_mod_download(
     name = "sigs.k8s.io__kustomize__api",
     _tag = "download",
     module = "sigs.k8s.io/kustomize/api",
-    version = "v0.8.8",
-)
-
-go_module(
-    name = "sigs.k8s.io__kustomize__api__builtins",
-    download = ":_sigs.k8s.io__kustomize__api#download",
-    install = ["builtins"],
-    module = "sigs.k8s.io/kustomize/api",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__evanphx__json-patch",
-        ":github.com__imdario__mergo",
-        ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__api__filters__annotations",
-        ":sigs.k8s.io__kustomize__api__filters__imagetag",
-        ":sigs.k8s.io__kustomize__api__filters__labels",
-        ":sigs.k8s.io__kustomize__api__filters__namespace",
-        ":sigs.k8s.io__kustomize__api__filters__patchjson6902",
-        ":sigs.k8s.io__kustomize__api__filters__prefixsuffix",
-        ":sigs.k8s.io__kustomize__api__filters__replicacount",
-        ":sigs.k8s.io__kustomize__api__filters__valueadd",
-        ":sigs.k8s.io__kustomize__api__ifc",
-        ":sigs.k8s.io__kustomize__api__kv",
-        ":sigs.k8s.io__kustomize__api__resid",
-        ":sigs.k8s.io__kustomize__api__resmap",
-        ":sigs.k8s.io__kustomize__api__resource",
-        ":sigs.k8s.io__kustomize__api__types",
-        ":sigs.k8s.io__yaml",
-    ],
+    version = "v0.12.1",
 )
 
 go_module(
@@ -20478,7 +20945,7 @@ go_module(
     install = ["filesys"],
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
-    deps = [":github.com__pkg__errors"],
+    deps = [":sigs.k8s.io__kustomize__kyaml__filesys"],
 )
 
 go_module(
@@ -20504,10 +20971,10 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":sigs.k8s.io__kustomize__api__filters__filtersutil",
-        ":sigs.k8s.io__kustomize__api__internal__utils",
-        ":sigs.k8s.io__kustomize__api__resid",
         ":sigs.k8s.io__kustomize__api__types",
         ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
+        ":sigs.k8s.io__kustomize__kyaml__utils",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
 )
@@ -20536,6 +21003,18 @@ go_module(
 )
 
 go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__iampolicygenerator",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/iampolicygenerator"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
     name = "sigs.k8s.io__kustomize__api__filters__imagetag",
     download = ":_sigs.k8s.io__kustomize__api#download",
     install = ["filters/imagetag"],
@@ -20545,7 +21024,9 @@ go_module(
         ":sigs.k8s.io__kustomize__api__filters__filtersutil",
         ":sigs.k8s.io__kustomize__api__filters__fsslice",
         ":sigs.k8s.io__kustomize__api__image",
+        ":sigs.k8s.io__kustomize__api__internal__utils",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
         ":sigs.k8s.io__kustomize__kyaml__kio",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
@@ -20575,11 +21056,11 @@ go_module(
     deps = [
         ":github.com__pkg__errors",
         ":sigs.k8s.io__kustomize__api__filters__fieldspec",
-        ":sigs.k8s.io__kustomize__api__resid",
         ":sigs.k8s.io__kustomize__api__resmap",
         ":sigs.k8s.io__kustomize__api__resource",
         ":sigs.k8s.io__kustomize__api__types",
         ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
 )
@@ -20591,11 +21072,12 @@ go_module(
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__api__filters__fieldspec",
         ":sigs.k8s.io__kustomize__api__filters__filtersutil",
         ":sigs.k8s.io__kustomize__api__filters__fsslice",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
         ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
 )
@@ -20628,9 +21110,9 @@ go_module(
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__api__filters__prefixsuffix",
+    name = "sigs.k8s.io__kustomize__api__filters__prefix",
     download = ":_sigs.k8s.io__kustomize__api#download",
-    install = ["filters/prefixsuffix"],
+    install = ["filters/prefix"],
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
@@ -20657,9 +21139,40 @@ go_module(
 )
 
 go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__replacement",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/replacement"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__internal__utils",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
+        ":sigs.k8s.io__kustomize__kyaml__utils",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
     name = "sigs.k8s.io__kustomize__api__filters__replicacount",
     download = ":_sigs.k8s.io__kustomize__api#download",
     install = ["filters/replicacount"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__api__filters__fieldspec",
+        ":sigs.k8s.io__kustomize__api__filters__filtersutil",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__filters__suffix",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["filters/suffix"],
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
@@ -20678,7 +21191,7 @@ go_module(
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
         ":sigs.k8s.io__kustomize__kyaml__kio",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
@@ -20721,17 +21234,51 @@ go_module(
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__go-openapi__spec",
         ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__api__filesys",
+        ":k8s.io__kube-openapi__pkg__validation__spec",
         ":sigs.k8s.io__kustomize__api__filters__nameref",
         ":sigs.k8s.io__kustomize__api__filters__refvar",
         ":sigs.k8s.io__kustomize__api__ifc",
         ":sigs.k8s.io__kustomize__api__internal__plugins__builtinconfig",
-        ":sigs.k8s.io__kustomize__api__resid",
         ":sigs.k8s.io__kustomize__api__resmap",
         ":sigs.k8s.io__kustomize__api__resource",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
+        ":sigs.k8s.io__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__api__internal__builtins",
+    download = ":_sigs.k8s.io__kustomize__api#download",
+    install = ["internal/builtins"],
+    module = "sigs.k8s.io/kustomize/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__evanphx__json-patch",
+        ":github.com__imdario__mergo",
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__filters__annotations",
+        ":sigs.k8s.io__kustomize__api__filters__iampolicygenerator",
+        ":sigs.k8s.io__kustomize__api__filters__imagetag",
+        ":sigs.k8s.io__kustomize__api__filters__labels",
+        ":sigs.k8s.io__kustomize__api__filters__namespace",
+        ":sigs.k8s.io__kustomize__api__filters__patchjson6902",
+        ":sigs.k8s.io__kustomize__api__filters__prefix",
+        ":sigs.k8s.io__kustomize__api__filters__replacement",
+        ":sigs.k8s.io__kustomize__api__filters__replicacount",
+        ":sigs.k8s.io__kustomize__api__filters__suffix",
+        ":sigs.k8s.io__kustomize__api__filters__valueadd",
+        ":sigs.k8s.io__kustomize__api__ifc",
+        ":sigs.k8s.io__kustomize__api__kv",
+        ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__resource",
+        ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__kio__kioutil",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
         ":sigs.k8s.io__yaml",
     ],
 )
@@ -20758,8 +21305,8 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__api__filesys",
         ":sigs.k8s.io__kustomize__api__internal__utils",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
     ],
 )
 
@@ -20781,8 +21328,8 @@ go_module(
     deps = [
         ":sigs.k8s.io__kustomize__api__ifc",
         ":sigs.k8s.io__kustomize__api__konfig__builtinpluginconsts",
-        ":sigs.k8s.io__kustomize__api__resid",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
         ":sigs.k8s.io__yaml",
     ],
 )
@@ -20794,7 +21341,7 @@ go_module(
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__api__builtins",
+        ":sigs.k8s.io__kustomize__api__internal__builtins",
         ":sigs.k8s.io__kustomize__api__resmap",
     ],
 )
@@ -20840,17 +21387,17 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__api__filesys",
         ":sigs.k8s.io__kustomize__api__ifc",
         ":sigs.k8s.io__kustomize__api__internal__plugins__builtinhelpers",
         ":sigs.k8s.io__kustomize__api__internal__plugins__execplugin",
         ":sigs.k8s.io__kustomize__api__internal__plugins__fnplugin",
         ":sigs.k8s.io__kustomize__api__internal__plugins__utils",
         ":sigs.k8s.io__kustomize__api__konfig",
-        ":sigs.k8s.io__kustomize__api__resid",
         ":sigs.k8s.io__kustomize__api__resmap",
         ":sigs.k8s.io__kustomize__api__resource",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
     ],
 )
 
@@ -20861,11 +21408,11 @@ go_module(
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__api__filesys",
         ":sigs.k8s.io__kustomize__api__konfig",
         ":sigs.k8s.io__kustomize__api__resmap",
         ":sigs.k8s.io__kustomize__api__resource",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
         ":sigs.k8s.io__yaml",
     ],
 )
@@ -20878,16 +21425,21 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__api__builtins",
         ":sigs.k8s.io__kustomize__api__ifc",
         ":sigs.k8s.io__kustomize__api__internal__accumulator",
+        ":sigs.k8s.io__kustomize__api__internal__builtins",
+        ":sigs.k8s.io__kustomize__api__internal__kusterr",
         ":sigs.k8s.io__kustomize__api__internal__plugins__builtinconfig",
         ":sigs.k8s.io__kustomize__api__internal__plugins__builtinhelpers",
         ":sigs.k8s.io__kustomize__api__internal__plugins__loader",
+        ":sigs.k8s.io__kustomize__api__internal__utils",
         ":sigs.k8s.io__kustomize__api__konfig",
+        ":sigs.k8s.io__kustomize__api__loader",
         ":sigs.k8s.io__kustomize__api__resmap",
+        ":sigs.k8s.io__kustomize__api__resource",
         ":sigs.k8s.io__kustomize__api__types",
         ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
         ":sigs.k8s.io__yaml",
     ],
 )
@@ -20898,7 +21450,12 @@ go_module(
     install = ["internal/utils"],
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
-    deps = [":github.com__pkg__errors"],
+    deps = [
+        ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__konfig",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
 )
 
 go_module(
@@ -20917,8 +21474,8 @@ go_module(
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__api__filesys",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
     ],
 )
 
@@ -20938,17 +21495,18 @@ go_module(
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__api__builtins",
-        ":sigs.k8s.io__kustomize__api__filesys",
+        ":sigs.k8s.io__kustomize__api__internal__builtins",
         ":sigs.k8s.io__kustomize__api__internal__plugins__builtinhelpers",
         ":sigs.k8s.io__kustomize__api__internal__plugins__loader",
         ":sigs.k8s.io__kustomize__api__internal__target",
+        ":sigs.k8s.io__kustomize__api__internal__utils",
         ":sigs.k8s.io__kustomize__api__konfig",
         ":sigs.k8s.io__kustomize__api__loader",
         ":sigs.k8s.io__kustomize__api__provenance",
         ":sigs.k8s.io__kustomize__api__provider",
         ":sigs.k8s.io__kustomize__api__resmap",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
         ":sigs.k8s.io__kustomize__kyaml__openapi",
     ],
 )
@@ -20973,9 +21531,10 @@ go_module(
     module = "sigs.k8s.io/kustomize/api",
     visibility = ["PUBLIC"],
     deps = [
-        ":sigs.k8s.io__kustomize__api__filesys",
         ":sigs.k8s.io__kustomize__api__ifc",
         ":sigs.k8s.io__kustomize__api__internal__git",
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
     ],
 )
 
@@ -21003,18 +21562,6 @@ go_module(
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__api__resid",
-    download = ":_sigs.k8s.io__kustomize__api#download",
-    install = ["resid"],
-    module = "sigs.k8s.io/kustomize/api",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":sigs.k8s.io__kustomize__kyaml__openapi",
-        ":sigs.k8s.io__kustomize__kyaml__yaml",
-    ],
-)
-
-go_module(
     name = "sigs.k8s.io__kustomize__api__resmap",
     download = ":_sigs.k8s.io__kustomize__api#download",
     install = ["resmap"],
@@ -21022,11 +21569,13 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__pkg__errors",
+        ":sigs.k8s.io__kustomize__api__filters__annotations",
         ":sigs.k8s.io__kustomize__api__ifc",
         ":sigs.k8s.io__kustomize__api__internal__kusterr",
-        ":sigs.k8s.io__kustomize__api__resid",
         ":sigs.k8s.io__kustomize__api__resource",
         ":sigs.k8s.io__kustomize__api__types",
+        ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
 )
@@ -21041,11 +21590,14 @@ go_module(
         ":sigs.k8s.io__kustomize__api__filters__patchstrategicmerge",
         ":sigs.k8s.io__kustomize__api__ifc",
         ":sigs.k8s.io__kustomize__api__internal__generators",
+        ":sigs.k8s.io__kustomize__api__internal__git",
         ":sigs.k8s.io__kustomize__api__internal__kusterr",
+        ":sigs.k8s.io__kustomize__api__internal__utils",
         ":sigs.k8s.io__kustomize__api__konfig",
-        ":sigs.k8s.io__kustomize__api__resid",
         ":sigs.k8s.io__kustomize__api__types",
         ":sigs.k8s.io__kustomize__kyaml__kio",
+        ":sigs.k8s.io__kustomize__kyaml__kio__kioutil",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
         ":sigs.k8s.io__yaml",
     ],
@@ -21059,7 +21611,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__pkg__errors",
-        ":sigs.k8s.io__kustomize__api__resid",
+        ":sigs.k8s.io__kustomize__kyaml__resid",
         ":sigs.k8s.io__yaml",
     ],
 )
@@ -21068,7 +21620,7 @@ go_mod_download(
     name = "sigs.k8s.io__kustomize__kyaml",
     _tag = "download",
     module = "sigs.k8s.io/kustomize/kyaml",
-    version = "v0.10.17",
+    version = "v0.13.9",
 )
 
 go_module(
@@ -21109,11 +21661,20 @@ go_module(
     module = "sigs.k8s.io/kustomize/kyaml",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__go-openapi__spec",
+        ":k8s.io__kube-openapi__pkg__validation__spec",
         ":sigs.k8s.io__kustomize__kyaml__errors",
         ":sigs.k8s.io__kustomize__kyaml__openapi",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__filesys",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["filesys"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__kustomize__kyaml__errors"],
 )
 
 go_module(
@@ -21123,6 +21684,7 @@ go_module(
     module = "sigs.k8s.io/kustomize/kyaml",
     visibility = ["PUBLIC"],
     deps = [
+        ":sigs.k8s.io__kustomize__kyaml__errors",
         ":sigs.k8s.io__kustomize__kyaml__fn__runtime__exec",
         ":sigs.k8s.io__kustomize__kyaml__fn__runtime__runtimeutil",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
@@ -21136,6 +21698,7 @@ go_module(
     module = "sigs.k8s.io/kustomize/kyaml",
     visibility = ["PUBLIC"],
     deps = [
+        ":sigs.k8s.io__kustomize__kyaml__errors",
         ":sigs.k8s.io__kustomize__kyaml__fn__runtime__runtimeutil",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
@@ -21152,6 +21715,7 @@ go_module(
         ":sigs.k8s.io__kustomize__kyaml__errors",
         ":sigs.k8s.io__kustomize__kyaml__kio",
         ":sigs.k8s.io__kustomize__kyaml__kio__kioutil",
+        ":sigs.k8s.io__kustomize__kyaml__order",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
     ],
 )
@@ -21175,6 +21739,15 @@ go_module(
 )
 
 go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__internal__forked__github.com__go-yaml__yaml",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["internal/forked/github.com/go-yaml/yaml"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "sigs.k8s.io__kustomize__kyaml__internal__forked__github.com__qri-io__starlib__util",
     download = ":_sigs.k8s.io__kustomize__kyaml#download",
     install = ["internal/forked/github.com/qri-io/starlib/util"],
@@ -21195,10 +21768,10 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__monochromegane__go-gitignore",
-        ":github.com__stretchr__testify__assert",
         ":github.com__xlab__treeprint",
         ":sigs.k8s.io__kustomize__kyaml__errors",
         ":sigs.k8s.io__kustomize__kyaml__ext",
+        ":sigs.k8s.io__kustomize__kyaml__filesys",
         ":sigs.k8s.io__kustomize__kyaml__kio__kioutil",
         ":sigs.k8s.io__kustomize__kyaml__sets",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
@@ -21240,11 +21813,14 @@ go_module(
     module = "sigs.k8s.io/kustomize/kyaml",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__go-openapi__spec",
+        ":github.com__google__gnostic__openapiv2",
+        ":google.golang.org__protobuf__proto",
+        ":k8s.io__kube-openapi__pkg__validation__spec",
         ":sigs.k8s.io__kustomize__kyaml__errors",
         ":sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi",
         ":sigs.k8s.io__kustomize__kyaml__openapi__kustomizationapi",
         ":sigs.k8s.io__kustomize__kyaml__yaml",
+        ":sigs.k8s.io__yaml",
     ],
 )
 
@@ -21254,13 +21830,13 @@ go_module(
     install = ["openapi/kubernetesapi"],
     module = "sigs.k8s.io/kustomize/kyaml",
     visibility = ["PUBLIC"],
-    deps = [":sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi__v1204"],
+    deps = [":sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi__v1212"],
 )
 
 go_module(
-    name = "sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi__v1204",
+    name = "sigs.k8s.io__kustomize__kyaml__openapi__kubernetesapi__v1212",
     download = ":_sigs.k8s.io__kustomize__kyaml#download",
-    install = ["openapi/kubernetesapi/v1204"],
+    install = ["openapi/kubernetesapi/v1212"],
     module = "sigs.k8s.io/kustomize/kyaml",
     visibility = ["PUBLIC"],
     deps = [],
@@ -21273,6 +21849,30 @@ go_module(
     module = "sigs.k8s.io/kustomize/kyaml",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__order",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["order"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__resid",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["resid"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__kustomize__kyaml__openapi",
+        ":sigs.k8s.io__kustomize__kyaml__yaml",
+    ],
 )
 
 go_module(
@@ -21303,6 +21903,24 @@ go_module(
 )
 
 go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__sliceutil",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["sliceutil"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "sigs.k8s.io__kustomize__kyaml__utils",
+    download = ":_sigs.k8s.io__kustomize__kyaml#download",
+    install = ["utils"],
+    module = "sigs.k8s.io/kustomize/kyaml",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "sigs.k8s.io__kustomize__kyaml__yaml",
     download = ":_sigs.k8s.io__kustomize__kyaml#download",
     install = ["yaml"],
@@ -21310,11 +21928,13 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__davecgh__go-spew__spew",
-        ":github.com__go-openapi__spec",
         ":gopkg.in__yaml.v2",
-        ":gopkg.in__yaml.v3",
+        ":k8s.io__kube-openapi__pkg__validation__spec",
         ":sigs.k8s.io__kustomize__kyaml__errors",
+        ":sigs.k8s.io__kustomize__kyaml__internal__forked__github.com__go-yaml__yaml",
         ":sigs.k8s.io__kustomize__kyaml__sets",
+        ":sigs.k8s.io__kustomize__kyaml__sliceutil",
+        ":sigs.k8s.io__kustomize__kyaml__utils",
         ":sigs.k8s.io__kustomize__kyaml__yaml__internal__k8sgen__pkg__labels",
     ],
 )
@@ -21438,7 +22058,7 @@ go_mod_download(
     name = "sigs.k8s.io__structured-merge-diff__v4",
     _tag = "download",
     module = "sigs.k8s.io/structured-merge-diff/v4",
-    version = "v4.2.1",
+    version = "v4.2.3",
 )
 
 go_module(
@@ -21534,7 +22154,7 @@ go_mod_download(
     name = "sigs.k8s.io__yaml",
     _tag = "download",
     module = "sigs.k8s.io/yaml",
-    version = "v1.2.0",
+    version = "v1.3.0",
 )
 
 go_module(
