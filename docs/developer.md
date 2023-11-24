@@ -168,22 +168,49 @@ If you need to access local anchore server, uncomment the related services in `d
 and restart the environment with `make start`.
 You can specify your own default Anchore policy bundle by adding a `json` file to the `config/anchore/policies` directory.
 
-#### Accessing Pipeline API from the cluster
+### Accessing Pipeline API from the cluster using Tunnelmole
 
-If you want to launch PKE clusters, you will need to ensure that the pke-tool running on the cluster will access the Pipeline API.
-In a development environment you can do this for example with the following
-[ngrok](https://ngrok.com/) command: `ngrok http https://localhost:9090` (HTTPS
-requires free registration).
+Tunnelmole is an open source tunneling tool that will generate a Public URL pointing to Pipeline API running on your local machine. You can find its source code on its [GitHub Page](https://github.com/robbie-cahill/tunnelmole-client). 
 
-You will also need to adjust the `pipeline.external.url` configuration value.
-In the `pipeline` section of `config/config.yaml` you can add the value like below:
+#### Tunnelmole Installation
+
+You can install Tunnelmole using one of the following options:
+
+- Using NPM:  `npm install -g tunnelmole`
+- On Linux: `curl -s https://tunnelmole.com/sh/install-linux.sh | sudo bash`
+- On Mac:  `curl -s https://tunnelmole.com/sh/install-mac.sh --output install-mac.sh && sudo bash install-mac.sh`
+- On Windows: If you don't have NodeJS installed, download the `exe` file for Windows [here](https://tunnelmole.com/downloads/tmole.exe) and put it somewhere in your PATH. If you have NodeJS installed, use NPM to install Tunnelmole.
+
+#### Using Tunnelmole
+
+Assuming Pipeline API is running on port 8000, Run `tmole 8000` (If not, change that number to the port number). You should get an output similar to the one below:
+
+```shell
+➜  ~ tmole 8000
+http://bvdo5f-ip-49-183-170-144.tunnelmole.net is forwarding to localhost:8000
+https://bvdo5f-ip-49-183-170-144.tunnelmole.net is forwarding to localhost:8000
+```
+
+After launching Tunnelmole, make sure to adjust the `pipeline.external.url` configuration value in the `pipeline` section of `config/config.yaml` accordingly:
+
+```yaml
+pipeline:
+    external:
+        # Base URL where the end users can reach this pipeline instance
+        url: "https://bvdo5f-ip-49-183-170-144.tunnelmole.net/pipeline"
+```
+
+### Accessing Pipeline API from the Cluster Using ngrok
+
+ngrok is a popular closed source tunneling tool that can be used to give the pke-tool running on your cluster access to the Pipeline API. You can use ngrok with the following command: `ngrok http https://localhost:9090` (HTTPS requires free registration).
+
+After launching ngrok, you will need to adjust the `pipeline.external.url` configuration value in the `pipeline` section of `config/config.yaml` accordingly:
 
 ```yaml
 pipeline:
     external:
         # Base URL where the end users can reach this pipeline instance
         url: "http://<YOUR_NGROK_NUMBER>.ngrok.io/pipeline"
-```
 
 #### Helm S3 repositories
 
